@@ -1,19 +1,34 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-01T14:38:28+00:00'
+updated_at: '2026-11-01T15:31:42+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-first-slice.md: ab07d75d2baa1b0cebad6974f472e6e0d5e9a6efb3a0f70a032582383aa283b5
-  .ai/knowledge/work/CFX-APP-first-slice-T01.md: 1adc1fe8996656635b5be5f2f7caa7a3cd955016c8ce83234ef3aae7521df45e
-  .ai/knowledge/work/CFX-APP-first-slice-T02.md: e15e438776490a3a2613ac8d8b2419b2eb17a21f0b13351820d72ad1f285922e
-  .ai/knowledge/work/CFX-APP-first-slice-T03.md: 401e96f9a15b08f1f8afc951c9d2848d2049d2c13d722120c29bacfca2903b62
+  .ai/knowledge/work/CFX-APP-first-slice-T01.md: c3faf04323b7b36bc00fc83b8b689c6eeb27cad7dddfb9c9cccb888e6a025699
+  .ai/knowledge/work/CFX-APP-first-slice-T02.md: 467e23b6482eb084b0da847351784f95fb9154bd36be6413ecda8da969e5f5c0
+  .ai/knowledge/work/CFX-APP-first-slice-T03.md: 0700b675df964167b76dd84b687649ba61e5548606cf68820a324eceb5549315
   .ai/knowledge/work/CFX-APP-first-slice-T04.md: d0e43fab7c067fde44d891c6cf45754724b480dc424824f98b347d7245d20cdb
   .ai/knowledge/work/CFX-APP-first-slice-T05.md: cbb03d1c59f43acc71093908c412b9f16c28d6287ed398bb80931b1962fdb500
   .ai/knowledge/work/CFX-APP-first-slice-T06.md: 6a1e2fad3d012a8f34ce790efb7eb25428073da3fc909b61deb3597261032f7b
   .ai/knowledge/work/CFX-APP-first-slice-T07.md: 75e851a031963a9a9c2d8deeaa144df1e5981f381af4e7245a39d032e3c10b8e
   .ai/knowledge/work/CFX-APP-first-slice-T08.md: 747681b58723735980e76caa5eed52ed76487c33768588c30f54ce88ba10d3f4
   .ai/knowledge/work/CFX-APP-first-slice-T09.md: da875fe42594a1e7664f8937e38440c36bb3d67316649311359c18295e4a2305
-  .ai/knowledge/work/CFX-APP-first-slice-T10.md: d6501a1374a22486887642e87c3d130eb57ff969bb2cc332a2fe17e240269a71
+  .ai/knowledge/work/CFX-APP-first-slice-T10.md: 2c0a151176c6ac91ce8a583f577e99e639e46437f1677c4486ded9ae3e4cc402
+  apps/local-api/local_api/app.py: 714e4d9be4ac16018b83f060365371b0bccdc07a447d1c08d4584f7b30db94c9
+  apps/local-api/local_api/binding.py: 2611a2c17106768394fe6322ea524d43e29e3771c50eed1b84c92781dbebfd39
+  apps/local-api/local_api/cli.py: 58112942e93bae9c97976f9ce27efe64ae39cd8f0c0fb7c71a44a25b2bf0fe9d
+  apps/web/package.json: 243758585a31d5af7bf747a89d7e737c7f568f2c5e3b47976a0603c74a424b72
+  apps/web/pnpm-lock.yaml: be5df30d85d629431c51cac8417bb3c954d40d393191171c3e49a46f5cf012d1
+  apps/web/src/App.test.tsx: 71fe03cd617aee1111dc042fa7b0a514f2ab26a21e386b535ab226732f8acb7e
+  apps/web/src/App.tsx: f6d5df89d501135bb9fdf6ac58a4e5a74f121e444d137bee2035cb81b8a89380
+  apps/web/src/main.tsx: b418f728512d7a3d4c10bcc37f0b3f3d3a80be1f2a20eccd1874596aa4517ff0
+  apps/web/tsconfig.json: 8b8ab93b1b81571023c944b1b2e63a912ec4c5841d7326b3f6462615e59089b2
+  pyproject.toml: 8f417b3725348d1a62da1dd894c18e903b83d9076012b17f38eb4932c5a7720e
+  tests/integration/conftest.py: 9905fcfcfc259dc139eb8b5b9abd7c6d2f745ef3ce8bc2f312866b2a8a5e4a82
+  tests/integration/test_binding.py: 79eeb61ddbb635cafec5bbf4a570033e5c418aa09dc2adde55afb539a85bd0e7
+  tests/integration/test_launch.py: 7b2469deea90544f31a9375a3d3e99c2d9f7623fb04d23bca9306e1aa0b50cd2
+  tests/integration/test_lockfiles.py: d04c655bbf0d73a55efca921996aaed96a943010384addf630418228a82fd4d2
+  uv.lock: 633632b21945063531298af2792f7633fa6cf32fbbf2cdc5730e781eb82ead9a
 nodes:
 - id: criterion:CFX-APP-first-slice/AC-01
   kind: criterion
@@ -352,6 +367,49 @@ nodes:
   lifecycle: approved
   owner: conflux-web
   reference: false
+- id: module:apps/local-api/local_api/app.py
+  kind: module
+  evidence:
+  - apps/local-api/local_api/app.py:1
+- id: module:apps/local-api/local_api/binding.py
+  kind: module
+  evidence:
+  - apps/local-api/local_api/binding.py:1
+- id: module:apps/local-api/local_api/cli.py
+  kind: module
+  evidence:
+  - apps/local-api/local_api/cli.py:1
+- id: module:apps/web/src/App.test.tsx
+  kind: module
+  evidence:
+  - apps/web/src/App.test.tsx:1
+- id: module:apps/web/src/App.tsx
+  kind: module
+  evidence:
+  - apps/web/src/App.tsx:1
+- id: module:apps/web/src/main.tsx
+  kind: module
+  evidence:
+  - apps/web/src/main.tsx:1
+- id: module:tests/integration/conftest.py
+  kind: module
+  evidence:
+  - tests/integration/conftest.py:1
+- id: module:tests/integration/test_binding.py
+  kind: module
+  evidence:
+  - tests/integration/test_binding.py:1
+- id: module:tests/integration/test_launch.py
+  kind: module
+  evidence:
+  - tests/integration/test_launch.py:1
+- id: module:tests/integration/test_lockfiles.py
+  kind: module
+  evidence:
+  - tests/integration/test_lockfiles.py:1
+- id: project
+  kind: project
+  evidence: []
 - id: story:CFX-APP-first-slice/US-01
   kind: story
   evidence:
@@ -397,26 +455,62 @@ nodes:
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
   title: As a developer, install, build, test and check the project from locked dependencies
+- id: tech:framework:fastapi
+  kind: technology
+  evidence:
+  - pyproject.toml
+- id: tech:framework:react
+  kind: technology
+  evidence:
+  - apps/web/package.json
+- id: tech:language:javascript
+  kind: technology
+  evidence:
+  - apps/web/package.json
+- id: tech:language:python
+  kind: technology
+  evidence:
+  - pyproject.toml
+- id: tech:language:typescript
+  kind: technology
+  evidence:
+  - apps/web/tsconfig.json
+- id: tech:pm:pnpm
+  kind: technology
+  evidence:
+  - apps/web/pnpm-lock.yaml
+- id: tech:pm:uv
+  kind: technology
+  evidence:
+  - uv.lock
+- id: tech:testing:pytest
+  kind: technology
+  evidence:
+  - pyproject.toml
+- id: tech:testing:vitest
+  kind: technology
+  evidence:
+  - apps/web/package.json
 - id: ticket:CFX-APP-first-slice-T01
   kind: ticket
   evidence:
   - .ai/knowledge/work/CFX-APP-first-slice-T01.md
   title: Installable runtime serves a page
-  state: ready
+  state: done
   external_key: null
 - id: ticket:CFX-APP-first-slice-T02
   kind: ticket
   evidence:
   - .ai/knowledge/work/CFX-APP-first-slice-T02.md
   title: Session protection
-  state: blocked
+  state: ready
   external_key: null
 - id: ticket:CFX-APP-first-slice-T03
   kind: ticket
   evidence:
   - .ai/knowledge/work/CFX-APP-first-slice-T03.md
   title: Workspace opens safely
-  state: blocked
+  state: ready
   external_key: null
 - id: ticket:CFX-APP-first-slice-T04
   kind: ticket
@@ -846,6 +940,108 @@ edges:
   status: CONFIRMED
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: module:apps/local-api/local_api/cli.py
+  rel: imports
+  to: module:apps/local-api/local_api/app.py
+  status: CONFIRMED
+  evidence:
+  - apps/local-api/local_api/cli.py:7
+- from: module:apps/local-api/local_api/cli.py
+  rel: imports
+  to: module:apps/local-api/local_api/binding.py
+  status: CONFIRMED
+  evidence:
+  - apps/local-api/local_api/cli.py:8
+- from: module:apps/web/src/App.test.tsx
+  rel: imports
+  to: module:apps/web/src/App.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/App.test.tsx:2
+- from: module:apps/web/src/main.tsx
+  rel: imports
+  to: module:apps/web/src/App.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/main.tsx:3
+- from: module:tests/integration/test_binding.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-07
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_binding.py:1
+- from: module:tests/integration/test_launch.py
+  rel: imports
+  to: module:tests/integration/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_launch.py:10
+- from: module:tests/integration/test_launch.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-05
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_launch.py:1
+- from: module:tests/integration/test_lockfiles.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-50
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_lockfiles.py:1
+- from: project
+  rel: uses
+  to: tech:framework:fastapi
+  status: CONFIRMED
+  evidence:
+  - pyproject.toml
+- from: project
+  rel: uses
+  to: tech:framework:react
+  status: CONFIRMED
+  evidence:
+  - apps/web/package.json
+- from: project
+  rel: uses
+  to: tech:language:javascript
+  status: CONFIRMED
+  evidence:
+  - apps/web/package.json
+- from: project
+  rel: uses
+  to: tech:language:python
+  status: CONFIRMED
+  evidence:
+  - pyproject.toml
+- from: project
+  rel: uses
+  to: tech:language:typescript
+  status: CONFIRMED
+  evidence:
+  - apps/web/tsconfig.json
+- from: project
+  rel: uses
+  to: tech:pm:pnpm
+  status: CONFIRMED
+  evidence:
+  - apps/web/pnpm-lock.yaml
+- from: project
+  rel: uses
+  to: tech:pm:uv
+  status: CONFIRMED
+  evidence:
+  - uv.lock
+- from: project
+  rel: uses
+  to: tech:testing:pytest
+  status: CONFIRMED
+  evidence:
+  - pyproject.toml
+- from: project
+  rel: uses
+  to: tech:testing:vitest
+  status: CONFIRMED
+  evidence:
+  - apps/web/package.json
 - from: ticket:CFX-APP-first-slice-T01
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-05

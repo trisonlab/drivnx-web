@@ -23,3 +23,7 @@ The whole journey passes against the installed wheel, the CI configuration exist
 
 ## Expected evidence
 Playwright journey against the wheel. Measured figures for the 1 GB CSV, an automated accessibility check, and a final spike 6 run. CI, macOS and Windows reported as NOT RUN until they can run.
+
+## From the T01 review
+- `uv build --wheel` succeeds with a missing or outdated UI bundle, and the wheel ships without it or with the old one. Reproduced in the T01 review. Provide one build command that builds the UI first and checks the result, and test it.
+- The wheel declares `fastapi>=` and `uvicorn>=`, so `uv tool install` and the test install can pick versions newer than `uv.lock`. Choose how released versions are pinned (Section 7 of the direction doc), and make the test install match it.

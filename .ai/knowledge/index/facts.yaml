@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-01T14:38:28+00:00'
+updated_at: '2026-11-01T15:31:42+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -35,34 +35,58 @@ facts:
     analysis path as local files (CSV, X'
   sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
 - id: framework:fastapi
-  status: INFERRED
-  source: requirements
-  evidence: ../docs/Conflux_Phase1_Development_Direction.md
-  line: 155
-  detail: 'mentioned: - Browser UI (React + TypeScript) ⇄ Local Runtime API (FastAPI) over HTTP/JSON.'
-  sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
+  status: CONFIRMED
+  evidence: pyproject.toml
+  detail: dependency 'fastapi'
+  sha256: 8f417b3725348d1a62da1dd894c18e903b83d9076012b17f38eb4932c5a7720e
+  source: detector
+  planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
 - id: framework:react
-  status: INFERRED
-  source: requirements
-  evidence: ../docs/Conflux_Phase1_Development_Direction.md
-  line: 155
-  detail: 'mentioned: - Browser UI (React + TypeScript) ⇄ Local Runtime API (FastAPI) over HTTP/JSON.'
-  sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
+  status: CONFIRMED
+  evidence: apps/web/package.json
+  detail: dependency 'react'
+  sha256: 243758585a31d5af7bf747a89d7e737c7f568f2c5e3b47976a0603c74a424b72
+  source: detector
+  planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
+- id: language:javascript
+  status: CONFIRMED
+  evidence: apps/web/package.json
+  sha256: 243758585a31d5af7bf747a89d7e737c7f568f2c5e3b47976a0603c74a424b72
+  source: detector
 - id: language:python
-  status: INFERRED
-  source: requirements
-  evidence: ../docs/Conflux_Phase1_Development_Direction.md
-  line: 51
-  detail: 'mentioned: | **Architecture** | Local Python runtime + browser UI. Deterministic profiling
-    and artifacts stay on the user''s machine'
-  sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
+  status: CONFIRMED
+  evidence: pyproject.toml
+  sha256: 8f417b3725348d1a62da1dd894c18e903b83d9076012b17f38eb4932c5a7720e
+  source: detector
+  planned_in: ../docs/Conflux_Phase1_Development_Direction.md:51
 - id: language:typescript
-  status: INFERRED
-  source: requirements
-  evidence: ../docs/Conflux_Phase1_Development_Direction.md
-  line: 155
-  detail: 'mentioned: - Browser UI (React + TypeScript) ⇄ Local Runtime API (FastAPI) over HTTP/JSON.'
-  sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
+  status: CONFIRMED
+  evidence: apps/web/tsconfig.json
+  sha256: 8b8ab93b1b81571023c944b1b2e63a912ec4c5841d7326b3f6462615e59089b2
+  source: detector
+  planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
+- id: pm:pnpm
+  status: CONFIRMED
+  evidence: apps/web/pnpm-lock.yaml
+  sha256: be5df30d85d629431c51cac8417bb3c954d40d393191171c3e49a46f5cf012d1
+  source: detector
+- id: pm:uv
+  status: CONFIRMED
+  evidence: uv.lock
+  sha256: 633632b21945063531298af2792f7633fa6cf32fbbf2cdc5730e781eb82ead9a
+  source: detector
+- id: testing:pytest
+  status: CONFIRMED
+  evidence: pyproject.toml
+  detail: dependency 'pytest'
+  sha256: 8f417b3725348d1a62da1dd894c18e903b83d9076012b17f38eb4932c5a7720e
+  source: detector
+- id: testing:vitest
+  status: CONFIRMED
+  evidence: apps/web/package.json
+  detail: dependency 'vitest'
+  sha256: 243758585a31d5af7bf747a89d7e737c7f568f2c5e3b47976a0603c74a424b72
+  source: detector
 - id: tool:docker
   status: INFERRED
   source: requirements

@@ -6,7 +6,7 @@ feature_revision: 1
 stories: [US-01, US-02, US-09]
 criteria: [AC-06, AC-08, AC-09, AC-10, AC-11, AC-12, AC-13, AC-52]
 blocked_by: [CFX-APP-first-slice-T01]
-state: blocked
+state: ready
 external_key: null
 status: CONFIRMED
 ---
@@ -28,3 +28,6 @@ The browser signs in with the launch code and holds the session in an `HttpOnly`
 
 ## Expected evidence
 Tests naming each criterion, including a check over every GET and HEAD route and a log capture. Record what spike 6 confirmed about accepted risk R1 in the threat register.
+
+## From the T01 review
+- On Linux with no display, a text browser such as `www-browser` receives the launch URL and the terminal prints nothing, so the user can't sign in. Reproduced in the T01 review. On Linux with no display, print the URL and don't try a browser, narrow ADR 0001 to say so, and add a test.
