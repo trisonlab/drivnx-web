@@ -1,0 +1,163 @@
+---
+id: CFX-APP-first-slice
+kind: feature
+title: "First vertical slice: runtime to CSV preview, on the M1 domain model"
+summary: "Start Conflux, set up a workspace in the browser, connect a CSV and see its metadata and a paginated preview, built on the full M1 domain model."
+owner: conflux-web
+lifecycle: approved
+revision: 1
+approved_revision: 1
+approval_evidence: "user approved revision 1 in chat, 2026-11-01 ('lets approve revision 1'); neutral ID prefix and a single place for the product name were offered and deferred"
+updated: "2026-11-01"
+related: []
+status: CONFIRMED
+---
+
+# First vertical slice: runtime to CSV preview, on the M1 domain model
+
+## Problem
+Nothing has been built yet. Before profiling depth is added, Conflux has to prove three things end to end: the local
+runtime and browser model, the security baseline, and the domain model (Section 12 of the direction doc). This slice
+covers M1 and the start of M2.
+
+Source of truth: `../docs/Conflux_Phase1_Development_Direction.md`, plus ADRs 0001, 0002 and 0003 in `docs/adr/`.
+
+## Scope
+In:
+- Runtime launcher, session handshake and request protection (ADR 0001).
+- Workspace creation, first-launch setup and reopening.
+- All M1 entities and trust-state rules, saved in SQLite (ADR 0002), including the contract rule model (ADR 0003).
+- Connecting a CSV by its path, automatic detection, a metadata scan and a paginated preview.
+- The app shell, with placeholders for what isn't built.
+- Python and frontend tooling with lockfiles, synthetic test data, and CI configuration.
+
+The review, dictionary and contract parts of the domain model have tests but no screens in this slice.
+
+## Assumptions
+- ASSUMPTION: Linux, macOS and Windows are all targets, but only Linux can be run during this work. The other two stay NOT RUN until CI can run them.
+- ASSUMPTION: the UI is English only.
+- ASSUMPTION: the look is plain, with the orange accent from `../docs/design-mocks/` and no design polish. The orange accent must stay distinct from the Inferred trust colour (orange / amber, Section 3).
+- ASSUMPTION: a preview page holds 50 rows, the API allows at most 200, and a preview cell shows at most 1,000 characters and is visibly marked when cut short.
+- ASSUMPTION: detection covers comma, semicolon, tab and pipe delimiters; UTF-8 (with or without a BOM), UTF-16 and Latin-1 encodings; and files with or without a header row. Files without a header get generated column names, shown as generated.
+- ASSUMPTION: connecting a path that is already a source in the workspace opens the existing source instead of adding a duplicate.
+- ASSUMPTION: the performance budgets under Non-functional are starting targets, to be confirmed by spike 1.
+- ASSUMPTION: the built screens meet WCAG 2.2 AA.
+
+## User Stories
+### US-01 — Start Conflux with one command and land in the app in my browser
+### US-02 — Know that other web pages and programs on my machine can't use my session through the browser
+### US-03 — Set up a workspace, and find it again as I left it
+### US-04 — Connect a CSV by giving its path
+### US-05 — See what Conflux found in the file without it reading every row
+### US-06 — Page through the file's rows without any of them being saved
+### US-07 — See the app's layout and my privacy state, and tell what isn't built yet
+### US-08 — Trust that review state and its history can't be corrupted or silently changed
+### US-09 — As a developer, install, build, test and check the project from locked dependencies
+
+## Decisions and Contracts
+Decided with the user in chat, 2026-11-01 ("go with your recommendations"):
+- **M1 breadth:** build all M1 entities and trust-state rules now, with the tests ADR 0002 lists.
+- **Choosing a CSV:** the user types or pastes the full path. A file browser comes later in M2, because a browser's own file picker doesn't reveal a file's real path.
+- **CSV depth:** detect and show the result. Correcting detection and column types comes later in M2.
+- **Metadata scan:** file name, size, modified date, columns and detected types are saved. Preview rows are never saved. No row count until profiling (M3).
+- **Deferred:** OS credential store (until M4 or M8, when something first stores a secret) and the Docker PostgreSQL fixture (M4).
+- **CI:** the configuration is written now. It stays NOT RUN until the repo has a remote, and the same checks run locally.
+
+Decided earlier, and binding here:
+- ADR 0001: `conflux [WORKSPACE_DIR] [--port N] [--no-browser]`, distribution `conflux-data`, one workspace per runtime, `~/Conflux/default` by default, launch code and `HttpOnly` cookie handshake.
+- ADR 0002: SQLite only, one transaction per domain operation, append-only history, DuckDB spill files inside the workspace.
+- ADR 0003: Conflux-native rules. A ContractRule can be Inferred, Confirmed or Defined, and only Defined rules are part of the contract. `Contract` has no `state`. ODCS export is M7.
+
+API for this slice, using the Section 12 outline as amended: `/api/session`, `/api/workspace`, `/api/sources`.
+
+## Acceptance Criteria
+- AC-01 (US-01): Given Conflux is installed and `~/Conflux/default` doesn't exist, when the user runs `conflux`, then that workspace is created, a browser opens on `http://127.0.0.1:<port>/`, the app loads signed in, and the launch code is gone from the address bar.
+- AC-02 (US-01): Given any directory that is new, empty, holds only `.conflux.lock`, or is already a workspace, when the user runs `conflux <dir>`, then Conflux opens it as that workspace.
+- AC-03 (US-01): Given a non-empty directory that isn't a workspace, when the user runs `conflux <dir>`, then Conflux exits with a message suggesting a subdirectory, adds no file, and leaves the directory's permissions unchanged.
+- AC-04 (US-01): Given a runtime has a workspace open, when a second runtime starts on it, then the second exits with a clear message. Given the first was killed with `SIGKILL`, when a new runtime starts, then it opens the workspace normally.
+- AC-05 (US-01): Given `--no-browser`, or a browser that fails to open, when Conflux starts, then it prints the launch URL to the terminal. Given `--port N`, then it listens on that port, and otherwise the OS picks a free port.
+- AC-06 (US-01): Given the runtime is running, when the user presses Ctrl+C, then it stops, and the previous session no longer works after a restart.
+- AC-07 (US-02): Given any bind address other than a loopback address, when the runtime tries to start on it, then it refuses.
+- AC-08 (US-02): Given a call to any `/api/*` route except `/api/session` without a valid session cookie, then the response is 401.
+- AC-09 (US-02): Given a call to any `/api/*` route, including `/api/session`, with a wrong Host, or a wrong Origin, or no Origin on a state-changing method, then the response is 403.
+- AC-10 (US-02): Given a launch code, when it is used a second time or more than 2 minutes after launch, then it is rejected.
+- AC-11 (US-02): Given a successful handshake, then the session cookie is `HttpOnly` and `SameSite=Strict` with `Path=/api`, and the token is in no URL or browser storage.
+- AC-12 (US-02): Given a full run of this slice's journey with logging at its most detailed, then the logs contain no session token, launch code or preview row values.
+- AC-13 (US-02): Given every GET and HEAD route under `/api`, when each is called, then no workspace data changes.
+- AC-14 (US-03): Given a newly created workspace, when the app first loads, then it shows the workspace's location and states that no credentials are stored in this slice, and asks for a name and an AI mode (off, external or local), with off selected.
+- AC-15 (US-03): Given setup is complete, when the runtime is restarted on the same directory, then the workspace's name, AI mode and sources are as they were, and setup isn't shown again.
+- AC-16 (US-03): Given any AI mode is selected, then no AI request is made, because AI arrives in M8.
+- AC-17 (US-03): Given a new workspace on Linux or macOS, then the directory has mode 0700 and `workspace.db` has mode 0600.
+- AC-18 (US-03): Given a workspace path under a known sync folder, when Conflux opens it, then it warns the user.
+- AC-19 (US-03): Given a workspace whose schema is older than the code, when it is opened, then a backup with mode 0600 is made and it migrates. Given a schema newer than the code, then opening is refused and the file is unchanged.
+- AC-20 (US-04): Given the path of a readable CSV, when the user connects it, then it appears as a source, and the file's contents and modified time are unchanged and no copy of it exists in the workspace.
+- AC-21 (US-04): Given a path that doesn't exist, is a directory, can't be read, or isn't parseable as CSV, when the user connects it, then a specific error says which, and no source is added.
+- AC-22 (US-04): Given each synthetic CSV covering the assumed delimiters, encodings and header cases, when it is connected, then the detected delimiter, encoding and header setting are correct and are shown to the user.
+- AC-23 (US-04): Given a source whose file has since moved or been deleted, when the workspace is reopened, then the source is listed as unavailable and the app keeps working.
+- AC-24 (US-05): Given a connected CSV, when its source is opened, then the Data Explorer shows it with its columns, and the app shows file name, size, modified date, and each column's name, detected type and original type text.
+- AC-25 (US-05): Given a connected CSV, then no row count is shown, and every value from the scan is labelled as metadata.
+- AC-26 (US-05): Given a connected CSV, then its Source, Dataset and Fields are in `workspace.db`, and a scan of the database finds no value from any data row.
+- AC-27 (US-06): Given a connected CSV, when the preview opens, then the first 50 rows appear, and next and previous show the adjacent pages, with no total page count. Next is disabled on the last page.
+- AC-28 (US-06): Given a request for more than 200 rows per page, then the API refuses or caps it to 200.
+- AC-29 (US-06): Given preview cells containing HTML or script text, then they are displayed as plain text and nothing runs. Given a cell longer than 1,000 characters, then it is cut and visibly marked.
+- AC-30 (US-06): Given preview pages have been viewed, then no row values are in `workspace.db` or its backups, and no files remain in `duckdb-tmp/` or the current directory after the job finishes.
+- AC-31 (US-06): Given a file changes or disappears between pages, when the next page is requested, then the user gets current data or a clear error, and never a crash.
+- AC-32 (US-07): Given the app is open, then it shows a header with workspace name, profile status, AI mode, privacy indicator and export, a left Data Explorer, centre tabs (Overview, Profile, Dictionary, Contract) and a right Intelligence & Review panel.
+- AC-33 (US-07): Given anything not yet built (profile status, export, the tabs and the right panel), then it is visibly marked as not available yet and has no working action.
+- AC-34 (US-07): Given AI mode is off, then the privacy indicator reads "Processing: Local · External AI: Off". Given another mode is selected, then the indicator shows that mode.
+- AC-35 (US-08): Given the M1 entities in Section 12, then each one can be created and read back from SQLite through the artifact service.
+- AC-36 (US-08): Given each allowed transition in Section 12, as amended by ADR 0003, then it succeeds and records a ProvenanceEvent in the same transaction. This covers New → Observed, Inferred or Confirmed; Inferred → Confirmed; Confirmed → Defined; edits; and both demotions.
+- AC-37 (US-08): Given an AI or system actor, when it tries Inferred → Confirmed or Defined, then the domain layer rejects it and nothing is written.
+- AC-38 (US-08): Given a user rejects or defers an item, then it stays Inferred and leaves the review inbox, the outcome is in provenance, and a deferred item can return to the inbox.
+- AC-39 (US-08): Given a newer completed profile run contradicts an item's evidence, then its state is unchanged and it is flagged "needs re-review" until a user reviews it again.
+- AC-40 (US-08): Given a failure halfway through a transition, then neither the state change nor its ProvenanceEvent is saved.
+- AC-41 (US-08): Given two concurrent Accepts on one item, then one succeeds and the other is rejected by the transition check, and neither gets `SQLITE_BUSY`. Given a profile run writing observations, then a review action finishes within `busy_timeout`.
+- AC-42 (US-08): Given the artifact service's full test suite, then it never updates or deletes observations, revisions or provenance rows, and a ProfileRun changes only its status and end time, once.
+- AC-43 (US-08): Given a run left `running` when the runtime stopped, when the next runtime starts, then it is marked `interrupted`, and findings ignore it.
+- AC-44 (US-08): Given a batch migration of a table with referencing rows, then those rows survive, and a foreign-key violation rolls the migration back.
+- AC-45 (US-08): Given a Defined rule, when it is demoted, then a Confirmed revision is written, the rule leaves the contract, a new contract version is created, and its history and provenance stay intact. Given a rule is deleted, then a tombstone revision is written and no rows are removed.
+- AC-46 (US-08): Given a slot already held by a Defined rule (ADR 0003 point 4), when a second rule is promoted into it, then it is rejected and nothing is written. Overlapping candidates are allowed, and changing a candidate creates no contract version.
+- AC-47 (US-08): Given a rule written directly, then it goes New → Confirmed → Defined in one transaction with both events recorded.
+- AC-48 (US-08): Given any completed test run of this slice, then a scan of `workspace.db` finds no credential-shaped value.
+- AC-49 (US-08): Given a DuckDB job, then it creates nothing in the current directory, its `temp_directory` is `<workspace>/duckdb-tmp/`, and leftovers there are removed at the next start.
+- AC-50 (US-09): Given a clean checkout, when dependencies are installed from the committed `uv` and `pnpm` lockfiles with frozen settings, then installation succeeds without changing a lockfile.
+- AC-51 (US-09): Given a built wheel, when it is installed with `uv tool install`, then the `conflux` command serves the bundled UI and API from one origin, and AC-01 passes against it.
+- AC-52 (US-09): Given the Vite dev server, then the browser uses the same cookie flow through its proxy, and the dev origin is allowed only with the dev flag.
+- AC-53 (US-09): Given the repo, then CI configuration runs pytest, Vitest, Playwright, secret scanning and dependency vulnerability checks. Each of those also runs locally with a documented command.
+- AC-54 (US-09): Given `testdata/`, then every file is synthetic and generated by a committed script or documented as hand-written.
+
+## Non-functional
+- **Security:** AC-07 to AC-13. Telemetry is off, and nothing leaves the machine in this slice.
+- **Performance (ASSUMPTION, confirm in spike 1):** on a 1 GB synthetic CSV on a development laptop, connecting and showing the metadata takes at most 5 seconds and the first preview page at most 2 seconds. Later pages may be slower, and the measured figures are recorded.
+- **Accessibility (ASSUMPTION):** built screens meet WCAG 2.2 AA, can be used by keyboard alone, and pass an automated check in Playwright.
+- **Compatibility:** Python 3.12, and current Chrome, Firefox, Edge and Safari. Only what can be run here is claimed as tested.
+
+## Verification
+- Each criterion is covered by a test that names its ID, such as `CFX-APP-first-slice/AC-01`.
+- pytest for domain, store and API; Vitest for components; Playwright for the journey in AC-01, AC-14, AC-20, AC-24 and AC-27 against the installed wheel.
+- Spike 6 (local browser security) uses AC-07 to AC-13, plus a manual check of accepted risk R1 in the threat register.
+- macOS, Windows and CI are reported as NOT RUN until they can run.
+
+## Dependencies
+- ADRs 0001, 0002 and 0003 (all Accepted).
+- Decision still needed before publishing, not before building: reserving `conflux-data` on PyPI.
+- A remote for this repo, needed only to run CI. The user has parked this for now.
+
+## Out of Scope
+Later in M2: XLSX and Parquet, a file browser, correcting detection and column types, Recent and Pinned tables.
+Later milestones: profiling, row counts and findings (M3), PostgreSQL and credentials (M4), overview (M5), dictionary screens (M6), contract editor and ODCS export (M7), AI (M8), and hardening (M9).
+Not planned for Phase 1: anything in the Section 1 scope boundary's right-hand column.
+
+## Open Questions
+None blocks approval.
+- **Where is "needs re-review" stored (AC-39)?** ADR 0002 makes history append-only, so it should be derived or recorded as an event, not set by updating a row. To settle in planning.
+- **What is `packages/contracts` for?** Left undefined in ADR 0003. To settle if this slice needs the folder, otherwise it stays empty.
+- **Rule for values copied from source data.** Due before M3 (R3 in the threat register). Not triggered here, because only metadata is saved.
+
+## Conflicts with Current System
+- **Section 12, "Secrets: OS credential store from day one":** deferred by the user's decision, 2026-11-01. The rule that secrets never go in SQLite, URLs, browser storage or logs still applies, and AC-48 tests it. Section 12 now carries a note saying so.
+- **Section 12, day-one checklist:** the Docker PostgreSQL fixture is deferred by the same decision. The "ADR template" item is not done, and the existing ADRs serve as the pattern.
+- **Section 5, CSV "user can correct inferred types":** deferred to later in M2, not dropped.
+
+## Revision History
+- Revision 1: Initial draft from the user's decisions on 2026-11-01. Approved by the user in chat, 2026-11-01.

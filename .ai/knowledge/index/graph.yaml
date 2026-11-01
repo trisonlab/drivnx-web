@@ -1,7 +1,1244 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-01T14:03:40+00:00'
+updated_at: '2026-11-01T14:38:28+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
-sources: {}
-nodes: []
-edges: []
+sources:
+  .ai/knowledge/requirements/CFX-APP-first-slice.md: ab07d75d2baa1b0cebad6974f472e6e0d5e9a6efb3a0f70a032582383aa283b5
+  .ai/knowledge/work/CFX-APP-first-slice-T01.md: 1adc1fe8996656635b5be5f2f7caa7a3cd955016c8ce83234ef3aae7521df45e
+  .ai/knowledge/work/CFX-APP-first-slice-T02.md: e15e438776490a3a2613ac8d8b2419b2eb17a21f0b13351820d72ad1f285922e
+  .ai/knowledge/work/CFX-APP-first-slice-T03.md: 401e96f9a15b08f1f8afc951c9d2848d2049d2c13d722120c29bacfca2903b62
+  .ai/knowledge/work/CFX-APP-first-slice-T04.md: d0e43fab7c067fde44d891c6cf45754724b480dc424824f98b347d7245d20cdb
+  .ai/knowledge/work/CFX-APP-first-slice-T05.md: cbb03d1c59f43acc71093908c412b9f16c28d6287ed398bb80931b1962fdb500
+  .ai/knowledge/work/CFX-APP-first-slice-T06.md: 6a1e2fad3d012a8f34ce790efb7eb25428073da3fc909b61deb3597261032f7b
+  .ai/knowledge/work/CFX-APP-first-slice-T07.md: 75e851a031963a9a9c2d8deeaa144df1e5981f381af4e7245a39d032e3c10b8e
+  .ai/knowledge/work/CFX-APP-first-slice-T08.md: 747681b58723735980e76caa5eed52ed76487c33768588c30f54ce88ba10d3f4
+  .ai/knowledge/work/CFX-APP-first-slice-T09.md: da875fe42594a1e7664f8937e38440c36bb3d67316649311359c18295e4a2305
+  .ai/knowledge/work/CFX-APP-first-slice-T10.md: d6501a1374a22486887642e87c3d130eb57ff969bb2cc332a2fe17e240269a71
+nodes:
+- id: criterion:CFX-APP-first-slice/AC-01
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: 'Given Conflux is installed and `~/Conflux/default` doesn''t exist, when the user runs `conflux`,
+    then that workspace is created, a browser opens on `http://127.0.0.1:<port>/`, the app loads signed
+    in, '
+- id: criterion:CFX-APP-first-slice/AC-02
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given any directory that is new, empty, holds only `.conflux.lock`, or is already a workspace,
+    when the user runs `conflux <dir>`, then Conflux opens it as that workspace.
+- id: criterion:CFX-APP-first-slice/AC-03
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a non-empty directory that isn't a workspace, when the user runs `conflux <dir>`, then Conflux
+    exits with a message suggesting a subdirectory, adds no file, and leaves the directory's permission
+- id: criterion:CFX-APP-first-slice/AC-04
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a runtime has a workspace open, when a second runtime starts on it, then the second exits
+    with a clear message. Given the first was killed with `SIGKILL`, when a new runtime starts, then it
+    open
+- id: criterion:CFX-APP-first-slice/AC-05
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: 'Given `--no-browser`, or a browser that fails to open, when Conflux starts, then it prints the
+    launch URL to the terminal. Given `--port N`, then it listens on that port, and otherwise the OS picks
+    a '
+- id: criterion:CFX-APP-first-slice/AC-06
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given the runtime is running, when the user presses Ctrl+C, then it stops, and the previous session
+    no longer works after a restart.
+- id: criterion:CFX-APP-first-slice/AC-07
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given any bind address other than a loopback address, when the runtime tries to start on it, then
+    it refuses.
+- id: criterion:CFX-APP-first-slice/AC-08
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a call to any `/api/*` route except `/api/session` without a valid session cookie, then
+    the response is 401.
+- id: criterion:CFX-APP-first-slice/AC-09
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a call to any `/api/*` route, including `/api/session`, with a wrong Host, or a wrong Origin,
+    or no Origin on a state-changing method, then the response is 403.
+- id: criterion:CFX-APP-first-slice/AC-10
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a launch code, when it is used a second time or more than 2 minutes after launch, then it
+    is rejected.
+- id: criterion:CFX-APP-first-slice/AC-11
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a successful handshake, then the session cookie is `HttpOnly` and `SameSite=Strict` with
+    `Path=/api`, and the token is in no URL or browser storage.
+- id: criterion:CFX-APP-first-slice/AC-12
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a full run of this slice's journey with logging at its most detailed, then the logs contain
+    no session token, launch code or preview row values.
+- id: criterion:CFX-APP-first-slice/AC-13
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given every GET and HEAD route under `/api`, when each is called, then no workspace data changes.
+- id: criterion:CFX-APP-first-slice/AC-14
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a newly created workspace, when the app first loads, then it shows the workspace's location
+    and states that no credentials are stored in this slice, and asks for a name and an AI mode (off,
+    exte
+- id: criterion:CFX-APP-first-slice/AC-15
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given setup is complete, when the runtime is restarted on the same directory, then the workspace's
+    name, AI mode and sources are as they were, and setup isn't shown again.
+- id: criterion:CFX-APP-first-slice/AC-16
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given any AI mode is selected, then no AI request is made, because AI arrives in M8.
+- id: criterion:CFX-APP-first-slice/AC-17
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a new workspace on Linux or macOS, then the directory has mode 0700 and `workspace.db` has
+    mode 0600.
+- id: criterion:CFX-APP-first-slice/AC-18
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a workspace path under a known sync folder, when Conflux opens it, then it warns the user.
+- id: criterion:CFX-APP-first-slice/AC-19
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a workspace whose schema is older than the code, when it is opened, then a backup with mode
+    0600 is made and it migrates. Given a schema newer than the code, then opening is refused and the
+    file
+- id: criterion:CFX-APP-first-slice/AC-20
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given the path of a readable CSV, when the user connects it, then it appears as a source, and
+    the file's contents and modified time are unchanged and no copy of it exists in the workspace.
+- id: criterion:CFX-APP-first-slice/AC-21
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a path that doesn't exist, is a directory, can't be read, or isn't parseable as CSV, when
+    the user connects it, then a specific error says which, and no source is added.
+- id: criterion:CFX-APP-first-slice/AC-22
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given each synthetic CSV covering the assumed delimiters, encodings and header cases, when it
+    is connected, then the detected delimiter, encoding and header setting are correct and are shown to
+    the us
+- id: criterion:CFX-APP-first-slice/AC-23
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a source whose file has since moved or been deleted, when the workspace is reopened, then
+    the source is listed as unavailable and the app keeps working.
+- id: criterion:CFX-APP-first-slice/AC-24
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a connected CSV, when its source is opened, then the Data Explorer shows it with its columns,
+    and the app shows file name, size, modified date, and each column's name, detected type and original
+- id: criterion:CFX-APP-first-slice/AC-25
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a connected CSV, then no row count is shown, and every value from the scan is labelled as
+    metadata.
+- id: criterion:CFX-APP-first-slice/AC-26
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a connected CSV, then its Source, Dataset and Fields are in `workspace.db`, and a scan of
+    the database finds no value from any data row.
+- id: criterion:CFX-APP-first-slice/AC-27
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a connected CSV, when the preview opens, then the first 50 rows appear, and next and previous
+    show the adjacent pages, with no total page count. Next is disabled on the last page.
+- id: criterion:CFX-APP-first-slice/AC-28
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a request for more than 200 rows per page, then the API refuses or caps it to 200.
+- id: criterion:CFX-APP-first-slice/AC-29
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given preview cells containing HTML or script text, then they are displayed as plain text and
+    nothing runs. Given a cell longer than 1,000 characters, then it is cut and visibly marked.
+- id: criterion:CFX-APP-first-slice/AC-30
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given preview pages have been viewed, then no row values are in `workspace.db` or its backups,
+    and no files remain in `duckdb-tmp/` or the current directory after the job finishes.
+- id: criterion:CFX-APP-first-slice/AC-31
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a file changes or disappears between pages, when the next page is requested, then the user
+    gets current data or a clear error, and never a crash.
+- id: criterion:CFX-APP-first-slice/AC-32
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given the app is open, then it shows a header with workspace name, profile status, AI mode, privacy
+    indicator and export, a left Data Explorer, centre tabs (Overview, Profile, Dictionary, Contract)
+    an
+- id: criterion:CFX-APP-first-slice/AC-33
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given anything not yet built (profile status, export, the tabs and the right panel), then it is
+    visibly marked as not available yet and has no working action.
+- id: criterion:CFX-APP-first-slice/AC-34
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: 'Given AI mode is off, then the privacy indicator reads "Processing: Local · External AI: Off".
+    Given another mode is selected, then the indicator shows that mode.'
+- id: criterion:CFX-APP-first-slice/AC-35
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given the M1 entities in Section 12, then each one can be created and read back from SQLite through
+    the artifact service.
+- id: criterion:CFX-APP-first-slice/AC-36
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given each allowed transition in Section 12, as amended by ADR 0003, then it succeeds and records
+    a ProvenanceEvent in the same transaction. This covers New → Observed, Inferred or Confirmed; Inferred
+- id: criterion:CFX-APP-first-slice/AC-37
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given an AI or system actor, when it tries Inferred → Confirmed or Defined, then the domain layer
+    rejects it and nothing is written.
+- id: criterion:CFX-APP-first-slice/AC-38
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a user rejects or defers an item, then it stays Inferred and leaves the review inbox, the
+    outcome is in provenance, and a deferred item can return to the inbox.
+- id: criterion:CFX-APP-first-slice/AC-39
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a newer completed profile run contradicts an item's evidence, then its state is unchanged
+    and it is flagged "needs re-review" until a user reviews it again.
+- id: criterion:CFX-APP-first-slice/AC-40
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a failure halfway through a transition, then neither the state change nor its ProvenanceEvent
+    is saved.
+- id: criterion:CFX-APP-first-slice/AC-41
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given two concurrent Accepts on one item, then one succeeds and the other is rejected by the transition
+    check, and neither gets `SQLITE_BUSY`. Given a profile run writing observations, then a review a
+- id: criterion:CFX-APP-first-slice/AC-42
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given the artifact service's full test suite, then it never updates or deletes observations, revisions
+    or provenance rows, and a ProfileRun changes only its status and end time, once.
+- id: criterion:CFX-APP-first-slice/AC-43
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a run left `running` when the runtime stopped, when the next runtime starts, then it is
+    marked `interrupted`, and findings ignore it.
+- id: criterion:CFX-APP-first-slice/AC-44
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a batch migration of a table with referencing rows, then those rows survive, and a foreign-key
+    violation rolls the migration back.
+- id: criterion:CFX-APP-first-slice/AC-45
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a Defined rule, when it is demoted, then a Confirmed revision is written, the rule leaves
+    the contract, a new contract version is created, and its history and provenance stay intact. Given
+    a rul
+- id: criterion:CFX-APP-first-slice/AC-46
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a slot already held by a Defined rule (ADR 0003 point 4), when a second rule is promoted
+    into it, then it is rejected and nothing is written. Overlapping candidates are allowed, and changing
+    a c
+- id: criterion:CFX-APP-first-slice/AC-47
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a rule written directly, then it goes New → Confirmed → Defined in one transaction with
+    both events recorded.
+- id: criterion:CFX-APP-first-slice/AC-48
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given any completed test run of this slice, then a scan of `workspace.db` finds no credential-shaped
+    value.
+- id: criterion:CFX-APP-first-slice/AC-49
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a DuckDB job, then it creates nothing in the current directory, its `temp_directory` is
+    `<workspace>/duckdb-tmp/`, and leftovers there are removed at the next start.
+- id: criterion:CFX-APP-first-slice/AC-50
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a clean checkout, when dependencies are installed from the committed `uv` and `pnpm` lockfiles
+    with frozen settings, then installation succeeds without changing a lockfile.
+- id: criterion:CFX-APP-first-slice/AC-51
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a built wheel, when it is installed with `uv tool install`, then the `conflux` command serves
+    the bundled UI and API from one origin, and AC-01 passes against it.
+- id: criterion:CFX-APP-first-slice/AC-52
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given the Vite dev server, then the browser uses the same cookie flow through its proxy, and the
+    dev origin is allowed only with the dev flag.
+- id: criterion:CFX-APP-first-slice/AC-53
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given the repo, then CI configuration runs pytest, Vitest, Playwright, secret scanning and dependency
+    vulnerability checks. Each of those also runs locally with a documented command.
+- id: criterion:CFX-APP-first-slice/AC-54
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given `testdata/`, then every file is synthetic and generated by a committed script or documented
+    as hand-written.
+- id: feature:CFX-APP-first-slice
+  kind: feature
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  title: 'First vertical slice: runtime to CSV preview, on the M1 domain model'
+  lifecycle: approved
+  owner: conflux-web
+  reference: false
+- id: story:CFX-APP-first-slice/US-01
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  title: Start Conflux with one command and land in the app in my browser
+- id: story:CFX-APP-first-slice/US-02
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  title: Know that other web pages and programs on my machine can't use my session through the browser
+- id: story:CFX-APP-first-slice/US-03
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  title: Set up a workspace, and find it again as I left it
+- id: story:CFX-APP-first-slice/US-04
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  title: Connect a CSV by giving its path
+- id: story:CFX-APP-first-slice/US-05
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  title: See what Conflux found in the file without it reading every row
+- id: story:CFX-APP-first-slice/US-06
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  title: Page through the file's rows without any of them being saved
+- id: story:CFX-APP-first-slice/US-07
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  title: See the app's layout and my privacy state, and tell what isn't built yet
+- id: story:CFX-APP-first-slice/US-08
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  title: Trust that review state and its history can't be corrupted or silently changed
+- id: story:CFX-APP-first-slice/US-09
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  title: As a developer, install, build, test and check the project from locked dependencies
+- id: ticket:CFX-APP-first-slice-T01
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T01.md
+  title: Installable runtime serves a page
+  state: ready
+  external_key: null
+- id: ticket:CFX-APP-first-slice-T02
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+  title: Session protection
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-first-slice-T03
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
+  title: Workspace opens safely
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-first-slice-T04
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+  title: Set up a workspace in the app shell
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-first-slice-T05
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+  title: Connect a CSV and see its metadata
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-first-slice-T06
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
+  title: Page through the rows
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-first-slice-T07
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+  title: Trust-state core
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-first-slice-T08
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T08.md
+  title: Profile runs and history rules
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-first-slice-T09
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T09.md
+  title: Contract rules
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-first-slice-T10
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
+  title: Full journey and project checks
+  state: blocked
+  external_key: null
+edges:
+- from: criterion:CFX-APP-first-slice/AC-01
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-02
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-03
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-04
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-05
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-06
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-07
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-08
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-09
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-10
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-11
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-12
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-13
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-14
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-15
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-16
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-17
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-18
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-19
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-20
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-21
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-22
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-23
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-24
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-25
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-26
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-27
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-28
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-29
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-30
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-31
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-32
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-33
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-34
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-35
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-36
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-37
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-38
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-39
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-40
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-41
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-42
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-43
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-44
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-45
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-46
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-47
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-48
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-49
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-50
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-51
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-52
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-53
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-54
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-first-slice
+  rel: has_story
+  to: story:CFX-APP-first-slice/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-first-slice
+  rel: has_story
+  to: story:CFX-APP-first-slice/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-first-slice
+  rel: has_story
+  to: story:CFX-APP-first-slice/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-first-slice
+  rel: has_story
+  to: story:CFX-APP-first-slice/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-first-slice
+  rel: has_story
+  to: story:CFX-APP-first-slice/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-first-slice
+  rel: has_story
+  to: story:CFX-APP-first-slice/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-first-slice
+  rel: has_story
+  to: story:CFX-APP-first-slice/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-first-slice
+  rel: has_story
+  to: story:CFX-APP-first-slice/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-first-slice
+  rel: has_story
+  to: story:CFX-APP-first-slice/US-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: ticket:CFX-APP-first-slice-T01
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T01.md
+- from: ticket:CFX-APP-first-slice-T01
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T01.md
+- from: ticket:CFX-APP-first-slice-T01
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-50
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T01.md
+- from: ticket:CFX-APP-first-slice-T02
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+- from: ticket:CFX-APP-first-slice-T02
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+- from: ticket:CFX-APP-first-slice-T02
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+- from: ticket:CFX-APP-first-slice-T02
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+- from: ticket:CFX-APP-first-slice-T02
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-10
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+- from: ticket:CFX-APP-first-slice-T02
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-11
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+- from: ticket:CFX-APP-first-slice-T02
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-12
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+- from: ticket:CFX-APP-first-slice-T02
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-13
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+- from: ticket:CFX-APP-first-slice-T02
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-52
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+- from: ticket:CFX-APP-first-slice-T03
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
+- from: ticket:CFX-APP-first-slice-T03
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
+- from: ticket:CFX-APP-first-slice-T03
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
+- from: ticket:CFX-APP-first-slice-T03
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
+- from: ticket:CFX-APP-first-slice-T03
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-17
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
+- from: ticket:CFX-APP-first-slice-T03
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-18
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
+- from: ticket:CFX-APP-first-slice-T03
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-19
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
+- from: ticket:CFX-APP-first-slice-T03
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-44
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
+- from: ticket:CFX-APP-first-slice-T04
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+- from: ticket:CFX-APP-first-slice-T04
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+- from: ticket:CFX-APP-first-slice-T04
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+- from: ticket:CFX-APP-first-slice-T04
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-14
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+- from: ticket:CFX-APP-first-slice-T04
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-15
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+- from: ticket:CFX-APP-first-slice-T04
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-16
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+- from: ticket:CFX-APP-first-slice-T04
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-32
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+- from: ticket:CFX-APP-first-slice-T04
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-33
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+- from: ticket:CFX-APP-first-slice-T04
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-34
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+- from: ticket:CFX-APP-first-slice-T05
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+- from: ticket:CFX-APP-first-slice-T05
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-20
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+- from: ticket:CFX-APP-first-slice-T05
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-21
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+- from: ticket:CFX-APP-first-slice-T05
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-22
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+- from: ticket:CFX-APP-first-slice-T05
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-23
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+- from: ticket:CFX-APP-first-slice-T05
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-24
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+- from: ticket:CFX-APP-first-slice-T05
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-25
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+- from: ticket:CFX-APP-first-slice-T05
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-26
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+- from: ticket:CFX-APP-first-slice-T05
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-49
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+- from: ticket:CFX-APP-first-slice-T06
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
+- from: ticket:CFX-APP-first-slice-T06
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-27
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
+- from: ticket:CFX-APP-first-slice-T06
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-28
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
+- from: ticket:CFX-APP-first-slice-T06
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-29
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
+- from: ticket:CFX-APP-first-slice-T06
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-30
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
+- from: ticket:CFX-APP-first-slice-T06
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-31
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
+- from: ticket:CFX-APP-first-slice-T07
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+- from: ticket:CFX-APP-first-slice-T07
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-35
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+- from: ticket:CFX-APP-first-slice-T07
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-36
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+- from: ticket:CFX-APP-first-slice-T07
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-37
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+- from: ticket:CFX-APP-first-slice-T07
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-38
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+- from: ticket:CFX-APP-first-slice-T07
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-40
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+- from: ticket:CFX-APP-first-slice-T07
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-41
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+- from: ticket:CFX-APP-first-slice-T07
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-48
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+- from: ticket:CFX-APP-first-slice-T08
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T08.md
+- from: ticket:CFX-APP-first-slice-T08
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-39
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T08.md
+- from: ticket:CFX-APP-first-slice-T08
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-42
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T08.md
+- from: ticket:CFX-APP-first-slice-T08
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-43
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T08.md
+- from: ticket:CFX-APP-first-slice-T09
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T09.md
+- from: ticket:CFX-APP-first-slice-T09
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-45
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T09.md
+- from: ticket:CFX-APP-first-slice-T09
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-46
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T09.md
+- from: ticket:CFX-APP-first-slice-T09
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-47
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T09.md
+- from: ticket:CFX-APP-first-slice-T10
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
+- from: ticket:CFX-APP-first-slice-T10
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
+- from: ticket:CFX-APP-first-slice-T10
+  rel: blocked_by
+  to: ticket:CFX-APP-first-slice-T09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
+- from: ticket:CFX-APP-first-slice-T10
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-51
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
+- from: ticket:CFX-APP-first-slice-T10
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-53
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
+- from: ticket:CFX-APP-first-slice-T10
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-54
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
