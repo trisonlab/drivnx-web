@@ -4,7 +4,7 @@ import shutil
 import socket
 import subprocess
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from queue import Empty, Queue
 from threading import Thread
@@ -50,14 +50,35 @@ def free_port() -> int:
         return probe.getsockname()[1]
 
 
+@pytest.fixture
+def unused_port(free_port: int) -> int:
+    """A second free port, for tests that need two."""
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    assert port != free_port
+    return port
+
+
+@dataclass
+class Launch:
+    """The parts of a printed launch URL."""
+
+    url: str
+    origin: str
+    port: int
+    code: str
+
+
 @dataclass
 class RunningConflux:
     process: subprocess.Popen[str]
     output: "Queue[str]"
+    read_so_far: list[str] = field(default_factory=list)
 
     def wait_for_url(self) -> re.Match[str]:
         """Return the launch URL once the process prints it."""
-        lines: list[str] = []
+        lines = self.read_so_far
         while True:
             try:
                 line = self.output.get(timeout=START_TIMEOUT_SECONDS)
@@ -73,14 +94,21 @@ class RunningConflux:
             if match := URL.search(line):
                 return match
 
+    def wait_for_launch(self) -> Launch:
+        match = self.wait_for_url()
+        url = match.group(0)
+        code = url.partition("#launch=")[2]
+        return Launch(
+            url, f"http://127.0.0.1:{match.group(1)}", int(match.group(1)), code
+        )
+
     def all_output(self) -> str:
-        """Everything printed so far, for a process that has exited."""
-        lines: list[str] = []
+        """Everything the process printed, for a process that has exited."""
         while True:
             line = self.output.get(timeout=5)
             if line == "":
-                return "".join(lines)
-            lines.append(line)
+                return "".join(self.read_so_far)
+            self.read_so_far.append(line)
 
 
 StartConflux = Callable[..., "RunningConflux"]
@@ -91,18 +119,23 @@ def start_conflux(conflux_executable: str) -> Iterator[StartConflux]:
     """Start `conflux` with the given arguments, and stop it when the test ends."""
     running: list[subprocess.Popen[str]] = []
 
-    def start(*args: str, browser: str | None = None) -> RunningConflux:
+    def start(
+        *args: str, browser: str | None = None, env: dict[str, str] | None = None
+    ) -> RunningConflux:
         # Without these, Python's webbrowser module would try the real browsers on this desktop.
         hidden = {"BROWSER", "DISPLAY", "WAYLAND_DISPLAY", "TERM"}
-        env = {name: value for name, value in os.environ.items() if name not in hidden}
+        process_env = {
+            name: value for name, value in os.environ.items() if name not in hidden
+        }
+        process_env.update(env or {})
         if browser is not None:
-            env["BROWSER"] = browser
+            process_env["BROWSER"] = browser
         process = subprocess.Popen(
             [conflux_executable, *args],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            env=env,
+            env=process_env,
         )
         running.append(process)
         output: Queue[str] = Queue()

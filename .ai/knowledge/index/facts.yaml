@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-01T15:31:42+00:00'
+updated_at: '2026-11-01T16:19:07+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -45,13 +45,13 @@ facts:
   status: CONFIRMED
   evidence: apps/web/package.json
   detail: dependency 'react'
-  sha256: 243758585a31d5af7bf747a89d7e737c7f568f2c5e3b47976a0603c74a424b72
+  sha256: 8ccda52c074cc60836df6b01f7fd44757178a43b0309f4cb523f10509282fe4e
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
 - id: language:javascript
   status: CONFIRMED
   evidence: apps/web/package.json
-  sha256: 243758585a31d5af7bf747a89d7e737c7f568f2c5e3b47976a0603c74a424b72
+  sha256: 8ccda52c074cc60836df6b01f7fd44757178a43b0309f4cb523f10509282fe4e
   source: detector
 - id: language:python
   status: CONFIRMED
@@ -62,13 +62,13 @@ facts:
 - id: language:typescript
   status: CONFIRMED
   evidence: apps/web/tsconfig.json
-  sha256: 8b8ab93b1b81571023c944b1b2e63a912ec4c5841d7326b3f6462615e59089b2
+  sha256: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
 - id: pm:pnpm
   status: CONFIRMED
   evidence: apps/web/pnpm-lock.yaml
-  sha256: be5df30d85d629431c51cac8417bb3c954d40d393191171c3e49a46f5cf012d1
+  sha256: 00942135ccd30b2a895da3fa2541b50b306079fee0ecfcd138ec3d863225a5fa
   source: detector
 - id: pm:uv
   status: CONFIRMED
@@ -85,7 +85,7 @@ facts:
   status: CONFIRMED
   evidence: apps/web/package.json
   detail: dependency 'vitest'
-  sha256: 243758585a31d5af7bf747a89d7e737c7f568f2c5e3b47976a0603c74a424b72
+  sha256: 8ccda52c074cc60836df6b01f7fd44757178a43b0309f4cb523f10509282fe4e
   source: detector
 - id: tool:docker
   status: INFERRED

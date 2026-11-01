@@ -1,6 +1,6 @@
 # 0001 — Workspace packaging: CLI launcher, and how the browser gets the session token
 
-- **Status:** Accepted 2026-10-31, amended 2026-11-01 (check it in spike 6, "local browser security")
+- **Status:** Accepted 2026-10-31, amended 2026-11-01 (first spike 6 pass 2026-11-01, Chromium only; see the threat register)
 - **Date:** 2026-10-31
 - **Source:** Direction doc §4 (deliberately avoided), §7 (must-have controls, threat model), §11/§12 (open
   decisions), Review Notes #10
@@ -33,7 +33,7 @@ needs Python 3.12 to be present already.
 - `conflux-data` was free on PyPI on 2026-11-01 but isn't reserved. Publishing or reserving it is a separate step.
 
 ```text
-conflux [WORKSPACE_DIR] [--port N] [--no-browser]
+conflux [WORKSPACE_DIR] [--port N] [--no-browser] [--log-level LEVEL]
 ```
 
 **One runtime serves exactly one workspace, chosen at launch.** With no argument, `WORKSPACE_DIR` is `~/Conflux/default`.
@@ -53,8 +53,10 @@ workspace), not `/api/workspaces`, and the runtime needs no server-side folder b
    than a loopback address is refused.
 3. Generate in memory, with `secrets.token_urlsafe`, a **session token** (it lasts as long as the process) and a
    **launch code** (single-use, expires after 2 minutes). Neither one is written to disk or logged.
-4. Open `http://127.0.0.1:<port>/#launch=<code>` with `webbrowser`. With `--no-browser`, or if opening fails, print
-   that URL to the terminal (the only place the code ever appears).
+4. Open `http://127.0.0.1:<port>/#launch=<code>` with `webbrowser`. With `--no-browser`, if opening fails, or on Linux
+   with no display and no `BROWSER` set, print that URL to the terminal (the only place the code ever appears). The
+   display rule exists because Python would otherwise hand the URL to a text browser, which can't run the UI, and the
+   user would never see the link.
 5. Ctrl+C stops the runtime. The token dies with the process.
 
 **3. Token handshake (`/api/session`)**
@@ -64,11 +66,16 @@ workspace), not `/api/workspaces`, and the runtime needs no server-side folder b
 2. The UI sends `POST /api/session {code}`. If the code is valid and unused, the server burns it and responds with
    `Set-Cookie: conflux_session_<port>=<token>; HttpOnly; SameSite=Strict; Path=/api`.
 3. The browser sends that cookie on every `/api/*` call. JavaScript can't read the token, and it never appears in a
-   URL or in browser storage.
+   URL or in browser storage. `GET /api/session` reports only whether the cookie is valid, so a page opened without a
+   code can tell the user to start Conflux again.
 4. Middleware on every `/api/*` route, **including `/api/session`**, checks Host is exactly `127.0.0.1:<port>` (blocks
    DNS rebinding), then Origin is exactly `http://127.0.0.1:<port>` whenever the header is present and always on
    state-changing methods. Every route except `/api/session` then checks the token cookie (compared in constant time).
 5. GET and HEAD routes never change state. The Origin check can't cover them, as explained below.
+
+**Every response carries `Content-Security-Policy: default-src 'self'; frame-ancestors 'none'` and
+`X-Content-Type-Options: nosniff`.** `SameSite` treats other local ports as the same site, so without this a page on
+another port could frame the signed-in UI and trick the user into clicking it.
 
 **Why the Origin check is required, not optional:** cookies are not isolated by port, and `SameSite` treats every
 `127.0.0.1` port as the same site. A page served by another local process on `127.0.0.1:<other>` therefore gets
@@ -78,8 +85,9 @@ GET routes must have no side effects. The port in the cookie name keeps two Conf
 other's cookie.
 
 **4. Development:** the Vite dev server proxies `/api` to the runtime, so the browser still sees one origin and the
-same cookie flow. The proxy sets `changeOrigin: true`, so the runtime still sees its own Host. The runtime gets a dev flag
-that adds the Vite origin as the second allowed Origin. Nothing else changes.
+same cookie flow. The proxy sets `changeOrigin: true`, so the runtime still sees its own Host. The runtime's
+`--dev-origin` flag adds the Vite origin as the second allowed Origin. It accepts only `http://127.0.0.1:<port>`, makes
+the launch link point at Vite, and means the runtime doesn't serve the UI bundle. Nothing else changes.
 
 ## Alternatives considered
 
@@ -107,7 +115,7 @@ that adds the Vite origin as the second allowed Origin. Nothing else changes.
   - **The session cookie reaches other local servers.** Cookies aren't isolated by port, so the browser also sends it to
     any other server on `127.0.0.1` for a path under `/api`. That server could log or replay the token, forging Host
     and Origin as it isn't a browser. Accepted for Phase 1: a program running as the same user can already read the
-    workspace. Shared machines are the weaker case. Recorded in the threat register, and checked in spike 6.
+    workspace. Shared machines are the weaker case. Spike 6 confirmed it in Chromium. Recorded as R1 in the threat register.
 - **Tests that must ship with the first commit:**
   - Non-loopback bind is refused.
   - `/api/*` without the cookie returns 401.

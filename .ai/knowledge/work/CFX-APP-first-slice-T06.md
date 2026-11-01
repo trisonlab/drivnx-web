@@ -25,3 +25,6 @@ The user moves through a CSV with next and previous. Cells display as plain text
 
 ## Expected evidence
 Tests naming each criterion, including script text in a cell, a file changed between pages, and a scan showing no row values remain.
+
+## From T02
+- AC-12 is only proven for the session token and launch code so far, because previews don't exist yet. Extend `test_logs_contain_no_token_or_launch_code` here to run a preview at `trace` level and check that no preview row values appear in the logs.

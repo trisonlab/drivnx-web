@@ -61,8 +61,8 @@ def test_opens_the_browser_and_keeps_the_url_out_of_the_terminal(
     deadline = time.monotonic() + 10
     while not opened.exists() and time.monotonic() < deadline:
         time.sleep(0.05)
-    url = f"http://127.0.0.1:{free_port}/"
-    assert opened.read_text() == url
+    url = opened.read_text()
+    assert url.startswith(f"http://127.0.0.1:{free_port}/#launch=")
     assert httpx.get(url).status_code == 200
     conflux.process.terminate()
     conflux.process.wait(timeout=10)
@@ -128,3 +128,76 @@ def test_a_missing_ui_bundle_gives_a_clear_error(
         hidden.rename(bundle)
     assert "UI bundle is missing" in output
     assert "Traceback" not in output
+
+
+def _browser_stand_in(directory: Path, name: str, opened: Path) -> None:
+    directory.mkdir()
+    script = directory / name
+    script.write_text(f'#!/bin/sh\nprintf %s "$1" > "{opened}"\n')
+    script.chmod(0o755)
+
+
+@pytest.mark.parametrize(
+    "empty_setting", [{}, {"DISPLAY": ""}, {"WAYLAND_DISPLAY": ""}, {"BROWSER": ""}]
+)
+def test_without_a_display_the_url_is_printed_and_no_browser_is_tried(
+    start_conflux: StartConflux, tmp_path: Path, empty_setting: dict[str, str]
+) -> None:
+    # A text browser such as www-browser can't run the app, and would hide the URL (T01 review).
+    opened = tmp_path / "opened"
+    _browser_stand_in(tmp_path / "bin", "www-browser", opened)
+
+    conflux = start_conflux(
+        env={"TERM": "xterm", "PATH": str(tmp_path / "bin"), **empty_setting}
+    )
+
+    assert "#launch=" in conflux.wait_for_url().group(0)
+    assert not opened.exists()
+
+
+def test_with_a_display_the_browser_is_opened(
+    start_conflux: StartConflux, tmp_path: Path
+) -> None:
+    opened = tmp_path / "opened"
+    _browser_stand_in(tmp_path / "bin", "xdg-open", opened)
+
+    start_conflux(env={"DISPLAY": ":99", "PATH": str(tmp_path / "bin")})
+
+    deadline = time.monotonic() + 10
+    while not opened.exists() and time.monotonic() < deadline:
+        time.sleep(0.05)
+    assert "#launch=" in opened.read_text()
+
+
+def test_the_terminal_says_how_to_stop_and_what_to_do_if_no_browser_opened(
+    start_conflux: StartConflux, tmp_path: Path
+) -> None:
+    opened = tmp_path / "opened"
+    browser = tmp_path / "browser"
+    browser.write_text(f'#!/bin/sh\nprintf %s "$1" > "{opened}"\n')
+    browser.chmod(0o755)
+
+    conflux = start_conflux(browser=f"{browser} %s")
+
+    deadline = time.monotonic() + 10
+    while not opened.exists() and time.monotonic() < deadline:
+        time.sleep(0.05)
+    code = opened.read_text().partition("#launch=")[2]
+    conflux.process.terminate()
+    conflux.process.wait(timeout=10)
+    output = conflux.all_output()
+    assert "Press Ctrl+C to stop" in output
+    assert "--no-browser" in output
+    assert code
+    assert code not in output
+
+
+def test_with_no_browser_the_terminal_gives_the_link_and_how_to_stop(
+    start_conflux: StartConflux,
+) -> None:
+    conflux = start_conflux("--no-browser")
+
+    assert "#launch=" in conflux.wait_for_url().group(0)
+    conflux.process.terminate()
+    conflux.process.wait(timeout=10)
+    assert "Press Ctrl+C to stop" in conflux.all_output()

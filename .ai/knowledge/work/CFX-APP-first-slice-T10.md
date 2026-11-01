@@ -27,3 +27,6 @@ Playwright journey against the wheel. Measured figures for the 1 GB CSV, an auto
 ## From the T01 review
 - `uv build --wheel` succeeds with a missing or outdated UI bundle, and the wheel ships without it or with the old one. Reproduced in the T01 review. Provide one build command that builds the UI first and checks the result, and test it.
 - The wheel declares `fastapi>=` and `uvicorn>=`, so `uv tool install` and the test install can pick versions newer than `uv.lock`. Choose how released versions are pinned (Section 7 of the direction doc), and make the test install match it.
+
+## From the T02 review
+- Some integration tests are POSIX-only: `os.killpg`, `send_signal(SIGINT)` and the shell-script browser stand-ins. Make them portable or mark them before running CI on Windows. On macOS, `webbrowser` finds browsers differently, so check that the tests still can't open a real one.

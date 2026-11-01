@@ -1,13 +1,13 @@
 # Threat register — Phase 1
 
-The one-page register required by the direction doc (§7, §12). **No code exists yet, so every mitigation below is planned
-and none is verified.** Update a row when its test ships. The product claims in §7 stay off-limits until then.
+The one-page register required by the direction doc (§7, §12). **Only the first row has code and tests so far; the other
+mitigations are still planned.** Update a row when its test ships. The product claims in §7 stay off-limits until then.
 
 ## Threats
 
 | Threat | Mitigation | Decided in | Status |
 |---|---|---|---|
-| Malicious web page calls the local API | Loopback binding; exact Host and Origin checks; per-launch token in an `HttpOnly` cookie; GET routes have no side effects | §7, ADR 0001 | Planned; spike 6 |
+| Malicious web page calls the local API | Loopback binding; exact Host and Origin checks; per-launch token in an `HttpOnly` cookie; GET routes have no side effects; a Content-Security-Policy stops other pages framing the UI | §7, ADR 0001 | Implemented and tested (T02). First spike 6 pass 2026-11-01, Chromium only |
 | Database or API key leaks | OS credential store; masking; never in SQLite, URLs, browser storage, logs or exports | §7 | Planned |
 | Sensitive data sent to AI unintentionally | AI off by default; context preview; explicit approval; audit record | §6, §7 | Planned (M8) |
 | Workspace copied or stolen | Owner-only permissions; no credentials in the workspace; raw data not copied by default | §7, ADR 0002 | Planned; see R3 and R4 |
@@ -18,7 +18,7 @@ and none is verified.** Update a row when its test ships. The product claims in 
 
 | # | Risk | Position | Owner of next step |
 |---|---|---|---|
-| R1 | **The session cookie reaches other local servers.** Cookies aren't isolated by port, so any server on `127.0.0.1` receives it for paths under `/api` and could replay it. | Accepted for Phase 1: a program running as the same user can already read the workspace. Weakest on shared machines. | Confirm in spike 6 |
+| R1 | **The session cookie reaches other local servers.** Cookies aren't isolated by port, so any server on `127.0.0.1` receives it for paths under `/api` and could replay it. **Confirmed in spike 6** (Chromium, 2026-11-01): a server on another port received the token, and replaying it passed sign-in. The cookie did not reach paths outside `/api`. The same server can also overwrite the cookie, which signs the user out until they restart Conflux, because the launch code is already used (reproduced in Chromium, T02 review). The launch URL is also passed to the browser as a command-line argument, so other local users may briefly be able to see it; it is single-use, and no attack on this was attempted. | Accepted for Phase 1: a program running as the same user can already read the workspace. Weakest on shared machines. | Revisit at hardening (M9) |
 | R2 | **Windows permissions.** No ACL code in Phase 1. Owner-only access relies on the workspace being under the user's profile, which is the default location. | Accepted for Phase 1 (ADR 0002). | Revisit at hardening (M9) |
 | R3 | **Values taken from source data are stored in the workspace:** min/max, frequent values, pattern examples, dictionary examples, contract accepted values, and their backups and SQLite free pages. This conflicts with "raw data not copied by default". | **Open.** Needs a rule before M3 (ADR 0002, ADR 0003). | Domain model and security review |
 | R4 | **DuckDB spill files can hold source data** for the length of a job, or until the next start after a crash. They stay inside the workspace (ADR 0002 point 7). | Accepted for Phase 1, once the setting is in place. | Test in M3 |

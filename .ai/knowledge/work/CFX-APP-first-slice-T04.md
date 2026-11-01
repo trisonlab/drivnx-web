@@ -27,3 +27,6 @@ On first launch the user sees where the workspace is stored, names it and picks 
 
 ## Expected evidence
 Tests naming each criterion, and a Playwright run of the first launch and a restart. AC-15 is rechecked for sources once T05 exists.
+
+## From T02
+- AC-13 is only proven for the launch code so far, because no workspace data exists yet. Extend `test_get_and_head_routes_change_nothing` with a snapshot of workspace data here and in T05.

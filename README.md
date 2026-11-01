@@ -5,7 +5,8 @@ evidence-backed, human-reviewed understanding (Data Profile → Data Dictionary 
 
 - **Source of truth:** [../docs/Conflux_Phase1_Development_Direction.md](../docs/Conflux_Phase1_Development_Direction.md)
   (approved); open findings in [../docs/Conflux_Phase1_Review_Notes.md](../docs/Conflux_Phase1_Review_Notes.md)
-- **Status:** skeleton only, no code yet. Start with the first vertical slice in §12 of the direction doc.
+- **Status:** first vertical slice in progress (`.ai/knowledge/requirements/CFX-APP-first-slice.md`): the runtime, its session
+  protection and a placeholder page exist.
 - **Stack (§4):** Python 3.12, FastAPI, Pydantic v2, DuckDB, SQLite · React + TypeScript + Vite, TanStack, Radix/shadcn ·
   uv and pnpm with committed lockfiles · pytest, Vitest, Playwright, Docker Compose PostgreSQL fixture
 
@@ -20,6 +21,17 @@ testdata/           synthetic datasets only
 docs/               adr, threat-model, product-research
 .ai/                AI Skill OS: manifest, lock, knowledge
 ```
+
+## Development
+
+Run the UI with hot reload, in two terminals:
+
+```bash
+pnpm --dir apps/web dev                                             # Vite on 127.0.0.1:5173; proxies /api to port 8787 (API_PORT)
+uv run conflux --port 8787 --no-browser --dev-origin http://127.0.0.1:5173   # prints a link to open in the browser
+```
+
+Run the checks with `uv run --frozen pytest` and `pnpm --dir apps/web test`.
 
 ## AI skills
 

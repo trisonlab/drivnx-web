@@ -6,7 +6,7 @@ feature_revision: 1
 stories: [US-01, US-02, US-09]
 criteria: [AC-06, AC-08, AC-09, AC-10, AC-11, AC-12, AC-13, AC-52]
 blocked_by: [CFX-APP-first-slice-T01]
-state: ready
+state: done
 external_key: null
 status: CONFIRMED
 ---
@@ -17,14 +17,14 @@ status: CONFIRMED
 The browser signs in with the launch code and holds the session in an `HttpOnly` cookie, and every bad request is refused, including on `/api/session`. Part of spike 6 (local browser security).
 
 ## Acceptance checklist
-- [ ] AC-06 (US-01): Given the runtime is running, when the user presses Ctrl+C, then it stops, and the previous session no longer works after a restart.
-- [ ] AC-08 (US-02): Given a call to any `/api/*` route except `/api/session` without a valid session cookie, then the response is 401.
-- [ ] AC-09 (US-02): Given a call to any `/api/*` route, including `/api/session`, with a wrong Host, or a wrong Origin, or no Origin on a state-changing method, then the response is 403.
-- [ ] AC-10 (US-02): Given a launch code, when it is used a second time or more than 2 minutes after launch, then it is rejected.
-- [ ] AC-11 (US-02): Given a successful handshake, then the session cookie is `HttpOnly` and `SameSite=Strict` with `Path=/api`, and the token is in no URL or browser storage.
-- [ ] AC-12 (US-02): Given a full run of this slice's journey with logging at its most detailed, then the logs contain no session token, launch code or preview row values.
-- [ ] AC-13 (US-02): Given every GET and HEAD route under `/api`, when each is called, then no workspace data changes.
-- [ ] AC-52 (US-09): Given the Vite dev server, then the browser uses the same cookie flow through its proxy, and the dev origin is allowed only with the dev flag.
+- [x] AC-06 (US-01): Given the runtime is running, when the user presses Ctrl+C, then it stops, and the previous session no longer works after a restart.
+- [x] AC-08 (US-02): Given a call to any `/api/*` route except `/api/session` without a valid session cookie, then the response is 401.
+- [x] AC-09 (US-02): Given a call to any `/api/*` route, including `/api/session`, with a wrong Host, or a wrong Origin, or no Origin on a state-changing method, then the response is 403.
+- [x] AC-10 (US-02): Given a launch code, when it is used a second time or more than 2 minutes after launch, then it is rejected.
+- [x] AC-11 (US-02): Given a successful handshake, then the session cookie is `HttpOnly` and `SameSite=Strict` with `Path=/api`, and the token is in no URL or browser storage.
+- [x] AC-12 (US-02): Given a full run of this slice's journey with logging at its most detailed, then the logs contain no session token, launch code or preview row values.
+- [x] AC-13 (US-02): Given every GET and HEAD route under `/api`, when each is called, then no workspace data changes.
+- [x] AC-52 (US-09): Given the Vite dev server, then the browser uses the same cookie flow through its proxy, and the dev origin is allowed only with the dev flag.
 
 ## Expected evidence
 Tests naming each criterion, including a check over every GET and HEAD route and a log capture. Record what spike 6 confirmed about accepted risk R1 in the threat register.
