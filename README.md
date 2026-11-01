@@ -33,6 +33,25 @@ uv run conflux --port 8787 --no-browser --dev-origin http://127.0.0.1:5173   # p
 
 Run the checks with `uv run --frozen pytest` and `pnpm --dir apps/web test`.
 
+## Tracing work by ID
+
+Specs, tickets and criteria have permanent IDs, such as `CFX-APP-first-slice`, `CFX-APP-first-slice-T01` and
+`CFX-APP-first-slice/AC-07`. **An ID never changes, even if the product is renamed.** Tests name the criteria they prove.
+
+A ticket commit's title is `<ticket-id>: <description>`. Every commit that belongs to a spec ends with its IDs, listing
+each criterion in full and never as a range:
+
+```text
+CFX-APP-first-slice-T03: Open workspaces safely
+
+Spec: CFX-APP-first-slice
+Ticket: CFX-APP-first-slice-T03
+Criteria: AC-02, AC-03, AC-04
+```
+
+To trace: `git log --grep="CFX-APP-first-slice-T03"` finds a ticket's commits, `git blame` leads from a line to its commit
+and ticket, and `ai-skills knowledge graph CFX-APP-first-slice/AC-07` shows a criterion's ticket and tests.
+
 ## AI skills
 
 Set up with `../ai-skills/conflux-skills.sh` (the shared Conflux baseline plus this repo's stack skills); the list is in
