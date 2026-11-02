@@ -21,7 +21,7 @@ from artifacts.workspace import (
     open_workspace,
 )
 
-from .conftest import StartConflux
+from ..conftest import StartConflux
 
 CREATE_FAMILY = """
 op.execute("CREATE TABLE parent (id INTEGER PRIMARY KEY, name TEXT)")

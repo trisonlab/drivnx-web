@@ -93,8 +93,8 @@ def main() -> None:
 
     directory = args.workspace or default_workspace_directory()
     try:
-        # Held until the process ends, so nothing else can open this workspace (ADR 0001).
-        open_workspace(directory)
+        # Holds the lock until the process ends, so nothing else can open it (ADR 0001).
+        workspace = open_workspace(directory)
     except WorkspaceError as error:
         raise SystemExit(str(error)) from None
     if folder := sync_folder_in(directory):
@@ -118,6 +118,7 @@ def main() -> None:
         app = create_app(
             session,
             port,
+            workspace,
             ui_dir=None if args.dev_origin else UI_DIR,
             dev_origin=args.dev_origin,
         )

@@ -1,8 +1,14 @@
+import unicodedata
 from pathlib import Path
+from typing import Annotated
 
+from artifacts.settings import AiMode, WorkspaceSettings, read_settings, save_settings
+from artifacts.workspace import Workspace
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import AfterValidator, BaseModel, StringConstraints
 
 from local_api.binding import LOOPBACK_ADDRESS
 from local_api.guard import SESSION_PATH, RequestGuard, SecurityHeaders
@@ -19,9 +25,39 @@ class SessionRequest(BaseModel):
     code: str
 
 
+def _visible_text(value: str) -> str:
+    """Refuse control characters, and names with nothing to see.
+
+    Format characters stay allowed inside a name, because emoji sequences need zero-width joiners.
+    """
+    categories = {unicodedata.category(character) for character in value}
+    if categories & {"Cc", "Cs", "Zl", "Zp"}:
+        raise ValueError("must not contain control characters")
+    if all(category[0] in "CZ" for category in categories):
+        raise ValueError("must contain something visible")
+    return value
+
+
+class WorkspaceRequest(BaseModel):
+    name: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1, max_length=100),
+        AfterValidator(_visible_text),
+    ]
+    ai_mode: AiMode
+
+
+class WorkspaceResponse(BaseModel):
+    location: str
+    name: str | None
+    ai_mode: AiMode
+    setup_complete: bool
+
+
 def create_app(
     session: LaunchSession,
     port: int,
+    workspace: Workspace,
     ui_dir: Path | None = UI_DIR,
     dev_origin: str | None = None,
 ) -> FastAPI:
@@ -40,6 +76,20 @@ def create_app(
     # Added last, so it runs first and also covers the guard's refusals.
     app.add_middleware(SecurityHeaders)
 
+    @app.exception_handler(RequestValidationError)
+    async def invalid_request(
+        _request: Request, error: RequestValidationError
+    ) -> JSONResponse:
+        """Say what is wrong without copying the input, which may be huge, unencodable or a path."""
+        problems = [
+            {
+                "field": ".".join(str(part) for part in problem["loc"]),
+                "reason": problem["msg"],
+            }
+            for problem in error.errors()
+        ]
+        return JSONResponse({"detail": problems}, status_code=422)
+
     # `async` keeps checking and burning the code on the event loop, so two requests can't both pass.
     @app.post(SESSION_PATH, status_code=204)
     async def start_session(body: SessionRequest, response: Response) -> None:
@@ -54,6 +104,24 @@ def create_app(
     async def session_status(request: Request) -> dict[str, bool]:
         token = request.cookies.get(session.cookie_name)
         return {"authenticated": session.is_valid_token(token)}
+
+    def workspace_response(settings: WorkspaceSettings | None) -> WorkspaceResponse:
+        return WorkspaceResponse(
+            location=str(workspace.directory),
+            name=settings.name if settings else None,
+            ai_mode=settings.ai_mode if settings else "off",
+            setup_complete=settings is not None,
+        )
+
+    @app.get("/api/workspace")
+    def get_workspace() -> WorkspaceResponse:
+        return workspace_response(read_settings(workspace.engine))
+
+    @app.put("/api/workspace")
+    def put_workspace(body: WorkspaceRequest) -> WorkspaceResponse:
+        settings = WorkspaceSettings(body.name, body.ai_mode)
+        save_settings(workspace.engine, settings)
+        return workspace_response(settings)
 
     if ui_dir is not None:
         app.mount("/", StaticFiles(directory=ui_dir, html=True))

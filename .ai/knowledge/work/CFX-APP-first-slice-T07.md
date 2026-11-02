@@ -27,3 +27,6 @@ All M1 entities can be saved and read back, and every allowed trust-state transi
 
 ## Expected evidence
 Tests naming each criterion, including a forced mid-transition failure, two concurrent Accepts, and a review action during observation writes.
+
+## From the T04 review
+- `save_settings` in `packages/artifacts/settings.py` writes without `BEGIN IMMEDIATE`, which ADR 0002 point 3 requires. It couldn't be made to fail, because a single statement has no earlier read to conflict with. Move it onto the write helper this ticket builds.

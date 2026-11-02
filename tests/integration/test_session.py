@@ -3,18 +3,21 @@
 import os
 import re
 import signal
+import sqlite3
 import subprocess
 import time
 from pathlib import Path
 
 import httpx
 import pytest
+from artifacts.workspace import open_workspace
+from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from local_api.app import create_app
 from local_api.session import LAUNCH_CODE_LIFETIME_SECONDS, LaunchSession
 
-from .conftest import REPO_ROOT, Launch, StartConflux
+from ..conftest import REPO_ROOT, Launch, StartConflux
 
 
 @pytest.mark.parametrize(
@@ -39,7 +42,7 @@ def test_launch_code_signs_in(start_conflux: StartConflux) -> None:
     # CFX-APP-first-slice/AC-08: a valid cookie gets past the check, to a 404 for an unknown route.
     client = sign_in(start_conflux("--no-browser").wait_for_launch())
 
-    assert client.get("/api/workspace").status_code == 404
+    assert client.get("/api/no-such-route").status_code == 404
 
 
 def test_a_wrong_session_cookie_is_refused(start_conflux: StartConflux) -> None:
@@ -159,11 +162,24 @@ PORT = 8123
 ORIGIN = f"http://127.0.0.1:{PORT}"
 
 
-def in_process_client(session: LaunchSession, ui_dir: Path) -> TestClient:
-    (ui_dir / "index.html").write_text("<html></html>")
+def in_process_client(session: LaunchSession, tmp_path: Path) -> TestClient:
+    (tmp_path / "index.html").write_text("<html></html>")
+    workspace = open_workspace(tmp_path / "workspace")
     return TestClient(
-        create_app(session, PORT, ui_dir), base_url=ORIGIN, headers={"Origin": ORIGIN}
+        create_app(session, PORT, workspace, tmp_path),
+        base_url=ORIGIN,
+        headers={"Origin": ORIGIN},
     )
+
+
+def api_reads(client: TestClient) -> list[tuple[str, str]]:
+    assert isinstance(client.app, FastAPI)
+    return [
+        (method, route.path)
+        for route in client.app.routes
+        if isinstance(route, APIRoute) and route.path.startswith("/api")
+        for method in sorted(route.methods & {"GET", "HEAD"})
+    ]
 
 
 @pytest.mark.parametrize(
@@ -216,20 +232,10 @@ def test_the_session_cookie_has_the_required_attributes(
 
 
 def test_get_and_head_routes_change_nothing(tmp_path: Path) -> None:
-    # CFX-APP-first-slice/AC-13. The launch code is the only state so far. T04 and T05 add workspace
-    # data, and must extend this check with a snapshot of it.
+    # CFX-APP-first-slice/AC-13: the launch code survives every read.
     session = LaunchSession(PORT)
     client = in_process_client(session, tmp_path)
-    routes = [
-        route
-        for route in create_app(session, PORT, tmp_path).routes
-        if isinstance(route, APIRoute) and route.path.startswith("/api")
-    ]
-    reads = [
-        (method, route.path)
-        for route in routes
-        for method in sorted(route.methods & {"GET", "HEAD"})
-    ]
+    reads = api_reads(client)
     assert reads
 
     for method, path in reads:
@@ -241,6 +247,34 @@ def test_get_and_head_routes_change_nothing(tmp_path: Path) -> None:
         client.post("/api/session", json={"code": session.launch_code}).status_code
         == 204
     )
+
+
+def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
+    # CFX-APP-first-slice/AC-13. T05 adds sources, which this picks up with their routes.
+    session = LaunchSession(PORT)
+    client = in_process_client(session, tmp_path)
+    client.post("/api/session", json={"code": session.launch_code})
+    assert (
+        client.put(
+            "/api/workspace", json={"name": "Snapshot", "ai_mode": "off"}
+        ).status_code
+        == 200
+    )
+
+    def snapshot() -> list[str]:
+        connection = sqlite3.connect(tmp_path / "workspace" / "workspace.db")
+        try:
+            return list(connection.iterdump())
+        finally:
+            connection.close()
+
+    before = snapshot()
+    assert ("GET", "/api/workspace") in api_reads(client)
+
+    for method, path in api_reads(client):
+        assert client.request(method, path).status_code < 500
+
+    assert snapshot() == before
 
 
 def test_stopping_ends_the_session(start_conflux: StartConflux, free_port: int) -> None:

@@ -6,7 +6,7 @@ feature_revision: 1
 stories: [US-04, US-05, US-08]
 criteria: [AC-20, AC-21, AC-22, AC-23, AC-24, AC-25, AC-26, AC-49]
 blocked_by: [CFX-APP-first-slice-T04]
-state: blocked
+state: ready
 external_key: null
 status: CONFIRMED
 ---
@@ -28,3 +28,7 @@ The user pastes a path and sees the detection result, the file details and its c
 
 ## Expected evidence
 Synthetic CSVs for each delimiter, encoding and header case. Tests naming each criterion, including a database scan for row values and a check that DuckDB writes nothing to the current directory.
+
+## From T04
+- AC-15 is only proven for the name and AI mode so far. Extend `test_setup_opens_the_app_and_a_restart_keeps_it` to check that sources are kept too.
+- AC-13 picks up new GET routes automatically through `test_get_and_head_routes_change_no_workspace_data`, but its data snapshot needs a source in it to mean anything here.

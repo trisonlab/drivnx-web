@@ -11,7 +11,7 @@ from threading import Thread
 
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 URL = re.compile(r"http://127\.0\.0\.1:(\d+)/\S*")
 START_TIMEOUT_SECONDS = 30
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from .conftest import StartConflux
+from ..conftest import StartConflux
 
 
 def mode(path: Path) -> int:

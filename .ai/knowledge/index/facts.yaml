@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-02T12:06:54+00:00'
+updated_at: '2026-11-02T14:21:57+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -38,25 +38,25 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'fastapi'
-  sha256: 21e37890ec5d78e7a2e08b436eb884a34a2801c4fba4056aadb7cd9a09efa77b
+  sha256: bd6b22c2127c826eb771b5d987a7ec0785c7b5c080dce5a53711fc26f70c9402
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
 - id: framework:react
   status: CONFIRMED
   evidence: apps/web/package.json
   detail: dependency 'react'
-  sha256: 8ccda52c074cc60836df6b01f7fd44757178a43b0309f4cb523f10509282fe4e
+  sha256: 99b9c00647fe349cba9f7bcddb0506920cc977b3700472a7a4b15317ad9b7aa8
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
 - id: language:javascript
   status: CONFIRMED
   evidence: apps/web/package.json
-  sha256: 8ccda52c074cc60836df6b01f7fd44757178a43b0309f4cb523f10509282fe4e
+  sha256: 99b9c00647fe349cba9f7bcddb0506920cc977b3700472a7a4b15317ad9b7aa8
   source: detector
 - id: language:python
   status: CONFIRMED
   evidence: pyproject.toml
-  sha256: 21e37890ec5d78e7a2e08b436eb884a34a2801c4fba4056aadb7cd9a09efa77b
+  sha256: bd6b22c2127c826eb771b5d987a7ec0785c7b5c080dce5a53711fc26f70c9402
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:51
 - id: language:typescript
@@ -69,29 +69,29 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'sqlalchemy'
-  sha256: 21e37890ec5d78e7a2e08b436eb884a34a2801c4fba4056aadb7cd9a09efa77b
+  sha256: bd6b22c2127c826eb771b5d987a7ec0785c7b5c080dce5a53711fc26f70c9402
   source: detector
 - id: pm:pnpm
   status: CONFIRMED
   evidence: apps/web/pnpm-lock.yaml
-  sha256: 00942135ccd30b2a895da3fa2541b50b306079fee0ecfcd138ec3d863225a5fa
+  sha256: bdd810e5b90fffd40a7c76eb02ab697ed743bbb1f6d9adee0536d23eef22494d
   source: detector
 - id: pm:uv
   status: CONFIRMED
   evidence: uv.lock
-  sha256: 8da040129f00d45e27e21b299b045dc1904502fd77777ce3d74110e218535620
+  sha256: 9653d629d61d2f2aa4961bf296d174ea9d2ef85fa4ae2688fcd8219b48bf1a8e
   source: detector
 - id: testing:pytest
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'pytest'
-  sha256: 21e37890ec5d78e7a2e08b436eb884a34a2801c4fba4056aadb7cd9a09efa77b
+  sha256: bd6b22c2127c826eb771b5d987a7ec0785c7b5c080dce5a53711fc26f70c9402
   source: detector
 - id: testing:vitest
   status: CONFIRMED
   evidence: apps/web/package.json
   detail: dependency 'vitest'
-  sha256: 8ccda52c074cc60836df6b01f7fd44757178a43b0309f4cb523f10509282fe4e
+  sha256: 99b9c00647fe349cba9f7bcddb0506920cc977b3700472a7a4b15317ad9b7aa8
   source: detector
 - id: tool:docker
   status: INFERRED

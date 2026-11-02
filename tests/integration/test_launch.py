@@ -7,7 +7,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from .conftest import StartConflux
+from ..conftest import StartConflux
 
 
 def test_no_browser_prints_the_url_and_serves_the_ui_bundle(
