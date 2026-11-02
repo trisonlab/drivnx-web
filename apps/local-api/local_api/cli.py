@@ -4,8 +4,15 @@ import re
 import sys
 import threading
 import webbrowser
+from pathlib import Path
 
 import uvicorn
+from artifacts.workspace import (
+    WorkspaceError,
+    default_workspace_directory,
+    open_workspace,
+    sync_folder_in,
+)
 
 from local_api.app import UI_DIR, MissingUiBundleError, create_app
 from local_api.binding import LOOPBACK_ADDRESS, bind_listener
@@ -54,6 +61,13 @@ def _open_browser_or_print_url(url: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(prog="conflux")
     parser.add_argument(
+        "workspace",
+        nargs="?",
+        type=Path,
+        metavar="WORKSPACE_DIR",
+        help="the workspace to open (default: ~/Conflux/default)",
+    )
+    parser.add_argument(
         "--log-level",
         choices=["critical", "error", "warning", "info", "debug", "trace"],
         default="warning",
@@ -76,6 +90,20 @@ def main() -> None:
         help="development only: the Vite dev server that serves the UI and proxies /api",
     )
     args = parser.parse_args()
+
+    directory = args.workspace or default_workspace_directory()
+    try:
+        # Held until the process ends, so nothing else can open this workspace (ADR 0001).
+        open_workspace(directory)
+    except WorkspaceError as error:
+        raise SystemExit(str(error)) from None
+    if folder := sync_folder_in(directory):
+        print(
+            f"Warning: this workspace is in a sync folder ({folder}). "
+            "Sync services can copy the database mid-write, so keep workspaces on a local disk.",
+            file=sys.stderr,
+            flush=True,
+        )
 
     try:
         listener = bind_listener(port=args.port)

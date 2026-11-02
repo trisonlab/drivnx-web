@@ -6,7 +6,7 @@ feature_revision: 1
 stories: [US-08]
 criteria: [AC-35, AC-36, AC-37, AC-38, AC-40, AC-41, AC-48]
 blocked_by: [CFX-APP-first-slice-T03]
-state: blocked
+state: ready
 external_key: null
 status: CONFIRMED
 ---

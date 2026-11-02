@@ -112,30 +112,45 @@ class RunningConflux:
 
 
 StartConflux = Callable[..., "RunningConflux"]
+_NEW_WORKSPACE = object()
 
 
 @pytest.fixture
-def start_conflux(conflux_executable: str) -> Iterator[StartConflux]:
+def start_conflux(conflux_executable: str, tmp_path: Path) -> Iterator[StartConflux]:
     """Start `conflux` with the given arguments, and stop it when the test ends."""
     running: list[subprocess.Popen[str]] = []
 
     def start(
-        *args: str, browser: str | None = None, env: dict[str, str] | None = None
+        *args: str,
+        browser: str | None = None,
+        env: dict[str, str] | None = None,
+        umask: int = -1,
+        workspace: Path | None | object = _NEW_WORKSPACE,
     ) -> RunningConflux:
         # Without these, Python's webbrowser module would try the real browsers on this desktop.
         hidden = {"BROWSER", "DISPLAY", "WAYLAND_DISPLAY", "TERM"}
         process_env = {
             name: value for name, value in os.environ.items() if name not in hidden
         }
+        # Conflux creates its default workspace under the home directory: never the real one here.
+        process_env["HOME"] = str(tmp_path / "home")
         process_env.update(env or {})
         if browser is not None:
             process_env["BROWSER"] = browser
+        # By default each process gets its own workspace, as two can't share one (ADR 0001).
+        if workspace is _NEW_WORKSPACE:
+            arguments = [*args, str(tmp_path / f"workspace-{len(running)}")]
+        elif workspace is None:
+            arguments = list(args)
+        else:
+            arguments = [*args, str(workspace)]
         process = subprocess.Popen(
-            [conflux_executable, *args],
+            [conflux_executable, *arguments],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             env=process_env,
+            umask=umask,
         )
         running.append(process)
         output: Queue[str] = Queue()

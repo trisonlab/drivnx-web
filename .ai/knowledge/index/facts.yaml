@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-01T16:19:07+00:00'
+updated_at: '2026-11-02T12:06:54+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -38,7 +38,7 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'fastapi'
-  sha256: 8f417b3725348d1a62da1dd894c18e903b83d9076012b17f38eb4932c5a7720e
+  sha256: 21e37890ec5d78e7a2e08b436eb884a34a2801c4fba4056aadb7cd9a09efa77b
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
 - id: framework:react
@@ -56,7 +56,7 @@ facts:
 - id: language:python
   status: CONFIRMED
   evidence: pyproject.toml
-  sha256: 8f417b3725348d1a62da1dd894c18e903b83d9076012b17f38eb4932c5a7720e
+  sha256: 21e37890ec5d78e7a2e08b436eb884a34a2801c4fba4056aadb7cd9a09efa77b
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:51
 - id: language:typescript
@@ -65,6 +65,12 @@ facts:
   sha256: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
+- id: orm:sqlalchemy
+  status: CONFIRMED
+  evidence: pyproject.toml
+  detail: dependency 'sqlalchemy'
+  sha256: 21e37890ec5d78e7a2e08b436eb884a34a2801c4fba4056aadb7cd9a09efa77b
+  source: detector
 - id: pm:pnpm
   status: CONFIRMED
   evidence: apps/web/pnpm-lock.yaml
@@ -73,13 +79,13 @@ facts:
 - id: pm:uv
   status: CONFIRMED
   evidence: uv.lock
-  sha256: 633632b21945063531298af2792f7633fa6cf32fbbf2cdc5730e781eb82ead9a
+  sha256: 8da040129f00d45e27e21b299b045dc1904502fd77777ce3d74110e218535620
   source: detector
 - id: testing:pytest
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'pytest'
-  sha256: 8f417b3725348d1a62da1dd894c18e903b83d9076012b17f38eb4932c5a7720e
+  sha256: 21e37890ec5d78e7a2e08b436eb884a34a2801c4fba4056aadb7cd9a09efa77b
   source: detector
 - id: testing:vitest
   status: CONFIRMED

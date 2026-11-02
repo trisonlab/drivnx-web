@@ -44,7 +44,8 @@ and their revisions, contracts and rules, and provenance events. Conflux writes 
 
 - **Permissions are set by Conflux, not left to the umask.** SQLite creates a new database file using the process
   umask (usually 0644), so the runtime creates `workspace.db` itself with mode 0600 before SQLite opens it. Backup
-  files are chmod-ed to 0600 right after they are written.
+  files are created with mode 0600 before they are written. Every open also sets the directory to 0700 and Conflux's own
+  files to 0600, because a copied workspace can arrive with looser permissions. Other files in the directory are left alone.
 - **Conflux only uses a directory that is new, empty or already a workspace.** `conflux ~/Documents` must not chmod
   the user's Documents folder to 0700 or scatter files into it. A non-empty directory without `workspace.db` is
   refused with a message suggesting a subdirectory. This check runs before the lock file is created (ADR 0001). A
@@ -116,6 +117,8 @@ users to keep workspaces on a local disk. Detecting network filesystems reliably
   transaction, and runs `PRAGMA foreign_key_check` before committing. Any violation rolls it back. Alembic and the Python
   driver need explicit setup for transactional DDL on SQLite (INFERRED; confirm against the pinned versions in M1).
 - Backups are full copies, including any source-derived values (see Consequences). Only the last three are kept.
+- **Checking the schema revision must not use a read-only connection.** After a crash SQLite has to write to recover, so a
+  read-only open fails with a misleading error every time. The check uses a read-write connection and only runs `SELECT`s.
 
 **7. DuckDB is not a store.** Profiling uses an in-memory DuckDB per job. It reads sources where they are and writes
 its results into SQLite through the artifact service, so the workspace has no second database file.
@@ -175,6 +178,8 @@ observations recompute-only.
   - DuckDB jobs create nothing in the current directory, and leftovers in `duckdb-tmp/` are removed at startup.
   - The workspace is created with 0700/0600 permissions, backups included (POSIX).
   - A non-empty directory that isn't a workspace is refused, gets no lock file, and its permissions are left alone.
+  - A workspace with a recovery journal left by a crash opens, with its committed data intact.
+  - A workspace copied in with loose permissions is tightened when it opens.
   - A directory holding only `.conflux.lock` is accepted as new.
   - Opening a database whose schema is newer than the code is refused.
   - No credential-shaped values end up in `workspace.db`.

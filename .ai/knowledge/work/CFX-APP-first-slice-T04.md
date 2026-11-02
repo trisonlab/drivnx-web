@@ -6,7 +6,7 @@ feature_revision: 1
 stories: [US-01, US-03, US-07]
 criteria: [AC-01, AC-14, AC-15, AC-16, AC-32, AC-33, AC-34]
 blocked_by: [CFX-APP-first-slice-T02, CFX-APP-first-slice-T03]
-state: blocked
+state: ready
 external_key: null
 status: CONFIRMED
 ---
