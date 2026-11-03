@@ -89,3 +89,28 @@ export async function connectSource(path: string): Promise<Source> {
   }
   return response.json();
 }
+
+export type Cell = { value: string | null; cut: boolean };
+
+export type RowsPage = {
+  columns: Cell[];
+  rows: Cell[][];
+  offset: number;
+  has_next: boolean;
+  skipped_lines: number;
+};
+
+/** The file can't answer right now. The message is written for the user. */
+export class FileUnreadableError extends Error {}
+
+export async function getRows(sourceId: string, offset: number): Promise<RowsPage> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/rows?offset=${offset}`);
+  if (response.status === 409) {
+    const { detail } = await response.json();
+    throw new FileUnreadableError(detail);
+  }
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}

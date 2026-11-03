@@ -1,5 +1,6 @@
 """`/api/sources`: connecting a CSV by its path, and listing what is connected."""
 
+import os
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -9,13 +10,26 @@ from artifacts.sources import (
     StoredField,
     StoredSource,
     add_csv_source,
+    find_source,
     find_source_by_path,
     list_sources,
 )
 from artifacts.workspace import Workspace
-from connectors.csv_files import CsvError, normalised_type, scan_csv
-from fastapi import APIRouter, HTTPException, Response
+from connectors.csv_files import (
+    MAX_CELL_CHARACTERS,
+    CsvError,
+    detect_encoding,
+    normalised_type,
+    read_page,
+    scan_csv,
+)
+from fastapi import APIRouter, HTTPException, Query, Response
 from pydantic import AfterValidator, BaseModel, StringConstraints
+
+DEFAULT_PAGE_ROWS = 50
+MAX_PAGE_ROWS = 200
+# The largest position DuckDB accepts. Past the end of a file, a page is just empty.
+MAX_OFFSET = 2**63 - 1
 
 
 def _no_nul(value: str) -> str:
@@ -49,6 +63,25 @@ class SourceResponse(BaseModel):
     modified_at: str
     available: bool
     columns: list[ColumnResponse]
+
+
+class CellResponse(BaseModel):
+    value: str | None
+    cut: bool
+
+
+class PageResponse(BaseModel):
+    columns: list[CellResponse]
+    rows: list[list[CellResponse]]
+    offset: int
+    has_next: bool
+    skipped_lines: int
+
+
+def _cell(value: str | None) -> CellResponse:
+    if value is None or len(value) <= MAX_CELL_CHARACTERS:
+        return CellResponse(value=value, cut=False)
+    return CellResponse(value=value[:MAX_CELL_CHARACTERS], cut=True)
 
 
 def _is_available(path: Path) -> bool:
@@ -85,6 +118,24 @@ def _response(source: StoredSource) -> SourceResponse:
 def _refuse(message: str) -> HTTPException:
     # The message never repeats the path, so a path can't end up in a log or an error report.
     return HTTPException(status_code=422, detail=message)
+
+
+def _cannot_read(message: str) -> HTTPException:
+    # The request was fine, and the file is no longer in a state that can answer it.
+    return HTTPException(status_code=409, detail=message)
+
+
+def _modified_at(stat: os.stat_result) -> str:
+    return datetime.fromtimestamp(stat.st_mtime, UTC).isoformat()
+
+
+def _current_encoding(source: StoredSource) -> str:
+    """Read with the saved encoding unless the file changed, because detecting reads all of it."""
+    stat = source.path.stat()
+    unchanged = (
+        stat.st_size == source.size_bytes and _modified_at(stat) == source.modified_at
+    )
+    return source.encoding if unchanged else detect_encoding(source.path)
 
 
 def _readable_file(text: str) -> Path:
@@ -151,7 +202,7 @@ def sources_router(workspace: Workspace) -> APIRouter:
             encoding=scan.detection.encoding,
             has_header=scan.detection.has_header,
             size_bytes=stat.st_size,
-            modified_at=datetime.fromtimestamp(stat.st_mtime, UTC).isoformat(),
+            modified_at=_modified_at(stat),
             fields=tuple(
                 StoredField(
                     column.name, column.duckdb_type, normalised_type(column.duckdb_type)
@@ -166,5 +217,45 @@ def sources_router(workspace: Workspace) -> APIRouter:
             assert existing is not None
             return _response(existing)
         return _response(source)
+
+    @router.get("/{source_id}/rows")
+    def get_rows(
+        source_id: str,
+        offset: Annotated[int, Query(ge=0, le=MAX_OFFSET)] = 0,
+        limit: Annotated[int, Query(ge=1, le=MAX_PAGE_ROWS)] = DEFAULT_PAGE_ROWS,
+    ) -> PageResponse:
+        source = find_source(workspace.engine, source_id)
+        if source is None:
+            raise HTTPException(status_code=404, detail="There's no such source.")
+        if not _is_available(source.path):
+            raise _cannot_read(
+                "Conflux can't find this file. It may have moved or been deleted."
+            )
+        # One row more than the page shows whether there is a next page, without counting rows.
+        try:
+            page = read_page(
+                source.path,
+                _current_encoding(source),
+                source.delimiter,
+                source.has_header,
+                offset,
+                limit + 1,
+                workspace.temp_directory,
+            )
+        except CsvError as error:
+            raise _cannot_read(str(error)) from None
+        except PermissionError:
+            raise _cannot_read(
+                "Conflux doesn't have permission to read this file."
+            ) from None
+        except OSError:
+            raise _cannot_read("Conflux couldn't read this file.") from None
+        return PageResponse(
+            columns=[_cell(name) for name in page.columns],
+            rows=[[_cell(value) for value in row] for row in page.rows[:limit]],
+            offset=offset,
+            has_next=len(page.rows) > limit,
+            skipped_lines=page.skipped_lines,
+        )
 
     return router

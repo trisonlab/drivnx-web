@@ -23,6 +23,9 @@ class SecurityHeaders:
                 headers = MutableHeaders(scope=message)
                 headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY
                 headers["X-Content-Type-Options"] = "nosniff"
+                if scope.get("path", "").startswith("/api"):
+                    # API responses can hold row values, which a browser would keep on disk.
+                    headers["Cache-Control"] = "no-store"
             await send(message)
 
         await self._app(scope, receive, send_with_headers)

@@ -262,9 +262,9 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
         == 200
     )
     csv_path = REPO_ROOT / "testdata" / "csv" / "comma_utf8.csv"
-    assert (
-        client.post("/api/sources", json={"path": str(csv_path)}).status_code == 201
-    )
+    connected = client.post("/api/sources", json={"path": str(csv_path)})
+    assert connected.status_code == 201
+    source_id = connected.json()["id"]
 
     def snapshot() -> list[str]:
         connection = sqlite3.connect(tmp_path / "workspace" / "workspace.db")
@@ -277,9 +277,12 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
     assert any("comma_utf8.csv" in line for line in before)
     assert ("GET", "/api/workspace") in api_reads(client)
     assert ("GET", "/api/sources") in api_reads(client)
+    assert ("GET", "/api/sources/{source_id}/rows") in api_reads(client)
 
     for method, path in api_reads(client):
-        assert client.request(method, path).status_code < 500
+        # A literal {source_id} would only ever reach the 404, and read nothing.
+        response = client.request(method, path.format(source_id=source_id))
+        assert response.status_code == 200
 
     assert snapshot() == before
 
@@ -304,6 +307,7 @@ def test_logs_contain_no_token_or_launch_code(
     start_conflux: StartConflux, free_port: int, tmp_path: Path
 ) -> None:
     # CFX-APP-first-slice/AC-12: the code goes to a browser here, so printing it isn't what is tested.
+    # The unreadable row is there because DuckDB's error message quotes the row.
     opened = tmp_path / "opened"
     browser = tmp_path / "browser"
     browser.write_text(f'#!/bin/sh\nprintf %s "$1" > "{opened}"\n')
@@ -325,9 +329,25 @@ def test_logs_contain_no_token_or_launch_code(
     match = re.search(r"=([^;]+);", response.headers["set-cookie"])
     assert match
     token = match.group(1)
-    with httpx.Client(base_url=origin, cookies=response.cookies) as client:
+    private = tmp_path / "private.csv"
+    private.write_text(
+        "id,note\n1,private-row-value\n"
+        + "2,more\n" * 100_000
+        + "x,private-bad-row,y\n"
+    )
+    with httpx.Client(
+        base_url=origin, cookies=response.cookies, headers={"Origin": origin}
+    ) as client:
         assert client.get("/api/session").json() == {"authenticated": True}
         client.get("/api/workspace")
+        client.put("/api/workspace", json={"name": "Logs", "ai_mode": "off"})
+        source = client.post("/api/sources", json={"path": str(private)}).json()["id"]
+        rows = client.get(f"/api/sources/{source}/rows")
+        assert "private-row-value" in rows.text
+        unreadable = client.get(
+            f"/api/sources/{source}/rows", params={"offset": 99_990}
+        )
+        assert unreadable.status_code == 409
     httpx.post(origin + "/api/session", json={"code": code}, headers={"Origin": origin})
 
     conflux.process.terminate()
@@ -336,6 +356,9 @@ def test_logs_contain_no_token_or_launch_code(
     assert "/api/session" in output, "trace logging produced no request lines"
     assert code not in output
     assert token not in output
+    assert "/rows" in output, "trace logging produced no preview request lines"
+    assert "private-row-value" not in output
+    assert "private-bad-row" not in output
 
 
 VITE_ORIGIN = "http://127.0.0.1:5173"

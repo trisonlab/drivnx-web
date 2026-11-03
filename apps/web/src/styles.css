@@ -312,6 +312,23 @@ button:disabled {
   text-align: left;
 }
 
+.preview {
+  display: grid;
+  gap: 1rem;
+  padding-top: 1.5rem;
+}
+
+.cut-mark {
+  color: var(--muted);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.preview-pages {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .empty-note {
   padding-top: 1rem;
   color: var(--muted);

@@ -1,6 +1,11 @@
 """Detecting how a CSV is written, CFX-APP-first-slice/AC-22."""
 
 import gzip
+import os
+import subprocess
+import sys
+import threading
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -8,8 +13,10 @@ from connectors.csv_files import (
     CsvColumn,
     CsvDetection,
     CsvError,
+    detect_encoding,
     duckdb_connection,
     normalised_type,
+    read_page,
     scan_csv,
 )
 
@@ -402,3 +409,148 @@ def test_duckdb_writes_nothing_to_the_current_directory(
     scan_csv(CSV_DIR / "comma_utf8.csv", tmp_path)
 
     assert list(cwd.iterdir()) == []
+
+
+def test_a_hash_in_the_header_and_first_row_stays_in_the_file_it_describes(
+    tmp_path: Path,
+) -> None:
+    # CFX-APP-first-slice/AC-22: DuckDB can decide # marks comments and lose the header to it.
+    path = tmp_path / "hash.csv"
+    path.write_text("#id,name\n#1,a\n2,b\n3,c\n4,d\n")
+
+    scan = scan_csv(path, tmp_path)
+
+    assert [column.name for column in scan.columns] == ["#id", "name"]
+
+
+def finishes(call: Callable[[], object]) -> bool:
+    """A FIFO blocks whoever opens it, so a regression must fail here and not hang the run."""
+    errors: list[CsvError] = []
+
+    def run() -> None:
+        try:
+            call()
+        except CsvError as error:
+            errors.append(error)
+
+    thread = threading.Thread(target=run, daemon=True)
+    thread.start()
+    thread.join(timeout=5)
+    assert not errors or "regular file" in str(errors[0])
+    return not thread.is_alive()
+
+
+@pytest.mark.parametrize(
+    "read",
+    [
+        pytest.param(lambda path, temp: detect_encoding(path), id="detecting"),
+        pytest.param(lambda path, temp: scan_csv(path, temp), id="scanning"),
+        pytest.param(
+            lambda path, temp: read_page(path, "UTF-8", ",", True, 0, 1, temp),
+            id="reading a page",
+        ),
+        pytest.param(
+            lambda path, temp: read_page(path, "UTF-16 LE", ",", True, 0, 1, temp),
+            id="reading UTF-16",
+        ),
+        pytest.param(
+            lambda path, temp: read_page(path, "Windows-1252", ",", True, 0, 1, temp),
+            id="decoding in memory",
+        ),
+    ],
+)
+def test_a_file_that_becomes_a_fifo_is_refused_rather_than_waited_on(
+    tmp_path: Path, read: Callable[[Path, Path], object]
+) -> None:
+    # CFX-APP-first-slice/AC-31: found reviewing T06, a file can change just after it was checked.
+    fifo = tmp_path / "fifo.csv"
+    os.mkfifo(fifo)
+
+    assert finishes(lambda: read(fifo, tmp_path))
+
+
+SLOW_QUERY = """
+import sys, time
+from pathlib import Path
+from connectors.csv_files import duckdb_connection
+
+with duckdb_connection(Path(sys.argv[1])) as connection:
+    connection.execute("SET threads = 1")
+    started = time.monotonic()
+    connection.execute("SELECT sum(hash(i)) FROM range(1000000000) t(i)").fetchone()
+    print(f"elapsed {time.monotonic() - started}", file=sys.stderr)
+"""
+
+
+def test_a_slow_query_draws_no_progress_bar(tmp_path: Path) -> None:
+    # Found reviewing T06: a deep page drew one on the user's terminal. It's on by default in a normal
+    # process but off under pytest, and it only appears after two seconds, hence this slow subprocess.
+    result = subprocess.run(
+        [sys.executable, "-c", SLOW_QUERY, str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    elapsed = float(result.stderr.split("elapsed ")[1])
+    assert elapsed > 2, "too fast to have drawn a bar, so this test proves nothing"
+    assert "%" not in result.stdout
+
+
+def test_long_cells_are_cut_before_they_reach_python(tmp_path: Path) -> None:
+    # Found reviewing T06: 201 rows of 1.9 MB cells peaked at 1.8 GB. One character over the limit
+    # is kept, so the API can tell a cell that was cut from one that fits exactly.
+    path = tmp_path / "long.csv"
+    path.write_text(f"id,note\n1,{'x' * 5000}\n2,{'y' * 1000}\n")
+
+    page = read_page(path, "UTF-8", ",", True, 0, 2, tmp_path)
+
+    assert [len(row[1]) for row in page.rows] == [1001, 1000]
+
+
+def test_values_starting_with_a_hash_count_when_detecting_a_columns_type(
+    tmp_path: Path,
+) -> None:
+    # CFX-APP-first-slice/AC-24: read as comments, they would leave this column looking like numbers.
+    path = tmp_path / "hash.csv"
+    path.write_text("issue,title\n#101,a\n#102,b\n103,c\n104,d\n105,e\n")
+
+    scan = scan_csv(path, tmp_path)
+
+    assert scan.columns[0] == CsvColumn("issue", "VARCHAR")
+
+
+PAGING_A_DECODED_FILE = """
+import ctypes, gc, sys
+from pathlib import Path
+from connectors.csv_files import read_page
+
+def memory_mb():
+    gc.collect()
+    ctypes.CDLL("libc.so.6").malloc_trim(0)
+    return int(Path("/proc/self/statm").read_text().split()[1]) * 4096 // 2**20
+
+path, temp = Path(sys.argv[1]), Path(sys.argv[2])
+read_page(path, "Windows-1252", ",", True, 0, 51, temp)
+before = memory_mb()
+for _ in range(20):
+    read_page(path, "Windows-1252", ",", True, 0, 51, temp)
+print(memory_mb() - before)
+"""
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="reads /proc and uses glibc")
+def test_paging_a_decoded_file_does_not_keep_using_more_memory(tmp_path: Path) -> None:
+    # Found reviewing T06: 240 pages of a 30 MB Windows-1252 file ended at 1 GB, from sniffing on
+    # several threads through the Python filesystem. A separate process, for a clean measurement.
+    path = tmp_path / "decoded.csv"
+    path.write_bytes(b"id,price\n" + "Tea,€3\n".encode("cp1252") * (30 * 2**20 // 7))
+
+    result = subprocess.run(
+        [sys.executable, "-c", PAGING_A_DECODED_FILE, str(path), str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert int(result.stdout) < 50

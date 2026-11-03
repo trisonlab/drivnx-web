@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { type AiMode, getSources, type Workspace } from "./api";
 import { DataExplorer, SOURCES_QUERY } from "./DataExplorer";
+import { Preview } from "./Preview";
 import { SourceDetails } from "./SourceDetails";
 
 const NOT_AVAILABLE = "Not available yet";
@@ -46,7 +47,10 @@ export function Shell({ workspace }: { workspace: Workspace }) {
           ))}
         </div>
         {chosen ? (
-          <SourceDetails source={chosen} />
+          <>
+            <SourceDetails source={chosen} />
+            <Preview key={chosen.id} sourceId={chosen.id} />
+          </>
         ) : (
           <p className="empty-note">Connect a CSV file to see what is in it.</p>
         )}

@@ -39,6 +39,9 @@ beforeEach(() => {
     if (url === "/api/workspace") {
       return Response.json(workspace);
     }
+    if (url.includes("/rows")) {
+      return Response.json({ columns: [], rows: [], offset: 0, has_next: false, skipped_lines: 0 });
+    }
     if (init?.method === "POST") {
       const response = onConnect(JSON.parse(String(init.body)).path);
       if (response.ok) {

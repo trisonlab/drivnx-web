@@ -1,40 +1,42 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-03T13:10:18+00:00'
+updated_at: '2026-11-03T15:40:38+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
-  .ai/knowledge/requirements/CFX-APP-first-slice.md: 7f07b09da8d3b4a982cdb0cb6c4d109cc37c206150d46a760e97d2721af52663
-  .ai/knowledge/work/CFX-APP-first-slice-T01.md: 80c99d6e687a2013831309ed4ef9087a20afec6b2a8a5d0b1b461ab126b61034
-  .ai/knowledge/work/CFX-APP-first-slice-T02.md: 6f52e44f1f0761cd7661a914d8f4e277ad38e8a706e7eadbac08c89acf9a4782
-  .ai/knowledge/work/CFX-APP-first-slice-T03.md: bda812c6e3209a675861932b41695112b99e71fee8719e0543236935f12304d3
-  .ai/knowledge/work/CFX-APP-first-slice-T04.md: 42962bdbef68580ec9ef953831729db675fc90167e508eb648ee35fb4556005c
-  .ai/knowledge/work/CFX-APP-first-slice-T05.md: c1d59cfb784a2b2cbe14e6e42537106f1fda6d039b6f87a4c1631cf45755d07c
-  .ai/knowledge/work/CFX-APP-first-slice-T06.md: d322e9a9b0ef9cace1f164c180229c14ee91c3a42518ca6bebae0ff4a11d1953
-  .ai/knowledge/work/CFX-APP-first-slice-T07.md: 5555fa32e48d33ac3efe0e0084b04db902f8286981389b8e45c87cb93cca4be4
-  .ai/knowledge/work/CFX-APP-first-slice-T08.md: 1edab65ece42ae508d01ca212382a8ec7ec67c426c387f82010d447f9fcc5e68
-  .ai/knowledge/work/CFX-APP-first-slice-T09.md: cf19189bdf09b3fb16f8b07074b8564855d3d617caca21f7684c7c7343898f4b
-  .ai/knowledge/work/CFX-APP-first-slice-T10.md: 5f48607765461dc3d0fa27f3f14d0cb6259151c3229821c20d66a76d35f29a62
+  .ai/knowledge/requirements/CFX-APP-first-slice.md: 2db9f2ce382495549c1607062708c81e10cdfe0c34ae65f71a2f35c47691b056
+  .ai/knowledge/work/CFX-APP-first-slice-T01.md: 3f4c11fc346e5ef7b9e8e7f04d759891247aa2c319c15f98c343bfafbe051820
+  .ai/knowledge/work/CFX-APP-first-slice-T02.md: c7c0e2582717d8df9e11eb480717f008b903aa95116ad0919bc5242d3a4c203e
+  .ai/knowledge/work/CFX-APP-first-slice-T03.md: 14401563476f507d6d3bce4d080f5f15a5557e6367c0650da62059b81135ab2b
+  .ai/knowledge/work/CFX-APP-first-slice-T04.md: 9721c02316be332a14c641e522fc920a3ea1bab39a5ba51919555721b6c8eb80
+  .ai/knowledge/work/CFX-APP-first-slice-T05.md: 8c8df83aa01c97d806584b45f8ff62a854ac7229652790b08235b0f1139d2e24
+  .ai/knowledge/work/CFX-APP-first-slice-T06.md: 5c381c2977f046ab7b5f29ed2cea033f6d68f7d1c2ee955dbd22d00569920e2e
+  .ai/knowledge/work/CFX-APP-first-slice-T07.md: 09d4593bda0f43d38e3c7200ce678ae5e1d68a1132d04af3f37a4ec7bf653a5a
+  .ai/knowledge/work/CFX-APP-first-slice-T08.md: 24b097c0a58a259cecafbe9fe9773afd3406e07cf31b32605c9e8d719f91de98
+  .ai/knowledge/work/CFX-APP-first-slice-T09.md: 2adf0a8117f6c7a425081f64d6424df016f87d320a325f7b464f3e5f0defa9d3
+  .ai/knowledge/work/CFX-APP-first-slice-T10.md: a45babaed3ee9db08b63a0e4af3eb30ee19e7628cac9b10cd4823fbeab38a63e
   apps/local-api/local_api/app.py: 19d76607100b527a0c82618a6843a82ee1aa26d532ecbe4fd53a3dd633f24dbb
   apps/local-api/local_api/binding.py: 2611a2c17106768394fe6322ea524d43e29e3771c50eed1b84c92781dbebfd39
   apps/local-api/local_api/cli.py: a06d2160419ea161d6265aff7d76a30d214002ebffea47a4459e76b0b22c56e3
-  apps/local-api/local_api/guard.py: aae8de5e4a9e1412c75445cae630e26a1ae22c33d09b41cc12e761362da171e8
+  apps/local-api/local_api/guard.py: 0a065df935b5753303ddb14b6475b30cedae87d4f5d096d556509ae42288a9ae
   apps/local-api/local_api/session.py: 7ac051aeb59c75ca0c8e7326964ac611ab8b682fc49b1fb37c8dc177f2c1c4f4
-  apps/local-api/local_api/sources_api.py: fd2572978cd1e901fc6a9cb55a11f09c47d818ebbe1e853ffc8ce16c20e79c7d
+  apps/local-api/local_api/sources_api.py: 35d511fcdfaa7e3cbfa97b627581738e487f76ef33950cc74a10c1759d03cb2e
   apps/web/package.json: 99b9c00647fe349cba9f7bcddb0506920cc977b3700472a7a4b15317ad9b7aa8
   apps/web/pnpm-lock.yaml: bdd810e5b90fffd40a7c76eb02ab697ed743bbb1f6d9adee0536d23eef22494d
   apps/web/src/App.test.tsx: 9eb6591f54b127537370a9fc272213b641dd57bb4d3a44e5b7c907df8f5bcee5
   apps/web/src/App.tsx: b96d3baf0f040fa4bd0ae9862181160a51637118108057153acdf437382b6689
   apps/web/src/DataExplorer.tsx: 46957aa004142a6c5ca4955fda5b1dc70bce7acfb4ced523e129f2934d35292e
+  apps/web/src/Preview.test.tsx: 5d9eaa75943a69a77ba6d14c1ae66d02985434a2508b15bd6b0324a4e29044a5
+  apps/web/src/Preview.tsx: 3bf2aa6bbc84a230141f4316ebd0dfa37c0886e28daadca3c841745ee9d7dfcd
   apps/web/src/SetupScreen.tsx: 31e7316e6b5602e338a3646da2a27b8b2b2873bfb148aafd9db9a72478ef4794
-  apps/web/src/Shell.tsx: 85e234aa75c0990e99a4a81b814f10abbf55cf8690a5fe521bbd734629e884b7
+  apps/web/src/Shell.tsx: 76b62d424a3527178d40ac290484f257006685daf06a5d123805052fae938133
   apps/web/src/SourceDetails.tsx: 67a0d86164fc381c77c6ad0e324530002508086edc39deb20da829d13ebf2e00
-  apps/web/src/Sources.test.tsx: 822e65b85523c058750ebf8ec1a2ac49efd080b4cea3fdbe9f72cfcafdbe3069
-  apps/web/src/api.ts: ed21262265677ac541a7c7f1d19ec767f23c3f4ce9b50cf316a01650eff01406
+  apps/web/src/Sources.test.tsx: 643936a86e15baadf771846e6b07549572a235e86e2a51a350c747c76320782c
+  apps/web/src/api.ts: c33039799d8b9556c0f70377934142f73304b3536dfe8388a7be141502640845
   apps/web/src/main.tsx: a092eb0be7e15855ffc2d8cd35c780c063e9686c2d96689d54ff3ae14deabe4c
   apps/web/src/session.test.ts: 1cfe4e0e785dafef6c141859de01b29725ba49e609b0a9d7651d2976aaa3a3a6
   apps/web/src/session.ts: 606b8ed83032ca43d62da07c2b90c3cdb5e761467e3cf1b4d907b0a96950aab4
   apps/web/src/sourceFormat.ts: 089d6d12912f71f90adc55c819869eb3ae6024e83ed2ca4eef41b816041ce15c
-  apps/web/src/styles.css: 0dd5909d00c8bc8a4b5e0bab545f209549f3d3f3b13436d78ee60c5c07df4c9b
+  apps/web/src/styles.css: b5ce44e02095024b47a423c0cb1b792ee5c600046d55ba444bc86534a4d4e02c
   apps/web/tsconfig.json: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
   packages/artifacts/schema.py: 7fb2131698ecfbd9bbb451c8ec421fe12ed9f3930ca5b50a1c20cc011e64f374
   packages/artifacts/workspace.py: 6a70d268badb85bb03e9174c488caf1739a5659a98370af52766a9f54bae21c1
@@ -44,11 +46,13 @@ sources:
   tests/e2e/test_browser_security.py: d5a6f6a9444d47f11190efe42e4f67fb653987fe05e93cd64ed170d4cb9b089d
   tests/e2e/test_connect_csv.py: 90b4447b2fc47a50637f63ecac99d791da2129dfec6a6a616c1587a72983190c
   tests/e2e/test_first_launch.py: 2f7b59a9bc9c7736ad143b7e3f33ee37b1f30e2afd76c16c552b73b7534c8534
+  tests/e2e/test_preview.py: 125b482d2ce433c417310a79a867cb3c9500a5fc08ea5b39a0cfead48ddea7e0
   tests/integration/test_binding.py: 79eeb61ddbb635cafec5bbf4a570033e5c418aa09dc2adde55afb539a85bd0e7
-  tests/integration/test_csv_detection.py: 106e9f286c0bafd70ea761e369834a4b4516bd58ddb8fb81e27d0dd565abbe65
+  tests/integration/test_csv_detection.py: db40b1d3977f7f42292b342d882615ba887aa8d894c14da65817861a07da579e
   tests/integration/test_launch.py: bd2810276c70e8ec2e721f2a8cc9fb3656b8d9a6ba757ad27d928cc37e95d5a3
   tests/integration/test_lockfiles.py: d04c655bbf0d73a55efca921996aaed96a943010384addf630418228a82fd4d2
-  tests/integration/test_session.py: 3b486db41e179f56e3f907995325f6c88bda303f12dce782ffe018f7781522d9
+  tests/integration/test_preview_api.py: 002cfb55d309bd56124b4d3f4a6fed08c32a30eed1d62512861e24a38ead5fc1
+  tests/integration/test_session.py: 3bd628e7b009c8ae7dd59f427c9404c1a1d58be274a012c6884bed03c67bf578
   tests/integration/test_sources_api.py: 03a6f4a4b32b3917fb29b48dacfaf547441c31c36295a03266251874297949d8
   tests/integration/test_workspace.py: 721fd06817f1ad9f00e75a8126708cace981c1e290f8efb4d97228b8799bba3a
   tests/integration/test_workspace_api.py: d0c3649cc06576c653bec3ec78b89fd157af1392e3f7a7221624b7d15f3e4755
@@ -220,7 +224,8 @@ nodes:
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
   text: Given a connected CSV, when the preview opens, then the first 50 rows appear, and next and previous
-    show the adjacent pages, with no total page count. Next is disabled on the last page.
+    show the adjacent pages, with no total page count. Next is disabled on the last page. Given lines
+    ab
 - id: criterion:CFX-APP-first-slice/AC-28
   kind: criterion
   evidence:
@@ -231,13 +236,15 @@ nodes:
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
   text: Given preview cells containing HTML or script text, then they are displayed as plain text and
-    nothing runs. Given a cell longer than 1,000 characters, then it is cut and visibly marked.
+    nothing runs. Given a cell or column name longer than 1,000 characters, then it is cut and visibly
+    marked.
 - id: criterion:CFX-APP-first-slice/AC-30
   kind: criterion
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
-  text: Given preview pages have been viewed, then no row values are in `workspace.db` or its backups,
-    and no files remain in `duckdb-tmp/` or the current directory after the job finishes.
+  text: 'Given preview pages have been viewed, then no row values are in `workspace.db` or its backups,
+    the browser''s disk cache, or any files remaining in `duckdb-tmp/` or the current directory after
+    the job '
 - id: criterion:CFX-APP-first-slice/AC-31
   kind: criterion
   evidence:
@@ -388,7 +395,11 @@ nodes:
 - id: endpoint:GET /api/sources
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/sources_api.py:129
+  - apps/local-api/local_api/sources_api.py:180
+- id: endpoint:GET /api/sources/{}/rows
+  kind: endpoint
+  evidence:
+  - apps/local-api/local_api/sources_api.py:221
 - id: endpoint:GET /api/workspace
   kind: endpoint
   evidence:
@@ -396,7 +407,7 @@ nodes:
 - id: endpoint:POST /api/sources
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/sources_api.py:133
+  - apps/local-api/local_api/sources_api.py:184
 - id: endpoint:PUT /api/workspace
   kind: endpoint
   evidence:
@@ -445,6 +456,14 @@ nodes:
   kind: module
   evidence:
   - apps/web/src/DataExplorer.tsx:1
+- id: module:apps/web/src/Preview.test.tsx
+  kind: module
+  evidence:
+  - apps/web/src/Preview.test.tsx:1
+- id: module:apps/web/src/Preview.tsx
+  kind: module
+  evidence:
+  - apps/web/src/Preview.tsx:1
 - id: module:apps/web/src/SetupScreen.tsx
   kind: module
   evidence:
@@ -513,6 +532,10 @@ nodes:
   kind: module
   evidence:
   - tests/e2e/test_first_launch.py:1
+- id: module:tests/e2e/test_preview.py
+  kind: module
+  evidence:
+  - tests/e2e/test_preview.py:1
 - id: module:tests/integration/test_binding.py
   kind: module
   evidence:
@@ -529,6 +552,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_lockfiles.py:1
+- id: module:tests/integration/test_preview_api.py
+  kind: module
+  evidence:
+  - tests/integration/test_preview_api.py:1
 - id: module:tests/integration/test_session.py
   kind: module
   evidence:
@@ -677,7 +704,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/CFX-APP-first-slice-T06.md
   title: Page through the rows
-  state: ready
+  state: done
   external_key: null
 - id: ticket:CFX-APP-first-slice-T07
   kind: ticket
@@ -1151,14 +1178,21 @@ edges:
   to: endpoint:GET /api/sources
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/sources_api.py:129
+  - apps/local-api/local_api/sources_api.py:180
+  note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
+- from: module:apps/local-api/local_api/sources_api.py
+  rel: exposes
+  to: endpoint:GET /api/sources/{}/rows
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/sources_api.py:221
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/sources_api.py
   rel: exposes
   to: endpoint:POST /api/sources
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/sources_api.py:133
+  - apps/local-api/local_api/sources_api.py:184
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/web/src/App.test.tsx
   rel: imports
@@ -1233,6 +1267,49 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/src/DataExplorer.tsx:4
+- from: module:apps/web/src/Preview.test.tsx
+  rel: imports
+  to: module:apps/web/src/App.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Preview.test.tsx:5
+- from: module:apps/web/src/Preview.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-27
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Preview.test.tsx:93
+  - apps/web/src/Preview.test.tsx:105
+  - apps/web/src/Preview.test.tsx:123
+  - apps/web/src/Preview.test.tsx:222
+  - apps/web/src/Preview.test.tsx:241
+  - apps/web/src/Preview.test.tsx:265
+  - apps/web/src/Preview.test.tsx:289
+  - apps/web/src/Preview.test.tsx:302
+  - apps/web/src/Preview.test.tsx:310
+- from: module:apps/web/src/Preview.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-29
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Preview.test.tsx:140
+  - apps/web/src/Preview.test.tsx:153
+  - apps/web/src/Preview.test.tsx:320
+- from: module:apps/web/src/Preview.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-31
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Preview.test.tsx:174
+  - apps/web/src/Preview.test.tsx:194
+  - apps/web/src/Preview.test.tsx:207
+  - apps/web/src/Preview.test.tsx:351
+- from: module:apps/web/src/Preview.tsx
+  rel: imports
+  to: module:apps/web/src/api.ts
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Preview.tsx:3
 - from: module:apps/web/src/SetupScreen.tsx
   rel: imports
   to: module:apps/web/src/api.ts
@@ -1247,10 +1324,16 @@ edges:
   - apps/web/src/Shell.tsx:4
 - from: module:apps/web/src/Shell.tsx
   rel: imports
-  to: module:apps/web/src/SourceDetails.tsx
+  to: module:apps/web/src/Preview.tsx
   status: CONFIRMED
   evidence:
   - apps/web/src/Shell.tsx:5
+- from: module:apps/web/src/Shell.tsx
+  rel: imports
+  to: module:apps/web/src/SourceDetails.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Shell.tsx:6
 - from: module:apps/web/src/Shell.tsx
   rel: imports
   to: module:apps/web/src/api.ts
@@ -1280,40 +1363,40 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-20
   status: CONFIRMED
   evidence:
-  - apps/web/src/Sources.test.tsx:88
+  - apps/web/src/Sources.test.tsx:91
 - from: module:apps/web/src/Sources.test.tsx
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-21
   status: CONFIRMED
   evidence:
-  - apps/web/src/Sources.test.tsx:163
+  - apps/web/src/Sources.test.tsx:166
 - from: module:apps/web/src/Sources.test.tsx
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-22
   status: CONFIRMED
   evidence:
-  - apps/web/src/Sources.test.tsx:101
-  - apps/web/src/Sources.test.tsx:127
-  - apps/web/src/Sources.test.tsx:135
+  - apps/web/src/Sources.test.tsx:104
+  - apps/web/src/Sources.test.tsx:130
+  - apps/web/src/Sources.test.tsx:138
 - from: module:apps/web/src/Sources.test.tsx
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-23
   status: CONFIRMED
   evidence:
-  - apps/web/src/Sources.test.tsx:196
+  - apps/web/src/Sources.test.tsx:199
 - from: module:apps/web/src/Sources.test.tsx
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-24
   status: CONFIRMED
   evidence:
-  - apps/web/src/Sources.test.tsx:88
-  - apps/web/src/Sources.test.tsx:101
+  - apps/web/src/Sources.test.tsx:91
+  - apps/web/src/Sources.test.tsx:104
 - from: module:apps/web/src/Sources.test.tsx
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-25
   status: CONFIRMED
   evidence:
-  - apps/web/src/Sources.test.tsx:101
+  - apps/web/src/Sources.test.tsx:104
 - from: module:apps/web/src/main.tsx
   rel: imports
   to: module:apps/web/src/App.tsx
@@ -1484,6 +1567,47 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/e2e/test_first_launch.py:79
+- from: module:tests/e2e/test_preview.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_preview.py:9
+- from: module:tests/e2e/test_preview.py
+  rel: imports
+  to: module:tests/e2e/test_connect_csv.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_preview.py:10
+- from: module:tests/e2e/test_preview.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-27
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_preview.py:1
+  - tests/e2e/test_preview.py:32
+  - tests/e2e/test_preview.py:57
+  - tests/e2e/test_preview.py:126
+  - tests/e2e/test_preview.py:137
+- from: module:tests/e2e/test_preview.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-29
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_preview.py:80
+  - tests/e2e/test_preview.py:97
+- from: module:tests/e2e/test_preview.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-30
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_preview.py:159
+- from: module:tests/e2e/test_preview.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-31
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_preview.py:112
 - from: module:tests/integration/test_binding.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-07
@@ -1495,52 +1619,60 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-20
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:261
-  - tests/integration/test_csv_detection.py:292
+  - tests/integration/test_csv_detection.py:268
+  - tests/integration/test_csv_detection.py:299
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-21
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:192
-  - tests/integration/test_csv_detection.py:198
-  - tests/integration/test_csv_detection.py:210
-  - tests/integration/test_csv_detection.py:247
-  - tests/integration/test_csv_detection.py:281
-  - tests/integration/test_csv_detection.py:309
-  - tests/integration/test_csv_detection.py:320
+  - tests/integration/test_csv_detection.py:199
+  - tests/integration/test_csv_detection.py:205
+  - tests/integration/test_csv_detection.py:217
+  - tests/integration/test_csv_detection.py:254
+  - tests/integration/test_csv_detection.py:288
+  - tests/integration/test_csv_detection.py:316
+  - tests/integration/test_csv_detection.py:327
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-22
   status: CONFIRMED
   evidence:
   - tests/integration/test_csv_detection.py:1
-  - tests/integration/test_csv_detection.py:42
-  - tests/integration/test_csv_detection.py:62
-  - tests/integration/test_csv_detection.py:73
-  - tests/integration/test_csv_detection.py:93
-  - tests/integration/test_csv_detection.py:103
-  - tests/integration/test_csv_detection.py:261
+  - tests/integration/test_csv_detection.py:49
+  - tests/integration/test_csv_detection.py:69
+  - tests/integration/test_csv_detection.py:80
+  - tests/integration/test_csv_detection.py:100
+  - tests/integration/test_csv_detection.py:110
+  - tests/integration/test_csv_detection.py:268
+  - tests/integration/test_csv_detection.py:417
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-24
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:120
+  - tests/integration/test_csv_detection.py:127
+  - tests/integration/test_csv_detection.py:514
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-26
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:62
+  - tests/integration/test_csv_detection.py:69
+- from: module:tests/integration/test_csv_detection.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-31
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_csv_detection.py:465
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-49
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:331
-  - tests/integration/test_csv_detection.py:353
-  - tests/integration/test_csv_detection.py:397
+  - tests/integration/test_csv_detection.py:338
+  - tests/integration/test_csv_detection.py:360
+  - tests/integration/test_csv_detection.py:404
 - from: module:tests/integration/test_launch.py
   rel: imports
   to: module:tests/conftest.py
@@ -1559,6 +1691,87 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_lockfiles.py:1
+- from: module:tests/integration/test_preview_api.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-20
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_preview_api.py:784
+- from: module:tests/integration/test_preview_api.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-21
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_preview_api.py:316
+- from: module:tests/integration/test_preview_api.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-27
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_preview_api.py:1
+  - tests/integration/test_preview_api.py:39
+  - tests/integration/test_preview_api.py:55
+  - tests/integration/test_preview_api.py:72
+  - tests/integration/test_preview_api.py:123
+  - tests/integration/test_preview_api.py:157
+  - tests/integration/test_preview_api.py:444
+  - tests/integration/test_preview_api.py:457
+  - tests/integration/test_preview_api.py:470
+  - tests/integration/test_preview_api.py:479
+  - tests/integration/test_preview_api.py:579
+  - tests/integration/test_preview_api.py:627
+  - tests/integration/test_preview_api.py:637
+  - tests/integration/test_preview_api.py:648
+  - tests/integration/test_preview_api.py:708
+  - tests/integration/test_preview_api.py:722
+  - tests/integration/test_preview_api.py:754
+  - tests/integration/test_preview_api.py:784
+  - tests/integration/test_preview_api.py:852
+  - tests/integration/test_preview_api.py:865
+  - tests/integration/test_preview_api.py:881
+  - tests/integration/test_preview_api.py:912
+- from: module:tests/integration/test_preview_api.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-28
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_preview_api.py:102
+- from: module:tests/integration/test_preview_api.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-29
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_preview_api.py:336
+  - tests/integration/test_preview_api.py:353
+  - tests/integration/test_preview_api.py:365
+  - tests/integration/test_preview_api.py:800
+- from: module:tests/integration/test_preview_api.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-30
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_preview_api.py:393
+  - tests/integration/test_preview_api.py:413
+  - tests/integration/test_preview_api.py:563
+- from: module:tests/integration/test_preview_api.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-31
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_preview_api.py:178
+  - tests/integration/test_preview_api.py:191
+  - tests/integration/test_preview_api.py:211
+  - tests/integration/test_preview_api.py:222
+  - tests/integration/test_preview_api.py:253
+  - tests/integration/test_preview_api.py:287
+  - tests/integration/test_preview_api.py:301
+  - tests/integration/test_preview_api.py:316
+  - tests/integration/test_preview_api.py:479
+  - tests/integration/test_preview_api.py:531
+  - tests/integration/test_preview_api.py:672
+  - tests/integration/test_preview_api.py:816
+  - tests/integration/test_preview_api.py:836
+  - tests/integration/test_preview_api.py:895
 - from: module:tests/integration/test_session.py
   rel: imports
   to: module:tests/conftest.py
@@ -1571,7 +1784,7 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_session.py:1
-  - tests/integration/test_session.py:288
+  - tests/integration/test_session.py:291
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-08
@@ -1597,7 +1810,7 @@ edges:
   - tests/integration/test_session.py:60
   - tests/integration/test_session.py:77
   - tests/integration/test_session.py:198
-  - tests/integration/test_session.py:431
+  - tests/integration/test_session.py:454
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-11
@@ -1609,7 +1822,7 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-12
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:306
+  - tests/integration/test_session.py:309
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-13
@@ -1622,10 +1835,10 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-52
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:347
-  - tests/integration/test_session.py:360
-  - tests/integration/test_session.py:381
-  - tests/integration/test_session.py:391
+  - tests/integration/test_session.py:370
+  - tests/integration/test_session.py:383
+  - tests/integration/test_session.py:404
+  - tests/integration/test_session.py:414
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-08

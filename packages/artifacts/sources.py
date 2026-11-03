@@ -70,6 +70,14 @@ def find_source_by_path(engine: Engine, path: Path) -> StoredSource | None:
         return _with_fields(connection, row) if row else None
 
 
+def find_source(engine: Engine, source_id: str) -> StoredSource | None:
+    with engine.connect() as connection:
+        row = connection.execute(
+            text(f"{_SELECT_SOURCES} WHERE id = :id"), {"id": source_id}
+        ).first()
+        return _with_fields(connection, row) if row else None
+
+
 def add_csv_source(engine: Engine, source: StoredSource) -> bool:
     """Save a source with its dataset and fields. Returns False if the path is already connected."""
     with engine.begin() as connection:

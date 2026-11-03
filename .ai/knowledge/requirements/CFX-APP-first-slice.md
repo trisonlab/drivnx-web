@@ -5,9 +5,9 @@ title: "First vertical slice: runtime to CSV preview, on the M1 domain model"
 summary: "Start Conflux, set up a workspace in the browser, connect a CSV and see its metadata and a paginated preview, built on the full M1 domain model."
 owner: conflux-web
 lifecycle: approved
-revision: 4
-approved_revision: 4
-approval_evidence: "user approved revision 4 in chat, 2026-11-03 ('state the general limit and fix findings 2 to 6', on the review of T05)"
+revision: 7
+approved_revision: 7
+approval_evidence: "user approved revision 7 in chat, 2026-11-03 ('accept the limit', on the last limit found fixing T06)"
 updated: "2026-11-03"
 related: []
 status: CONFIRMED
@@ -63,6 +63,10 @@ Decided with the user in chat, 2026-11-01 ("go with your recommendations"):
 - **Metadata scan:** file name, size, modified date, columns and detected types are saved. Preview rows are never saved. No row count until profiling (M3).
 - **Encodings, decided 2026-11-02:** DuckDB doesn't detect encodings, so Conflux does, by reading the file once. It refuses Windows-1252 outright and reads big-endian UTF-16 as garbage, so those two are decoded in Python and limited to 100 MB. Reviewing T05 on 2026-11-03 found that DuckDB also refuses characters above U+FFFF in little-endian UTF-16, so Conflux checks those files in full and decodes the ones that have them in the same way. The `encodings` extension was rejected: 276 MB per platform, and no big-endian UTF-16. A temporary converted file was rejected because it copies source data (Section 5).
 - **Headers that can't be told from data, decided 2026-11-03:** a first row that doesn't fit the column types looks like a header, and commas in the text look like a delimiter whether or not the file has a header. No rule separates these files from ones with a real header or a title line, so Conflux asks DuckDB twice, strictly and leniently, and accepts that one row may become the column names or the delimiter may be wrong (AC-22, AC-26). The screen says a row from the file was used. Correcting either comes later in M2.
+- **Lines skipped above the table, decided 2026-11-03:** DuckDB skips leading lines that don't match the rest of the file. That is what makes a title line work, but it can't tell a title line from real rows that have fewer fields. The preview keeps skipping, so a file with a title line keeps the right columns, and says how many lines aren't shown (AC-27). Those lines can't be reached until detection can be corrected later in M2.
+- **Quotes first seen late in a file, decided 2026-11-03:** DuckDB decides how a file is quoted from a sample of its start, so a first quoted value after that sample is misread. If the sample shows no quotes, the preview reads the file with the standard double quote and falls back to what was detected. Sniffing the whole file was rejected: 20.84 s for 1 GB, against a 5 s budget. This leaves one limit, for malformed files only (AC-27).
+- **Mixed line endings, decided 2026-11-03:** only DuckDB's lax mode reads a file whose sample mixes line endings, and it drops an extra field past the sample without saying so. Refusing these files was rejected, because valid files then can't connect. The limit is accepted (AC-27), and the lax read is only used when no other sniff can read the file.
+- **Very wide files, decided 2026-11-03:** the number of columns isn't capped. At 20,000 columns and 200 rows, one page measured a 99 MB response and a 2.4 GB peak. Nobody has needed a cap yet, so this is recorded as a limit.
 - **Non-CSV content, decided 2026-11-02:** files holding only a byte-order mark or blank lines, and prose or HTML, connect with whatever columns DuckDB finds. Refusing them waits for the later M2 CSV work.
 - **Metadata label, decided 2026-11-02:** the details panel carries the label (AC-25). The column names in the Data Explorer are navigation and don't.
 - **Deferred:** OS credential store (until M4 or M8, when something first stores a secret) and the Docker PostgreSQL fixture (M4).
@@ -102,10 +106,10 @@ API for this slice, using the Section 12 outline as amended: `/api/session`, `/a
 - AC-24 (US-05): Given a connected CSV, when its source is opened, then the Data Explorer shows it with its columns, and the app shows file name, size, modified date, and each column's name, detected type and original type text.
 - AC-25 (US-05): Given a connected CSV, then no row count is shown, and every value from the scan is labelled as metadata.
 - AC-26 (US-05): Given a connected CSV, then its Source, Dataset and Fields are in `workspace.db`, and a scan of the database finds no value from any data row. The one exception is the row used as column names (AC-22). No other row's values are stored.
-- AC-27 (US-06): Given a connected CSV, when the preview opens, then the first 50 rows appear, and next and previous show the adjacent pages, with no total page count. Next is disabled on the last page.
+- AC-27 (US-06): Given a connected CSV, when the preview opens, then the first 50 rows appear, and next and previous show the adjacent pages, with no total page count. Next is disabled on the last page. Given lines above the table that detection skipped, the preview says how many aren't shown. Correcting this comes later in M2. Given a malformed file whose first double quote comes after the rows detection samples and never closes, the rows after that quote may not appear. Given a file with mixed line endings near its start, a field beyond the expected columns in a later row may not be shown.
 - AC-28 (US-06): Given a request for more than 200 rows per page, then the API refuses or caps it to 200.
-- AC-29 (US-06): Given preview cells containing HTML or script text, then they are displayed as plain text and nothing runs. Given a cell longer than 1,000 characters, then it is cut and visibly marked.
-- AC-30 (US-06): Given preview pages have been viewed, then no row values are in `workspace.db` or its backups, and no files remain in `duckdb-tmp/` or the current directory after the job finishes.
+- AC-29 (US-06): Given preview cells containing HTML or script text, then they are displayed as plain text and nothing runs. Given a cell or column name longer than 1,000 characters, then it is cut and visibly marked.
+- AC-30 (US-06): Given preview pages have been viewed, then no row values are in `workspace.db` or its backups, the browser's disk cache, or any files remaining in `duckdb-tmp/` or the current directory after the job finishes.
 - AC-31 (US-06): Given a file changes or disappears between pages, when the next page is requested, then the user gets current data or a clear error, and never a crash.
 - AC-32 (US-07): Given the app is open, then it shows a header with workspace name, profile status, AI mode, privacy indicator and export, a left Data Explorer, centre tabs (Overview, Profile, Dictionary, Contract) and a right Intelligence & Review panel.
 - AC-33 (US-07): Given anything not yet built (profile status, export, the tabs and the right panel), then it is visibly marked as not available yet and has no working action.
@@ -169,3 +173,6 @@ None blocks approval.
 - Revision 2: Testing DuckDB in T05 changed what detection can promise. Adds Windows-1252 and both UTF-16 byte orders, with a 100 MB limit where the file has to be decoded in memory; limits AC-22 and AC-26 for all-text files without a header; limits the performance target to UTF-8 and Latin-1. Approved by the user in chat, 2026-11-02.
 - Revision 3: Verifying T05 found that detection misreads files without a header that have commas in every row. Limits AC-22 and AC-26 for those files, and records that non-CSV content and the Data Explorer's column names stay as built. Approved by the user in chat, 2026-11-02.
 - Revision 4: Reviewing T05 found that a row can become the column names in more files than revisions 2 and 3 named, including files with a real header, and that no detection rule can prevent it. Replaces those limits on AC-22 and AC-26 with one general limit. Adds little-endian UTF-16 files with characters above U+FFFF to the 100 MB limit in AC-21. Approved by the user in chat, 2026-11-03.
+- Revision 5: Verifying T06 found that the preview can silently leave out real rows above the table, and that the browser saved row values in its disk cache. AC-27 now says how many lines aren't shown, and AC-30 now covers the browser's disk cache. Approved by the user in chat, 2026-11-03.
+- Revision 6: Reviewing T06 found that quoting is decided from the start of a file and that column names weren't cut. AC-27 records the limit that remains for malformed files, and AC-29 now covers column names. Records that very wide files have no cap. Approved by the user in chat, 2026-11-03.
+- Revision 7: Fixing T06 found that reading mixed line endings can drop an extra field in a later row. AC-27 records this limit. Approved by the user in chat, 2026-11-03.

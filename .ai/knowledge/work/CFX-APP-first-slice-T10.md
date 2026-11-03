@@ -2,7 +2,7 @@
 id: CFX-APP-first-slice-T10
 title: "Full journey and project checks"
 feature: CFX-APP-first-slice
-feature_revision: 4
+feature_revision: 7
 stories: [US-09]
 criteria: [AC-51, AC-53, AC-54]
 blocked_by: [CFX-APP-first-slice-T06, CFX-APP-first-slice-T08, CFX-APP-first-slice-T09]
