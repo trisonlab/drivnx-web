@@ -1,4 +1,8 @@
-import type { AiMode, Workspace } from "./api";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { type AiMode, getSources, type Workspace } from "./api";
+import { DataExplorer, SOURCES_QUERY } from "./DataExplorer";
+import { SourceDetails } from "./SourceDetails";
 
 const NOT_AVAILABLE = "Not available yet";
 const TABS = ["Overview", "Profile", "Dictionary", "Contract"];
@@ -10,6 +14,10 @@ const PRIVACY_STATE: Record<AiMode, string> = {
 };
 
 export function Shell({ workspace }: { workspace: Workspace }) {
+  const sources = useQuery({ queryKey: SOURCES_QUERY, queryFn: getSources });
+  const [chosenId, setChosenId] = useState<string | null>(null);
+  const chosen = sources.data?.find((source) => source.id === chosenId) ?? sources.data?.[0];
+
   return (
     <div className="shell">
       <header className="shell-header">
@@ -23,10 +31,12 @@ export function Shell({ workspace }: { workspace: Workspace }) {
           Export <span className="unavailable">({NOT_AVAILABLE})</span>
         </button>
       </header>
-      <nav className="shell-explorer" aria-label="Data Explorer">
-        <h2>Data Explorer</h2>
-        <p>{workspace.name}</p>
-      </nav>
+      <DataExplorer
+        sources={sources.data}
+        loadFailed={sources.isError}
+        chosenId={chosen?.id ?? null}
+        onChoose={setChosenId}
+      />
       <main className="shell-centre">
         <div role="tablist" aria-label="Understanding Workspace">
           {TABS.map((tab) => (
@@ -35,6 +45,11 @@ export function Shell({ workspace }: { workspace: Workspace }) {
             </button>
           ))}
         </div>
+        {chosen ? (
+          <SourceDetails source={chosen} />
+        ) : (
+          <p className="empty-note">Connect a CSV file to see what is in it.</p>
+        )}
       </main>
       <aside className="shell-review" aria-label="Intelligence & Review">
         <h2>Intelligence &amp; Review</h2>

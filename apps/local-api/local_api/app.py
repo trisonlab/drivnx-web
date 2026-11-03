@@ -13,6 +13,7 @@ from pydantic import AfterValidator, BaseModel, StringConstraints
 from local_api.binding import LOOPBACK_ADDRESS
 from local_api.guard import SESSION_PATH, RequestGuard, SecurityHeaders
 from local_api.session import LaunchSession
+from local_api.sources_api import sources_router
 
 UI_DIR = Path(__file__).parent / "ui"
 
@@ -122,6 +123,9 @@ def create_app(
         settings = WorkspaceSettings(body.name, body.ai_mode)
         save_settings(workspace.engine, settings)
         return workspace_response(settings)
+
+    app.state.workspace = workspace
+    app.include_router(sources_router(workspace))
 
     if ui_dir is not None:
         app.mount("/", StaticFiles(directory=ui_dir, html=True))

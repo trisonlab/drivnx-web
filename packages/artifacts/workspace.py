@@ -1,5 +1,6 @@
 import errno
 import os
+import shutil
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,6 +19,7 @@ from artifacts.schema import (
 
 DATABASE_NAME = "workspace.db"
 LOCK_NAME = ".conflux.lock"
+DUCKDB_TEMP_NAME = "duckdb-tmp"
 LOCK_HELD_ERRORS = {errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK, errno.EDEADLK}
 OWNER_ONLY_DIRECTORY = 0o700
 OWNER_ONLY_FILE = 0o600
@@ -39,6 +41,11 @@ class Workspace:
     directory: Path
     engine: Engine
     _lock_descriptor: int
+
+    @property
+    def temp_directory(self) -> Path:
+        """Where DuckDB spills. Throwaway, but it can hold source data (ADR 0002 point 7)."""
+        return self.directory / DUCKDB_TEMP_NAME
 
     def close(self) -> None:
         self.engine.dispose()
@@ -128,6 +135,11 @@ def _open_database(directory: Path, migrations_dir: Path) -> Engine:
     try:
         create_owner_only_file(database)
         migrate(database, migrations_dir)
+        # The lock is held, so no job can still be using this. A crash can leave spill files behind.
+        temp = directory / DUCKDB_TEMP_NAME
+        if temp.exists():
+            shutil.rmtree(temp)
+        temp.mkdir(mode=OWNER_ONLY_DIRECTORY)
         return _connect_to(database)
     except OSError as error:
         raise WorkspaceError(f"Can't open {directory}: {error.strerror}") from None

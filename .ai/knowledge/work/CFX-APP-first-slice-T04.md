@@ -2,7 +2,7 @@
 id: CFX-APP-first-slice-T04
 title: "Set up a workspace in the app shell"
 feature: CFX-APP-first-slice
-feature_revision: 1
+feature_revision: 4
 stories: [US-01, US-03, US-07]
 criteria: [AC-01, AC-14, AC-15, AC-16, AC-32, AC-33, AC-34]
 blocked_by: [CFX-APP-first-slice-T02, CFX-APP-first-slice-T03]

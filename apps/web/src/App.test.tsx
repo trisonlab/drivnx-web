@@ -26,7 +26,10 @@ function workspaceNamed(name: string, ai_mode: Workspace["ai_mode"] = "off"): Wo
 }
 
 function serverHas(workspace: Workspace, onSave?: (body: unknown) => Response) {
-  fetchMock.mockImplementation(async (_url: string, init?: RequestInit) => {
+  fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+    if (url === "/api/sources") {
+      return Response.json([]);
+    }
     if (init?.method === "PUT") {
       const body = JSON.parse(String(init.body));
       return onSave?.(body) ?? Response.json({ ...workspace, ...body, setup_complete: true });

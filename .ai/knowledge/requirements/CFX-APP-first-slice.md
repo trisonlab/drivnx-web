@@ -5,10 +5,10 @@ title: "First vertical slice: runtime to CSV preview, on the M1 domain model"
 summary: "Start Conflux, set up a workspace in the browser, connect a CSV and see its metadata and a paginated preview, built on the full M1 domain model."
 owner: conflux-web
 lifecycle: approved
-revision: 1
-approved_revision: 1
-approval_evidence: "user approved revision 1 in chat, 2026-11-01 ('lets approve revision 1'); neutral ID prefix and a single place for the product name were offered and deferred"
-updated: "2026-11-01"
+revision: 4
+approved_revision: 4
+approval_evidence: "user approved revision 4 in chat, 2026-11-03 ('state the general limit and fix findings 2 to 6', on the review of T05)"
+updated: "2026-11-03"
 related: []
 status: CONFIRMED
 ---
@@ -38,7 +38,8 @@ The review, dictionary and contract parts of the domain model have tests but no 
 - ASSUMPTION: the UI is English only.
 - ASSUMPTION: the look is plain, with the orange accent from `../docs/design-mocks/` and no design polish. The orange accent must stay distinct from the Inferred trust colour (orange / amber, Section 3).
 - ASSUMPTION: a preview page holds 50 rows, the API allows at most 200, and a preview cell shows at most 1,000 characters and is visibly marked when cut short.
-- ASSUMPTION: detection covers comma, semicolon, tab and pipe delimiters; UTF-8 (with or without a BOM), UTF-16 and Latin-1 encodings; and files with or without a header row. Files without a header get generated column names, shown as generated.
+- ASSUMPTION: detection covers comma, semicolon, tab and pipe delimiters; UTF-8 (with or without a BOM), UTF-16 with a BOM in either byte order, Latin-1 and Windows-1252 encodings; and files with or without a header row. Files without a header get generated column names, shown as generated.
+- ASSUMPTION: Windows-1252 files, big-endian UTF-16 files and little-endian UTF-16 files with characters above U+FFFF are limited to 100 MB, because DuckDB can't read them directly and they have to be decoded in memory (measured at about 530 MB of RAM for a 94 MB file).
 - ASSUMPTION: connecting a path that is already a source in the workspace opens the existing source instead of adding a duplicate.
 - ASSUMPTION: the performance budgets under Non-functional are starting targets, to be confirmed by spike 1.
 - ASSUMPTION: the built screens meet WCAG 2.2 AA.
@@ -60,6 +61,10 @@ Decided with the user in chat, 2026-11-01 ("go with your recommendations"):
 - **Choosing a CSV:** the user types or pastes the full path. A file browser comes later in M2, because a browser's own file picker doesn't reveal a file's real path.
 - **CSV depth:** detect and show the result. Correcting detection and column types comes later in M2.
 - **Metadata scan:** file name, size, modified date, columns and detected types are saved. Preview rows are never saved. No row count until profiling (M3).
+- **Encodings, decided 2026-11-02:** DuckDB doesn't detect encodings, so Conflux does, by reading the file once. It refuses Windows-1252 outright and reads big-endian UTF-16 as garbage, so those two are decoded in Python and limited to 100 MB. Reviewing T05 on 2026-11-03 found that DuckDB also refuses characters above U+FFFF in little-endian UTF-16, so Conflux checks those files in full and decodes the ones that have them in the same way. The `encodings` extension was rejected: 276 MB per platform, and no big-endian UTF-16. A temporary converted file was rejected because it copies source data (Section 5).
+- **Headers that can't be told from data, decided 2026-11-03:** a first row that doesn't fit the column types looks like a header, and commas in the text look like a delimiter whether or not the file has a header. No rule separates these files from ones with a real header or a title line, so Conflux asks DuckDB twice, strictly and leniently, and accepts that one row may become the column names or the delimiter may be wrong (AC-22, AC-26). The screen says a row from the file was used. Correcting either comes later in M2.
+- **Non-CSV content, decided 2026-11-02:** files holding only a byte-order mark or blank lines, and prose or HTML, connect with whatever columns DuckDB finds. Refusing them waits for the later M2 CSV work.
+- **Metadata label, decided 2026-11-02:** the details panel carries the label (AC-25). The column names in the Data Explorer are navigation and don't.
 - **Deferred:** OS credential store (until M4 or M8, when something first stores a secret) and the Docker PostgreSQL fixture (M4).
 - **CI:** the configuration is written now. It stays NOT RUN until the repo has a remote, and the same checks run locally.
 
@@ -91,12 +96,12 @@ API for this slice, using the Section 12 outline as amended: `/api/session`, `/a
 - AC-18 (US-03): Given a workspace path under a known sync folder, when Conflux opens it, then it warns the user.
 - AC-19 (US-03): Given a workspace whose schema is older than the code, when it is opened, then a backup with mode 0600 is made and it migrates. Given a schema newer than the code, then opening is refused and the file is unchanged.
 - AC-20 (US-04): Given the path of a readable CSV, when the user connects it, then it appears as a source, and the file's contents and modified time are unchanged and no copy of it exists in the workspace.
-- AC-21 (US-04): Given a path that doesn't exist, is a directory, can't be read, or isn't parseable as CSV, when the user connects it, then a specific error says which, and no source is added.
-- AC-22 (US-04): Given each synthetic CSV covering the assumed delimiters, encodings and header cases, when it is connected, then the detected delimiter, encoding and header setting are correct and are shown to the user.
+- AC-21 (US-04): Given a path that doesn't exist, is a directory, can't be read, isn't parseable as CSV, is UTF-16 without a BOM, is a Windows-1252 or big-endian UTF-16 file over 100 MB, or is a little-endian UTF-16 file over 100 MB with characters above U+FFFF such as emoji, when the user connects it, then a specific error says which, and no source is added. The over-limit error says to save the file as UTF-8.
+- AC-22 (US-04): Given each synthetic CSV covering the assumed delimiters, encodings and header cases, when it is connected, then the detected delimiter, encoding and header setting are correct and are shown to the user. Given a file where detection can't tell a header from data, one row from the file may be used as column names, and the delimiter may be wrong. The screen shows the detected delimiter and says a row from the file was used as column names. Correcting either comes later in M2.
 - AC-23 (US-04): Given a source whose file has since moved or been deleted, when the workspace is reopened, then the source is listed as unavailable and the app keeps working.
 - AC-24 (US-05): Given a connected CSV, when its source is opened, then the Data Explorer shows it with its columns, and the app shows file name, size, modified date, and each column's name, detected type and original type text.
 - AC-25 (US-05): Given a connected CSV, then no row count is shown, and every value from the scan is labelled as metadata.
-- AC-26 (US-05): Given a connected CSV, then its Source, Dataset and Fields are in `workspace.db`, and a scan of the database finds no value from any data row.
+- AC-26 (US-05): Given a connected CSV, then its Source, Dataset and Fields are in `workspace.db`, and a scan of the database finds no value from any data row. The one exception is the row used as column names (AC-22). No other row's values are stored.
 - AC-27 (US-06): Given a connected CSV, when the preview opens, then the first 50 rows appear, and next and previous show the adjacent pages, with no total page count. Next is disabled on the last page.
 - AC-28 (US-06): Given a request for more than 200 rows per page, then the API refuses or caps it to 200.
 - AC-29 (US-06): Given preview cells containing HTML or script text, then they are displayed as plain text and nothing runs. Given a cell longer than 1,000 characters, then it is cut and visibly marked.
@@ -128,7 +133,7 @@ API for this slice, using the Section 12 outline as amended: `/api/session`, `/a
 
 ## Non-functional
 - **Security:** AC-07 to AC-13. Telemetry is off, and nothing leaves the machine in this slice.
-- **Performance (ASSUMPTION, confirm in spike 1):** on a 1 GB synthetic CSV on a development laptop, connecting and showing the metadata takes at most 5 seconds and the first preview page at most 2 seconds. Later pages may be slower, and the measured figures are recorded.
+- **Performance (ASSUMPTION, confirm in spike 1):** on a 1 GB synthetic UTF-8 or Latin-1 CSV on a development laptop, connecting and showing the metadata takes at most 5 seconds and the first preview page at most 2 seconds. Later pages may be slower, and the measured figures are recorded.
 - **Accessibility (ASSUMPTION):** built screens meet WCAG 2.2 AA, can be used by keyboard alone, and pass an automated check in Playwright.
 - **Compatibility:** Python 3.12, and current Chrome, Firefox, Edge and Safari. Only what can be run here is claimed as tested.
 
@@ -152,12 +157,15 @@ Not planned for Phase 1: anything in the Section 1 scope boundary's right-hand c
 None blocks approval.
 - **Where is "needs re-review" stored (AC-39)?** ADR 0002 makes history append-only, so it should be derived or recorded as an event, not set by updating a row. To settle in planning.
 - **What is `packages/contracts` for?** Left undefined in ADR 0003. To settle if this slice needs the folder, otherwise it stays empty.
-- **Rule for values copied from source data.** Due before M3 (R3 in the threat register). Not triggered here, because only metadata is saved.
+- **Rule for values copied from source data.** Due before M3 (R3 in the threat register). Only metadata is saved here, apart from the row used as column names (AC-26).
 
 ## Conflicts with Current System
 - **Section 12, "Secrets: OS credential store from day one":** deferred by the user's decision, 2026-11-01. The rule that secrets never go in SQLite, URLs, browser storage or logs still applies, and AC-48 tests it. Section 12 now carries a note saying so.
 - **Section 12, day-one checklist:** the Docker PostgreSQL fixture is deferred by the same decision. The "ADR template" item is not done, and the existing ADRs serve as the pattern.
-- **Section 5, CSV "user can correct inferred types":** deferred to later in M2, not dropped.
+- **Section 5, CSV "user can correct inferred types":** deferred to later in M2, not dropped. This also covers correcting the header setting and the delimiter.
 
 ## Revision History
 - Revision 1: Initial draft from the user's decisions on 2026-11-01. Approved by the user in chat, 2026-11-01.
+- Revision 2: Testing DuckDB in T05 changed what detection can promise. Adds Windows-1252 and both UTF-16 byte orders, with a 100 MB limit where the file has to be decoded in memory; limits AC-22 and AC-26 for all-text files without a header; limits the performance target to UTF-8 and Latin-1. Approved by the user in chat, 2026-11-02.
+- Revision 3: Verifying T05 found that detection misreads files without a header that have commas in every row. Limits AC-22 and AC-26 for those files, and records that non-CSV content and the Data Explorer's column names stay as built. Approved by the user in chat, 2026-11-02.
+- Revision 4: Reviewing T05 found that a row can become the column names in more files than revisions 2 and 3 named, including files with a real header, and that no detection rule can prevent it. Replaces those limits on AC-22 and AC-26 with one general limit. Adds little-endian UTF-16 files with characters above U+FFFF to the 100 MB limit in AC-21. Approved by the user in chat, 2026-11-03.

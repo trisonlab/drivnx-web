@@ -12,7 +12,6 @@ import httpx
 import pytest
 from artifacts.workspace import open_workspace
 from fastapi import FastAPI
-from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from local_api.app import create_app
 from local_api.session import LAUNCH_CODE_LIFETIME_SECONDS, LaunchSession
@@ -173,12 +172,14 @@ def in_process_client(session: LaunchSession, tmp_path: Path) -> TestClient:
 
 
 def api_reads(client: TestClient) -> list[tuple[str, str]]:
+    """Read from the OpenAPI document, because app.routes hides routes on an included router."""
     assert isinstance(client.app, FastAPI)
     return [
-        (method, route.path)
-        for route in client.app.routes
-        if isinstance(route, APIRoute) and route.path.startswith("/api")
-        for method in sorted(route.methods & {"GET", "HEAD"})
+        (method.upper(), path)
+        for path, operations in client.app.openapi()["paths"].items()
+        if path.startswith("/api")
+        for method in sorted(operations)
+        if method in ("get", "head")
     ]
 
 
@@ -250,7 +251,7 @@ def test_get_and_head_routes_change_nothing(tmp_path: Path) -> None:
 
 
 def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
-    # CFX-APP-first-slice/AC-13. T05 adds sources, which this picks up with their routes.
+    # CFX-APP-first-slice/AC-13
     session = LaunchSession(PORT)
     client = in_process_client(session, tmp_path)
     client.post("/api/session", json={"code": session.launch_code})
@@ -259,6 +260,10 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
             "/api/workspace", json={"name": "Snapshot", "ai_mode": "off"}
         ).status_code
         == 200
+    )
+    csv_path = REPO_ROOT / "testdata" / "csv" / "comma_utf8.csv"
+    assert (
+        client.post("/api/sources", json={"path": str(csv_path)}).status_code == 201
     )
 
     def snapshot() -> list[str]:
@@ -269,7 +274,9 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
             connection.close()
 
     before = snapshot()
+    assert any("comma_utf8.csv" in line for line in before)
     assert ("GET", "/api/workspace") in api_reads(client)
+    assert ("GET", "/api/sources") in api_reads(client)
 
     for method, path in api_reads(client):
         assert client.request(method, path).status_code < 500
