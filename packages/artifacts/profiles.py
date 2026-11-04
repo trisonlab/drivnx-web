@@ -1,0 +1,296 @@
+"""Profile runs, their observations and findings."""
+
+import json
+import uuid
+from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Any
+
+from domain.trust import Action, Actor, ItemKind, next_state
+from sqlalchemy import Engine, text
+
+from artifacts.provenance import NO_DETAILS, EventDetails, now, record_event
+from artifacts.store import write_transaction
+
+# Holds the write lock for 0.2 to 0.5 s. At 40,000, a review waiting behind it got WorkspaceBusy.
+MAX_OBSERVATIONS_PER_TRANSACTION = 1000
+
+
+@dataclass(frozen=True)
+class ProfileRun:
+    id: str
+    scope: dict[str, Any]
+    mode: str
+    sample_size: int | None
+    strategy: str | None
+    seed: int | None
+    status: str
+    started_at: str
+    ended_at: str | None
+
+
+@dataclass(frozen=True)
+class NewObservation:
+    dataset_id: str
+    field_id: str | None
+    metric: str
+    value: Any
+    scope: str
+    method: str
+    precision: str
+
+
+@dataclass(frozen=True)
+class Observation:
+    id: str
+    profile_run_id: str
+    dataset_id: str
+    field_id: str | None
+    metric: str
+    value: Any
+    scope: str
+    method: str
+    precision: str
+
+
+@dataclass(frozen=True)
+class NewFinding:
+    profile_run_id: str
+    observation_ids: tuple[str, ...]
+    interpretation: str
+    why_it_matters: str
+    recommended_action: str
+
+
+@dataclass(frozen=True)
+class Finding:
+    id: str
+    profile_run_id: str
+    observation_ids: tuple[str, ...]
+    interpretation: str
+    why_it_matters: str
+    recommended_action: str
+
+
+def start_profile_run(
+    engine: Engine,
+    scope: dict[str, Any],
+    mode: str,
+    sample_size: int | None = None,
+    strategy: str | None = None,
+    seed: int | None = None,
+) -> str:
+    """In its own transaction, because a run can take minutes (ADR 0002 point 3)."""
+    run_id = uuid.uuid4().hex
+    with write_transaction(engine) as connection:
+        connection.execute(
+            text(
+                """
+                INSERT INTO profile_run
+                    (id, scope, mode, sample_size, strategy, seed, status, started_at)
+                VALUES
+                    (:id, :scope, :mode, :sample_size, :strategy, :seed, 'running', :started_at)
+                """
+            ),
+            {
+                "id": run_id,
+                "scope": json.dumps(scope),
+                "mode": mode,
+                "sample_size": sample_size,
+                "strategy": strategy,
+                "seed": seed,
+                "started_at": now(),
+            },
+        )
+    return run_id
+
+
+def read_profile_run(engine: Engine, run_id: str) -> ProfileRun:
+    with engine.connect() as connection:
+        row = connection.execute(
+            text(
+                """
+                SELECT id, scope, mode, sample_size, strategy, seed, status, started_at, ended_at
+                FROM profile_run WHERE id = :id
+                """
+            ),
+            {"id": run_id},
+        ).one()
+    return ProfileRun(
+        row.id,
+        json.loads(row.scope),
+        row.mode,
+        row.sample_size,
+        row.strategy,
+        row.seed,
+        row.status,
+        row.started_at,
+        row.ended_at,
+    )
+
+
+def add_observations(
+    engine: Engine,
+    actor: Actor,
+    run_id: str,
+    observations: Iterable[NewObservation],
+    details: EventDetails = NO_DETAILS,
+) -> None:
+    """One short transaction, so review actions aren't kept waiting (ADR 0002 point 3).
+
+    `observations` is read before taking the write lock, so slow work there can't hold it.
+    """
+    state = next_state(actor, Action.RECORD_OBSERVED, ItemKind.OBSERVATION, None)
+    batch = list(observations)
+    if len(batch) > MAX_OBSERVATIONS_PER_TRANSACTION:
+        raise ValueError(
+            f"One transaction holds at most {MAX_OBSERVATIONS_PER_TRANSACTION} observations."
+        )
+    with write_transaction(engine) as connection:
+        for observation in batch:
+            observation_id = uuid.uuid4().hex
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO observation
+                        (id, profile_run_id, dataset_id, field_id, metric, value, scope, method,
+                         precision)
+                    VALUES
+                        (:id, :run, :dataset_id, :field_id, :metric, :value, :scope, :method,
+                         :precision)
+                    """
+                ),
+                {
+                    "id": observation_id,
+                    "run": run_id,
+                    "dataset_id": observation.dataset_id,
+                    "field_id": observation.field_id,
+                    "metric": observation.metric,
+                    "value": json.dumps(observation.value),
+                    "scope": observation.scope,
+                    "method": observation.method,
+                    "precision": observation.precision,
+                },
+            )
+            record_event(
+                connection,
+                actor,
+                Action.RECORD_OBSERVED,
+                None,
+                state,
+                "observation_id",
+                observation_id,
+                details,
+            )
+
+
+def read_observations(engine: Engine, run_id: str) -> list[Observation]:
+    with engine.connect() as connection:
+        rows = connection.execute(
+            text(
+                """
+                SELECT id, profile_run_id, dataset_id, field_id, metric, value, scope, method,
+                       precision
+                FROM observation WHERE profile_run_id = :run ORDER BY rowid
+                """
+            ),
+            {"run": run_id},
+        ).all()
+    return [
+        Observation(
+            row.id,
+            row.profile_run_id,
+            row.dataset_id,
+            row.field_id,
+            row.metric,
+            json.loads(row.value),
+            row.scope,
+            row.method,
+            row.precision,
+        )
+        for row in rows
+    ]
+
+
+def add_finding(
+    engine: Engine,
+    actor: Actor,
+    finding: NewFinding,
+    details: EventDetails = NO_DETAILS,
+) -> str:
+    """A finding's interpretation is Inferred (Section 5), and nothing reviews it further."""
+    state = next_state(actor, Action.CREATE_INFERRED, ItemKind.FINDING, None)
+    finding_id = uuid.uuid4().hex
+    with write_transaction(engine) as connection:
+        connection.execute(
+            text(
+                """
+                INSERT INTO finding
+                    (id, profile_run_id, interpretation, why_it_matters, recommended_action)
+                VALUES
+                    (:id, :run, :interpretation, :why_it_matters, :recommended_action)
+                """
+            ),
+            {
+                "id": finding_id,
+                "run": finding.profile_run_id,
+                "interpretation": finding.interpretation,
+                "why_it_matters": finding.why_it_matters,
+                "recommended_action": finding.recommended_action,
+            },
+        )
+        for position, observation_id in enumerate(finding.observation_ids):
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO finding_observation (finding_id, observation_id, position)
+                    VALUES (:finding, :observation, :position)
+                    """
+                ),
+                {
+                    "finding": finding_id,
+                    "observation": observation_id,
+                    "position": position,
+                },
+            )
+        record_event(
+            connection,
+            actor,
+            Action.CREATE_INFERRED,
+            None,
+            state,
+            "finding_id",
+            finding_id,
+            details,
+        )
+    return finding_id
+
+
+def read_finding(engine: Engine, finding_id: str) -> Finding:
+    with engine.connect() as connection:
+        row = connection.execute(
+            text(
+                """
+                SELECT id, profile_run_id, interpretation, why_it_matters, recommended_action
+                FROM finding WHERE id = :id
+                """
+            ),
+            {"id": finding_id},
+        ).one()
+        observations = connection.execute(
+            text(
+                """
+                SELECT observation_id FROM finding_observation
+                WHERE finding_id = :id ORDER BY position
+                """
+            ),
+            {"id": finding_id},
+        ).scalars()
+        return Finding(
+            row.id,
+            row.profile_run_id,
+            tuple(observations),
+            row.interpretation,
+            row.why_it_matters,
+            row.recommended_action,
+        )

@@ -21,7 +21,7 @@ requires = ["hatchling==1.33.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["apps/local-api/local_api", "packages/artifacts", "packages/connectors"]
+packages = ["apps/local-api/local_api", "packages/artifacts", "packages/connectors", "packages/domain"]
 # The UI bundle is git-ignored, so it must be named here to reach the wheel.
 artifacts = ["apps/local-api/local_api/ui/**"]
 

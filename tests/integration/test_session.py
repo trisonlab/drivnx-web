@@ -287,6 +287,32 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
     assert snapshot() == before
 
 
+def test_the_session_token_and_launch_code_never_reach_the_workspace(
+    tmp_path: Path,
+) -> None:
+    # CFX-APP-first-slice/AC-48: random values, so no pattern in the end-of-run scan could spot them.
+    session = LaunchSession(PORT)
+    client = in_process_client(session, tmp_path)
+    code = session.launch_code
+    client.post("/api/session", json={"code": code})
+    token = next(iter(client.cookies.values()))
+    saved = client.put("/api/workspace", json={"name": "Snapshot", "ai_mode": "off"})
+
+    stored = [
+        path.read_bytes()
+        for path in (tmp_path / "workspace").rglob("workspace.db*")
+        if path.is_file()
+    ]
+
+    assert saved.status_code == 200, "nothing was written, so this proves nothing"
+    assert stored, "no workspace files were found, so this proves nothing"
+    assert any(b"Snapshot" in data for data in stored)
+    assert token
+    for data in stored:
+        assert token.encode() not in data
+        assert code.encode() not in data
+
+
 def test_stopping_ends_the_session(start_conflux: StartConflux, free_port: int) -> None:
     # CFX-APP-first-slice/AC-06
     first = start_conflux("--no-browser", "--port", str(free_port))

@@ -1,22 +1,22 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-03T15:40:38+00:00'
+updated_at: '2026-11-04T13:45:30+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
   source: requirements
   evidence: ../docs/Conflux_Phase1_Development_Direction.md
-  line: 619
+  line: 621
   detail: 'mentioned: | Shared types (Proposed) | Generate TypeScript types from the API''s OpenAPI schema
     (built from Pydantic models) so UI a'
-  sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
+  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
 - id: cloud:aws
   status: INFERRED
   source: requirements
   evidence: ../docs/Conflux_Phase1_Development_Direction.md
-  line: 670
+  line: 672
   detail: 'mentioned: | Databricks AI-generated comments | docs.databricks.com/aws/en/comments/ai-comments
     |'
-  sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
+  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
 - id: database:mysql
   status: UNKNOWN
   source: requirements
@@ -25,7 +25,7 @@ facts:
   detail: 'mentioned: PostgreSQL gives the best implementation fit: DuckDB can attach it directly in read-only
     mode, so there is no second ana'
   note: mentioned with a negation; confirm with the client whether it is in scope
-  sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
+  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
 - id: database:postgres
   status: INFERRED
   source: requirements
@@ -33,12 +33,12 @@ facts:
   line: 52
   detail: 'mentioned: | **First database connector** | PostgreSQL, read-only, using the same DuckDB-based
     analysis path as local files (CSV, X'
-  sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
+  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
 - id: framework:fastapi
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'fastapi'
-  sha256: c548e18c773ab7460da3e316938b4286fe407f5a2fb05155e0022181b5650c0c
+  sha256: 4c58e321028bfe2884be4b56418873761db90ef9ace236374870c74e12b19a9c
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
 - id: framework:react
@@ -56,7 +56,7 @@ facts:
 - id: language:python
   status: CONFIRMED
   evidence: pyproject.toml
-  sha256: c548e18c773ab7460da3e316938b4286fe407f5a2fb05155e0022181b5650c0c
+  sha256: 4c58e321028bfe2884be4b56418873761db90ef9ace236374870c74e12b19a9c
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:51
 - id: language:typescript
@@ -69,7 +69,7 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'sqlalchemy'
-  sha256: c548e18c773ab7460da3e316938b4286fe407f5a2fb05155e0022181b5650c0c
+  sha256: 4c58e321028bfe2884be4b56418873761db90ef9ace236374870c74e12b19a9c
   source: detector
 - id: pm:pnpm
   status: CONFIRMED
@@ -85,7 +85,7 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'pytest'
-  sha256: c548e18c773ab7460da3e316938b4286fe407f5a2fb05155e0022181b5650c0c
+  sha256: 4c58e321028bfe2884be4b56418873761db90ef9ace236374870c74e12b19a9c
   source: detector
 - id: testing:vitest
   status: CONFIRMED
@@ -99,8 +99,8 @@ facts:
   evidence: ../docs/Conflux_Phase1_Development_Direction.md
   line: 201
   detail: 'mentioned: | Testing | pytest, Vitest, Playwright; Docker Compose PostgreSQL fixture |'
-  sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
+  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
 requirements:
 - path: ../docs/Conflux_Phase1_Development_Direction.md
-  sha256: 0762c724300f7656fc3587904c0bb56ed477eee16930cce0a66221848e0f170c
+  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
   readable: true

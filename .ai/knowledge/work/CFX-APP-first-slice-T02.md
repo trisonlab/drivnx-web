@@ -2,7 +2,7 @@
 id: CFX-APP-first-slice-T02
 title: "Session protection"
 feature: CFX-APP-first-slice
-feature_revision: 7
+feature_revision: 8
 stories: [US-01, US-02, US-09]
 criteria: [AC-06, AC-08, AC-09, AC-10, AC-11, AC-12, AC-13, AC-52]
 blocked_by: [CFX-APP-first-slice-T01]

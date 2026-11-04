@@ -79,7 +79,9 @@ def _upgrade(database: Path, config: Config) -> None:
     the connection opens. The Python driver doesn't start transactions around DDL, so `BEGIN` is explicit.
     """
     engine = create_engine(
-        URL.create("sqlite", database=str(database)), poolclass=NullPool
+        URL.create("sqlite", database=str(database)),
+        poolclass=NullPool,
+        hide_parameters=True,  # Section 7: its error text reaches the logs.
     )
 
     @event.listens_for(engine, "connect")

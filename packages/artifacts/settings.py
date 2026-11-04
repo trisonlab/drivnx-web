@@ -5,6 +5,8 @@ from typing import Literal
 
 from sqlalchemy import Engine, text
 
+from artifacts.store import write_transaction
+
 AiMode = Literal["off", "external", "local"]
 
 
@@ -23,7 +25,7 @@ def read_settings(engine: Engine) -> WorkspaceSettings | None:
 
 
 def save_settings(engine: Engine, settings: WorkspaceSettings) -> None:
-    with engine.begin() as connection:
+    with write_transaction(engine) as connection:
         connection.execute(
             text(
                 """

@@ -1,6 +1,6 @@
 # 0002 — Workspace storage: SQLite only; files exist only as explicit exports
 
-- **Status:** Accepted 2026-11-01, amended 2026-11-01
+- **Status:** Accepted 2026-11-01, amended 2026-11-01, 2026-11-03 and 2026-11-04
 - **Date:** 2026-10-31
 - **Source:** Direction doc §3 (artifacts, trust model), §4 (Figure 1, component table, stack), §5 (files referenced
   in place), §7 (workspace threat), §11/§12 (open decisions), §12 (domain model, trust-state rules); Review Notes #4a/#4b;
@@ -67,11 +67,13 @@ none of it is.
   between, SQLite returns `SQLITE_BUSY` at once in WAL mode, and `busy_timeout` doesn't help. Taking the write
   lock at the start also closes the check-then-act race: two clicks on Accept can't both pass the check. Python's
   `sqlite3` driver and SQLAlchemy don't emit `BEGIN IMMEDIATE` by default, so the store sets it up explicitly
-  (INFERRED from the SQLAlchemy SQLite dialect docs; confirm against the pinned versions when building M1).
+  (confirmed on the pinned versions by `test_a_write_transaction_holds_the_write_lock_before_its_first_write`).
 - **A profile run is a snapshot, not a single transaction.** A run over many tables can take minutes and is
   cancellable (§5). Holding the write lock that long would block every review action behind `busy_timeout`. So:
   1. Starting a run inserts the ProfileRun row with status `running`, in its own transaction.
-  2. Observations are committed per relation in short transactions.
+  2. Observations are committed per relation in short transactions of at most 1,000 observations, which held the
+     write lock for 0.2 to 0.5 s when measured. A single transaction of 40,000 ran a waiting review out of time. A relation with more
+     than 1,000 observations takes several transactions.
   3. The run ends as `completed`, `cancelled` or `failed`, also in its own transaction.
   4. At startup, any run still `running` is marked `interrupted`. No process can still be writing it, because of
      the ADR 0001 lock.
@@ -97,6 +99,16 @@ The application enforces these rules. Tests check that the artifact service neve
 don't block on a profiling job's writes. It also runs `synchronous = FULL`: losing a confirmed review on power loss
 is worse than the small write cost. A `busy_timeout` handles the API thread pool and the job runner writing at the
 same time inside the one process. That only works because every write transaction stays short (point 3).
+
+**Writers also queue in the process, because `busy_timeout` isn't fair.** SQLite's waiters poll, and building T07 showed a
+review running out the whole timeout behind a profile run that kept writing short transactions (`database is locked`, in 4
+of 12 runs when last measured, and the rate varies). ADR 0001 means every writer is in one process, so writers take turns
+there in the order they arrived. A review then waits only for the writers ahead of it.
+
+A write can wait in three places, each limited to the `busy_timeout` value of 5 seconds, and each one that runs out gives
+the same `WorkspaceBusy` error instead of hanging: its turn in this queue, a connection from the pool, and SQLite's write
+lock. The limits count separately, so a write could wait about 15 seconds before it gives up, if all three were slow. SQLite's
+own wait stays as the backstop for anything outside the queue.
 
 **WAL needs a local disk.** WAL relies on shared memory, so it isn't safe on network filesystems. A live database in
 a sync folder (OneDrive, Dropbox, iCloud Drive) can also be copied mid-write. On Windows, Documents is often

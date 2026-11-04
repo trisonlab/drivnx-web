@@ -16,6 +16,7 @@ from artifacts.schema import (
     migrate,
     read_revision,
 )
+from artifacts.store import BUSY_TIMEOUT_MILLISECONDS, use_explicit_transactions
 
 DATABASE_NAME = "workspace.db"
 LOCK_NAME = ".conflux.lock"
@@ -23,7 +24,6 @@ DUCKDB_TEMP_NAME = "duckdb-tmp"
 LOCK_HELD_ERRORS = {errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK, errno.EDEADLK}
 OWNER_ONLY_DIRECTORY = 0o700
 OWNER_ONLY_FILE = 0o600
-BUSY_TIMEOUT_MILLISECONDS = 5000
 MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 SYNC_FOLDER_NAMES = {
     "dropbox",
@@ -115,7 +115,12 @@ def _hold_lock(path: Path) -> int:
 
 
 def _connect_to(database: Path) -> Engine:
-    engine = create_engine(URL.create("sqlite", database=str(database)))
+    engine = create_engine(
+        URL.create("sqlite", database=str(database)),
+        hide_parameters=True,  # Section 7: its error text reaches the logs.
+        pool_timeout=BUSY_TIMEOUT_MILLISECONDS / 1000,
+    )
+    use_explicit_transactions(engine)
 
     @event.listens_for(engine, "connect")
     def apply_settings(dbapi_connection: Any, _record: Any) -> None:

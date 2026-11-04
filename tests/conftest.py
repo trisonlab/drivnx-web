@@ -14,6 +14,41 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 URL = re.compile(r"http://127\.0\.0\.1:(\d+)/\S*")
 START_TIMEOUT_SECONDS = 30
+CREDENTIAL_SHAPES = {
+    "a password in a URL": rb"[a-zA-Z][a-zA-Z0-9+.-]*://[^\s:/@]+:[^\s/@]+@",
+    "a named secret": (
+        rb"(?i)(?:password|passwd|pwd|secret|api[_-]?key|token)[a-z0-9_-]*\\?[\"']?\s*[=:]\s*"
+        rb"\\?[\"']?[^\s\"',}\\]{6,}"
+    ),
+    "a basic auth header": (
+        rb"(?i)authorization\\?[\"']?\s*[=:]\s*\\?[\"']?basic\s+[a-z0-9+/=]{8,}"
+    ),
+    "a bearer token": rb"(?i)bearer\s+[a-z0-9._~+/-]{16,}",
+    "an AWS access key": rb"\bAKIA[0-9A-Z]{16}\b",
+    "an API key": rb"\bsk-[A-Za-z0-9_-]{20,}\b",
+    "a GitHub token": rb"\bgh[pousr]_[A-Za-z0-9]{36,}\b",
+    "a private key": rb"-----BEGIN [A-Z ]*PRIVATE KEY-----",
+}
+
+
+def credential_shaped_values(data: bytes) -> list[str]:
+    """What kinds of credential this holds, by name, so a failure doesn't print the value."""
+    return [name for name, shape in CREDENTIAL_SHAPES.items() if re.search(shape, data)]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def no_workspace_holds_a_credential(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> Iterator[None]:
+    # CFX-APP-first-slice/AC-48: every workspace this run created, backups included. Every test's
+    # temporary directory sits under this one.
+    yield
+    found = {
+        str(path): shapes
+        for path in tmp_path_factory.getbasetemp().rglob("workspace.db*")
+        if path.is_file() and (shapes := credential_shaped_values(path.read_bytes()))
+    }
+    assert not found, f"credential-shaped values in workspace files: {found}"
 
 
 def run(*command: str | Path, cwd: Path = REPO_ROOT) -> None:

@@ -458,3 +458,25 @@ def test_a_lock_failure_is_only_called_already_open_when_it_is_held(
 
     with pytest.raises(WorkspaceError, match="Can't open .*No locks available"):
         open_workspace(workspace_dir)
+
+
+def test_a_failed_migration_keeps_its_values_out_of_the_error(
+    workspace_dir: Path, migrations: Path
+) -> None:
+    # Section 7: this text reaches the terminal, and a migration can carry personal data.
+    add_migration(migrations, "r1", None, CREATE_FAMILY.format(on_delete=""))
+    reopen(workspace_dir, migrations)
+    add_migration(
+        migrations,
+        "r2",
+        "r1",
+        "op.get_bind().execute(\n"
+        "    sa.text('INSERT INTO no_such_table (name) VALUES (:name)'),\n"
+        "    {'name': 'jane_doe_salaries'},\n"
+        ")",
+    )
+
+    with pytest.raises(WorkspaceError, match="no_such_table") as failure:
+        reopen(workspace_dir, migrations)
+
+    assert "jane_doe_salaries" not in str(failure.value)

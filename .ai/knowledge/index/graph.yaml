@@ -1,19 +1,19 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-03T15:40:38+00:00'
+updated_at: '2026-11-04T13:45:31+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
-  .ai/knowledge/requirements/CFX-APP-first-slice.md: 2db9f2ce382495549c1607062708c81e10cdfe0c34ae65f71a2f35c47691b056
-  .ai/knowledge/work/CFX-APP-first-slice-T01.md: 3f4c11fc346e5ef7b9e8e7f04d759891247aa2c319c15f98c343bfafbe051820
-  .ai/knowledge/work/CFX-APP-first-slice-T02.md: c7c0e2582717d8df9e11eb480717f008b903aa95116ad0919bc5242d3a4c203e
-  .ai/knowledge/work/CFX-APP-first-slice-T03.md: 14401563476f507d6d3bce4d080f5f15a5557e6367c0650da62059b81135ab2b
-  .ai/knowledge/work/CFX-APP-first-slice-T04.md: 9721c02316be332a14c641e522fc920a3ea1bab39a5ba51919555721b6c8eb80
-  .ai/knowledge/work/CFX-APP-first-slice-T05.md: 8c8df83aa01c97d806584b45f8ff62a854ac7229652790b08235b0f1139d2e24
-  .ai/knowledge/work/CFX-APP-first-slice-T06.md: 5c381c2977f046ab7b5f29ed2cea033f6d68f7d1c2ee955dbd22d00569920e2e
-  .ai/knowledge/work/CFX-APP-first-slice-T07.md: 09d4593bda0f43d38e3c7200ce678ae5e1d68a1132d04af3f37a4ec7bf653a5a
-  .ai/knowledge/work/CFX-APP-first-slice-T08.md: 24b097c0a58a259cecafbe9fe9773afd3406e07cf31b32605c9e8d719f91de98
-  .ai/knowledge/work/CFX-APP-first-slice-T09.md: 2adf0a8117f6c7a425081f64d6424df016f87d320a325f7b464f3e5f0defa9d3
-  .ai/knowledge/work/CFX-APP-first-slice-T10.md: a45babaed3ee9db08b63a0e4af3eb30ee19e7628cac9b10cd4823fbeab38a63e
+  .ai/knowledge/requirements/CFX-APP-first-slice.md: e2ac14211f08b5b278fcd6e5fb1d3a5ed962374a6782c96e8d7e7c15d1bb9dd3
+  .ai/knowledge/work/CFX-APP-first-slice-T01.md: f4d830dddec414414ce3c87326cc5160af7c40850315f64f1ba9d74da6805c3e
+  .ai/knowledge/work/CFX-APP-first-slice-T02.md: 26f77e7adae6e5992fe6db879bbef11b90885e2b2dc28a9f94d1eb1b93a54529
+  .ai/knowledge/work/CFX-APP-first-slice-T03.md: 4c9afc82b0e9e56cd6700cfa56ee4afe75e8bda4899526d2be7eec1f714bd86d
+  .ai/knowledge/work/CFX-APP-first-slice-T04.md: 200fa8d3d437082c8a6780ca79141f1538dc2ff90bd0f9697ac57e17f63775b7
+  .ai/knowledge/work/CFX-APP-first-slice-T05.md: 90b5eca0b7828331219061c0a6a44545d1b1543580add613b138d4bc31bef880
+  .ai/knowledge/work/CFX-APP-first-slice-T06.md: 018ce23f33a694f046faa068395e886cb8051fcb2a0d3ec4ec930c7df14ca11b
+  .ai/knowledge/work/CFX-APP-first-slice-T07.md: a261d93e9fd5e07b8c2d8061172f81cc69a5b5c28dabd3f27efa177853dcc53d
+  .ai/knowledge/work/CFX-APP-first-slice-T08.md: fb37f2402f31104a45ea2b046bbb92c7f1b33c763907f11925417d199d55d606
+  .ai/knowledge/work/CFX-APP-first-slice-T09.md: ea34137fc9000d6e104a63bd3fbc5552ce43ecb01e9911cb016cb0f7d27a53f2
+  .ai/knowledge/work/CFX-APP-first-slice-T10.md: 11331ccfdd85724c2e9001c2f188633a5eebe3fab1a3acc84aa92c54b4d2d8c9
   apps/local-api/local_api/app.py: 19d76607100b527a0c82618a6843a82ee1aa26d532ecbe4fd53a3dd633f24dbb
   apps/local-api/local_api/binding.py: 2611a2c17106768394fe6322ea524d43e29e3771c50eed1b84c92781dbebfd39
   apps/local-api/local_api/cli.py: a06d2160419ea161d6265aff7d76a30d214002ebffea47a4459e76b0b22c56e3
@@ -38,25 +38,36 @@ sources:
   apps/web/src/sourceFormat.ts: 089d6d12912f71f90adc55c819869eb3ae6024e83ed2ca4eef41b816041ce15c
   apps/web/src/styles.css: b5ce44e02095024b47a423c0cb1b792ee5c600046d55ba444bc86534a4d4e02c
   apps/web/tsconfig.json: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
-  packages/artifacts/schema.py: 7fb2131698ecfbd9bbb451c8ec421fe12ed9f3930ca5b50a1c20cc011e64f374
-  packages/artifacts/workspace.py: 6a70d268badb85bb03e9174c488caf1739a5659a98370af52766a9f54bae21c1
-  pyproject.toml: c548e18c773ab7460da3e316938b4286fe407f5a2fb05155e0022181b5650c0c
+  packages/artifacts/profiles.py: 3947e91e45cd21231c7c9db672d0fe9dc2bece477b31b605f7ae50eac8ab89a1
+  packages/artifacts/provenance.py: 2a1ef8bb1363e8f61f98ff68bdb03e633368acdb5b2d28f6b3d44c0cb1911a37
+  packages/artifacts/review.py: d50f25a1b289559a968a099fa3053e1059186e815c9c6946e8ff96c089c80f6d
+  packages/artifacts/schema.py: 3e58fcd02a4877cf892c71b0026c39e0fb8bb9674f6c4bc38ada13c71d37c92a
+  packages/artifacts/settings.py: f485bc3a90b6ba403d2377b93adc64737afefd8f837458e1b9b45a3cb4596289
+  packages/artifacts/sources.py: e7de48db77f4272e7467a38a136961785326530dc136c7d8c563dc9a9a8eb20a
+  packages/artifacts/store.py: 3b713603d3dda44758dbb3df4ea1779125c8e01e274b1f62df8827be1bfff84c
+  packages/artifacts/workspace.py: 0b4b0edcc2694137fd7d5a362dc7a123082cbd93eb42c7d600ef0270564baaa4
+  packages/domain/trust.py: b131bf817196b62db594db69848bb408f52295c395367b294d6c1883bfab090f
+  pyproject.toml: 4c58e321028bfe2884be4b56418873761db90ef9ace236374870c74e12b19a9c
   testdata/generate_csv.py: bc3b3f9553b76cc26f9e49af63a2dc7f3d9d653003e1145d26d212652d5afe73
-  tests/conftest.py: ed63642ee0f06a089e364d6ef3ec3c623c47b6abe36419f56848158fb3f6f8ba
+  tests/conftest.py: 56d9ee33abba4fe1809ef23551a9f1894f3830003b29e8c2969e62226d7ccc02
   tests/e2e/test_browser_security.py: d5a6f6a9444d47f11190efe42e4f67fb653987fe05e93cd64ed170d4cb9b089d
   tests/e2e/test_connect_csv.py: 90b4447b2fc47a50637f63ecac99d791da2129dfec6a6a616c1587a72983190c
   tests/e2e/test_first_launch.py: 2f7b59a9bc9c7736ad143b7e3f33ee37b1f30e2afd76c16c552b73b7534c8534
   tests/e2e/test_preview.py: 125b482d2ce433c417310a79a867cb3c9500a5fc08ea5b39a0cfead48ddea7e0
+  tests/integration/test_artifact_store.py: 702462ba782fc346a252134dcb5d73baddd6df04f2d0c8580a8d62c76beb8ccc
   tests/integration/test_binding.py: 79eeb61ddbb635cafec5bbf4a570033e5c418aa09dc2adde55afb539a85bd0e7
   tests/integration/test_csv_detection.py: db40b1d3977f7f42292b342d882615ba887aa8d894c14da65817861a07da579e
+  tests/integration/test_domain_entities.py: 44b44f9a7a085b3830b485ee754d39692e4333078df18b41a7a33a16f6effaba
   tests/integration/test_launch.py: bd2810276c70e8ec2e721f2a8cc9fb3656b8d9a6ba757ad27d928cc37e95d5a3
   tests/integration/test_lockfiles.py: d04c655bbf0d73a55efca921996aaed96a943010384addf630418228a82fd4d2
   tests/integration/test_preview_api.py: 002cfb55d309bd56124b4d3f4a6fed08c32a30eed1d62512861e24a38ead5fc1
-  tests/integration/test_session.py: 3bd628e7b009c8ae7dd59f427c9404c1a1d58be274a012c6884bed03c67bf578
+  tests/integration/test_review.py: 0395a78df249ab6867ad9c7b5e8a59cf1b00062823b056b3b4ca059b70de6bde
+  tests/integration/test_session.py: d2c82c823dbfb1a0ba0dce37e4474e6317fc648172dbb2cb8e740449fa79f138
   tests/integration/test_sources_api.py: 03a6f4a4b32b3917fb29b48dacfaf547441c31c36295a03266251874297949d8
+  tests/integration/test_trust_rules.py: 0d55bda006557e08cdc04332018115ae55adf9d5cf34fc0b5af9a8a89208223a
   tests/integration/test_workspace.py: 721fd06817f1ad9f00e75a8126708cace981c1e290f8efb4d97228b8799bba3a
   tests/integration/test_workspace_api.py: d0c3649cc06576c653bec3ec78b89fd157af1392e3f7a7221624b7d15f3e4755
-  tests/integration/test_workspace_store.py: cec594c501f5fe06e1cd8fd7b8e22689b436fd2bd5416213fc69afcccf754b42
+  tests/integration/test_workspace_store.py: 4ee3c23b253eda1e5948eed4f6ce9416b5860a0a97702403fc70e55aa324c21c
   uv.lock: d3c52732fa3ad02d33ac86e89e218dda7d6a62d17c952342e8a4ba541952d12d
 nodes:
 - id: criterion:CFX-APP-first-slice/AC-01
@@ -275,7 +286,7 @@ nodes:
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
   text: Given the M1 entities in Section 12, then each one can be created and read back from SQLite through
-    the artifact service.
+    the artifact service, with everything it was saved with. A DictionaryEntry also holds its assumption
 - id: criterion:CFX-APP-first-slice/AC-36
   kind: criterion
   evidence:
@@ -392,6 +403,13 @@ nodes:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
   text: Given `testdata/`, then every file is synthetic and generated by a committed script or documented
     as hand-written.
+- id: criterion:CFX-APP-first-slice/AC-55
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+  text: Given a field with a Confirmed dictionary entry, when a second entry for that field would become
+    Confirmed, then it is rejected and nothing is written. Inferred candidates for the field are allowed,
+    a
 - id: endpoint:GET /api/sources
   kind: endpoint
   evidence:
@@ -504,14 +522,42 @@ nodes:
   kind: module
   evidence:
   - apps/web/src/styles.css:1
+- id: module:packages/artifacts/profiles.py
+  kind: module
+  evidence:
+  - packages/artifacts/profiles.py:1
+- id: module:packages/artifacts/provenance.py
+  kind: module
+  evidence:
+  - packages/artifacts/provenance.py:1
+- id: module:packages/artifacts/review.py
+  kind: module
+  evidence:
+  - packages/artifacts/review.py:1
 - id: module:packages/artifacts/schema.py
   kind: module
   evidence:
   - packages/artifacts/schema.py:1
+- id: module:packages/artifacts/settings.py
+  kind: module
+  evidence:
+  - packages/artifacts/settings.py:1
+- id: module:packages/artifacts/sources.py
+  kind: module
+  evidence:
+  - packages/artifacts/sources.py:1
+- id: module:packages/artifacts/store.py
+  kind: module
+  evidence:
+  - packages/artifacts/store.py:1
 - id: module:packages/artifacts/workspace.py
   kind: module
   evidence:
   - packages/artifacts/workspace.py:1
+- id: module:packages/domain/trust.py
+  kind: module
+  evidence:
+  - packages/domain/trust.py:1
 - id: module:testdata/generate_csv.py
   kind: module
   evidence:
@@ -536,6 +582,10 @@ nodes:
   kind: module
   evidence:
   - tests/e2e/test_preview.py:1
+- id: module:tests/integration/test_artifact_store.py
+  kind: module
+  evidence:
+  - tests/integration/test_artifact_store.py:1
 - id: module:tests/integration/test_binding.py
   kind: module
   evidence:
@@ -544,6 +594,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_csv_detection.py:1
+- id: module:tests/integration/test_domain_entities.py
+  kind: module
+  evidence:
+  - tests/integration/test_domain_entities.py:1
 - id: module:tests/integration/test_launch.py
   kind: module
   evidence:
@@ -556,6 +610,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_preview_api.py:1
+- id: module:tests/integration/test_review.py
+  kind: module
+  evidence:
+  - tests/integration/test_review.py:1
 - id: module:tests/integration/test_session.py
   kind: module
   evidence:
@@ -564,6 +622,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_sources_api.py:1
+- id: module:tests/integration/test_trust_rules.py
+  kind: module
+  evidence:
+  - tests/integration/test_trust_rules.py:1
 - id: module:tests/integration/test_workspace.py
   kind: module
   evidence:
@@ -711,7 +773,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/CFX-APP-first-slice-T07.md
   title: Trust-state core
-  state: ready
+  state: done
   external_key: null
 - id: ticket:CFX-APP-first-slice-T08
   kind: ticket
@@ -1056,6 +1118,12 @@ edges:
 - from: criterion:CFX-APP-first-slice/AC-54
   rel: belongs_to
   to: story:CFX-APP-first-slice/US-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-first-slice/AC-55
+  rel: belongs_to
+  to: story:CFX-APP-first-slice/US-08
   status: CONFIRMED
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
@@ -1428,18 +1496,90 @@ edges:
   evidence:
   - apps/web/src/session.test.ts:27
   - apps/web/src/session.test.ts:56
+- from: module:packages/artifacts/profiles.py
+  rel: imports
+  to: module:packages/artifacts/provenance.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/profiles.py:12
+- from: module:packages/artifacts/profiles.py
+  rel: imports
+  to: module:packages/artifacts/store.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/profiles.py:13
+- from: module:packages/artifacts/profiles.py
+  rel: imports
+  to: module:packages/domain/trust.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/profiles.py:9
+- from: module:packages/artifacts/provenance.py
+  rel: imports
+  to: module:packages/domain/trust.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/provenance.py:8
+- from: module:packages/artifacts/review.py
+  rel: implements
+  to: criterion:CFX-APP-first-slice/AC-55
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/review.py:226
+- from: module:packages/artifacts/review.py
+  rel: imports
+  to: module:packages/artifacts/provenance.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/review.py:12
+- from: module:packages/artifacts/review.py
+  rel: imports
+  to: module:packages/artifacts/store.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/review.py:13
+- from: module:packages/artifacts/review.py
+  rel: imports
+  to: module:packages/domain/trust.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/review.py:9
+- from: module:packages/artifacts/settings.py
+  rel: imports
+  to: module:packages/artifacts/store.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/settings.py:8
+- from: module:packages/artifacts/sources.py
+  rel: imports
+  to: module:packages/artifacts/store.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/sources.py:9
 - from: module:packages/artifacts/workspace.py
   rel: imports
   to: module:packages/artifacts/schema.py
   status: CONFIRMED
   evidence:
   - packages/artifacts/workspace.py:13
+- from: module:packages/artifacts/workspace.py
+  rel: imports
+  to: module:packages/artifacts/store.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/workspace.py:19
 - from: module:testdata/generate_csv.py
   rel: implements
   to: criterion:CFX-APP-first-slice/AC-54
   status: CONFIRMED
   evidence:
   - testdata/generate_csv.py:3
+- from: module:tests/conftest.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-48
+  status: CONFIRMED
+  evidence:
+  - tests/conftest.py:43
 - from: module:tests/e2e/test_browser_security.py
   rel: imports
   to: module:tests/conftest.py
@@ -1608,6 +1748,30 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/e2e/test_preview.py:112
+- from: module:tests/integration/test_artifact_store.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_artifact_store.py:18
+- from: module:tests/integration/test_artifact_store.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-41
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_artifact_store.py:1
+  - tests/integration/test_artifact_store.py:164
+  - tests/integration/test_artifact_store.py:186
+  - tests/integration/test_artifact_store.py:208
+  - tests/integration/test_artifact_store.py:228
+- from: module:tests/integration/test_artifact_store.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-48
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_artifact_store.py:137
+  - tests/integration/test_artifact_store.py:142
+  - tests/integration/test_artifact_store.py:152
 - from: module:tests/integration/test_binding.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-07
@@ -1673,6 +1837,18 @@ edges:
   - tests/integration/test_csv_detection.py:338
   - tests/integration/test_csv_detection.py:360
   - tests/integration/test_csv_detection.py:404
+- from: module:tests/integration/test_domain_entities.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-35
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_domain_entities.py:1
+  - tests/integration/test_domain_entities.py:60
+  - tests/integration/test_domain_entities.py:69
+  - tests/integration/test_domain_entities.py:86
+  - tests/integration/test_domain_entities.py:111
+  - tests/integration/test_domain_entities.py:146
+  - tests/integration/test_domain_entities.py:176
 - from: module:tests/integration/test_launch.py
   rel: imports
   to: module:tests/conftest.py
@@ -1772,6 +1948,81 @@ edges:
   - tests/integration/test_preview_api.py:816
   - tests/integration/test_preview_api.py:836
   - tests/integration/test_preview_api.py:895
+- from: module:tests/integration/test_review.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-35
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_review.py:1
+  - tests/integration/test_review.py:177
+  - tests/integration/test_review.py:204
+  - tests/integration/test_review.py:228
+- from: module:tests/integration/test_review.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-36
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_review.py:256
+  - tests/integration/test_review.py:272
+  - tests/integration/test_review.py:285
+  - tests/integration/test_review.py:305
+  - tests/integration/test_review.py:327
+  - tests/integration/test_review.py:351
+  - tests/integration/test_review.py:376
+  - tests/integration/test_review.py:452
+  - tests/integration/test_review.py:954
+- from: module:tests/integration/test_review.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-37
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_review.py:406
+  - tests/integration/test_review.py:421
+  - tests/integration/test_review.py:441
+  - tests/integration/test_review.py:869
+  - tests/integration/test_review.py:967
+- from: module:tests/integration/test_review.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-38
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_review.py:480
+  - tests/integration/test_review.py:494
+  - tests/integration/test_review.py:512
+  - tests/integration/test_review.py:535
+  - tests/integration/test_review.py:552
+  - tests/integration/test_review.py:567
+  - tests/integration/test_review.py:577
+- from: module:tests/integration/test_review.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-40
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_review.py:632
+  - tests/integration/test_review.py:655
+  - tests/integration/test_review.py:668
+  - tests/integration/test_review.py:682
+- from: module:tests/integration/test_review.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-41
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_review.py:726
+  - tests/integration/test_review.py:742
+  - tests/integration/test_review.py:768
+  - tests/integration/test_review.py:1193
+- from: module:tests/integration/test_review.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-55
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_review.py:1015
+  - tests/integration/test_review.py:1031
+  - tests/integration/test_review.py:1047
+  - tests/integration/test_review.py:1059
+  - tests/integration/test_review.py:1070
+  - tests/integration/test_review.py:1087
+  - tests/integration/test_review.py:1095
 - from: module:tests/integration/test_session.py
   rel: imports
   to: module:tests/conftest.py
@@ -1784,7 +2035,7 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_session.py:1
-  - tests/integration/test_session.py:291
+  - tests/integration/test_session.py:317
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-08
@@ -1810,7 +2061,7 @@ edges:
   - tests/integration/test_session.py:60
   - tests/integration/test_session.py:77
   - tests/integration/test_session.py:198
-  - tests/integration/test_session.py:454
+  - tests/integration/test_session.py:480
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-11
@@ -1822,7 +2073,7 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-12
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:309
+  - tests/integration/test_session.py:335
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-13
@@ -1832,13 +2083,19 @@ edges:
   - tests/integration/test_session.py:254
 - from: module:tests/integration/test_session.py
   rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-48
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_session.py:293
+- from: module:tests/integration/test_session.py
+  rel: verifies
   to: criterion:CFX-APP-first-slice/AC-52
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:370
-  - tests/integration/test_session.py:383
-  - tests/integration/test_session.py:404
-  - tests/integration/test_session.py:414
+  - tests/integration/test_session.py:396
+  - tests/integration/test_session.py:409
+  - tests/integration/test_session.py:430
+  - tests/integration/test_session.py:440
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-08
@@ -1907,6 +2164,20 @@ edges:
   evidence:
   - tests/integration/test_sources_api.py:410
   - tests/integration/test_sources_api.py:430
+- from: module:tests/integration/test_trust_rules.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-36
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_trust_rules.py:3
+  - tests/integration/test_trust_rules.py:68
+- from: module:tests/integration/test_trust_rules.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-37
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_trust_rules.py:81
+  - tests/integration/test_trust_rules.py:93
 - from: module:tests/integration/test_workspace.py
   rel: imports
   to: module:tests/conftest.py
@@ -2387,6 +2658,12 @@ edges:
 - from: ticket:CFX-APP-first-slice-T07
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-48
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+- from: ticket:CFX-APP-first-slice-T07
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-55
   status: CONFIRMED
   evidence:
   - .ai/knowledge/work/CFX-APP-first-slice-T07.md

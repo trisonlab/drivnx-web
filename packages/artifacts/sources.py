@@ -6,6 +6,8 @@ from pathlib import Path
 
 from sqlalchemy import Connection, Engine, text
 
+from artifacts.store import write_transaction
+
 
 @dataclass(frozen=True)
 class StoredField:
@@ -24,10 +26,11 @@ class StoredSource:
     size_bytes: int
     modified_at: str
     fields: tuple[StoredField, ...]
+    kind: str = "csv"
 
 
 _SELECT_SOURCES = """
-    SELECT id, path, delimiter, encoding, has_header, size_bytes, modified_at
+    SELECT id, path, delimiter, encoding, has_header, size_bytes, modified_at, kind
     FROM source
 """
 
@@ -53,6 +56,7 @@ def _with_fields(connection: Connection, row) -> StoredSource:
         size_bytes=row.size_bytes,
         modified_at=row.modified_at,
         fields=tuple(StoredField(*field) for field in fields),
+        kind=row.kind,
     )
 
 
@@ -78,9 +82,49 @@ def find_source(engine: Engine, source_id: str) -> StoredSource | None:
         return _with_fields(connection, row) if row else None
 
 
+@dataclass(frozen=True)
+class DatasetField:
+    id: str
+    name: str
+    physical_type: str
+    normalised_type: str
+
+
+@dataclass(frozen=True)
+class StoredDataset:
+    id: str
+    source_id: str
+    name: str
+    fields: tuple[DatasetField, ...]
+
+
+def read_dataset(engine: Engine, source_id: str) -> StoredDataset:
+    """The source's dataset. A CSV has exactly one."""
+    with engine.connect() as connection:
+        dataset = connection.execute(
+            text("SELECT id, source_id, name FROM dataset WHERE source_id = :id"),
+            {"id": source_id},
+        ).one()
+        fields = connection.execute(
+            text(
+                """
+                SELECT id, name, physical_type, normalised_type FROM field
+                WHERE dataset_id = :id ORDER BY position
+                """
+            ),
+            {"id": dataset.id},
+        )
+        return StoredDataset(
+            dataset.id,
+            dataset.source_id,
+            dataset.name,
+            tuple(DatasetField(*field) for field in fields),
+        )
+
+
 def add_csv_source(engine: Engine, source: StoredSource) -> bool:
     """Save a source with its dataset and fields. Returns False if the path is already connected."""
-    with engine.begin() as connection:
+    with write_transaction(engine) as connection:
         added = connection.execute(
             text(
                 """
