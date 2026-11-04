@@ -1,10 +1,11 @@
-"""Trust-state transitions, CFX-APP-first-slice AC-35, AC-36, AC-37, AC-38, AC-40, AC-41 and AC-55."""
+"""Trust-state transitions, CFX-APP-first-slice AC-35 to AC-41 and AC-55."""
 
 import sqlite3
 import threading
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass, replace
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,8 @@ from artifacts.profiles import (
     NewObservation,
     add_finding,
     add_observations,
+    finish_profile_run,
+    mark_interrupted_runs,
     read_observations,
     start_profile_run,
 )
@@ -31,7 +34,10 @@ from artifacts.review import (
     defer,
     demote,
     edit,
+    flag_for_re_review,
     history,
+    keep_as_is,
+    needs_re_review,
     promote,
     read_item,
     reject,
@@ -63,6 +69,7 @@ class Catalogue:
     field_id: str
     contract_id: str
     run: str = ""
+    observation_id: str = ""
 
     @property
     def engine(self):
@@ -146,8 +153,29 @@ class Catalogue:
         )
 
 
+class RisingClock:
+    """Each reading is later than the last, unless stopped. A real clock can repeat itself."""
+
+    def __init__(self) -> None:
+        self.moment = datetime(2026, 1, 1, tzinfo=UTC)
+        self.stopped = False
+
+    def __call__(self) -> str:
+        if not self.stopped:
+            self.moment += timedelta(seconds=1)
+        return self.moment.isoformat()
+
+
 @pytest.fixture
-def catalogue(tmp_path: Path) -> Iterator[Catalogue]:
+def clock(monkeypatch: pytest.MonkeyPatch) -> RisingClock:
+    rising = RisingClock()
+    monkeypatch.setattr("artifacts.provenance.now", rising)
+    monkeypatch.setattr("artifacts.profiles.now", rising)
+    return rising
+
+
+@pytest.fixture
+def catalogue(tmp_path: Path, clock: RisingClock) -> Iterator[Catalogue]:
     workspace = open_workspace(tmp_path / "workspace")
     add_csv_source(
         workspace.engine,
@@ -394,6 +422,7 @@ ATTEMPTS = {
     "demote": lambda engine, actor, ref: demote(engine, actor, ref),
     "reject": lambda engine, actor, ref: reject(engine, actor, ref),
     "defer": lambda engine, actor, ref: defer(engine, actor, ref),
+    "keep as is": lambda engine, actor, ref: keep_as_is(engine, actor, ref),
 }
 
 
@@ -602,7 +631,13 @@ OPERATIONS = {
     "add finding": lambda catalogue, ref: add_finding(
         catalogue.engine,
         Actor.SYSTEM,
-        NewFinding(catalogue.run, (), "A key?", "It joins", "Confirm it"),
+        NewFinding(
+            catalogue.run,
+            (catalogue.observation_id,),
+            "A key?",
+            "It joins",
+            "Confirm it",
+        ),
     ),
 }
 
@@ -631,7 +666,7 @@ def test_a_failure_halfway_saves_neither_the_change_nor_its_event(
 ) -> None:
     # CFX-APP-first-slice/AC-40
     ref = catalogue.entry()
-    catalogue.run = start_profile_run(catalogue.engine, scope={}, mode="full")
+    catalogue.run, catalogue.observation_id = catalogue.run_with_observation()
     fail_when_writing_an_event(catalogue)
     before = catalogue.everything()
 
@@ -1155,6 +1190,12 @@ def test_review_queries_use_an_index_on_provenance(catalogue: Catalogue) -> None
         if statement.lstrip().startswith("SELECT") and "provenance_event" in statement:
             statements.append((statement, parameters))
 
+    flagged = catalogue.entry(TrustState.CONFIRMED)
+    flag_for_re_review(
+        catalogue.engine, Actor.SYSTEM, flagged, completed_run(catalogue)
+    )
+    needs_re_review(catalogue.engine)
+    keep_as_is(catalogue.engine, Actor.USER, flagged)
     review_inbox(catalogue.engine)
     defer(catalogue.engine, Actor.USER, ref)
     history(catalogue.engine, ref)
@@ -1284,3 +1325,418 @@ def test_a_failed_write_keeps_its_values_out_of_the_error(
         write(catalogue)
 
     assert value not in str(failure.value)
+
+
+def completed_run(catalogue: Catalogue) -> str:
+    run = start_profile_run(catalogue.engine, scope={}, mode="full")
+    finish_profile_run(catalogue.engine, run, "completed")
+    return run
+
+
+FLAGGABLE = [
+    pytest.param(ItemKind.DICTIONARY_ENTRY, TrustState.INFERRED, id="inferred entry"),
+    pytest.param(ItemKind.DICTIONARY_ENTRY, TrustState.CONFIRMED, id="confirmed entry"),
+    pytest.param(ItemKind.CONTRACT_RULE, TrustState.INFERRED, id="inferred rule"),
+    pytest.param(ItemKind.CONTRACT_RULE, TrustState.CONFIRMED, id="confirmed rule"),
+    pytest.param(ItemKind.CONTRACT_RULE, TrustState.DEFINED, id="defined rule"),
+]
+
+
+@pytest.mark.parametrize(("kind", "state"), FLAGGABLE)
+def test_a_contradicted_item_is_flagged_and_keeps_its_state(
+    catalogue: Catalogue, kind: ItemKind, state: TrustState
+) -> None:
+    # CFX-APP-first-slice/AC-39
+    ref = catalogue.item(kind, state)
+    before = read_item(catalogue.engine, ref)
+
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+
+    assert read_item(catalogue.engine, ref) == before
+    assert needs_re_review(catalogue.engine) == [ref]
+
+
+def test_the_flag_is_a_provenance_event_naming_the_run(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39: the user's decision in spec revision 9.
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    run = completed_run(catalogue)
+
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, run)
+
+    flagged = history(catalogue.engine, ref)[-1]
+    assert flagged.action is Action.FLAG_RE_REVIEW
+    assert flagged.author is Actor.SYSTEM
+    assert flagged.from_state is TrustState.CONFIRMED
+    assert flagged.to_state is TrustState.CONFIRMED
+    assert flagged.evidence_references == (f"profile-run/{run}",)
+
+
+def test_a_flag_keeps_the_evidence_it_was_given(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39: found reviewing T08, nothing checked this.
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    run = completed_run(catalogue)
+
+    flag_for_re_review(
+        catalogue.engine,
+        Actor.SYSTEM,
+        ref,
+        run,
+        EventDetails(evidence_references=("observation/1",)),
+    )
+
+    assert history(catalogue.engine, ref)[-1].evidence_references == (
+        "observation/1",
+        f"profile-run/{run}",
+    )
+
+
+def test_nothing_is_flagged_until_a_run_contradicts_it(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39
+    catalogue.entry(TrustState.CONFIRMED)
+    catalogue.rule(TrustState.DEFINED)
+    completed_run(catalogue)
+
+    assert needs_re_review(catalogue.engine) == []
+
+
+@pytest.mark.parametrize("actor", [Actor.AI, Actor.USER])
+def test_only_the_system_can_flag(catalogue: Catalogue, actor: Actor) -> None:
+    # CFX-APP-first-slice/AC-39: Section 12 gives this row to the system.
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    run = completed_run(catalogue)
+    before = catalogue.everything()
+
+    with pytest.raises(Rejected):
+        flag_for_re_review(catalogue.engine, actor, ref, run, AI_DETAILS)
+
+    assert catalogue.everything() == before
+
+
+@pytest.mark.parametrize("ending", ["running", "cancelled", "failed", "interrupted"])
+def test_only_a_completed_run_can_flag(catalogue: Catalogue, ending: str) -> None:
+    # CFX-APP-first-slice/AC-39: ADR 0002 point 3, checks read only completed runs.
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    run = start_profile_run(catalogue.engine, scope={}, mode="full")
+    if ending == "interrupted":
+        mark_interrupted_runs(catalogue.engine)
+    elif ending != "running":
+        finish_profile_run(catalogue.engine, run, ending)
+    before = catalogue.everything()
+
+    with pytest.raises(Rejected, match="completed"):
+        flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, run)
+
+    assert catalogue.everything() == before
+
+
+def test_an_unknown_run_cannot_flag(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39
+    ref = catalogue.entry(TrustState.CONFIRMED)
+
+    with pytest.raises(Rejected, match="completed"):
+        flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, "nothing")
+
+
+def test_a_run_older_than_the_items_latest_event_cannot_flag(
+    catalogue: Catalogue,
+) -> None:
+    # CFX-APP-first-slice/AC-39 says a newer run. The user reviewed this after that run ended.
+    run = completed_run(catalogue)
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    before = catalogue.everything()
+
+    with pytest.raises(Rejected, match="newer"):
+        flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, run)
+
+    assert catalogue.everything() == before
+
+
+def test_a_run_ending_at_the_same_moment_is_not_newer(
+    catalogue: Catalogue, clock: RisingClock
+) -> None:
+    # CFX-APP-first-slice/AC-39: found reviewing T08. It has to have ended after the latest event.
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    clock.stopped = True
+    run = completed_run(catalogue)
+    before = catalogue.everything()
+
+    with pytest.raises(Rejected, match="newer"):
+        flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, run)
+
+    assert catalogue.everything() == before
+
+
+def test_the_same_run_cannot_flag_an_item_twice(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39: found reviewing T08. A flag is an event like any other.
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    run = completed_run(catalogue)
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, run)
+    before = catalogue.everything()
+
+    with pytest.raises(Rejected, match="newer"):
+        flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, run)
+
+    assert catalogue.everything() == before
+
+
+def test_an_older_run_cannot_flag_after_a_newer_one(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39: found reviewing T08.
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    older = completed_run(catalogue)
+    newer = completed_run(catalogue)
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, newer)
+    before = catalogue.everything()
+
+    with pytest.raises(Rejected, match="newer"):
+        flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, older)
+
+    assert catalogue.everything() == before
+
+
+REVIEWS_OF_INFERRED = {
+    "accept": lambda engine, ref: accept(engine, Actor.USER, ref),
+    "edit": lambda engine, ref: edit(engine, Actor.USER, ref, SECOND),
+    "reject": lambda engine, ref: reject(engine, Actor.USER, ref),
+}
+REVIEWS_OF_CONFIRMED = {
+    "edit": lambda engine, ref: edit(engine, Actor.USER, ref, SECOND),
+    "demote": lambda engine, ref: demote(engine, Actor.USER, ref),
+    "keep as is": lambda engine, ref: keep_as_is(engine, Actor.USER, ref),
+}
+
+
+@pytest.mark.parametrize("review", REVIEWS_OF_INFERRED)
+def test_reviewing_an_inferred_item_clears_the_flag(
+    catalogue: Catalogue, review: str
+) -> None:
+    # CFX-APP-first-slice/AC-39
+    ref = catalogue.entry()
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+
+    REVIEWS_OF_INFERRED[review](catalogue.engine, ref)
+
+    assert needs_re_review(catalogue.engine) == []
+
+
+def test_deferring_or_returning_an_item_keeps_its_flag(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39 says until a user reviews it: found reviewing T08. Neither is one.
+    ref = catalogue.entry()
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+
+    defer(catalogue.engine, Actor.USER, ref)
+
+    assert needs_re_review(catalogue.engine) == [ref]
+
+    return_to_inbox(catalogue.engine, Actor.USER, ref)
+
+    assert needs_re_review(catalogue.engine) == [ref]
+
+
+@pytest.mark.parametrize("review", REVIEWS_OF_INFERRED)
+def test_a_review_after_returning_an_item_clears_its_flag(
+    catalogue: Catalogue, review: str
+) -> None:
+    # CFX-APP-first-slice/AC-39: keeping the flag through a deferral mustn't leave it stuck.
+    ref = catalogue.entry()
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+    defer(catalogue.engine, Actor.USER, ref)
+    return_to_inbox(catalogue.engine, Actor.USER, ref)
+
+    REVIEWS_OF_INFERRED[review](catalogue.engine, ref)
+
+    assert needs_re_review(catalogue.engine) == []
+
+
+@pytest.mark.parametrize("review", REVIEWS_OF_CONFIRMED)
+def test_reviewing_a_confirmed_item_clears_the_flag(
+    catalogue: Catalogue, review: str
+) -> None:
+    # CFX-APP-first-slice/AC-39
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+
+    REVIEWS_OF_CONFIRMED[review](catalogue.engine, ref)
+
+    assert needs_re_review(catalogue.engine) == []
+
+
+def test_promoting_a_rule_clears_the_flag(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39
+    ref = catalogue.rule(TrustState.CONFIRMED)
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+
+    promote(catalogue.engine, Actor.USER, ref)
+
+    assert needs_re_review(catalogue.engine) == []
+
+
+@pytest.mark.parametrize(
+    ("kind", "state"),
+    [
+        pytest.param(ItemKind.DICTIONARY_ENTRY, TrustState.CONFIRMED, id="entry"),
+        pytest.param(ItemKind.CONTRACT_RULE, TrustState.CONFIRMED, id="confirmed rule"),
+        pytest.param(ItemKind.CONTRACT_RULE, TrustState.DEFINED, id="defined rule"),
+    ],
+)
+def test_keep_as_is_changes_nothing_but_the_flag(
+    catalogue: Catalogue, kind: ItemKind, state: TrustState
+) -> None:
+    # CFX-APP-first-slice/AC-39: a Defined rule stays in the contract, so no new revision.
+    ref = catalogue.item(kind, state)
+    before = read_item(catalogue.engine, ref)
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+
+    keep_as_is(catalogue.engine, Actor.USER, ref)
+
+    assert read_item(catalogue.engine, ref) == before
+    kept = history(catalogue.engine, ref)[-1]
+    assert kept.action is Action.KEEP_AS_IS
+    assert kept.author is Actor.USER
+    assert kept.from_state is state
+    assert kept.to_state is state
+
+
+def test_keep_as_is_needs_a_flag(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39: otherwise it would record a review of nothing.
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    before = catalogue.everything()
+
+    with pytest.raises(Rejected, match="flagged"):
+        keep_as_is(catalogue.engine, Actor.USER, ref)
+
+    assert catalogue.everything() == before
+
+
+@pytest.mark.parametrize("actor", [Actor.AI, Actor.SYSTEM])
+def test_only_a_person_can_keep_an_item_as_it_is(
+    catalogue: Catalogue, actor: Actor
+) -> None:
+    # CFX-APP-first-slice/AC-37: clearing the flag is a review.
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+    before = catalogue.everything()
+
+    with pytest.raises(Rejected):
+        keep_as_is(catalogue.engine, actor, ref, AI_DETAILS)
+
+    assert catalogue.everything() == before
+    assert needs_re_review(catalogue.engine) == [ref]
+
+
+def test_a_later_run_can_flag_again_and_one_review_clears_it(
+    catalogue: Catalogue,
+) -> None:
+    # CFX-APP-first-slice/AC-39
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+
+    assert needs_re_review(catalogue.engine) == [ref]
+
+    keep_as_is(catalogue.engine, Actor.USER, ref)
+
+    assert needs_re_review(catalogue.engine) == []
+
+
+def test_a_flag_after_a_review_is_a_new_flag(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39: clearing it once doesn't silence later runs.
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+    keep_as_is(catalogue.engine, Actor.USER, ref)
+
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+
+    assert needs_re_review(catalogue.engine) == [ref]
+
+
+def test_a_flag_leaves_an_inferred_item_in_the_inbox(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-38 and CFX-APP-first-slice/AC-39.
+    ref = catalogue.entry()
+
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+
+    assert review_inbox(catalogue.engine) == [ref]
+
+
+def test_a_flag_does_not_bring_a_deferred_item_back_to_the_inbox(
+    catalogue: Catalogue,
+) -> None:
+    # CFX-APP-first-slice/AC-38: found writing this. The inbox looks at an item's latest event, and
+    # a flag isn't the user's decision. The user can still return it, or defer can't be undone.
+    ref = catalogue.entry()
+    defer(catalogue.engine, Actor.USER, ref)
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+
+    assert review_inbox(catalogue.engine) == []
+
+    return_to_inbox(catalogue.engine, Actor.USER, ref)
+
+    assert review_inbox(catalogue.engine) == [ref]
+    assert needs_re_review(catalogue.engine) == [ref]
+
+
+def test_a_rejected_item_cannot_be_flagged(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-39: the user has already said no, and a rejected item has nothing that
+    # could clear the flag but Accept or Edit.
+    ref = catalogue.entry()
+    reject(catalogue.engine, Actor.USER, ref)
+    run = completed_run(catalogue)
+    before = catalogue.everything()
+
+    with pytest.raises(Rejected, match="rejected"):
+        flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, run)
+
+    assert catalogue.everything() == before
+
+
+@pytest.mark.parametrize(
+    "operation",
+    [
+        pytest.param(
+            lambda catalogue, ref, run: flag_for_re_review(
+                catalogue.engine, Actor.SYSTEM, ref, run
+            ),
+            id="flag",
+        ),
+        pytest.param(
+            lambda catalogue, ref, run: keep_as_is(catalogue.engine, Actor.USER, ref),
+            id="keep as is",
+        ),
+    ],
+)
+def test_a_failure_while_flagging_or_keeping_saves_nothing(
+    catalogue: Catalogue, operation
+) -> None:
+    # CFX-APP-first-slice/AC-40
+    ref = catalogue.entry(TrustState.CONFIRMED)
+    flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
+    run = completed_run(catalogue)
+    fail_when_writing_an_event(catalogue)
+    before = catalogue.everything()
+
+    with pytest.raises(DBAPIError, match="forced failure"):
+        operation(catalogue, ref, run)
+
+    assert catalogue.everything() == before
+
+
+def test_a_finding_or_observation_cannot_be_flagged(catalogue: Catalogue) -> None:
+    # CFX-APP-first-slice/AC-37: they're written once and nothing reviews them.
+    finding = catalogue.finding()
+    run = start_profile_run(catalogue.engine, scope={}, mode="full")
+    add_observations(catalogue.engine, Actor.SYSTEM, run, catalogue.observation())
+    observation = read_observations(catalogue.engine, run)[0].id
+    finish_profile_run(catalogue.engine, run, "completed")
+    before = catalogue.everything()
+
+    with pytest.raises(Rejected):
+        flag_for_re_review(catalogue.engine, Actor.SYSTEM, finding, run)
+    with pytest.raises(Rejected):
+        flag_for_re_review(
+            catalogue.engine,
+            Actor.SYSTEM,
+            ItemRef(ItemKind.OBSERVATION, observation),
+            run,
+        )
+
+    assert catalogue.everything() == before

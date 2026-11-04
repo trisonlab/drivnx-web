@@ -7,13 +7,18 @@ from dataclasses import dataclass
 from typing import Any
 
 from domain.trust import Action, Actor, ItemKind, next_state
-from sqlalchemy import Engine, text
+from sqlalchemy import Connection, Engine, Row, text
+from sqlalchemy.exc import DBAPIError
 
 from artifacts.provenance import NO_DETAILS, EventDetails, now, record_event
+from artifacts.schema import WorkspaceError
 from artifacts.store import write_transaction
 
 # Holds the write lock for 0.2 to 0.5 s. At 40,000, a review waiting behind it got WorkspaceBusy.
 MAX_OBSERVATIONS_PER_TRANSACTION = 1000
+# `interrupted` isn't here: only startup can know that nothing is still writing a run.
+_ENDINGS = ("completed", "cancelled", "failed")
+_DID_NOT_COMPLETE = ("cancelled", "failed", "interrupted")
 
 
 @dataclass(frozen=True)
@@ -129,6 +134,52 @@ def read_profile_run(engine: Engine, run_id: str) -> ProfileRun:
     )
 
 
+def _status_of(connection: Connection, run_id: str) -> str | None:
+    return connection.execute(
+        text("SELECT status FROM profile_run WHERE id = :id"), {"id": run_id}
+    ).scalar()
+
+
+def finish_profile_run(engine: Engine, run_id: str, status: str) -> None:
+    """In its own transaction, after the run's observations (ADR 0002 point 3)."""
+    if status not in _ENDINGS:
+        raise ValueError(f"A profile run can't end as {status}.")
+    with write_transaction(engine) as connection:
+        current = _status_of(connection, run_id)
+        if current is None:
+            raise ValueError("There's no such profile run.")
+        if current != "running":
+            raise ValueError("This profile run has already ended.")
+        connection.execute(
+            text(
+                """
+                UPDATE profile_run SET status = :status, ended_at = :ended_at
+                WHERE id = :id
+                """
+            ),
+            {"id": run_id, "status": status, "ended_at": now()},
+        )
+
+
+def mark_interrupted_runs(engine: Engine) -> None:
+    """For startup only: the ADR 0001 lock means no process can still be writing these runs."""
+    try:
+        with write_transaction(engine) as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE profile_run SET status = 'interrupted', ended_at = :ended_at
+                    WHERE status = 'running'
+                    """
+                ),
+                {"ended_at": now()},
+            )
+    except DBAPIError as error:
+        raise WorkspaceError(
+            f"Can't finish opening this workspace: {error.orig}"
+        ) from None
+
+
 def add_observations(
     engine: Engine,
     actor: Actor,
@@ -147,6 +198,8 @@ def add_observations(
             f"One transaction holds at most {MAX_OBSERVATIONS_PER_TRANSACTION} observations."
         )
     with write_transaction(engine) as connection:
+        if _status_of(connection, run_id) != "running":
+            raise ValueError("This profile run isn't running.")
         for observation in batch:
             observation_id = uuid.uuid4().hex
             connection.execute(
@@ -220,8 +273,15 @@ def add_finding(
 ) -> str:
     """A finding's interpretation is Inferred (Section 5), and nothing reviews it further."""
     state = next_state(actor, Action.CREATE_INFERRED, ItemKind.FINDING, None)
+    if not finding.observation_ids:
+        raise ValueError("A finding needs at least one observation.")
+    if len(set(finding.observation_ids)) != len(finding.observation_ids):
+        raise ValueError("A finding can't list an observation twice.")
     finding_id = uuid.uuid4().hex
     with write_transaction(engine) as connection:
+        # `read_findings` would never return it, so the write would seem to work.
+        if _status_of(connection, finding.profile_run_id) in _DID_NOT_COMPLETE:
+            raise ValueError("A run that didn't complete takes no findings.")
         connection.execute(
             text(
                 """
@@ -240,6 +300,12 @@ def add_finding(
             },
         )
         for position, observation_id in enumerate(finding.observation_ids):
+            owner = connection.execute(
+                text("SELECT profile_run_id FROM observation WHERE id = :id"),
+                {"id": observation_id},
+            ).scalar()
+            if owner != finding.profile_run_id:
+                raise ValueError("A finding's observations must be from its own run.")
             connection.execute(
                 text(
                     """
@@ -266,6 +332,26 @@ def add_finding(
     return finding_id
 
 
+def _with_observations(connection: Connection, row: Row) -> Finding:
+    observations = connection.execute(
+        text(
+            """
+            SELECT observation_id FROM finding_observation
+            WHERE finding_id = :id ORDER BY position
+            """
+        ),
+        {"id": row.id},
+    ).scalars()
+    return Finding(
+        row.id,
+        row.profile_run_id,
+        tuple(observations),
+        row.interpretation,
+        row.why_it_matters,
+        row.recommended_action,
+    )
+
+
 def read_finding(engine: Engine, finding_id: str) -> Finding:
     with engine.connect() as connection:
         row = connection.execute(
@@ -277,20 +363,21 @@ def read_finding(engine: Engine, finding_id: str) -> Finding:
             ),
             {"id": finding_id},
         ).one()
-        observations = connection.execute(
+        return _with_observations(connection, row)
+
+
+def read_findings(engine: Engine) -> list[Finding]:
+    """Findings from completed runs only, so a partial run is never shown as complete."""
+    with engine.connect() as connection:
+        rows = connection.execute(
             text(
                 """
-                SELECT observation_id FROM finding_observation
-                WHERE finding_id = :id ORDER BY position
+                SELECT finding.id, finding.profile_run_id, finding.interpretation,
+                       finding.why_it_matters, finding.recommended_action
+                FROM finding JOIN profile_run ON profile_run.id = finding.profile_run_id
+                WHERE profile_run.status = 'completed'
+                ORDER BY finding.rowid
                 """
-            ),
-            {"id": finding_id},
-        ).scalars()
-        return Finding(
-            row.id,
-            row.profile_run_id,
-            tuple(observations),
-            row.interpretation,
-            row.why_it_matters,
-            row.recommended_action,
-        )
+            )
+        ).all()
+        return [_with_observations(connection, row) for row in rows]

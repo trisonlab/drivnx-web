@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import socket
+import sqlite3
 import subprocess
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
@@ -10,6 +11,8 @@ from queue import Empty, Queue
 from threading import Thread
 
 import pytest
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 URL = re.compile(r"http://127\.0\.0\.1:(\d+)/\S*")
@@ -34,6 +37,62 @@ CREDENTIAL_SHAPES = {
 def credential_shaped_values(data: bytes) -> list[str]:
     """What kinds of credential this holds, by name, so a failure doesn't print the value."""
     return [name for name, shape in CREDENTIAL_SHAPES.items() if re.search(shape, data)]
+
+
+WRITTEN_ONCE = {
+    "contract_revision",
+    "contract_rule",
+    "contract_rule_field",
+    "contract_rule_revision",
+    "dictionary_entry",
+    "dictionary_entry_revision",
+    "finding",
+    "finding_observation",
+    "observation",
+    "provenance_event",
+}
+WATCHED = {*WRITTEN_ONCE, "profile_run"}
+RUN_COLUMNS_THAT_CHANGE = {"status", "ended_at"}
+# SQLite's authorizer reports these as inserts, and it can't see what they replace. SQL has too many
+# ways to write them to read them exactly, so the word and a watched table anywhere after it count.
+REPLACING = re.compile(rf"(?is)\bREPLACE\b.*?\b({'|'.join(sorted(WATCHED))})\b")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def history_changes() -> Iterator[list[str]]:
+    # CFX-APP-first-slice/AC-42 (ADR 0002 point 4), for what this process runs through a SQLAlchemy
+    # engine. SQLite says what each update or delete touches, also from a trigger or through the
+    # engine's driver connection. Not watched: a REPLACE in a trigger or through that driver
+    # connection, `ALTER TABLE`, and a separate `sqlite3.connect`, such as a separately started
+    # `conflux`. Production has no route writing these tables yet.
+    found: list[str] = []
+
+    def authorize(action, table, column, _database, _trigger) -> int:
+        if action == sqlite3.SQLITE_UPDATE and (
+            table in WRITTEN_ONCE
+            or (table == "profile_run" and column not in RUN_COLUMNS_THAT_CHANGE)
+        ):
+            found.append(f"update of {table}.{column}")
+        elif action == sqlite3.SQLITE_DELETE and table in WATCHED:
+            found.append(f"delete from {table}")
+        return sqlite3.SQLITE_OK
+
+    def watch_connection(dbapi_connection, _record) -> None:
+        dbapi_connection.set_authorizer(authorize)
+
+    def read_statement(
+        _connection, _cursor, statement, _parameters, _context, _many
+    ) -> None:
+        replacing = REPLACING.search(statement)
+        if replacing:
+            found.append(f"replace in {replacing.group(1)}")
+
+    event.listen(Engine, "connect", watch_connection)
+    event.listen(Engine, "before_cursor_execute", read_statement)
+    yield found
+    event.remove(Engine, "before_cursor_execute", read_statement)
+    event.remove(Engine, "connect", watch_connection)
+    assert not found, f"these changed written history: {found}"
 
 
 @pytest.fixture(scope="session", autouse=True)

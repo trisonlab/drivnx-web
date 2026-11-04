@@ -5,9 +5,9 @@ title: "First vertical slice: runtime to CSV preview, on the M1 domain model"
 summary: "Start Conflux, set up a workspace in the browser, connect a CSV and see its metadata and a paginated preview, built on the full M1 domain model."
 owner: conflux-web
 lifecycle: approved
-revision: 8
-approved_revision: 8
-approval_evidence: "user approved revision 8 in chat, 2026-11-04 ('accept all recommendations', on the T07 review's questions)"
+revision: 9
+approved_revision: 9
+approval_evidence: "user approved revision 9 in chat, 2026-11-04 (chose 'Event now, detection later' and 'Add a keep-as-is action' on building T08)"
 updated: "2026-11-04"
 related: []
 status: CONFIRMED
@@ -118,7 +118,7 @@ API for this slice, using the Section 12 outline as amended: `/api/session`, `/a
 - AC-36 (US-08): Given each allowed transition in Section 12, as amended by ADR 0003, then it succeeds and records a ProvenanceEvent in the same transaction. This covers New → Observed, Inferred or Confirmed; Inferred → Confirmed; Confirmed → Defined; edits; and both demotions. A Finding is New → Inferred, written by a heuristic or AI (Section 5), and records its event the same way.
 - AC-37 (US-08): Given an AI or system actor, when it tries Inferred → Confirmed or Defined, then the domain layer rejects it and nothing is written.
 - AC-38 (US-08): Given a user rejects or defers an item, then it stays Inferred and leaves the review inbox, the outcome is in provenance, and a deferred item can return to the inbox.
-- AC-39 (US-08): Given a newer completed profile run contradicts an item's evidence, then its state is unchanged and it is flagged "needs re-review" until a user reviews it again.
+- AC-39 (US-08): Given a newer completed profile run contradicts an item's evidence, then its state is unchanged and it is flagged "needs re-review" until a user reviews it again. The system records the flag as a ProvenanceEvent, for a completed run that ended after the item's latest event. A user who still agrees with a Confirmed or Defined item clears it with Keep as is, which changes nothing else and records its event.
 - AC-40 (US-08): Given a failure halfway through a transition, then neither the state change nor its ProvenanceEvent is saved.
 - AC-41 (US-08): Given two concurrent Accepts on one item, then one succeeds and the other is rejected by the transition check, and neither gets `SQLITE_BUSY`. Given a profile run writing observations, then a review action finishes within `busy_timeout`.
 - AC-42 (US-08): Given the artifact service's full test suite, then it never updates or deletes observations, revisions or provenance rows, and a ProfileRun changes only its status and end time, once.
@@ -160,7 +160,7 @@ Not planned for Phase 1: anything in the Section 1 scope boundary's right-hand c
 
 ## Open Questions
 None blocks approval.
-- **Where is "needs re-review" stored (AC-39)?** ADR 0002 makes history append-only, so it should be derived or recorded as an event, not set by updating a row. To settle in planning.
+- **What counts as a run contradicting an item (AC-39)?** Due with the profiling work in M3. It needs measurements and rule types that don't exist in this slice, so this slice builds the flag and the way to clear it, and nothing raises the flag yet. When it's built, write a run's flags in the same transaction that finishes it, or compare against when detection began: any event between a run ending and its flag gets that flag refused, and the contradiction is lost (found reviewing T08).
 - **What is `packages/contracts` for?** Left undefined in ADR 0003. To settle if this slice needs the folder, otherwise it stays empty.
 - **Rule for values copied from source data.** Due before M3 (R3 in the threat register). Only metadata is saved here, apart from the row used as column names (AC-26).
 
@@ -168,6 +168,7 @@ None blocks approval.
 - **Section 12, "Secrets: OS credential store from day one":** deferred by the user's decision, 2026-11-01. The rule that secrets never go in SQLite, URLs, browser storage or logs still applies, and AC-48 tests it. Section 12 now carries a note saying so.
 - **Section 12, day-one checklist:** the Docker PostgreSQL fixture is deferred by the same decision. The "ADR template" item is not done, and the existing ADRs serve as the pattern.
 - **Section 12, Finding and DictionaryEntry:** by the user's decisions on 2026-11-04, a Finding records an author and event as Inferred, as Section 5's table labels it. A DictionaryEntry adds "assumptions", which Section 3 lists, and a field has at most one Confirmed entry. Section 12 now carries a note saying so.
+- **Section 12, trust-state rules:** by the user's decision on 2026-11-04, "needs re-review" is a ProvenanceEvent, and a user clears it on an item they still agree with through a new Keep as is action. Section 12 lists neither, and now carries a note saying so.
 - **Section 5, CSV "user can correct inferred types":** deferred to later in M2, not dropped. This also covers correcting the header setting and the delimiter.
 
 ## Revision History
@@ -179,3 +180,4 @@ None blocks approval.
 - Revision 6: Reviewing T06 found that quoting is decided from the start of a file and that column names weren't cut. AC-27 records the limit that remains for malformed files, and AC-29 now covers column names. Records that very wide files have no cap. Approved by the user in chat, 2026-11-03.
 - Revision 7: Fixing T06 found that reading mixed line endings can drop an extra field in a later row. AC-27 records this limit. Approved by the user in chat, 2026-11-03.
 - Revision 8: Reviewing T07 raised three questions about the domain model. A Finding records its author and event as Inferred, a DictionaryEntry holds assumptions, and a field has at most one Confirmed entry (new AC-55). AC-35 now says everything saved reads back. Approved by the user in chat, 2026-11-04.
+- Revision 9: Building T08 settled how "needs re-review" works (AC-39). The system records it as a ProvenanceEvent, a new Keep as is action lets a user clear it without changing the item, and what counts as a contradiction waits for M3's profiling work. Approved by the user in chat, 2026-11-04.

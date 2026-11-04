@@ -2,7 +2,7 @@
 id: CFX-APP-first-slice-T06
 title: "Page through the rows"
 feature: CFX-APP-first-slice
-feature_revision: 8
+feature_revision: 9
 stories: [US-06]
 criteria: [AC-27, AC-28, AC-29, AC-30, AC-31]
 blocked_by: [CFX-APP-first-slice-T05]

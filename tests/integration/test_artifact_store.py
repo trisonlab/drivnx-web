@@ -298,3 +298,98 @@ def test_other_database_errors_are_not_called_busy(workspace: Workspace) -> None
         write_transaction(workspace.engine) as connection,
     ):
         connection.execute(text("SELECT * FROM nothing_here"))
+
+
+def changes_seen(
+    workspace: Workspace, history_changes: list[str], statement: str
+) -> list[str]:
+    """Run this for real and undo it, taking what it finds back so the run's end doesn't fail."""
+    already_found = len(history_changes)
+    with workspace.engine.connect() as connection:
+        connection.exec_driver_sql(statement)
+        connection.rollback()
+    seen = history_changes[already_found:]
+    del history_changes[already_found:]
+    return seen
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "UPDATE observation SET value = 1",
+        "update  provenance_event\n set author = 'user' where id = 'x'",
+        "UPDATE dictionary_entry_revision SET state = 'confirmed'",
+        "UPDATE contract_rule_revision SET params = '{}'",
+        "UPDATE contract_revision SET purpose = ''",
+        "UPDATE contract_rule_field SET field_id = 'x'",
+        "UPDATE finding SET interpretation = ''",
+        "UPDATE finding_observation SET position = 1",
+        "DELETE FROM observation",
+        "delete from provenance_event WHERE id = 'x'",
+        "DELETE FROM profile_run",
+        "UPDATE profile_run SET mode = 'sample' WHERE id = 'x'",
+        "UPDATE profile_run SET status = 'failed', scope = '{}'",
+        # Found verifying T08: a pattern over the SQL's text missed all of these.
+        "UPDATE OR ABORT observation SET value = 1",
+        "UPDATE OR REPLACE provenance_event SET author = 'x'",
+        'UPDATE "observation" SET value = 1',
+        "UPDATE main.observation SET value = 1",
+        "DELETE FROM main.observation",
+        'DELETE FROM "provenance_event"',
+        "WITH x AS (SELECT 1) UPDATE observation SET value = 1",
+        "WITH x AS (SELECT 1) DELETE FROM observation",
+        # SQLite's authorizer reports these as inserts, so they're the part read from the text.
+        "REPLACE INTO provenance_event (id) SELECT 'x' WHERE 0",
+        "INSERT OR REPLACE INTO observation (id) SELECT 'x' WHERE 0",
+        "INSERT OR REPLACE INTO \"observation\" (id) SELECT 'x' WHERE 0",
+        "REPLACE INTO main.provenance_event (id) SELECT 'x' WHERE 0",
+        "WITH x AS (SELECT 1) REPLACE INTO observation (id) SELECT 'x' WHERE 0",
+        # Found reviewing T08: more spellings the first REPLACE pattern missed.
+        "REPLACE INTO `observation` (id) SELECT 'x' WHERE 0",
+        "REPLACE INTO [provenance_event] (id) SELECT 'x' WHERE 0",
+        "REPLACE INTO 'observation' (id) SELECT 'x' WHERE 0",
+        "INSERT OR REPLACE INTO `observation` (id) SELECT 'x' WHERE 0",
+        "REPLACE INTO main . observation (id) SELECT 'x' WHERE 0",
+        "REPLACE /* c */ INTO observation (id) SELECT 'x' WHERE 0",
+        "INSERT OR REPLACE -- c\n INTO observation (id) SELECT 'x' WHERE 0",
+        # Found reviewing T08: ADR 0002 point 4 says rules never lose rows, and an item's subject
+        # never changes.
+        "DELETE FROM contract_rule",
+        "UPDATE contract_rule SET rule_type = 'x'",
+        "DELETE FROM dictionary_entry",
+        "UPDATE dictionary_entry SET field_id = NULL",
+        (
+            "INSERT INTO provenance_event (id) SELECT 'x' WHERE 0 "
+            "ON CONFLICT (id) DO UPDATE SET author = 'x'"
+        ),
+    ],
+)
+def test_the_history_watch_sees_a_change_to_written_history(
+    workspace: Workspace, history_changes: list[str], statement: str
+) -> None:
+    # CFX-APP-first-slice/AC-42: the watch over the whole test run is only as good as this.
+    assert changes_seen(workspace, history_changes, statement)
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "INSERT INTO provenance_event (id) SELECT 'x' WHERE 0",
+        "SELECT * FROM observation",
+        "UPDATE profile_run SET status = 'failed', ended_at = 't' WHERE id = 'x'",
+        "UPDATE profile_run SET status = 'interrupted' WHERE status = 'running'",
+        "UPDATE workspace_settings SET name = 'x'",
+        "UPDATE workspace_settings SET name = replace(name, 'a', 'b')",
+        "UPDATE contract SET current_version = 2",
+        (
+            "INSERT INTO workspace_settings (id, name, ai_mode) SELECT 1, 'a', 'off' WHERE 0 "
+            "ON CONFLICT (id) DO UPDATE SET name = 'b'"
+        ),
+        "REPLACE INTO workspace_settings (id, name, ai_mode) SELECT 1, 'a', 'off' WHERE 0",
+    ],
+)
+def test_the_history_watch_allows_everything_else(
+    workspace: Workspace, history_changes: list[str], statement: str
+) -> None:
+    # CFX-APP-first-slice/AC-42: a false alarm would fail every run.
+    assert changes_seen(workspace, history_changes, statement) == []

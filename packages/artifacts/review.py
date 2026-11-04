@@ -7,7 +7,7 @@ from dataclasses import asdict, dataclass, replace
 from typing import Any
 
 from domain.trust import Action, Actor, ItemKind, Rejected, TrustState, next_state
-from sqlalchemy import Connection, Engine, text
+from sqlalchemy import Connection, Engine, Row, text
 
 from artifacts.provenance import NO_DETAILS, EventDetails, record_event
 from artifacts.store import write_transaction
@@ -167,6 +167,14 @@ _CREATING = {
     TrustState.CONFIRMED: Action.CREATE_CONFIRMED,
 }
 _LEFT_THE_INBOX = (Action.REJECT.value, Action.DEFER.value)
+# None of these is a change to the item, so only provenance changes (Section 12).
+_ONLY_PROVENANCE = (
+    Action.REJECT,
+    Action.DEFER,
+    Action.RETURN_TO_INBOX,
+    Action.FLAG_RE_REVIEW,
+    Action.KEEP_AS_IS,
+)
 
 
 def _encode(kind: ItemKind, content: Content) -> str:
@@ -399,29 +407,65 @@ def read_item(engine: Engine, ref: ItemRef) -> Item:
     return replace(item, subject=subject)
 
 
-def _latest_action(connection: Connection, ref: ItemRef) -> str:
+def _latest_event(connection: Connection, ref: ItemRef) -> Row:
+    return _latest(connection, ref, "")
+
+
+def _latest_decision(connection: Connection, ref: ItemRef) -> str:
+    """The latest action, leaving out flags, because a flag isn't anyone's decision."""
+    return _latest(connection, ref, "AND provenance_event.action != :flag").action
+
+
+def _latest_review_or_flag(connection: Connection, ref: ItemRef) -> str:
+    """Deferring or returning an item reviews nothing, so neither clears a flag (AC-39)."""
+    return _latest(
+        connection,
+        ref,
+        "AND provenance_event.action NOT IN ('defer', 'return_to_inbox')",
+    ).action
+
+
+def _latest(connection: Connection, ref: ItemRef, condition: str) -> Row:
     tables = _TABLES[ref.kind]
     return connection.execute(
         text(
             f"""
-            SELECT provenance_event.action
+            SELECT provenance_event.action, provenance_event.occurred_at
             FROM provenance_event
             JOIN {tables.revisions} ON provenance_event.{tables.event_column} = {tables.revisions}.id
-            WHERE {tables.revisions}.{tables.owner} = :id
+            WHERE {tables.revisions}.{tables.owner} = :id {condition}
             ORDER BY provenance_event.rowid DESC LIMIT 1
             """
         ),
-        {"id": ref.id},
-    ).scalar_one()
+        {"id": ref.id, "flag": Action.FLAG_RE_REVIEW.value},
+    ).one()
 
 
 def _check_review_outcome(connection: Connection, ref: ItemRef, action: Action) -> None:
     """Section 12: Reject and Defer take an item out of the inbox, and Deferred ones come back."""
-    latest = _latest_action(connection, ref)
+    latest = _latest_decision(connection, ref)
+    if action is Action.FLAG_RE_REVIEW and latest == Action.REJECT.value:
+        raise Rejected("A rejected item can't be flagged for re-review.")
+    if (
+        action is Action.KEEP_AS_IS
+        and _latest_event(connection, ref).action != Action.FLAG_RE_REVIEW.value
+    ):
+        raise Rejected("Only an item flagged for re-review can be kept as it is.")
     if action is Action.RETURN_TO_INBOX and latest != Action.DEFER.value:
         raise Rejected("Only a deferred item can return to the review inbox.")
     if action in (Action.REJECT, Action.DEFER) and latest in _LEFT_THE_INBOX:
         raise Rejected("This item has already left the review inbox.")
+
+
+def _check_run_can_flag(connection: Connection, ref: ItemRef, run_id: str) -> None:
+    """AC-39 says a newer completed run. A run ending before the latest event isn't newer."""
+    run = connection.execute(
+        text("SELECT status, ended_at FROM profile_run WHERE id = :id"), {"id": run_id}
+    ).first()
+    if run is None or run.status != "completed":
+        raise Rejected("Only a completed profile run can flag an item for re-review.")
+    if run.ended_at <= _latest_event(connection, ref).occurred_at:
+        raise Rejected("Only a newer profile run can flag this item for re-review.")
 
 
 def _apply(
@@ -431,6 +475,7 @@ def _apply(
     ref: ItemRef,
     details: EventDetails,
     new_content: Content | None = None,
+    flagging_run: str | None = None,
 ) -> None:
     """Check the rules and write the change and its event in one transaction (ADR 0002 point 3)."""
     if ref.kind not in _TABLES:
@@ -439,9 +484,10 @@ def _apply(
     with write_transaction(engine) as connection:
         revision_id, item = _current(connection, ref)
         state = next_state(actor, action, ref.kind, item.state)
-        if action in (Action.REJECT, Action.DEFER, Action.RETURN_TO_INBOX):
-            # Neither is a trust state, so only provenance changes (Section 12).
+        if action in _ONLY_PROVENANCE:
             _check_review_outcome(connection, ref, action)
+            if flagging_run is not None:
+                _check_run_can_flag(connection, ref, flagging_run)
             record_event(
                 connection,
                 actor,
@@ -526,6 +572,58 @@ def return_to_inbox(
     _apply(engine, actor, Action.RETURN_TO_INBOX, ref, details)
 
 
+def flag_for_re_review(
+    engine: Engine,
+    actor: Actor,
+    ref: ItemRef,
+    run_id: str,
+    details: EventDetails = NO_DETAILS,
+) -> None:
+    """A newer completed run contradicts this item's evidence. Its state stays (AC-39).
+
+    What counts as a contradiction is the caller's to decide, and comes with M3's profiling work.
+    """
+    evidence = (*details.evidence_references, f"profile-run/{run_id}")
+    _apply(
+        engine,
+        actor,
+        Action.FLAG_RE_REVIEW,
+        ref,
+        replace(details, evidence_references=evidence),
+        flagging_run=run_id,
+    )
+
+
+def keep_as_is(
+    engine: Engine, actor: Actor, ref: ItemRef, details: EventDetails = NO_DETAILS
+) -> None:
+    """A user still agrees with a flagged Confirmed or Defined item, and nothing else changes."""
+    _apply(engine, actor, Action.KEEP_AS_IS, ref, details)
+
+
+def needs_re_review(engine: Engine) -> list[ItemRef]:
+    """Items flagged since a user last reviewed them, which leaves out deferring or returning."""
+    found: list[ItemRef] = []
+    with engine.connect() as connection:
+        for kind, tables in _TABLES.items():
+            owners = connection.execute(
+                text(
+                    f"""
+                    SELECT {tables.owner} FROM {tables.revisions}
+                    GROUP BY {tables.owner} ORDER BY min(rowid)
+                    """
+                )
+            ).scalars()
+            for owner in owners.all():
+                ref = ItemRef(kind, owner)
+                if (
+                    _latest_review_or_flag(connection, ref)
+                    == Action.FLAG_RE_REVIEW.value
+                ):
+                    found.append(ref)
+    return found
+
+
 def review_inbox(engine: Engine) -> list[ItemRef]:
     """Inferred items the user hasn't rejected or deferred, worked out from their history."""
     found: list[ItemRef] = []
@@ -547,7 +645,7 @@ def review_inbox(engine: Engine) -> list[ItemRef]:
             ).scalars()
             for owner in owners.all():
                 ref = ItemRef(kind, owner)
-                if _latest_action(connection, ref) not in _LEFT_THE_INBOX:
+                if _latest_decision(connection, ref) not in _LEFT_THE_INBOX:
                     found.append(ref)
     return found
 

@@ -2,7 +2,7 @@
 id: CFX-APP-first-slice-T09
 title: "Contract rules"
 feature: CFX-APP-first-slice
-feature_revision: 8
+feature_revision: 9
 stories: [US-08]
 criteria: [AC-45, AC-46, AC-47]
 blocked_by: [CFX-APP-first-slice-T07]

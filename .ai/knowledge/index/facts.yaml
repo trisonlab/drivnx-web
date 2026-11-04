@@ -1,22 +1,22 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-04T13:45:30+00:00'
+updated_at: '2026-11-04T16:14:08+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
   source: requirements
   evidence: ../docs/Conflux_Phase1_Development_Direction.md
-  line: 621
+  line: 623
   detail: 'mentioned: | Shared types (Proposed) | Generate TypeScript types from the API''s OpenAPI schema
     (built from Pydantic models) so UI a'
-  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
+  sha256: afd7345152ba4c404c7b386efffe98fc194d2b935a39e286cec254d519c15342
 - id: cloud:aws
   status: INFERRED
   source: requirements
   evidence: ../docs/Conflux_Phase1_Development_Direction.md
-  line: 672
+  line: 674
   detail: 'mentioned: | Databricks AI-generated comments | docs.databricks.com/aws/en/comments/ai-comments
     |'
-  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
+  sha256: afd7345152ba4c404c7b386efffe98fc194d2b935a39e286cec254d519c15342
 - id: database:mysql
   status: UNKNOWN
   source: requirements
@@ -25,7 +25,7 @@ facts:
   detail: 'mentioned: PostgreSQL gives the best implementation fit: DuckDB can attach it directly in read-only
     mode, so there is no second ana'
   note: mentioned with a negation; confirm with the client whether it is in scope
-  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
+  sha256: afd7345152ba4c404c7b386efffe98fc194d2b935a39e286cec254d519c15342
 - id: database:postgres
   status: INFERRED
   source: requirements
@@ -33,7 +33,7 @@ facts:
   line: 52
   detail: 'mentioned: | **First database connector** | PostgreSQL, read-only, using the same DuckDB-based
     analysis path as local files (CSV, X'
-  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
+  sha256: afd7345152ba4c404c7b386efffe98fc194d2b935a39e286cec254d519c15342
 - id: framework:fastapi
   status: CONFIRMED
   evidence: pyproject.toml
@@ -99,8 +99,8 @@ facts:
   evidence: ../docs/Conflux_Phase1_Development_Direction.md
   line: 201
   detail: 'mentioned: | Testing | pytest, Vitest, Playwright; Docker Compose PostgreSQL fixture |'
-  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
+  sha256: afd7345152ba4c404c7b386efffe98fc194d2b935a39e286cec254d519c15342
 requirements:
 - path: ../docs/Conflux_Phase1_Development_Direction.md
-  sha256: e6ed95ab51d4f7190fea431dd54b1bb1b9a2ef773732237b2a111a61fed8507d
+  sha256: afd7345152ba4c404c7b386efffe98fc194d2b935a39e286cec254d519c15342
   readable: true

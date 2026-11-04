@@ -2,7 +2,7 @@
 id: CFX-APP-first-slice-T07
 title: "Trust-state core"
 feature: CFX-APP-first-slice
-feature_revision: 8
+feature_revision: 9
 stories: [US-08]
 criteria: [AC-35, AC-36, AC-37, AC-38, AC-40, AC-41, AC-48, AC-55]
 blocked_by: [CFX-APP-first-slice-T03]

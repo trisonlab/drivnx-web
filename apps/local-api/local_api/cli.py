@@ -7,6 +7,8 @@ import webbrowser
 from pathlib import Path
 
 import uvicorn
+from artifacts.profiles import mark_interrupted_runs
+from artifacts.store import WorkspaceBusy
 from artifacts.workspace import (
     WorkspaceError,
     default_workspace_directory,
@@ -95,7 +97,8 @@ def main() -> None:
     try:
         # Holds the lock until the process ends, so nothing else can open it (ADR 0001).
         workspace = open_workspace(directory)
-    except WorkspaceError as error:
+        mark_interrupted_runs(workspace.engine)
+    except (WorkspaceError, WorkspaceBusy) as error:
         raise SystemExit(str(error)) from None
     if folder := sync_folder_in(directory):
         print(

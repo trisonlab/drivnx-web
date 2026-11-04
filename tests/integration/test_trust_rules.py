@@ -58,6 +58,16 @@ ALLOWED = {
     (USER, Action.DEFER, RULE, INFERRED): INFERRED,
     (USER, Action.RETURN_TO_INBOX, ENTRY, INFERRED): INFERRED,
     (USER, Action.RETURN_TO_INBOX, RULE, INFERRED): INFERRED,
+    # A newer run contradicts the evidence: the system flags it, and the state stays (Section 12).
+    (SYSTEM, Action.FLAG_RE_REVIEW, ENTRY, INFERRED): INFERRED,
+    (SYSTEM, Action.FLAG_RE_REVIEW, ENTRY, CONFIRMED): CONFIRMED,
+    (SYSTEM, Action.FLAG_RE_REVIEW, RULE, INFERRED): INFERRED,
+    (SYSTEM, Action.FLAG_RE_REVIEW, RULE, CONFIRMED): CONFIRMED,
+    (SYSTEM, Action.FLAG_RE_REVIEW, RULE, DEFINED): DEFINED,
+    # Keep as is: a user still agrees. An Inferred item has Accept for that (spec revision 9).
+    (USER, Action.KEEP_AS_IS, ENTRY, CONFIRMED): CONFIRMED,
+    (USER, Action.KEEP_AS_IS, RULE, CONFIRMED): CONFIRMED,
+    (USER, Action.KEEP_AS_IS, RULE, DEFINED): DEFINED,
 }
 
 
