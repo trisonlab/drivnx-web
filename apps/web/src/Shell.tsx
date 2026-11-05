@@ -49,7 +49,11 @@ export function Shell({ workspace }: { workspace: Workspace }) {
         {chosen ? (
           <>
             <SourceDetails source={chosen} />
-            <Preview key={chosen.id} sourceId={chosen.id} />
+            <Preview
+              // New settings start again from the first page.
+              key={[chosen.id, chosen.has_header, chosen.delimiter, chosen.encoding, chosen.skip_lines].join("|")}
+              sourceId={chosen.id}
+            />
           </>
         ) : (
           <p className="empty-note">Connect a CSV file to see what is in it.</p>

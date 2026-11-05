@@ -48,6 +48,7 @@ export type Source = {
   delimiter: string;
   encoding: string;
   has_header: boolean;
+  skip_lines: number | null;
   size_bytes: number;
   modified_at: string;
   available: boolean;
@@ -108,6 +109,29 @@ export async function getRows(sourceId: string, offset: number): Promise<RowsPag
   if (response.status === 409) {
     const { detail } = await response.json();
     throw new FileUnreadableError(detail);
+  }
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
+export type SourceSettingsChoice = {
+  has_header: boolean;
+  delimiter: string;
+  encoding: string;
+  skip_lines: number | null;
+};
+
+export async function saveSourceSettings(sourceId: string, settings: SourceSettingsChoice): Promise<Source> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/settings`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(settings),
+  });
+  if (response.status === 409 || response.status === 422) {
+    const { detail } = await response.json();
+    throw new FileUnreadableError(typeof detail === "string" ? detail : "Conflux couldn't save these settings.");
   }
   if (!response.ok) {
     throw new Error(`The server answered ${response.status}`);

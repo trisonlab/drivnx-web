@@ -2,9 +2,10 @@
 
 import os
 import uuid
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from artifacts.sources import (
     StoredField,
@@ -13,6 +14,7 @@ from artifacts.sources import (
     find_source,
     find_source_by_path,
     list_sources,
+    save_corrected_settings,
 )
 from artifacts.workspace import Workspace
 from connectors.csv_files import (
@@ -20,11 +22,12 @@ from connectors.csv_files import (
     CsvError,
     detect_encoding,
     normalised_type,
+    read_columns,
     read_page,
     scan_csv,
 )
 from fastapi import APIRouter, HTTPException, Query, Response
-from pydantic import AfterValidator, BaseModel, StringConstraints
+from pydantic import AfterValidator, BaseModel, Field, StringConstraints
 
 DEFAULT_PAGE_ROWS = 50
 MAX_PAGE_ROWS = 200
@@ -46,6 +49,14 @@ class SourceRequest(BaseModel):
     ]
 
 
+class SettingsRequest(BaseModel):
+    delimiter: Literal[",", ";", "\t", "|"]
+    encoding: Literal["UTF-8", "UTF-16 LE", "UTF-16 BE", "Latin-1", "Windows-1252"]
+    has_header: bool
+    # None leaves the number to be worked out on every read.
+    skip_lines: Annotated[int, Field(ge=0, le=1000)] | None
+
+
 class ColumnResponse(BaseModel):
     name: str
     physical_type: str
@@ -59,6 +70,7 @@ class SourceResponse(BaseModel):
     delimiter: str
     encoding: str
     has_header: bool
+    skip_lines: int | None
     size_bytes: int
     modified_at: str
     available: bool
@@ -101,6 +113,7 @@ def _response(source: StoredSource) -> SourceResponse:
         delimiter=source.delimiter,
         encoding=source.encoding,
         has_header=source.has_header,
+        skip_lines=source.skip_lines,
         size_bytes=source.size_bytes,
         modified_at=source.modified_at,
         available=_is_available(source.path),
@@ -130,7 +143,12 @@ def _modified_at(stat: os.stat_result) -> str:
 
 
 def _current_encoding(source: StoredSource) -> str:
-    """Read with the saved encoding unless the file changed, because detecting reads all of it."""
+    """Read with the saved encoding unless the file changed, because detecting reads all of it.
+
+    An encoding the user chose always stays.
+    """
+    if source.corrected:
+        return source.encoding
     stat = source.path.stat()
     unchanged = (
         stat.st_size == source.size_bytes and _modified_at(stat) == source.modified_at
@@ -218,6 +236,51 @@ def sources_router(workspace: Workspace) -> APIRouter:
             return _response(existing)
         return _response(source)
 
+    @router.put("/{source_id}/settings")
+    def save_settings(source_id: str, body: SettingsRequest) -> SourceResponse:
+        source = find_source(workspace.engine, source_id)
+        if source is None:
+            raise HTTPException(status_code=404, detail="There's no such source.")
+        if not _is_available(source.path):
+            raise _cannot_read(
+                "Conflux can't find this file. It may have moved or been deleted."
+            )
+        try:
+            columns = read_columns(
+                source.path,
+                body.encoding,
+                body.delimiter,
+                body.has_header,
+                body.skip_lines,
+                workspace.temp_directory,
+            )
+            stat = source.path.stat()
+        except CsvError as error:
+            raise _refuse(str(error)) from None
+        except PermissionError:
+            raise _cannot_read(
+                "Conflux doesn't have permission to read this file."
+            ) from None
+        except OSError:
+            raise _cannot_read("Conflux couldn't read this file.") from None
+        corrected = replace(
+            source,
+            delimiter=body.delimiter,
+            encoding=body.encoding,
+            has_header=body.has_header,
+            skip_lines=body.skip_lines,
+            size_bytes=stat.st_size,
+            modified_at=_modified_at(stat),
+            fields=tuple(
+                StoredField(
+                    column.name, column.duckdb_type, normalised_type(column.duckdb_type)
+                )
+                for column in columns
+            ),
+        )
+        save_corrected_settings(workspace.engine, corrected)
+        return _response(corrected)
+
     @router.get("/{source_id}/rows")
     def get_rows(
         source_id: str,
@@ -241,6 +304,7 @@ def sources_router(workspace: Workspace) -> APIRouter:
                 offset,
                 limit + 1,
                 workspace.temp_directory,
+                source.skip_lines,
             )
         except CsvError as error:
             raise _cannot_read(str(error)) from None

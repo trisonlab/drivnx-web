@@ -1,12 +1,12 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-05T06:22:00+00:00'
+updated_at: '2026-11-05T06:49:23+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 2b408c7757c9cd77f40fcf84e2b755f12927a2284072978c9282d95063d89022
   .ai/knowledge/requirements/CFX-APP-first-slice.md: f630dcda1ae6b8a12777a0410f37648f23d09d4c12cdd6cd92433d8a463ffd85
   .ai/knowledge/work/CFX-APP-csv-profile-T01.md: d63760db42210e5a87c5372b5b4cadb69e1e203af7a125513fb660a7024a7cfa
-  .ai/knowledge/work/CFX-APP-csv-profile-T02.md: eacf842942e4e1f89bb463152ef344036c1653a07f5f30f14fde0056968bbbd4
+  .ai/knowledge/work/CFX-APP-csv-profile-T02.md: 7750bac4e7f2073c9769c2f7c18eb0e1fae35b88e668529b0ec89c4b8bda5456
   .ai/knowledge/work/CFX-APP-csv-profile-T03.md: b4254be631a1ea275219e19940a7f775c03342329a0d3b5e4b084bad151e08a9
   .ai/knowledge/work/CFX-APP-csv-profile-T04.md: 4250f0f68c42bad569cffc2a2e1b124ec98d1256a981f23814bcf05d718005bc
   .ai/knowledge/work/CFX-APP-csv-profile-T05.md: 15ebc8efc6424f063f32cf942466c65dcf376a259a48ff55e1b1804a38a475e7
@@ -33,7 +33,7 @@ sources:
   apps/local-api/local_api/cli.py: de2e38fe34b8cc23bf7942847ef989c2d9a10d7c3d7743a28279759823324604
   apps/local-api/local_api/guard.py: 0a065df935b5753303ddb14b6475b30cedae87d4f5d096d556509ae42288a9ae
   apps/local-api/local_api/session.py: 7ac051aeb59c75ca0c8e7326964ac611ab8b682fc49b1fb37c8dc177f2c1c4f4
-  apps/local-api/local_api/sources_api.py: 35d511fcdfaa7e3cbfa97b627581738e487f76ef33950cc74a10c1759d03cb2e
+  apps/local-api/local_api/sources_api.py: ce13e2a7c7273ce6d8a8ea3f3708797dfc570970edac4f6268da2992e50a543e
   apps/web/package.json: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
   apps/web/pnpm-lock.yaml: c9140539e3622a70d6a0d272593b22dc12a51e3ea75a816bfd33f52a89a2708b
   apps/web/src/App.test.tsx: 9eb6591f54b127537370a9fc272213b641dd57bb4d3a44e5b7c907df8f5bcee5
@@ -42,23 +42,26 @@ sources:
   apps/web/src/Preview.test.tsx: 5d9eaa75943a69a77ba6d14c1ae66d02985434a2508b15bd6b0324a4e29044a5
   apps/web/src/Preview.tsx: 3bf2aa6bbc84a230141f4316ebd0dfa37c0886e28daadca3c841745ee9d7dfcd
   apps/web/src/SetupScreen.tsx: 31e7316e6b5602e338a3646da2a27b8b2b2873bfb148aafd9db9a72478ef4794
-  apps/web/src/Shell.tsx: 76b62d424a3527178d40ac290484f257006685daf06a5d123805052fae938133
-  apps/web/src/SourceDetails.tsx: 67a0d86164fc381c77c6ad0e324530002508086edc39deb20da829d13ebf2e00
+  apps/web/src/Shell.tsx: e06a2e2aaba105e4552e1819fe7ae6b4f81c780b0fba367e263154e6135a9c08
+  apps/web/src/SourceDetails.tsx: 4dce343e7cbdac39faea2413ca25d2f82d1dc634800240d499df4d5c44ba3015
+  apps/web/src/SourceSettings.test.tsx: f790ebf94ade2c1be45bced986e8066e1567025ec9555db1936fdb11f390a5b1
+  apps/web/src/SourceSettings.tsx: 62e985c66128ee9f52d00fae891b6972cbf75b75116b06d5f353937c79559e2e
   apps/web/src/Sources.test.tsx: 643936a86e15baadf771846e6b07549572a235e86e2a51a350c747c76320782c
-  apps/web/src/api.ts: c33039799d8b9556c0f70377934142f73304b3536dfe8388a7be141502640845
+  apps/web/src/api.ts: 85ee7b4d32a8c287e9e23e7ebf10f2f584c88a73840d1a87e4bee33cbd0a34ce
   apps/web/src/main.tsx: a092eb0be7e15855ffc2d8cd35c780c063e9686c2d96689d54ff3ae14deabe4c
   apps/web/src/session.test.ts: 1cfe4e0e785dafef6c141859de01b29725ba49e609b0a9d7651d2976aaa3a3a6
   apps/web/src/session.ts: 606b8ed83032ca43d62da07c2b90c3cdb5e761467e3cf1b4d907b0a96950aab4
   apps/web/src/sourceFormat.ts: 089d6d12912f71f90adc55c819869eb3ae6024e83ed2ca4eef41b816041ce15c
-  apps/web/src/styles.css: b5ce44e02095024b47a423c0cb1b792ee5c600046d55ba444bc86534a4d4e02c
+  apps/web/src/styles.css: cf9e7368745d97dad5f37e15e3f9245b52ee75b3057219e8e53fecc4560f90fb
   apps/web/tsconfig.json: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
   hatch_build.py: 3a04470f04cbbc9eb8318259732bdd97fa9e42016c682c996962adf0e14db012
+  packages/artifacts/migrations/versions/0005_source_settings.py: f9dbf1baf732afb3cc794b4b1a86dead9f4b86e3f32793c607b284ff5450df87
   packages/artifacts/profiles.py: 23efa5c94b68e7f273b10d75a32fcf04b2db94017639345842f14cdc1cee991b
   packages/artifacts/provenance.py: 2a1ef8bb1363e8f61f98ff68bdb03e633368acdb5b2d28f6b3d44c0cb1911a37
   packages/artifacts/review.py: f959e1fbf57048bc3ee35a8c0d501eb18cfdd92186325e132f3f1a4a72cdbeaa
   packages/artifacts/schema.py: 3e58fcd02a4877cf892c71b0026c39e0fb8bb9674f6c4bc38ada13c71d37c92a
   packages/artifacts/settings.py: f485bc3a90b6ba403d2377b93adc64737afefd8f837458e1b9b45a3cb4596289
-  packages/artifacts/sources.py: e7de48db77f4272e7467a38a136961785326530dc136c7d8c563dc9a9a8eb20a
+  packages/artifacts/sources.py: 8fb5cac8ed7ff2cf319bee910bdaabbf7e742e677e03ddf4585a2110ce82b20f
   packages/artifacts/store.py: 3b713603d3dda44758dbb3df4ea1779125c8e01e274b1f62df8827be1bfff84c
   packages/artifacts/workspace.py: 0b4b0edcc2694137fd7d5a362dc7a123082cbd93eb42c7d600ef0270564baaa4
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
@@ -72,6 +75,8 @@ sources:
   tests/e2e/test_first_launch.py: d63e787b95f896b7a8e7141b54926c672cdf443ad4dba50ece7fb35218c851d2
   tests/e2e/test_full_journey.py: acf05e870676877d9952dd6f1d44d2157833bb8d6ab709ebc7e74d79f2638762
   tests/e2e/test_preview.py: 125b482d2ce433c417310a79a867cb3c9500a5fc08ea5b39a0cfead48ddea7e0
+  tests/e2e/test_source_settings.py: 67289d003885e5b0da80516294f24a99a251a91d1c4fc8fca9603de267c8a235
+  tests/integration/conftest.py: f7e1cc5e1f90af8386a257704074672f9b0cdb216f6e394ac68b29d427feb09e
   tests/integration/test_artifact_store.py: 039ab464d137fcb1d8793cc751e0241a2e93a8cac66c4b54df91007520f1b356
   tests/integration/test_binding.py: 79eeb61ddbb635cafec5bbf4a570033e5c418aa09dc2adde55afb539a85bd0e7
   tests/integration/test_ci.py: ce721acbd746581823419110beca2e0cfd9119451eb8ce250ade29e7c24be42d
@@ -84,6 +89,7 @@ sources:
   tests/integration/test_profile_runs.py: 353423797d60259b4ca44b0a844ac1a1c3d8e23f7c2b2439beab019705e0acb1
   tests/integration/test_review.py: 7ff50b8ff75bb4ba8fa544930a2122817fa0885a327cdadd3c9a3b2a5c50bcb5
   tests/integration/test_session.py: 204a8bf3ad6a59f47bdb69cf801a57aa55a718e2cf985102dd14ee914545b890
+  tests/integration/test_source_settings.py: 26c8015eea8c36e3076ac8ebd066158bb4f4d6335ee6518548a87c789467bbd1
   tests/integration/test_sources_api.py: c48d5bbb72915a97b126111faf184eaee64338c94c7d05f1fc9e96febb199d05
   tests/integration/test_testdata.py: aec07f92859fc1f4daf4247959769e49cfa19a2fe41bdc8a908c1a3558c043b4
   tests/integration/test_trust_rules.py: 3c47d9ea2299799ec9f4ccd0c57360e2b704ecdaf775b2f5879dd3c78bc8fa60
@@ -697,11 +703,11 @@ nodes:
 - id: endpoint:GET /api/sources
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/sources_api.py:180
+  - apps/local-api/local_api/sources_api.py:198
 - id: endpoint:GET /api/sources/{}/rows
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/sources_api.py:221
+  - apps/local-api/local_api/sources_api.py:284
 - id: endpoint:GET /api/workspace
   kind: endpoint
   evidence:
@@ -709,7 +715,11 @@ nodes:
 - id: endpoint:POST /api/sources
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/sources_api.py:184
+  - apps/local-api/local_api/sources_api.py:202
+- id: endpoint:PUT /api/sources/{}/settings
+  kind: endpoint
+  evidence:
+  - apps/local-api/local_api/sources_api.py:239
 - id: endpoint:PUT /api/workspace
   kind: endpoint
   evidence:
@@ -790,6 +800,14 @@ nodes:
   kind: module
   evidence:
   - apps/web/src/SourceDetails.tsx:1
+- id: module:apps/web/src/SourceSettings.test.tsx
+  kind: module
+  evidence:
+  - apps/web/src/SourceSettings.test.tsx:1
+- id: module:apps/web/src/SourceSettings.tsx
+  kind: module
+  evidence:
+  - apps/web/src/SourceSettings.tsx:1
 - id: module:apps/web/src/Sources.test.tsx
   kind: module
   evidence:
@@ -818,6 +836,10 @@ nodes:
   kind: module
   evidence:
   - apps/web/src/styles.css:1
+- id: module:packages/artifacts/migrations/versions/0005_source_settings.py
+  kind: module
+  evidence:
+  - packages/artifacts/migrations/versions/0005_source_settings.py:1
 - id: module:packages/artifacts/profiles.py
   kind: module
   evidence:
@@ -890,6 +912,14 @@ nodes:
   kind: module
   evidence:
   - tests/e2e/test_preview.py:1
+- id: module:tests/e2e/test_source_settings.py
+  kind: module
+  evidence:
+  - tests/e2e/test_source_settings.py:1
+- id: module:tests/integration/conftest.py
+  kind: module
+  evidence:
+  - tests/integration/conftest.py:1
 - id: module:tests/integration/test_artifact_store.py
   kind: module
   evidence:
@@ -938,6 +968,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_session.py:1
+- id: module:tests/integration/test_source_settings.py
+  kind: module
+  evidence:
+  - tests/integration/test_source_settings.py:1
 - id: module:tests/integration/test_sources_api.py
   kind: module
   evidence:
@@ -1110,7 +1144,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
   title: Correct how a file is read
-  state: ready
+  state: done
   external_key: null
 - id: ticket:CFX-APP-csv-profile-T03
   kind: ticket
@@ -2014,21 +2048,28 @@ edges:
   to: endpoint:GET /api/sources
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/sources_api.py:180
+  - apps/local-api/local_api/sources_api.py:198
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/sources_api.py
   rel: exposes
   to: endpoint:GET /api/sources/{}/rows
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/sources_api.py:221
+  - apps/local-api/local_api/sources_api.py:284
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/sources_api.py
   rel: exposes
   to: endpoint:POST /api/sources
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/sources_api.py:184
+  - apps/local-api/local_api/sources_api.py:202
+  note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
+- from: module:apps/local-api/local_api/sources_api.py
+  rel: exposes
+  to: endpoint:PUT /api/sources/{}/settings
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/sources_api.py:239
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/web/src/App.test.tsx
   rel: imports
@@ -2178,6 +2219,12 @@ edges:
   - apps/web/src/Shell.tsx:3
 - from: module:apps/web/src/SourceDetails.tsx
   rel: imports
+  to: module:apps/web/src/SourceSettings.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceDetails.tsx:3
+- from: module:apps/web/src/SourceDetails.tsx
+  rel: imports
   to: module:apps/web/src/api.ts
   status: CONFIRMED
   evidence:
@@ -2187,7 +2234,68 @@ edges:
   to: module:apps/web/src/sourceFormat.ts
   status: CONFIRMED
   evidence:
-  - apps/web/src/SourceDetails.tsx:3
+  - apps/web/src/SourceDetails.tsx:4
+- from: module:apps/web/src/SourceSettings.test.tsx
+  rel: imports
+  to: module:apps/web/src/App.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.test.tsx:5
+- from: module:apps/web/src/SourceSettings.test.tsx
+  rel: imports
+  to: module:apps/web/src/SourceSettings.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.test.tsx:7
+- from: module:apps/web/src/SourceSettings.test.tsx
+  rel: imports
+  to: module:apps/web/src/api.ts
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.test.tsx:6
+- from: module:apps/web/src/SourceSettings.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-01
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.test.tsx:74
+  - apps/web/src/SourceSettings.test.tsx:82
+  - apps/web/src/SourceSettings.test.tsx:106
+  - apps/web/src/SourceSettings.test.tsx:224
+- from: module:apps/web/src/SourceSettings.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-02
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.test.tsx:115
+  - apps/web/src/SourceSettings.test.tsx:137
+  - apps/web/src/SourceSettings.test.tsx:149
+- from: module:apps/web/src/SourceSettings.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-03
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.test.tsx:194
+  - apps/web/src/SourceSettings.test.tsx:212
+  - apps/web/src/SourceSettings.test.tsx:241
+- from: module:apps/web/src/SourceSettings.tsx
+  rel: imports
+  to: module:apps/web/src/DataExplorer.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.tsx:4
+- from: module:apps/web/src/SourceSettings.tsx
+  rel: imports
+  to: module:apps/web/src/api.ts
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.tsx:3
+- from: module:apps/web/src/SourceSettings.tsx
+  rel: imports
+  to: module:apps/web/src/sourceFormat.ts
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.tsx:5
 - from: module:apps/web/src/Sources.test.tsx
   rel: imports
   to: module:apps/web/src/App.tsx
@@ -2338,10 +2446,16 @@ edges:
   - packages/artifacts/settings.py:8
 - from: module:packages/artifacts/sources.py
   rel: imports
-  to: module:packages/artifacts/store.py
+  to: module:packages/artifacts/provenance.py
   status: CONFIRMED
   evidence:
   - packages/artifacts/sources.py:9
+- from: module:packages/artifacts/sources.py
+  rel: imports
+  to: module:packages/artifacts/store.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/sources.py:10
 - from: module:packages/artifacts/workspace.py
   rel: imports
   to: module:packages/artifacts/schema.py
@@ -2619,6 +2733,37 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/e2e/test_preview.py:112
+- from: module:tests/e2e/test_source_settings.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_source_settings.py:6
+- from: module:tests/e2e/test_source_settings.py
+  rel: imports
+  to: module:tests/e2e/test_connect_csv.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_source_settings.py:7
+- from: module:tests/e2e/test_source_settings.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-01
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_source_settings.py:1
+  - tests/e2e/test_source_settings.py:19
+- from: module:tests/e2e/test_source_settings.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-02
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_source_settings.py:19
+- from: module:tests/e2e/test_source_settings.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-03
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_source_settings.py:39
 - from: module:tests/integration/test_artifact_store.py
   rel: imports
   to: module:tests/conftest.py
@@ -3137,6 +3282,62 @@ edges:
   - tests/integration/test_session.py:411
   - tests/integration/test_session.py:432
   - tests/integration/test_session.py:443
+- from: module:tests/integration/test_source_settings.py
+  rel: imports
+  to: module:tests/integration/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_source_settings.py:14
+- from: module:tests/integration/test_source_settings.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-01
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_source_settings.py:1
+  - tests/integration/test_source_settings.py:80
+  - tests/integration/test_source_settings.py:373
+  - tests/integration/test_source_settings.py:381
+- from: module:tests/integration/test_source_settings.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-02
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_source_settings.py:136
+  - tests/integration/test_source_settings.py:154
+  - tests/integration/test_source_settings.py:169
+  - tests/integration/test_source_settings.py:182
+  - tests/integration/test_source_settings.py:196
+  - tests/integration/test_source_settings.py:223
+  - tests/integration/test_source_settings.py:241
+- from: module:tests/integration/test_source_settings.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-03
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_source_settings.py:269
+  - tests/integration/test_source_settings.py:284
+  - tests/integration/test_source_settings.py:300
+  - tests/integration/test_source_settings.py:317
+  - tests/integration/test_source_settings.py:333
+  - tests/integration/test_source_settings.py:349
+- from: module:tests/integration/test_source_settings.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-05
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_source_settings.py:398
+- from: module:tests/integration/test_source_settings.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-08
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_source_settings.py:411
+- from: module:tests/integration/test_source_settings.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-09
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_source_settings.py:411
 - from: module:tests/integration/test_sources_api.py
   rel: imports
   to: module:tests/conftest.py

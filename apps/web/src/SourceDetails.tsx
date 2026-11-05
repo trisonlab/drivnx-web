@@ -1,5 +1,6 @@
 import { useId } from "react";
 import type { Source } from "./api";
+import { SourceSettings } from "./SourceSettings";
 import { delimiterName, fileSize } from "./sourceFormat";
 
 export function SourceDetails({ source }: { source: Source }) {
@@ -33,6 +34,7 @@ export function SourceDetails({ source }: { source: Source }) {
             : "No header row found. Column names are generated."}
         </dd>
       </dl>
+      <SourceSettings key={source.id} source={source} />
       <div className="table-scroll">
         <table className="column-table">
           <thead>
