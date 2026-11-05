@@ -126,6 +126,8 @@ def _connect_to(database: Path) -> Engine:
     def apply_settings(dbapi_connection: Any, _record: Any) -> None:
         """ADR 0002 point 5."""
         dbapi_connection.execute("PRAGMA foreign_keys = ON")
+        # Freed space is zeroed, so a value that's been replaced can't be read back (ADR 0004).
+        dbapi_connection.execute("PRAGMA secure_delete = ON")
         dbapi_connection.execute("PRAGMA journal_mode = WAL")
         dbapi_connection.execute("PRAGMA synchronous = FULL")
         dbapi_connection.execute(f"PRAGMA busy_timeout = {BUSY_TIMEOUT_MILLISECONDS}")

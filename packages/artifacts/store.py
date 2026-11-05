@@ -98,3 +98,17 @@ def write_transaction(engine: Engine) -> Iterator[Connection]:
         raise WorkspaceBusy(_BUSY) from error
     finally:
         turns.finish()
+
+
+def empty_the_wal(engine: Engine) -> None:
+    """Move everything into the database and empty the WAL, which still holds old versions of pages.
+
+    It waits for readers up to `busy_timeout`. If one outlasts that, the old pages stay until a
+    later checkpoint, which may not happen until the workspace closes.
+    """
+    # Not `engine.connect()`, which begins a transaction, and SQLite can't checkpoint inside one.
+    connection = engine.raw_connection()
+    try:
+        connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchall()
+    finally:
+        connection.close()

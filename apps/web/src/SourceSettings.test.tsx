@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { App } from "./App";
 import type { Source } from "./api";
+import { Preview } from "./Preview";
 import { SourceSettings } from "./SourceSettings";
 
 const report: Source = {
@@ -244,4 +245,27 @@ test("settings can't be changed while the file can't be found", async () => {
 
   expect(screen.getByText(/can't be changed until Conflux can find this file/)).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Save settings" })).not.toBeInTheDocument();
+});
+
+test("saving the same settings after the file changed reads the rows again", async () => {
+  // CFX-APP-csv-profile/AC-02: the settings didn't change, so nothing else would refresh the preview.
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(
+    <QueryClientProvider client={client}>
+      <SourceSettings source={report} />
+      <Preview sourceId="s1" />
+    </QueryClientProvider>,
+  );
+  await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+  await open();
+  await screen.findByText("Worked out automatically");
+  await waitFor(() => expect(client.isFetching()).toBe(0));
+  fetchMock.mockClear();
+
+  await userEvent.click(screen.getByRole("button", { name: "Save settings" }));
+
+  await screen.findByRole("status");
+  await waitFor(() =>
+    expect(fetchMock.mock.calls.map(([url]) => url)).toContain("/api/sources/s1/rows?offset=0"),
+  );
 });

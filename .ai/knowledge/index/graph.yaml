@@ -1,13 +1,13 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-05T06:49:23+00:00'
+updated_at: '2026-11-05T07:28:58+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 2b408c7757c9cd77f40fcf84e2b755f12927a2284072978c9282d95063d89022
   .ai/knowledge/requirements/CFX-APP-first-slice.md: f630dcda1ae6b8a12777a0410f37648f23d09d4c12cdd6cd92433d8a463ffd85
   .ai/knowledge/work/CFX-APP-csv-profile-T01.md: d63760db42210e5a87c5372b5b4cadb69e1e203af7a125513fb660a7024a7cfa
   .ai/knowledge/work/CFX-APP-csv-profile-T02.md: 7750bac4e7f2073c9769c2f7c18eb0e1fae35b88e668529b0ec89c4b8bda5456
-  .ai/knowledge/work/CFX-APP-csv-profile-T03.md: b4254be631a1ea275219e19940a7f775c03342329a0d3b5e4b084bad151e08a9
+  .ai/knowledge/work/CFX-APP-csv-profile-T03.md: 700d11bc48a058f6259d1d3ee234030e9e6fee1af800482310e13651ee0264d6
   .ai/knowledge/work/CFX-APP-csv-profile-T04.md: 4250f0f68c42bad569cffc2a2e1b124ec98d1256a981f23814bcf05d718005bc
   .ai/knowledge/work/CFX-APP-csv-profile-T05.md: 15ebc8efc6424f063f32cf942466c65dcf376a259a48ff55e1b1804a38a475e7
   .ai/knowledge/work/CFX-APP-csv-profile-T06.md: 15233e5932acd0bbcab2185284f6391aff82cfdd8d0c2e7b865419398bc66e50
@@ -44,7 +44,7 @@ sources:
   apps/web/src/SetupScreen.tsx: 31e7316e6b5602e338a3646da2a27b8b2b2873bfb148aafd9db9a72478ef4794
   apps/web/src/Shell.tsx: e06a2e2aaba105e4552e1819fe7ae6b4f81c780b0fba367e263154e6135a9c08
   apps/web/src/SourceDetails.tsx: 4dce343e7cbdac39faea2413ca25d2f82d1dc634800240d499df4d5c44ba3015
-  apps/web/src/SourceSettings.test.tsx: f790ebf94ade2c1be45bced986e8066e1567025ec9555db1936fdb11f390a5b1
+  apps/web/src/SourceSettings.test.tsx: 78712d61e9475ab3264304b5afeb25f16476ddb65be618f7f36f5509ed9bef82
   apps/web/src/SourceSettings.tsx: 62e985c66128ee9f52d00fae891b6972cbf75b75116b06d5f353937c79559e2e
   apps/web/src/Sources.test.tsx: 643936a86e15baadf771846e6b07549572a235e86e2a51a350c747c76320782c
   apps/web/src/api.ts: 85ee7b4d32a8c287e9e23e7ebf10f2f584c88a73840d1a87e4bee33cbd0a34ce
@@ -61,9 +61,9 @@ sources:
   packages/artifacts/review.py: f959e1fbf57048bc3ee35a8c0d501eb18cfdd92186325e132f3f1a4a72cdbeaa
   packages/artifacts/schema.py: 3e58fcd02a4877cf892c71b0026c39e0fb8bb9674f6c4bc38ada13c71d37c92a
   packages/artifacts/settings.py: f485bc3a90b6ba403d2377b93adc64737afefd8f837458e1b9b45a3cb4596289
-  packages/artifacts/sources.py: 8fb5cac8ed7ff2cf319bee910bdaabbf7e742e677e03ddf4585a2110ce82b20f
-  packages/artifacts/store.py: 3b713603d3dda44758dbb3df4ea1779125c8e01e274b1f62df8827be1bfff84c
-  packages/artifacts/workspace.py: 0b4b0edcc2694137fd7d5a362dc7a123082cbd93eb42c7d600ef0270564baaa4
+  packages/artifacts/sources.py: 60f9a8a8bc4732cc8d13a1cde74102eead59f180065dbfb1e21f3b812623927a
+  packages/artifacts/store.py: c8027ed76aca60e569313aabb96e96f5f783d56d192499819f5bf238986244a4
+  packages/artifacts/workspace.py: 2d49466258379045e2479099aad91365669b1cfde0405319d6033e26e0840f39
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
   pyproject.toml: 4f5f67c65e8954b53a58f1dcdef244d1ef05a1081b57929b9240cdb02a42ee1d
@@ -87,6 +87,7 @@ sources:
   tests/integration/test_lockfiles.py: d04c655bbf0d73a55efca921996aaed96a943010384addf630418228a82fd4d2
   tests/integration/test_preview_api.py: 2c80362b86e11b8e44c8fd7e2dda578b52691c4b28af29b5fb069ff7dae87657
   tests/integration/test_profile_runs.py: 353423797d60259b4ca44b0a844ac1a1c3d8e23f7c2b2439beab019705e0acb1
+  tests/integration/test_replacing_column_names.py: 617826d9612906f81ab62e732b7a985c27e43e1bf26c82bdbae68438b088b352
   tests/integration/test_review.py: 7ff50b8ff75bb4ba8fa544930a2122817fa0885a327cdadd3c9a3b2a5c50bcb5
   tests/integration/test_session.py: 204a8bf3ad6a59f47bdb69cf801a57aa55a718e2cf985102dd14ee914545b890
   tests/integration/test_source_settings.py: 26c8015eea8c36e3076ac8ebd066158bb4f4d6335ee6518548a87c789467bbd1
@@ -96,7 +97,7 @@ sources:
   tests/integration/test_wheel.py: e4ae13a647fc6a151ce7434d66dd710c90df2337e6a86c927ce2b4d91ddb6344
   tests/integration/test_workspace.py: b2e2f9224d77a2042e9886a52fdf4572fddde425cbbbf86dce32d30aff143314
   tests/integration/test_workspace_api.py: d0c3649cc06576c653bec3ec78b89fd157af1392e3f7a7221624b7d15f3e4755
-  tests/integration/test_workspace_store.py: de5a2c32889a5e6324d436a94bade8667120e9a2ef8b7fd16e51c1f5379a46ba
+  tests/integration/test_workspace_store.py: e3911914cfe534201febd8eb361a85a9564415ebf3be2c362dffbcdbcf942cbf
   uv.lock: 4942e5e0af88130f4f436054c9ef054233bc96b076c013d98906ac63c0b2b7a3
 nodes:
 - id: criterion:CFX-APP-csv-profile/AC-01
@@ -960,6 +961,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_profile_runs.py:1
+- id: module:tests/integration/test_replacing_column_names.py
+  kind: module
+  evidence:
+  - tests/integration/test_replacing_column_names.py:1
 - id: module:tests/integration/test_review.py
   kind: module
   evidence:
@@ -1151,7 +1156,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/CFX-APP-csv-profile-T03.md
   title: Replace earlier column names
-  state: blocked
+  state: done
   external_key: null
 - id: ticket:CFX-APP-csv-profile-T04
   kind: ticket
@@ -2243,10 +2248,16 @@ edges:
   - apps/web/src/SourceSettings.test.tsx:5
 - from: module:apps/web/src/SourceSettings.test.tsx
   rel: imports
-  to: module:apps/web/src/SourceSettings.tsx
+  to: module:apps/web/src/Preview.tsx
   status: CONFIRMED
   evidence:
   - apps/web/src/SourceSettings.test.tsx:7
+- from: module:apps/web/src/SourceSettings.test.tsx
+  rel: imports
+  to: module:apps/web/src/SourceSettings.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.test.tsx:8
 - from: module:apps/web/src/SourceSettings.test.tsx
   rel: imports
   to: module:apps/web/src/api.ts
@@ -2258,26 +2269,27 @@ edges:
   to: criterion:CFX-APP-csv-profile/AC-01
   status: CONFIRMED
   evidence:
-  - apps/web/src/SourceSettings.test.tsx:74
-  - apps/web/src/SourceSettings.test.tsx:82
-  - apps/web/src/SourceSettings.test.tsx:106
-  - apps/web/src/SourceSettings.test.tsx:224
+  - apps/web/src/SourceSettings.test.tsx:75
+  - apps/web/src/SourceSettings.test.tsx:83
+  - apps/web/src/SourceSettings.test.tsx:107
+  - apps/web/src/SourceSettings.test.tsx:225
 - from: module:apps/web/src/SourceSettings.test.tsx
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-02
   status: CONFIRMED
   evidence:
-  - apps/web/src/SourceSettings.test.tsx:115
-  - apps/web/src/SourceSettings.test.tsx:137
-  - apps/web/src/SourceSettings.test.tsx:149
+  - apps/web/src/SourceSettings.test.tsx:116
+  - apps/web/src/SourceSettings.test.tsx:138
+  - apps/web/src/SourceSettings.test.tsx:150
+  - apps/web/src/SourceSettings.test.tsx:251
 - from: module:apps/web/src/SourceSettings.test.tsx
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-03
   status: CONFIRMED
   evidence:
-  - apps/web/src/SourceSettings.test.tsx:194
-  - apps/web/src/SourceSettings.test.tsx:212
-  - apps/web/src/SourceSettings.test.tsx:241
+  - apps/web/src/SourceSettings.test.tsx:195
+  - apps/web/src/SourceSettings.test.tsx:213
+  - apps/web/src/SourceSettings.test.tsx:242
 - from: module:apps/web/src/SourceSettings.tsx
   rel: imports
   to: module:apps/web/src/DataExplorer.tsx
@@ -3096,6 +3108,19 @@ edges:
   - tests/integration/test_profile_runs.py:220
   - tests/integration/test_profile_runs.py:233
   - tests/integration/test_profile_runs.py:246
+- from: module:tests/integration/test_replacing_column_names.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-04
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_replacing_column_names.py:1
+  - tests/integration/test_replacing_column_names.py:50
+  - tests/integration/test_replacing_column_names.py:66
+  - tests/integration/test_replacing_column_names.py:82
+  - tests/integration/test_replacing_column_names.py:102
+  - tests/integration/test_replacing_column_names.py:122
+  - tests/integration/test_replacing_column_names.py:135
+  - tests/integration/test_replacing_column_names.py:152
 - from: module:tests/integration/test_review.py
   rel: imports
   to: module:tests/conftest.py
@@ -3555,28 +3580,34 @@ edges:
   - tests/integration/test_workspace_store.py:23
 - from: module:tests/integration/test_workspace_store.py
   rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-04
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_workspace_store.py:108
+- from: module:tests/integration/test_workspace_store.py
+  rel: verifies
   to: criterion:CFX-APP-first-slice/AC-17
   status: CONFIRMED
   evidence:
-  - tests/integration/test_workspace_store.py:411
+  - tests/integration/test_workspace_store.py:413
 - from: module:tests/integration/test_workspace_store.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-19
   status: CONFIRMED
   evidence:
   - tests/integration/test_workspace_store.py:1
-  - tests/integration/test_workspace_store.py:120
-  - tests/integration/test_workspace_store.py:131
-  - tests/integration/test_workspace_store.py:157
-  - tests/integration/test_workspace_store.py:191
-  - tests/integration/test_workspace_store.py:394
+  - tests/integration/test_workspace_store.py:122
+  - tests/integration/test_workspace_store.py:133
+  - tests/integration/test_workspace_store.py:159
+  - tests/integration/test_workspace_store.py:193
+  - tests/integration/test_workspace_store.py:396
 - from: module:tests/integration/test_workspace_store.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-44
   status: CONFIRMED
   evidence:
-  - tests/integration/test_workspace_store.py:218
-  - tests/integration/test_workspace_store.py:241
+  - tests/integration/test_workspace_store.py:220
+  - tests/integration/test_workspace_store.py:243
 - from: project
   rel: uses
   to: tech:ci:github-actions

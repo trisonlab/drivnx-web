@@ -7,7 +7,7 @@ from pathlib import Path
 from sqlalchemy import Connection, Engine, text
 
 from artifacts.provenance import now
-from artifacts.store import write_transaction
+from artifacts.store import empty_the_wal, write_transaction
 
 
 @dataclass(frozen=True)
@@ -193,6 +193,10 @@ def add_csv_source(engine: Engine, source: StoredSource) -> bool:
     return True
 
 
+def _names(source: StoredSource) -> list[str]:
+    return [field.name for field in source.fields]
+
+
 def save_corrected_settings(engine: Engine, source: StoredSource) -> None:
     """Save a user's settings. New settings or columns get a new current dataset.
 
@@ -241,4 +245,20 @@ def save_corrected_settings(engine: Engine, source: StoredSource) -> None:
             ),
             {"id": source.id, "now": now()},
         )
+        if _names(current) != _names(source):
+            # The row may hold personal data (ADR 0004). Field ids stay, so evidence still points here.
+            connection.execute(
+                text(
+                    """
+                    UPDATE field SET name = 'column' || position
+                    WHERE dataset_id IN (
+                        SELECT id FROM dataset
+                        WHERE source_id = :id AND replaced_at IS NOT NULL
+                    )
+                    """
+                ),
+                {"id": source.id},
+            )
         _insert_dataset(connection, source)
+    if _names(current) != _names(source):
+        empty_the_wal(engine)

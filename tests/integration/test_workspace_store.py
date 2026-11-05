@@ -105,6 +105,8 @@ def reopen(directory: Path, migrations: Path) -> None:
         # 2 is FULL.
         ("synchronous", 2),
         ("busy_timeout", 5000),
+        # CFX-APP-csv-profile/AC-04, from ADR 0004.
+        ("secure_delete", 1),
     ],
 )
 def test_connections_use_the_settings_in_adr_0002(
