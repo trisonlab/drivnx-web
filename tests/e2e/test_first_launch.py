@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Browser, Page, expect
 
-from ..conftest import StartConflux
+from ..conftest import StartConflux, posix_only
 
 
 def test_a_new_workspace_shows_where_it_is_and_asks_for_a_name_and_ai_mode(
@@ -33,24 +33,33 @@ def finish_setup(page: Page, name: str, mode: str = "Off") -> None:
     expect(page.get_by_role("heading", name=name)).to_be_visible()
 
 
-def test_conflux_with_no_argument_opens_the_browser_signed_in_on_the_default_workspace(
-    start_conflux: StartConflux, page: Page, tmp_path: Path
-) -> None:
-    # CFX-APP-first-slice/AC-01
+def run_conflux_and_catch_the_browser(
+    start_conflux: StartConflux, tmp_path: Path, cwd: Path | None = None
+) -> str:
+    """Run `conflux` with no argument, and return the URL it asked a browser to open."""
     opened = tmp_path / "opened"
     browser = tmp_path / "browser"
     browser.write_text(
         f'#!/bin/sh\nprintf %s "$1" > "{opened}.tmp"\nmv "{opened}.tmp" "{opened}"\n'
     )
     browser.chmod(0o755)
-    default = tmp_path / "home" / "Conflux" / "default"
-    assert not default.exists()
 
-    start_conflux(workspace=None, browser=f"{browser} %s")
+    start_conflux(workspace=None, browser=f"{browser} %s", cwd=cwd)
     deadline = time.monotonic() + 15
     while not opened.exists() and time.monotonic() < deadline:
         time.sleep(0.05)
-    url = opened.read_text()
+    return opened.read_text()
+
+
+@posix_only
+def test_conflux_with_no_argument_opens_the_browser_signed_in_on_the_default_workspace(
+    start_conflux: StartConflux, page: Page, tmp_path: Path
+) -> None:
+    # CFX-APP-first-slice/AC-01
+    default = tmp_path / "home" / "Conflux" / "default"
+    assert not default.exists()
+
+    url = run_conflux_and_catch_the_browser(start_conflux, tmp_path)
     assert url.startswith("http://127.0.0.1:")
 
     page.goto(url)

@@ -10,6 +10,8 @@ import pytest
 from fastapi.testclient import TestClient
 from local_api import sources_api
 
+from ..conftest import posix_only
+
 CSV_DIR = Path(__file__).parents[2] / "testdata" / "csv"
 
 
@@ -235,6 +237,7 @@ def test_a_row_that_cannot_fit_gives_a_clear_error_and_earlier_pages_still_work(
     assert good.status_code == 200
 
 
+@posix_only
 @pytest.mark.parametrize(
     ("change", "message"),
     [

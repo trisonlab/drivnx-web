@@ -1,5 +1,6 @@
 """Every M1 entity saved and read back through the artifact service, CFX-APP-first-slice AC-35."""
 
+import os
 import subprocess
 from collections.abc import Iterator
 from pathlib import Path
@@ -196,9 +197,13 @@ def test_a_dataset_has_at_most_one_contract(
         add_contract(workspace.engine, dataset_id, purpose="Other", limitations="")
 
 
-def test_the_installed_wheel_includes_the_domain_model(conflux_executable: str) -> None:
+def test_the_installed_wheel_includes_the_domain_model(
+    installed_environment: Path,
+) -> None:
     # The running app doesn't import these yet, so nothing else would notice them missing.
-    python = Path(conflux_executable).parent / "python"
+    python = (
+        installed_environment / ("Scripts" if os.name == "nt" else "bin") / "python"
+    )
 
     result = subprocess.run(
         [

@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Browser, Page, expect
 
-from ..conftest import REPO_ROOT, StartConflux
+from ..conftest import REPO_ROOT, StartConflux, posix_only
 
 CSV_DIR = REPO_ROOT / "testdata" / "csv"
 
@@ -115,10 +115,10 @@ def test_a_bracket_in_the_name_opens_that_file_and_not_a_similar_one(
 @pytest.mark.parametrize(
     ("path", "message"),
     [
-        ("/no/such/file.csv", "no file"),
-        ("/tmp", "folder"),
+        pytest.param("/no/such/file.csv", "no file", marks=posix_only),
+        pytest.param("/tmp", "folder", marks=posix_only),
         ("relative/file.csv", "full path"),
-        ("/dev/zero", "not a regular file"),
+        pytest.param("/dev/zero", "not a regular file", marks=posix_only),
         (str(CSV_DIR / "empty.csv"), "empty"),
         (str(CSV_DIR / "binary.csv"), "UTF-16"),
     ],

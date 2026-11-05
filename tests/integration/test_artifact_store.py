@@ -116,8 +116,8 @@ def test_existing_writes_use_the_write_lock(workspace: Workspace, write) -> None
 @pytest.mark.parametrize(
     ("value", "shape"),
     [
-        (b"postgres://me:hunter2@db/sales", "a password in a URL"),  # ai-skills: allow
-        (b'{"password": "hunter2hunter2"}', "a named secret"),
+        (b"postgres://me:hunter2@db/sales", "a password in a URL"),  # ai-skills: allow  # pragma: allowlist secret
+        (b'{"password": "hunter2hunter2"}', "a named secret"),  # pragma: allowlist secret
         (b"password=hunter2hunter2", "a named secret"),
         (b"API_KEY: abcdefgh12345678", "a named secret"),
         (b"secret_key=abcdefghijklmnop", "a named secret"),
@@ -127,10 +127,10 @@ def test_existing_writes_use_the_write_lock(workspace: Workspace, write) -> None
         (b'{\\"password\\": \\"abcdefghijkl\\"}', "a named secret"),
         (b"Authorization: Basic dXNlcjpwYXNzd29yZA==", "a basic auth header"),
         (b"Authorization: Bearer abcdefghijklmnop1234", "a bearer token"),
-        (b"AKIAABCDEFGHIJKLMNOP", "an AWS access key"),  # ai-skills: allow
-        (b"sk-abcdefghijklmnopqrstuvwx", "an API key"),
+        (b"AKIAABCDEFGHIJKLMNOP", "an AWS access key"),  # ai-skills: allow  # pragma: allowlist secret
+        (b"sk-abcdefghijklmnopqrstuvwx", "an API key"),  # pragma: allowlist secret
         (b"ghp_" + b"a" * 36, "a GitHub token"),
-        (b"-----BEGIN RSA PRIVATE KEY-----", "a private key"),  # ai-skills: allow
+        (b"-----BEGIN RSA PRIVATE KEY-----", "a private key"),  # ai-skills: allow  # pragma: allowlist secret
     ],
 )
 def test_the_scan_recognises_credential_shaped_values(value: bytes, shape: str) -> None:

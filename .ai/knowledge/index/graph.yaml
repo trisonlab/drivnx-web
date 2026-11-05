@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-05T01:54:35+00:00'
+updated_at: '2026-11-05T05:47:05+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-first-slice.md: f630dcda1ae6b8a12777a0410f37648f23d09d4c12cdd6cd92433d8a463ffd85
@@ -13,15 +13,16 @@ sources:
   .ai/knowledge/work/CFX-APP-first-slice-T07.md: f007d5eae63b2415e3cd34a71431e887be80992bc593ffc935f321ac78115902
   .ai/knowledge/work/CFX-APP-first-slice-T08.md: 4387057aad65ab13a4354f95b1c3ac4e318790021c540aff3928852c2eff347a
   .ai/knowledge/work/CFX-APP-first-slice-T09.md: 383f95526f852e787e27671f9f8c696f537a048b149fbc8dca5a41c351091cd2
-  .ai/knowledge/work/CFX-APP-first-slice-T10.md: c175e315543a98546c9c35d25318d23f7eaa4d50c0954ecb0cbbfb0986da1f3a
+  .ai/knowledge/work/CFX-APP-first-slice-T10.md: 51908dc3f4c256bb5424f947cb8b624f8bea8749bab207b48a80475c218adaaf
+  .github/workflows/ci.yml: bb16457e9752302970b01dc7913b20d6be57be9a549d656e03b670bebc32a04e
   apps/local-api/local_api/app.py: 19d76607100b527a0c82618a6843a82ee1aa26d532ecbe4fd53a3dd633f24dbb
   apps/local-api/local_api/binding.py: 2611a2c17106768394fe6322ea524d43e29e3771c50eed1b84c92781dbebfd39
   apps/local-api/local_api/cli.py: de2e38fe34b8cc23bf7942847ef989c2d9a10d7c3d7743a28279759823324604
   apps/local-api/local_api/guard.py: 0a065df935b5753303ddb14b6475b30cedae87d4f5d096d556509ae42288a9ae
   apps/local-api/local_api/session.py: 7ac051aeb59c75ca0c8e7326964ac611ab8b682fc49b1fb37c8dc177f2c1c4f4
   apps/local-api/local_api/sources_api.py: 35d511fcdfaa7e3cbfa97b627581738e487f76ef33950cc74a10c1759d03cb2e
-  apps/web/package.json: 99b9c00647fe349cba9f7bcddb0506920cc977b3700472a7a4b15317ad9b7aa8
-  apps/web/pnpm-lock.yaml: bdd810e5b90fffd40a7c76eb02ab697ed743bbb1f6d9adee0536d23eef22494d
+  apps/web/package.json: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
+  apps/web/pnpm-lock.yaml: c9140539e3622a70d6a0d272593b22dc12a51e3ea75a816bfd33f52a89a2708b
   apps/web/src/App.test.tsx: 9eb6591f54b127537370a9fc272213b641dd57bb4d3a44e5b7c907df8f5bcee5
   apps/web/src/App.tsx: b96d3baf0f040fa4bd0ae9862181160a51637118108057153acdf437382b6689
   apps/web/src/DataExplorer.tsx: 46957aa004142a6c5ca4955fda5b1dc70bce7acfb4ced523e129f2934d35292e
@@ -38,6 +39,7 @@ sources:
   apps/web/src/sourceFormat.ts: 089d6d12912f71f90adc55c819869eb3ae6024e83ed2ca4eef41b816041ce15c
   apps/web/src/styles.css: b5ce44e02095024b47a423c0cb1b792ee5c600046d55ba444bc86534a4d4e02c
   apps/web/tsconfig.json: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
+  hatch_build.py: 3a04470f04cbbc9eb8318259732bdd97fa9e42016c682c996962adf0e14db012
   packages/artifacts/profiles.py: 23efa5c94b68e7f273b10d75a32fcf04b2db94017639345842f14cdc1cee991b
   packages/artifacts/provenance.py: 2a1ef8bb1363e8f61f98ff68bdb03e633368acdb5b2d28f6b3d44c0cb1911a37
   packages/artifacts/review.py: f959e1fbf57048bc3ee35a8c0d501eb18cfdd92186325e132f3f1a4a72cdbeaa
@@ -48,29 +50,34 @@ sources:
   packages/artifacts/workspace.py: 0b4b0edcc2694137fd7d5a362dc7a123082cbd93eb42c7d600ef0270564baaa4
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
-  pyproject.toml: 598e03f9c70b2b79524c64295ba14b11925013ea4d7ea4cee540d1be94f3b5c5
+  pyproject.toml: 4f5f67c65e8954b53a58f1dcdef244d1ef05a1081b57929b9240cdb02a42ee1d
   testdata/generate_csv.py: bc3b3f9553b76cc26f9e49af63a2dc7f3d9d653003e1145d26d212652d5afe73
-  tests/conftest.py: 90d4ebffc3c04435e5e724a8270aeaa4324374186aae5c6b2b24a620a02ad118
+  tests/conftest.py: e555bc88db4469aa97dcfd053efc2e88d9a32e664b23c5c557f2188eb208b91f
+  tests/e2e/test_accessibility.py: 70789b6cb303f7f891607d1c1a3b3f79d083de65d17c80e19ad3808a5ca3423c
   tests/e2e/test_browser_security.py: d5a6f6a9444d47f11190efe42e4f67fb653987fe05e93cd64ed170d4cb9b089d
-  tests/e2e/test_connect_csv.py: 90b4447b2fc47a50637f63ecac99d791da2129dfec6a6a616c1587a72983190c
-  tests/e2e/test_first_launch.py: 2f7b59a9bc9c7736ad143b7e3f33ee37b1f30e2afd76c16c552b73b7534c8534
+  tests/e2e/test_connect_csv.py: c7936c9f8f23d7bbec0953d82938991a64c940f61e02dd00bffb5cc98bab7904
+  tests/e2e/test_first_launch.py: d63e787b95f896b7a8e7141b54926c672cdf443ad4dba50ece7fb35218c851d2
+  tests/e2e/test_full_journey.py: acf05e870676877d9952dd6f1d44d2157833bb8d6ab709ebc7e74d79f2638762
   tests/e2e/test_preview.py: 125b482d2ce433c417310a79a867cb3c9500a5fc08ea5b39a0cfead48ddea7e0
-  tests/integration/test_artifact_store.py: cb6ce17f779ce988e5c6cc9bfb5ef62e0c60f0cb4c9efe8fd9958940854ac019
+  tests/integration/test_artifact_store.py: 039ab464d137fcb1d8793cc751e0241a2e93a8cac66c4b54df91007520f1b356
   tests/integration/test_binding.py: 79eeb61ddbb635cafec5bbf4a570033e5c418aa09dc2adde55afb539a85bd0e7
+  tests/integration/test_ci.py: ce721acbd746581823419110beca2e0cfd9119451eb8ce250ade29e7c24be42d
   tests/integration/test_contract_rules.py: 3edf1eedc82e20f764f542126fb4e5d37f2029e6b87f42f6dc973d7c9644b0ec
-  tests/integration/test_csv_detection.py: db40b1d3977f7f42292b342d882615ba887aa8d894c14da65817861a07da579e
-  tests/integration/test_domain_entities.py: 44b44f9a7a085b3830b485ee754d39692e4333078df18b41a7a33a16f6effaba
-  tests/integration/test_launch.py: bd2810276c70e8ec2e721f2a8cc9fb3656b8d9a6ba757ad27d928cc37e95d5a3
+  tests/integration/test_csv_detection.py: e29fbb7f02e194f223831f35f0161b408f260e3e5dc878529d2b0003e4ce5e84
+  tests/integration/test_domain_entities.py: 301ceca21af25cba6884e354a8bde68e4a4874188b77747737f1b05425fbb1da
+  tests/integration/test_launch.py: b2a2fffd3078dd6b58e1878ef0537265289e83368ffbd78762de59635679b510
   tests/integration/test_lockfiles.py: d04c655bbf0d73a55efca921996aaed96a943010384addf630418228a82fd4d2
-  tests/integration/test_preview_api.py: 002cfb55d309bd56124b4d3f4a6fed08c32a30eed1d62512861e24a38ead5fc1
+  tests/integration/test_preview_api.py: 2c80362b86e11b8e44c8fd7e2dda578b52691c4b28af29b5fb069ff7dae87657
   tests/integration/test_profile_runs.py: 353423797d60259b4ca44b0a844ac1a1c3d8e23f7c2b2439beab019705e0acb1
   tests/integration/test_review.py: 7ff50b8ff75bb4ba8fa544930a2122817fa0885a327cdadd3c9a3b2a5c50bcb5
-  tests/integration/test_session.py: d2c82c823dbfb1a0ba0dce37e4474e6317fc648172dbb2cb8e740449fa79f138
-  tests/integration/test_sources_api.py: 03a6f4a4b32b3917fb29b48dacfaf547441c31c36295a03266251874297949d8
+  tests/integration/test_session.py: 204a8bf3ad6a59f47bdb69cf801a57aa55a718e2cf985102dd14ee914545b890
+  tests/integration/test_sources_api.py: c48d5bbb72915a97b126111faf184eaee64338c94c7d05f1fc9e96febb199d05
+  tests/integration/test_testdata.py: aec07f92859fc1f4daf4247959769e49cfa19a2fe41bdc8a908c1a3558c043b4
   tests/integration/test_trust_rules.py: 3c47d9ea2299799ec9f4ccd0c57360e2b704ecdaf775b2f5879dd3c78bc8fa60
-  tests/integration/test_workspace.py: 721fd06817f1ad9f00e75a8126708cace981c1e290f8efb4d97228b8799bba3a
+  tests/integration/test_wheel.py: e4ae13a647fc6a151ce7434d66dd710c90df2337e6a86c927ce2b4d91ddb6344
+  tests/integration/test_workspace.py: b2e2f9224d77a2042e9886a52fdf4572fddde425cbbbf86dce32d30aff143314
   tests/integration/test_workspace_api.py: d0c3649cc06576c653bec3ec78b89fd157af1392e3f7a7221624b7d15f3e4755
-  tests/integration/test_workspace_store.py: 4ee3c23b253eda1e5948eed4f6ce9416b5860a0a97702403fc70e55aa324c21c
+  tests/integration/test_workspace_store.py: de5a2c32889a5e6324d436a94bade8667120e9a2ef8b7fd16e51c1f5379a46ba
   uv.lock: 4942e5e0af88130f4f436054c9ef054233bc96b076c013d98906ac63c0b2b7a3
 nodes:
 - id: criterion:CFX-APP-first-slice/AC-01
@@ -442,6 +449,10 @@ nodes:
   lifecycle: approved
   owner: conflux-web
   reference: false
+- id: module:.github/workflows/ci.yml
+  kind: module
+  evidence:
+  - .github/workflows/ci.yml:1
 - id: module:apps/local-api/local_api/app.py
   kind: module
   evidence:
@@ -574,6 +585,10 @@ nodes:
   kind: module
   evidence:
   - tests/conftest.py:1
+- id: module:tests/e2e/test_accessibility.py
+  kind: module
+  evidence:
+  - tests/e2e/test_accessibility.py:1
 - id: module:tests/e2e/test_browser_security.py
   kind: module
   evidence:
@@ -586,6 +601,10 @@ nodes:
   kind: module
   evidence:
   - tests/e2e/test_first_launch.py:1
+- id: module:tests/e2e/test_full_journey.py
+  kind: module
+  evidence:
+  - tests/e2e/test_full_journey.py:1
 - id: module:tests/e2e/test_preview.py
   kind: module
   evidence:
@@ -598,6 +617,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_binding.py:1
+- id: module:tests/integration/test_ci.py
+  kind: module
+  evidence:
+  - tests/integration/test_ci.py:1
 - id: module:tests/integration/test_contract_rules.py
   kind: module
   evidence:
@@ -638,10 +661,18 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_sources_api.py:1
+- id: module:tests/integration/test_testdata.py
+  kind: module
+  evidence:
+  - tests/integration/test_testdata.py:1
 - id: module:tests/integration/test_trust_rules.py
   kind: module
   evidence:
   - tests/integration/test_trust_rules.py:1
+- id: module:tests/integration/test_wheel.py
+  kind: module
+  evidence:
+  - tests/integration/test_wheel.py:1
 - id: module:tests/integration/test_workspace.py
   kind: module
   evidence:
@@ -702,6 +733,10 @@ nodes:
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
   title: As a developer, install, build, test and check the project from locked dependencies
+- id: tech:ci:github-actions
+  kind: technology
+  evidence:
+  - .github/workflows/ci.yml
 - id: tech:framework:fastapi
   kind: technology
   evidence:
@@ -717,7 +752,7 @@ nodes:
 - id: tech:language:python
   kind: technology
   evidence:
-  - pyproject.toml
+  - hatch_build.py
 - id: tech:language:typescript
   kind: technology
   evidence:
@@ -810,7 +845,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/CFX-APP-first-slice-T10.md
   title: Full journey and project checks
-  state: blocked
+  state: done
   external_key: null
 edges:
 - from: criterion:CFX-APP-first-slice/AC-01
@@ -1197,6 +1232,12 @@ edges:
   status: CONFIRMED
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: module:.github/workflows/ci.yml
+  rel: implements
+  to: criterion:CFX-APP-first-slice/AC-53
+  status: CONFIRMED
+  evidence:
+  - .github/workflows/ci.yml:1
 - from: module:apps/local-api/local_api/app.py
   rel: exposes
   to: endpoint:GET /api/workspace
@@ -1613,13 +1654,31 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-42
   status: CONFIRMED
   evidence:
-  - tests/conftest.py:85
+  - tests/conftest.py:96
 - from: module:tests/conftest.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-48
   status: CONFIRMED
   evidence:
-  - tests/conftest.py:124
+  - tests/conftest.py:135
+- from: module:tests/e2e/test_accessibility.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_accessibility.py:11
+- from: module:tests/e2e/test_accessibility.py
+  rel: imports
+  to: module:tests/e2e/test_connect_csv.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_accessibility.py:12
+- from: module:tests/e2e/test_accessibility.py
+  rel: imports
+  to: module:tests/e2e/test_preview.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_accessibility.py:13
 - from: module:tests/e2e/test_browser_security.py
   rel: imports
   to: module:tests/conftest.py
@@ -1710,7 +1769,7 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/e2e/test_first_launch.py:1
-  - tests/e2e/test_first_launch.py:39
+  - tests/e2e/test_first_launch.py:58
 - from: module:tests/e2e/test_first_launch.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-14
@@ -1722,31 +1781,92 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-15
   status: CONFIRMED
   evidence:
-  - tests/e2e/test_first_launch.py:79
+  - tests/e2e/test_first_launch.py:88
 - from: module:tests/e2e/test_first_launch.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-16
   status: CONFIRMED
   evidence:
-  - tests/e2e/test_first_launch.py:126
+  - tests/e2e/test_first_launch.py:135
 - from: module:tests/e2e/test_first_launch.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-32
   status: CONFIRMED
   evidence:
-  - tests/e2e/test_first_launch.py:106
+  - tests/e2e/test_first_launch.py:115
 - from: module:tests/e2e/test_first_launch.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-33
   status: CONFIRMED
   evidence:
-  - tests/e2e/test_first_launch.py:106
+  - tests/e2e/test_first_launch.py:115
 - from: module:tests/e2e/test_first_launch.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-34
   status: CONFIRMED
   evidence:
-  - tests/e2e/test_first_launch.py:79
+  - tests/e2e/test_first_launch.py:88
+- from: module:tests/e2e/test_full_journey.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_full_journey.py:9
+- from: module:tests/e2e/test_full_journey.py
+  rel: imports
+  to: module:tests/e2e/test_connect_csv.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_full_journey.py:10
+- from: module:tests/e2e/test_full_journey.py
+  rel: imports
+  to: module:tests/e2e/test_first_launch.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_full_journey.py:11
+- from: module:tests/e2e/test_full_journey.py
+  rel: imports
+  to: module:tests/e2e/test_preview.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_full_journey.py:12
+- from: module:tests/e2e/test_full_journey.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-01
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_full_journey.py:19
+- from: module:tests/e2e/test_full_journey.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-14
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_full_journey.py:19
+- from: module:tests/e2e/test_full_journey.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-20
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_full_journey.py:20
+- from: module:tests/e2e/test_full_journey.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-24
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_full_journey.py:20
+- from: module:tests/e2e/test_full_journey.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-27
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_full_journey.py:20
+- from: module:tests/e2e/test_full_journey.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-51
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_full_journey.py:1
+  - tests/e2e/test_full_journey.py:19
 - from: module:tests/e2e/test_preview.py
   rel: imports
   to: module:tests/conftest.py
@@ -1825,6 +1945,27 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_binding.py:1
+- from: module:tests/integration/test_ci.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_ci.py:8
+- from: module:tests/integration/test_ci.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-50
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_ci.py:85
+- from: module:tests/integration/test_ci.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-53
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_ci.py:1
+  - tests/integration/test_ci.py:30
+  - tests/integration/test_ci.py:45
+  - tests/integration/test_ci.py:85
 - from: module:tests/integration/test_contract_rules.py
   rel: imports
   to: module:tests/conftest.py
@@ -1893,76 +2034,82 @@ edges:
   - tests/integration/test_contract_rules.py:235
   - tests/integration/test_contract_rules.py:613
 - from: module:tests/integration/test_csv_detection.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_csv_detection.py:23
+- from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-20
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:268
-  - tests/integration/test_csv_detection.py:299
+  - tests/integration/test_csv_detection.py:270
+  - tests/integration/test_csv_detection.py:301
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-21
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:199
-  - tests/integration/test_csv_detection.py:205
-  - tests/integration/test_csv_detection.py:217
-  - tests/integration/test_csv_detection.py:254
-  - tests/integration/test_csv_detection.py:288
-  - tests/integration/test_csv_detection.py:316
-  - tests/integration/test_csv_detection.py:327
+  - tests/integration/test_csv_detection.py:201
+  - tests/integration/test_csv_detection.py:207
+  - tests/integration/test_csv_detection.py:219
+  - tests/integration/test_csv_detection.py:256
+  - tests/integration/test_csv_detection.py:290
+  - tests/integration/test_csv_detection.py:318
+  - tests/integration/test_csv_detection.py:329
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-22
   status: CONFIRMED
   evidence:
   - tests/integration/test_csv_detection.py:1
-  - tests/integration/test_csv_detection.py:49
-  - tests/integration/test_csv_detection.py:69
-  - tests/integration/test_csv_detection.py:80
-  - tests/integration/test_csv_detection.py:100
-  - tests/integration/test_csv_detection.py:110
-  - tests/integration/test_csv_detection.py:268
-  - tests/integration/test_csv_detection.py:417
+  - tests/integration/test_csv_detection.py:51
+  - tests/integration/test_csv_detection.py:71
+  - tests/integration/test_csv_detection.py:82
+  - tests/integration/test_csv_detection.py:102
+  - tests/integration/test_csv_detection.py:112
+  - tests/integration/test_csv_detection.py:270
+  - tests/integration/test_csv_detection.py:419
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-24
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:127
-  - tests/integration/test_csv_detection.py:514
+  - tests/integration/test_csv_detection.py:129
+  - tests/integration/test_csv_detection.py:517
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-26
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:69
+  - tests/integration/test_csv_detection.py:71
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-31
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:465
+  - tests/integration/test_csv_detection.py:468
 - from: module:tests/integration/test_csv_detection.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-49
   status: CONFIRMED
   evidence:
-  - tests/integration/test_csv_detection.py:338
-  - tests/integration/test_csv_detection.py:360
-  - tests/integration/test_csv_detection.py:404
+  - tests/integration/test_csv_detection.py:340
+  - tests/integration/test_csv_detection.py:362
+  - tests/integration/test_csv_detection.py:406
 - from: module:tests/integration/test_domain_entities.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-35
   status: CONFIRMED
   evidence:
   - tests/integration/test_domain_entities.py:1
-  - tests/integration/test_domain_entities.py:60
-  - tests/integration/test_domain_entities.py:69
-  - tests/integration/test_domain_entities.py:86
-  - tests/integration/test_domain_entities.py:111
-  - tests/integration/test_domain_entities.py:146
-  - tests/integration/test_domain_entities.py:176
+  - tests/integration/test_domain_entities.py:61
+  - tests/integration/test_domain_entities.py:70
+  - tests/integration/test_domain_entities.py:87
+  - tests/integration/test_domain_entities.py:112
+  - tests/integration/test_domain_entities.py:147
+  - tests/integration/test_domain_entities.py:177
 - from: module:tests/integration/test_launch.py
   rel: imports
   to: module:tests/conftest.py
@@ -1982,86 +2129,92 @@ edges:
   evidence:
   - tests/integration/test_lockfiles.py:1
 - from: module:tests/integration/test_preview_api.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_preview_api.py:13
+- from: module:tests/integration/test_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-20
   status: CONFIRMED
   evidence:
-  - tests/integration/test_preview_api.py:784
+  - tests/integration/test_preview_api.py:787
 - from: module:tests/integration/test_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-21
   status: CONFIRMED
   evidence:
-  - tests/integration/test_preview_api.py:316
+  - tests/integration/test_preview_api.py:319
 - from: module:tests/integration/test_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-27
   status: CONFIRMED
   evidence:
   - tests/integration/test_preview_api.py:1
-  - tests/integration/test_preview_api.py:39
-  - tests/integration/test_preview_api.py:55
-  - tests/integration/test_preview_api.py:72
-  - tests/integration/test_preview_api.py:123
-  - tests/integration/test_preview_api.py:157
-  - tests/integration/test_preview_api.py:444
-  - tests/integration/test_preview_api.py:457
-  - tests/integration/test_preview_api.py:470
-  - tests/integration/test_preview_api.py:479
-  - tests/integration/test_preview_api.py:579
-  - tests/integration/test_preview_api.py:627
-  - tests/integration/test_preview_api.py:637
-  - tests/integration/test_preview_api.py:648
-  - tests/integration/test_preview_api.py:708
-  - tests/integration/test_preview_api.py:722
-  - tests/integration/test_preview_api.py:754
-  - tests/integration/test_preview_api.py:784
-  - tests/integration/test_preview_api.py:852
-  - tests/integration/test_preview_api.py:865
-  - tests/integration/test_preview_api.py:881
-  - tests/integration/test_preview_api.py:912
+  - tests/integration/test_preview_api.py:41
+  - tests/integration/test_preview_api.py:57
+  - tests/integration/test_preview_api.py:74
+  - tests/integration/test_preview_api.py:125
+  - tests/integration/test_preview_api.py:159
+  - tests/integration/test_preview_api.py:447
+  - tests/integration/test_preview_api.py:460
+  - tests/integration/test_preview_api.py:473
+  - tests/integration/test_preview_api.py:482
+  - tests/integration/test_preview_api.py:582
+  - tests/integration/test_preview_api.py:630
+  - tests/integration/test_preview_api.py:640
+  - tests/integration/test_preview_api.py:651
+  - tests/integration/test_preview_api.py:711
+  - tests/integration/test_preview_api.py:725
+  - tests/integration/test_preview_api.py:757
+  - tests/integration/test_preview_api.py:787
+  - tests/integration/test_preview_api.py:855
+  - tests/integration/test_preview_api.py:868
+  - tests/integration/test_preview_api.py:884
+  - tests/integration/test_preview_api.py:915
 - from: module:tests/integration/test_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-28
   status: CONFIRMED
   evidence:
-  - tests/integration/test_preview_api.py:102
+  - tests/integration/test_preview_api.py:104
 - from: module:tests/integration/test_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-29
   status: CONFIRMED
   evidence:
-  - tests/integration/test_preview_api.py:336
-  - tests/integration/test_preview_api.py:353
-  - tests/integration/test_preview_api.py:365
-  - tests/integration/test_preview_api.py:800
+  - tests/integration/test_preview_api.py:339
+  - tests/integration/test_preview_api.py:356
+  - tests/integration/test_preview_api.py:368
+  - tests/integration/test_preview_api.py:803
 - from: module:tests/integration/test_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-30
   status: CONFIRMED
   evidence:
-  - tests/integration/test_preview_api.py:393
-  - tests/integration/test_preview_api.py:413
-  - tests/integration/test_preview_api.py:563
+  - tests/integration/test_preview_api.py:396
+  - tests/integration/test_preview_api.py:416
+  - tests/integration/test_preview_api.py:566
 - from: module:tests/integration/test_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-31
   status: CONFIRMED
   evidence:
-  - tests/integration/test_preview_api.py:178
-  - tests/integration/test_preview_api.py:191
-  - tests/integration/test_preview_api.py:211
-  - tests/integration/test_preview_api.py:222
-  - tests/integration/test_preview_api.py:253
-  - tests/integration/test_preview_api.py:287
-  - tests/integration/test_preview_api.py:301
-  - tests/integration/test_preview_api.py:316
-  - tests/integration/test_preview_api.py:479
-  - tests/integration/test_preview_api.py:531
-  - tests/integration/test_preview_api.py:672
-  - tests/integration/test_preview_api.py:816
-  - tests/integration/test_preview_api.py:836
-  - tests/integration/test_preview_api.py:895
+  - tests/integration/test_preview_api.py:180
+  - tests/integration/test_preview_api.py:193
+  - tests/integration/test_preview_api.py:213
+  - tests/integration/test_preview_api.py:224
+  - tests/integration/test_preview_api.py:256
+  - tests/integration/test_preview_api.py:290
+  - tests/integration/test_preview_api.py:304
+  - tests/integration/test_preview_api.py:319
+  - tests/integration/test_preview_api.py:482
+  - tests/integration/test_preview_api.py:534
+  - tests/integration/test_preview_api.py:675
+  - tests/integration/test_preview_api.py:819
+  - tests/integration/test_preview_api.py:839
+  - tests/integration/test_preview_api.py:898
 - from: module:tests/integration/test_profile_runs.py
   rel: imports
   to: module:tests/conftest.py
@@ -2212,7 +2365,7 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_session.py:1
-  - tests/integration/test_session.py:317
+  - tests/integration/test_session.py:318
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-08
@@ -2238,7 +2391,7 @@ edges:
   - tests/integration/test_session.py:60
   - tests/integration/test_session.py:77
   - tests/integration/test_session.py:198
-  - tests/integration/test_session.py:480
+  - tests/integration/test_session.py:483
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-11
@@ -2250,7 +2403,7 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-12
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:335
+  - tests/integration/test_session.py:337
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-13
@@ -2269,78 +2422,98 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-52
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:396
-  - tests/integration/test_session.py:409
-  - tests/integration/test_session.py:430
-  - tests/integration/test_session.py:440
+  - tests/integration/test_session.py:398
+  - tests/integration/test_session.py:411
+  - tests/integration/test_session.py:432
+  - tests/integration/test_session.py:443
+- from: module:tests/integration/test_sources_api.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_sources_api.py:17
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-08
   status: CONFIRMED
   evidence:
-  - tests/integration/test_sources_api.py:397
+  - tests/integration/test_sources_api.py:404
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-15
   status: CONFIRMED
   evidence:
-  - tests/integration/test_sources_api.py:75
+  - tests/integration/test_sources_api.py:77
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-20
   status: CONFIRMED
   evidence:
   - tests/integration/test_sources_api.py:1
-  - tests/integration/test_sources_api.py:84
+  - tests/integration/test_sources_api.py:86
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-21
   status: CONFIRMED
   evidence:
-  - tests/integration/test_sources_api.py:265
-  - tests/integration/test_sources_api.py:303
-  - tests/integration/test_sources_api.py:332
+  - tests/integration/test_sources_api.py:270
+  - tests/integration/test_sources_api.py:309
+  - tests/integration/test_sources_api.py:338
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-22
   status: CONFIRMED
   evidence:
-  - tests/integration/test_sources_api.py:45
+  - tests/integration/test_sources_api.py:47
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-23
   status: CONFIRMED
   evidence:
-  - tests/integration/test_sources_api.py:352
-  - tests/integration/test_sources_api.py:366
-  - tests/integration/test_sources_api.py:380
+  - tests/integration/test_sources_api.py:358
+  - tests/integration/test_sources_api.py:372
+  - tests/integration/test_sources_api.py:387
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-24
   status: CONFIRMED
   evidence:
-  - tests/integration/test_sources_api.py:45
+  - tests/integration/test_sources_api.py:47
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-25
   status: CONFIRMED
   evidence:
-  - tests/integration/test_sources_api.py:66
+  - tests/integration/test_sources_api.py:68
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-26
   status: CONFIRMED
   evidence:
-  - tests/integration/test_sources_api.py:104
-  - tests/integration/test_sources_api.py:117
-  - tests/integration/test_sources_api.py:142
+  - tests/integration/test_sources_api.py:106
+  - tests/integration/test_sources_api.py:119
+  - tests/integration/test_sources_api.py:144
 - from: module:tests/integration/test_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-49
   status: CONFIRMED
   evidence:
-  - tests/integration/test_sources_api.py:410
-  - tests/integration/test_sources_api.py:430
+  - tests/integration/test_sources_api.py:417
+  - tests/integration/test_sources_api.py:438
+- from: module:tests/integration/test_testdata.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_testdata.py:8
+- from: module:tests/integration/test_testdata.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-54
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_testdata.py:1
+  - tests/integration/test_testdata.py:23
+  - tests/integration/test_testdata.py:49
 - from: module:tests/integration/test_trust_rules.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-36
@@ -2355,6 +2528,32 @@ edges:
   evidence:
   - tests/integration/test_trust_rules.py:95
   - tests/integration/test_trust_rules.py:107
+- from: module:tests/integration/test_wheel.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_wheel.py:13
+- from: module:tests/integration/test_wheel.py
+  rel: imports
+  to: module:tests/integration/test_lockfiles.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_wheel.py:14
+- from: module:tests/integration/test_wheel.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-50
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_wheel.py:121
+- from: module:tests/integration/test_wheel.py
+  rel: verifies
+  to: criterion:CFX-APP-first-slice/AC-51
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_wheel.py:1
+  - tests/integration/test_wheel.py:21
+  - tests/integration/test_wheel.py:58
 - from: module:tests/integration/test_workspace.py
   rel: imports
   to: module:tests/conftest.py
@@ -2366,44 +2565,44 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-01
   status: CONFIRMED
   evidence:
-  - tests/integration/test_workspace.py:155
+  - tests/integration/test_workspace.py:159
 - from: module:tests/integration/test_workspace.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-02
   status: CONFIRMED
   evidence:
   - tests/integration/test_workspace.py:1
-  - tests/integration/test_workspace.py:40
-  - tests/integration/test_workspace.py:57
+  - tests/integration/test_workspace.py:41
+  - tests/integration/test_workspace.py:58
 - from: module:tests/integration/test_workspace.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-03
   status: CONFIRMED
   evidence:
-  - tests/integration/test_workspace.py:19
-  - tests/integration/test_workspace.py:99
+  - tests/integration/test_workspace.py:20
+  - tests/integration/test_workspace.py:102
 - from: module:tests/integration/test_workspace.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-04
   status: CONFIRMED
   evidence:
-  - tests/integration/test_workspace.py:115
-  - tests/integration/test_workspace.py:132
-  - tests/integration/test_workspace.py:147
+  - tests/integration/test_workspace.py:118
+  - tests/integration/test_workspace.py:136
+  - tests/integration/test_workspace.py:151
 - from: module:tests/integration/test_workspace.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-17
   status: CONFIRMED
   evidence:
-  - tests/integration/test_workspace.py:73
-  - tests/integration/test_workspace.py:86
+  - tests/integration/test_workspace.py:75
+  - tests/integration/test_workspace.py:89
 - from: module:tests/integration/test_workspace.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-18
   status: CONFIRMED
   evidence:
-  - tests/integration/test_workspace.py:175
-  - tests/integration/test_workspace.py:189
+  - tests/integration/test_workspace.py:179
+  - tests/integration/test_workspace.py:193
 - from: module:tests/integration/test_workspace_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-08
@@ -2441,24 +2640,24 @@ edges:
   to: module:tests/conftest.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_workspace_store.py:24
+  - tests/integration/test_workspace_store.py:23
 - from: module:tests/integration/test_workspace_store.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-17
   status: CONFIRMED
   evidence:
-  - tests/integration/test_workspace_store.py:408
+  - tests/integration/test_workspace_store.py:411
 - from: module:tests/integration/test_workspace_store.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-19
   status: CONFIRMED
   evidence:
   - tests/integration/test_workspace_store.py:1
-  - tests/integration/test_workspace_store.py:121
+  - tests/integration/test_workspace_store.py:120
   - tests/integration/test_workspace_store.py:131
   - tests/integration/test_workspace_store.py:157
   - tests/integration/test_workspace_store.py:191
-  - tests/integration/test_workspace_store.py:392
+  - tests/integration/test_workspace_store.py:394
 - from: module:tests/integration/test_workspace_store.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-44
@@ -2466,6 +2665,12 @@ edges:
   evidence:
   - tests/integration/test_workspace_store.py:218
   - tests/integration/test_workspace_store.py:241
+- from: project
+  rel: uses
+  to: tech:ci:github-actions
+  status: CONFIRMED
+  evidence:
+  - .github/workflows/ci.yml
 - from: project
   rel: uses
   to: tech:framework:fastapi
@@ -2489,7 +2694,7 @@ edges:
   to: tech:language:python
   status: CONFIRMED
   evidence:
-  - pyproject.toml
+  - hatch_build.py
 - from: project
   rel: uses
   to: tech:language:typescript

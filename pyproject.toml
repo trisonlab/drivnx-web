@@ -26,6 +26,9 @@ packages = ["apps/local-api/local_api", "packages/artifacts", "packages/connecto
 # The UI bundle is git-ignored, so it must be named here to reach the wheel.
 artifacts = ["apps/local-api/local_api/ui/**"]
 
+[tool.hatch.build.targets.wheel.hooks.custom]
+path = "hatch_build.py"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 

@@ -31,7 +31,51 @@ pnpm --dir apps/web dev                                             # Vite on 12
 uv run conflux --port 8787 --no-browser --dev-origin http://127.0.0.1:5173   # prints a link to open in the browser
 ```
 
-Run the checks with `uv run --frozen pytest` and `pnpm --dir apps/web test`.
+## Checks
+
+CI runs these on every pull request and on `main` (`.github/workflows/ci.yml`). Install first, from the lockfiles:
+
+```bash
+uv sync --frozen
+pnpm --dir apps/web install --frozen-lockfile
+uv run --frozen playwright install --with-deps chromium    # only if there's no system Chromium
+```
+
+pytest, then Playwright, then Vitest. The first two each build and install the wheel:
+
+```bash
+uv run --frozen pytest tests/integration
+uv run --frozen pytest tests/e2e
+pnpm --dir apps/web test
+```
+
+The scans below are for Linux and macOS, as they use `xargs` and `/dev/stdin`. CI runs them on Linux. In a shell, run
+`set -o pipefail` first, so a failure early in a pipe can't look like a clean result.
+
+Secret scanning looks at the current files, not at git history, and finds what `detect-secrets` recognises, which isn't
+every credential. A fake credential a test uses on purpose carries `# pragma: allowlist secret`:
+
+```bash
+git ls-files -z | xargs -0 uvx --from detect-secrets@1.5.0 detect-secrets-hook --exclude-files '\.ai/hooks/secret-scan/hook\.py|\.ai/lock\.yaml|pnpm-lock\.yaml|uv\.lock|\.ai/knowledge/index/'
+```
+
+Dependency vulnerabilities, for Python and then the UI:
+
+```bash
+uv export --frozen --no-emit-project --no-hashes --no-header --no-annotate | uvx pip-audit==2.10.1 --disable-pip --no-deps -r /dev/stdin
+pnpm --dir apps/web audit
+```
+
+## Building a release
+
+This builds the UI from this checkout and pins what running Conflux needs to `uv.lock`. It fails if the UI doesn't build
+or a lockfile has fallen behind. Install from the wheel: installing from this folder ignores the pins, as `uv` then reads
+the ranges in `pyproject.toml`:
+
+```bash
+uv build --wheel
+uv tool install dist/conflux_data-*.whl
+```
 
 ## Tracing work by ID
 

@@ -4,6 +4,7 @@ import shutil
 import socket
 import sqlite3
 import subprocess
+import sys
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -33,6 +34,16 @@ CREDENTIAL_SHAPES = {
     "a GitHub token": rb"\bgh[pousr]_[A-Za-z0-9]{36,}\b",
     "a private key": rb"-----BEGIN [A-Z ]*PRIVATE KEY-----",
 }
+
+
+# What the spec's assumptions call NOT RUN until CI can run it, so these are unproven (T02 review).
+posix_only = pytest.mark.skipif(
+    os.name == "nt", reason="uses POSIX signals, modes, links or shell scripts"
+)
+linux_only = pytest.mark.skipif(
+    sys.platform != "linux",
+    reason="the DISPLAY rules are Linux's, and elsewhere this could open a real browser",
+)
 
 
 def credential_shaped_values(data: bytes) -> list[str]:
@@ -132,10 +143,17 @@ def no_workspace_holds_a_credential(
     assert not found, f"credential-shaped values in workspace files: {found}"
 
 
-def run(*command: str | Path, cwd: Path = REPO_ROOT) -> None:
+def run(
+    *command: str | Path, cwd: Path = REPO_ROOT, env: dict[str, str] | None = None
+) -> None:
     arguments = [str(part) for part in command]
     result = subprocess.run(
-        arguments, cwd=cwd, capture_output=True, text=True, check=False
+        arguments,
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, **(env or {})},
     )
     if result.returncode != 0:
         pytest.fail(
@@ -148,15 +166,28 @@ def run(*command: str | Path, cwd: Path = REPO_ROOT) -> None:
 def conflux_executable(tmp_path_factory: pytest.TempPathFactory) -> str:
     """The `conflux` command from a wheel built and installed the way a user gets it."""
     work = tmp_path_factory.mktemp("installed")
-    run("pnpm", "--dir", "apps/web", "build")
     run("uv", "build", "--wheel", "--out-dir", work / "wheel")
-    run("uv", "venv", "--python", "3.12", work / "venv")
-    python = work / "venv" / ("Scripts" if os.name == "nt" else "bin") / "python"
     wheel = next((work / "wheel").glob("*.whl"))
-    run("uv", "pip", "install", "--python", python, wheel)
-    executable = shutil.which("conflux", path=str(python.parent))
+    # Private folders, so this neither sees nor changes what the user has installed.
+    commands = work / "bin"
+    run(
+        "uv",
+        "tool",
+        "install",
+        "--python",
+        "3.12",
+        wheel,
+        env={"UV_TOOL_DIR": str(work / "tools"), "UV_TOOL_BIN_DIR": str(commands)},
+    )
+    executable = shutil.which("conflux", path=str(commands))
     assert executable, "the wheel did not install a conflux command"
     return executable
+
+
+@pytest.fixture(scope="session")
+def installed_environment(conflux_executable: str) -> Path:
+    """The Python environment holding the installed `conflux`."""
+    return Path(conflux_executable).parents[1] / "tools" / "conflux-data"
 
 
 @pytest.fixture
@@ -242,6 +273,7 @@ def start_conflux(conflux_executable: str, tmp_path: Path) -> Iterator[StartConf
         env: dict[str, str] | None = None,
         umask: int = -1,
         workspace: Path | None | object = _NEW_WORKSPACE,
+        cwd: Path | None = None,
     ) -> RunningConflux:
         # Without these, Python's webbrowser module would try the real browsers on this desktop.
         hidden = {"BROWSER", "DISPLAY", "WAYLAND_DISPLAY", "TERM"}
@@ -249,7 +281,7 @@ def start_conflux(conflux_executable: str, tmp_path: Path) -> Iterator[StartConf
             name: value for name, value in os.environ.items() if name not in hidden
         }
         # Conflux creates its default workspace under the home directory: never the real one here.
-        process_env["HOME"] = str(tmp_path / "home")
+        process_env["HOME"] = process_env["USERPROFILE"] = str(tmp_path / "home")
         process_env.update(env or {})
         if browser is not None:
             process_env["BROWSER"] = browser
@@ -267,6 +299,7 @@ def start_conflux(conflux_executable: str, tmp_path: Path) -> Iterator[StartConf
             text=True,
             env=process_env,
             umask=umask,
+            cwd=cwd,
         )
         running.append(process)
         output: Queue[str] = Queue()

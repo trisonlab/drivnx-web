@@ -1,0 +1,2 @@
+# The exact bytes are the point of these: they're compared with what the generator writes.
+testdata/csv/* -text

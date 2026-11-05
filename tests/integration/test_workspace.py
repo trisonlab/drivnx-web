@@ -6,13 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from ..conftest import StartConflux
+from ..conftest import StartConflux, posix_only
 
 
 def mode(path: Path) -> int:
     return stat.S_IMODE(path.stat().st_mode)
 
 
+@posix_only
 def test_a_non_empty_directory_that_is_not_a_workspace_is_refused_and_left_alone(
     start_conflux: StartConflux, tmp_path: Path
 ) -> None:
@@ -67,6 +68,7 @@ def test_an_existing_workspace_opens_again(
     assert (workspace / "notes.txt").read_text() == "kept"
 
 
+@posix_only
 def test_a_new_workspace_is_owner_only_whatever_the_umask(
     start_conflux: StartConflux, tmp_path: Path
 ) -> None:
@@ -80,6 +82,7 @@ def test_a_new_workspace_is_owner_only_whatever_the_umask(
     assert mode(workspace / ".conflux.lock") == 0o600
 
 
+@posix_only
 def test_an_empty_directory_becomes_owner_only(
     start_conflux: StartConflux, tmp_path: Path
 ) -> None:
@@ -126,6 +129,7 @@ def test_a_second_runtime_on_the_same_workspace_is_refused(
     assert first.process.poll() is None
 
 
+@posix_only
 def test_a_killed_runtime_does_not_block_the_next_one(
     start_conflux: StartConflux, tmp_path: Path
 ) -> None:

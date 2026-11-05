@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-05T01:54:35+00:00'
+updated_at: '2026-11-05T05:47:04+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -9,6 +9,11 @@ facts:
   detail: 'mentioned: | Shared types (Proposed) | Generate TypeScript types from the API''s OpenAPI schema
     (built from Pydantic models) so UI a'
   sha256: afd7345152ba4c404c7b386efffe98fc194d2b935a39e286cec254d519c15342
+- id: ci:github-actions
+  status: CONFIRMED
+  evidence: .github/workflows/ci.yml
+  sha256: bb16457e9752302970b01dc7913b20d6be57be9a549d656e03b670bebc32a04e
+  source: detector
 - id: cloud:aws
   status: INFERRED
   source: requirements
@@ -38,25 +43,25 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'fastapi'
-  sha256: 598e03f9c70b2b79524c64295ba14b11925013ea4d7ea4cee540d1be94f3b5c5
+  sha256: 4f5f67c65e8954b53a58f1dcdef244d1ef05a1081b57929b9240cdb02a42ee1d
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
 - id: framework:react
   status: CONFIRMED
   evidence: apps/web/package.json
   detail: dependency 'react'
-  sha256: 99b9c00647fe349cba9f7bcddb0506920cc977b3700472a7a4b15317ad9b7aa8
+  sha256: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
 - id: language:javascript
   status: CONFIRMED
   evidence: apps/web/package.json
-  sha256: 99b9c00647fe349cba9f7bcddb0506920cc977b3700472a7a4b15317ad9b7aa8
+  sha256: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
   source: detector
 - id: language:python
   status: CONFIRMED
-  evidence: pyproject.toml
-  sha256: 598e03f9c70b2b79524c64295ba14b11925013ea4d7ea4cee540d1be94f3b5c5
+  evidence: hatch_build.py
+  sha256: 3a04470f04cbbc9eb8318259732bdd97fa9e42016c682c996962adf0e14db012
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:51
 - id: language:typescript
@@ -69,12 +74,12 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'sqlalchemy'
-  sha256: 598e03f9c70b2b79524c64295ba14b11925013ea4d7ea4cee540d1be94f3b5c5
+  sha256: 4f5f67c65e8954b53a58f1dcdef244d1ef05a1081b57929b9240cdb02a42ee1d
   source: detector
 - id: pm:pnpm
   status: CONFIRMED
   evidence: apps/web/pnpm-lock.yaml
-  sha256: bdd810e5b90fffd40a7c76eb02ab697ed743bbb1f6d9adee0536d23eef22494d
+  sha256: c9140539e3622a70d6a0d272593b22dc12a51e3ea75a816bfd33f52a89a2708b
   source: detector
 - id: pm:uv
   status: CONFIRMED
@@ -85,13 +90,13 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'pytest'
-  sha256: 598e03f9c70b2b79524c64295ba14b11925013ea4d7ea4cee540d1be94f3b5c5
+  sha256: 4f5f67c65e8954b53a58f1dcdef244d1ef05a1081b57929b9240cdb02a42ee1d
   source: detector
 - id: testing:vitest
   status: CONFIRMED
   evidence: apps/web/package.json
   detail: dependency 'vitest'
-  sha256: 99b9c00647fe349cba9f7bcddb0506920cc977b3700472a7a4b15317ad9b7aa8
+  sha256: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
   source: detector
 - id: tool:docker
   status: INFERRED

@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient
 from local_api.app import create_app
 from local_api.session import LAUNCH_CODE_LIFETIME_SECONDS, LaunchSession
 
-from ..conftest import REPO_ROOT, Launch, StartConflux
+from ..conftest import REPO_ROOT, Launch, StartConflux, posix_only
 
 
 @pytest.mark.parametrize(
@@ -313,6 +313,7 @@ def test_the_session_token_and_launch_code_never_reach_the_workspace(
         assert code.encode() not in data
 
 
+@posix_only
 def test_stopping_ends_the_session(start_conflux: StartConflux, free_port: int) -> None:
     # CFX-APP-first-slice/AC-06
     first = start_conflux("--no-browser", "--port", str(free_port))
@@ -329,6 +330,7 @@ def test_stopping_ends_the_session(start_conflux: StartConflux, free_port: int) 
     assert client.get("/api/workspace").status_code == 401
 
 
+@posix_only
 def test_logs_contain_no_token_or_launch_code(
     start_conflux: StartConflux, free_port: int, tmp_path: Path
 ) -> None:
@@ -434,6 +436,7 @@ def test_the_dev_flag_refuses_anything_but_a_loopback_origin(
     assert "--dev-origin" in conflux.all_output()
 
 
+@posix_only
 def test_sign_in_works_through_the_vite_proxy(
     start_conflux: StartConflux, free_port: int, unused_port: int
 ) -> None:

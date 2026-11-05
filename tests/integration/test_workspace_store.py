@@ -1,7 +1,6 @@
 """SQLite settings and migrations, CFX-APP-first-slice AC-19 and AC-44 (ADR 0002 points 5 and 6)."""
 
 import errno
-import fcntl
 import hashlib
 import os
 import shutil
@@ -21,7 +20,7 @@ from artifacts.workspace import (
     open_workspace,
 )
 
-from ..conftest import StartConflux
+from ..conftest import StartConflux, posix_only
 
 CREATE_FAMILY = """
 op.execute("CREATE TABLE parent (id INTEGER PRIMARY KEY, name TEXT)")
@@ -125,6 +124,7 @@ def test_a_new_workspace_is_at_the_latest_schema_and_has_no_backup(
     assert backups(workspace_dir) == []
 
 
+@posix_only
 def test_an_older_schema_is_backed_up_owner_only_and_migrated(
     workspace_dir: Path, migrations: Path
 ) -> None:
@@ -309,6 +309,7 @@ def test_someone_elses_database_with_the_same_name_is_refused_and_unchanged(
     assert sorted(entry.name for entry in workspace_dir.iterdir()) == ["workspace.db"]
 
 
+@posix_only
 def test_an_unwritable_location_gets_a_clear_error(tmp_path: Path) -> None:
     locked = tmp_path / "locked"
     locked.mkdir()
@@ -367,6 +368,7 @@ def test_a_crash_during_a_transaction_does_not_lock_the_user_out(
     assert not (workspace_dir / "workspace.db-journal").exists()
 
 
+@posix_only
 def test_an_old_damaged_backup_is_replaced(
     workspace_dir: Path, migrations: Path
 ) -> None:
@@ -404,6 +406,7 @@ def test_a_backup_that_cannot_be_made_stops_the_migration(
     assert read(database, "SELECT version_num FROM alembic_version") == [("r1",)]
 
 
+@posix_only
 def test_wal_files_are_owner_only_whatever_the_umask(workspace_dir: Path) -> None:
     # CFX-APP-first-slice/AC-17: these files only exist while a connection is writing.
     previous_umask = os.umask(0)
@@ -421,6 +424,7 @@ def test_wal_files_are_owner_only_whatever_the_umask(workspace_dir: Path) -> Non
         os.umask(previous_umask)
 
 
+@posix_only
 def test_opening_tightens_loose_permissions(workspace_dir: Path) -> None:
     # The "workspace copied or stolen" threat: a copy can arrive with the umask's permissions.
     open_workspace(workspace_dir).close()
@@ -447,10 +451,13 @@ def test_opening_tightens_loose_permissions(workspace_dir: Path) -> None:
     assert mode(notes) == 0o644
 
 
+@posix_only
 def test_a_lock_failure_is_only_called_already_open_when_it_is_held(
     workspace_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # A filesystem without locks is a different problem, with a different fix.
+    import fcntl
+
     def no_locks(_descriptor: int, _operation: int) -> None:
         raise OSError(errno.ENOLCK, "No locks available")
 

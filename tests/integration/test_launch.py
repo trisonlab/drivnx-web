@@ -7,7 +7,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from ..conftest import StartConflux
+from ..conftest import StartConflux, linux_only, posix_only
 
 
 def test_no_browser_prints_the_url_and_serves_the_ui_bundle(
@@ -38,6 +38,7 @@ def test_without_a_port_the_os_picks_a_free_one(start_conflux: StartConflux) -> 
     assert httpx.get(second.group(0)).status_code == 200
 
 
+@linux_only
 def test_prints_the_url_when_the_browser_fails_to_open(
     start_conflux: StartConflux,
 ) -> None:
@@ -46,6 +47,7 @@ def test_prints_the_url_when_the_browser_fails_to_open(
     assert httpx.get(url).status_code == 200
 
 
+@posix_only
 def test_opens_the_browser_and_keeps_the_url_out_of_the_terminal(
     start_conflux: StartConflux, free_port: int, tmp_path: Path
 ) -> None:
@@ -113,10 +115,9 @@ def test_an_invalid_port_gives_a_clear_error(
 
 
 def test_a_missing_ui_bundle_gives_a_clear_error(
-    start_conflux: StartConflux, conflux_executable: str
+    start_conflux: StartConflux, installed_environment: Path
 ) -> None:
-    environment = Path(conflux_executable).parents[1]
-    bundle = next(environment.rglob("local_api/ui"))
+    bundle = next(installed_environment.rglob("local_api/ui"))
     hidden = bundle.with_name("ui-hidden")
     bundle.rename(hidden)
     try:
@@ -137,6 +138,7 @@ def _browser_stand_in(directory: Path, name: str, opened: Path) -> None:
     script.chmod(0o755)
 
 
+@linux_only
 @pytest.mark.parametrize(
     "empty_setting", [{}, {"DISPLAY": ""}, {"WAYLAND_DISPLAY": ""}, {"BROWSER": ""}]
 )
@@ -155,6 +157,7 @@ def test_without_a_display_the_url_is_printed_and_no_browser_is_tried(
     assert not opened.exists()
 
 
+@linux_only
 def test_with_a_display_the_browser_is_opened(
     start_conflux: StartConflux, tmp_path: Path
 ) -> None:
@@ -169,6 +172,7 @@ def test_with_a_display_the_browser_is_opened(
     assert "#launch=" in opened.read_text()
 
 
+@posix_only
 def test_the_terminal_says_how_to_stop_and_what_to_do_if_no_browser_opened(
     start_conflux: StartConflux, tmp_path: Path
 ) -> None:

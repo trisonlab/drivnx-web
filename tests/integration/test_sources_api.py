@@ -14,6 +14,8 @@ from artifacts.sources import StoredSource, add_csv_source
 from artifacts.workspace import open_workspace
 from fastapi.testclient import TestClient
 
+from ..conftest import posix_only
+
 CSV_DIR = Path(__file__).parents[2] / "testdata" / "csv"
 
 
@@ -161,6 +163,7 @@ def test_the_same_path_opens_the_existing_source(
     assert len(client.get("/api/sources").json()) == 1
 
 
+@posix_only
 def test_another_route_to_the_same_file_opens_the_existing_source(
     client: TestClient, customers: Path
 ) -> None:
@@ -236,11 +239,13 @@ def test_a_home_relative_path_is_expanded(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     shutil.copy(CSV_DIR / "comma_utf8.csv", tmp_path / "home.csv")
 
     assert connect(client, "~/home.csv")["name"] == "home.csv"
 
 
+@posix_only
 @pytest.mark.parametrize(
     ("kind", "message"),
     [
@@ -297,6 +302,7 @@ def test_a_bad_path_gets_a_specific_error_and_adds_no_source(
     assert client.get("/api/sources").json() == []
 
 
+@posix_only
 def test_a_link_to_a_name_that_is_not_valid_text_gets_a_specific_error(
     client: TestClient, tmp_path: Path
 ) -> None:
@@ -374,6 +380,7 @@ def test_a_file_that_comes_back_is_available_again(
     assert client.get("/api/sources").json()[0]["available"] is True
 
 
+@posix_only
 def test_a_source_in_a_folder_that_cannot_be_read_is_unavailable_and_the_rest_still_list(
     client: TestClient, customers: Path, tmp_path: Path
 ) -> None:
@@ -424,6 +431,7 @@ def test_connecting_gives_duckdb_the_workspace_temp_directory(
     ]
 
 
+@posix_only
 def test_duckdb_spills_inside_the_workspace_and_leftovers_are_removed_at_startup(
     tmp_path: Path,
 ) -> None:

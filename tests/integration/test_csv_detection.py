@@ -20,6 +20,8 @@ from connectors.csv_files import (
     scan_csv,
 )
 
+from ..conftest import posix_only
+
 CSV_DIR = Path(__file__).parents[2] / "testdata" / "csv"
 
 
@@ -459,6 +461,7 @@ def finishes(call: Callable[[], object]) -> bool:
         ),
     ],
 )
+@posix_only
 def test_a_file_that_becomes_a_fifo_is_refused_rather_than_waited_on(
     tmp_path: Path, read: Callable[[Path, Path], object]
 ) -> None:
