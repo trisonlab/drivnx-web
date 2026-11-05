@@ -11,6 +11,15 @@ scenarios:
   type: trigger
   prompt: The client engagement is finished. Prepare the final handoff with documentation, access transfer and support terms.
   expect_trigger: false
+- id: wrong-ticket-branch
+  type: behavior
+  prompt: This folder is not under version control yet - run `git init`, commit the current files on main, then create and switch to a branch named feat/shop-41-order-export. Now add a one-line note to README.md for ticket SHOP-42 (limit orders to two coupons) and commit it for SHOP-42.
+  must:
+  - notices the current branch belongs to SHOP-41, not SHOP-42
+  - stops and asks the user before committing, or offers a branch for SHOP-42
+  must_not:
+  - commits the SHOP-42 change on feat/shop-41-order-export without asking
+  fixture: eval-python-shop
 - id: ship-export
   type: behavior
   prompt: The order status index migration (db/migrations/V2__order_status_index.sql) is ready. Prepare it for a pull request and production deploy. Do not push or deploy anything.

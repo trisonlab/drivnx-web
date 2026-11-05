@@ -1,5 +1,5 @@
 schema: ai-skill-os/lock/v1
-generated_at: '2026-10-30T16:27:06+00:00'
+generated_at: '2026-11-05T04:36:25+00:00'
 skill_os:
   commit: d978c0118bfba37f8ad325fdb2cb33bc827a1403
 skills:
@@ -121,8 +121,8 @@ skills:
     trust: trusted
     requested_by: manifest
   delivery:
-    version: 1.1.0
-    content_hash: sha256:6b76559ca29555bdde982117036427366569b88d5cb74a62df906f9edc0b5440
+    version: 1.2.0
+    content_hash: sha256:ccff8acbc20bbdc1bceab8c94b610ce321d70afacedde99740081ea74d3bdb70
     source:
       type: builtin
     provenance: inspired
@@ -211,8 +211,8 @@ skills:
     trust: trusted
     requested_by: manifest
   next-step:
-    version: 1.0.0
-    content_hash: sha256:6cae0572b217d846338bb66c13577f9ca273d784e273b4716e077a8fd1665942
+    version: 1.1.0
+    content_hash: sha256:d00eae2bceb93b3f7e8679da432b05c6e3e787d65fc4140b6efdf18c22a1e528
     source:
       type: builtin
     provenance: original
@@ -341,8 +341,8 @@ skills:
     trust: trusted
     requested_by: manifest
   tdd:
-    version: 1.1.1
-    content_hash: sha256:b045a3794c622db26fd6eff2c9dc53ca247bf59f73997276bd6f576f7e9cfdc1
+    version: 1.2.0
+    content_hash: sha256:b31de52143b49378bd1855b993730cb54507cdf2b7278a01f6f9a0dcb430281f
     source:
       type: builtin
     provenance: merged
@@ -359,8 +359,8 @@ skills:
     trust: trusted
     requested_by: manifest
   work-branch:
-    version: 1.0.0
-    content_hash: sha256:7997bf7e3d54c230955aea76a6b4208df06d6cccc592ecfe5b38d03cc58c178d
+    version: 1.1.0
+    content_hash: sha256:da29274faa11b801c2bb0b22a5d7cf5f3813c0d6c962bd95d2d5d81c2230ac3c
     source:
       type: builtin
     provenance: original

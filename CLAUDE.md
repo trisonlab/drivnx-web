@@ -9,6 +9,7 @@ Project rules:
 - Claim "done", "fixed" or "passing" only with evidence from this session: run the command that proves it, read its whole output, and quote the result. Report what was not run as NOT RUN.
 - Deterministic guards run from `.ai/hooks/` (git pre-commit, and natively where the tool supports hooks). If one blocks you, fix the cause; never bypass it with --no-verify or by weakening lint, type-check, test or CI configuration.
 - Before adding code, stop at the first rung that holds: is it needed at all; is it already in this codebase; does the standard library, the platform or an installed dependency do it; only then write the least new code that stays clear. No abstraction, option or layer for a need nobody has yet.
+- Each ticket gets its own branch with the ticket ID in its name, created before its first change: from the ticket it depends on while that one is unmerged, otherwise from the base branch. Before building or committing a ticket, check the current branch is that ticket's; if it is not, stop and ask the user. Skip this only when the user has said not to use branches.
 - Skill versions are pinned in `.ai/lock.yaml`. Do not edit installed skills in place.
 
 Installed skills:

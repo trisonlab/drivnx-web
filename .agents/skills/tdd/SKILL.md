@@ -17,6 +17,8 @@ Let tests drive the design: every line of production code exists because a faili
 - Browser end-to-end tests: `frontend-testing`. Finding why something fails: `debugging`.
 
 ## Procedure
+Before step 1, when the change belongs to a ticket, the current branch must be that ticket's own (its name contains the ticket ID). If it is not, stop and ask the user before writing anything, and offer `work-branch`.
+
 1. **Name the seam**: the public interface the tests will drive (function, endpoint, component, CLI). Tests go through it, never into internals. If the right seam is unclear, ask before writing tests.
 2. **List the behaviours** to build as short examples (input -> expected result), smallest first. Include edge cases and error cases. Unclear expectations are questions for the user, not guesses.
 3. **Red**: write ONE test for the next behaviour, in the project's test framework and style. Before running it, say which production change would make it fail. Run it and confirm it fails, and fails for the expected reason (an assertion, not an import or syntax error). Expected values come from an independent source (a worked example, the spec), never recomputed the way the code does.

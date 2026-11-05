@@ -52,6 +52,12 @@ Criteria: AC-02, AC-03, AC-04
 To trace: `git log --grep="CFX-APP-first-slice-T03"` finds a ticket's commits, `git blame` leads from a line to its commit
 and ticket, and `ai-skills knowledge graph CFX-APP-first-slice/AC-07` shows a criterion's ticket and tests.
 
+## Branches
+
+Each ticket gets its own branch with the ticket ID in its name, created before its first change. While the ticket it
+depends on is unmerged, branch from that ticket's branch; otherwise branch from `main`. `/tdd` and `/delivery` stop and
+ask if the current branch isn't the ticket's.
+
 ## AI skills
 
 Set up with `../ai-skills/conflux-skills.sh` (the shared Conflux baseline plus this repo's stack skills); the list is in

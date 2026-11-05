@@ -8,7 +8,7 @@ Use it top to bottom. The **first gate that is not met** is where the user is; i
 | 1 | Pick | One ticket chosen, `state: ready`, blockers done, its `feature_revision` equals the feature's current revision | `ai-skills next` to pick; a stale ticket → the project's to-ticket skill |
 | 2 | Orient | Ticket, feature item and the code it touches have been read (`ai-skills context "<ticket title>"`, `ai-skills knowledge graph <ticket-id>`) | `knowledge-first` |
 | 3 | Clear | Every criterion in the ticket is testable and agreed; no open question blocks it | the project's to-spec skill (never guess a rule) |
-| 4 | Branch | Work happens on its own branch or worktree (only when the user allows branches) | `work-branch` / `worktrees` |
+| 4 | Branch | The current branch or worktree is this ticket's own, with its ID in the name; another ticket's branch does not meet this gate, so recommend the skill rather than offering it as an aside (skip only when the user has said not to use branches) | `work-branch` / `worktrees` |
 | 5 | Plan | For more than one file or one seam: a short plan of steps, files and checks, agreed | `planning` (`simplicity-guard` if it grows) |
 | 6 | Build | Each criterion: a failing test that names its ID (`<feature>/AC-01`), then the code, then green | `tdd` (`implementation` for non-testable glue; `debugging` when a failure is not understood) |
 | 7 | Verify | Whole suite and project checks run in this session; a table of every criterion with evidence | `verification` |
