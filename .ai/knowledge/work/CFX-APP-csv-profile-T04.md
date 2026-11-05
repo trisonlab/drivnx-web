@@ -30,3 +30,4 @@ Tests naming each criterion, and a run on files above and below 100,000 rows.
 ## From planning
 - `packages/profiling` has to be added to the wheel's package list in `pyproject.toml`.
 - The first slice's AC-33 checks in `App.test.tsx` and `tests/e2e/test_first_launch.py` change for the status and the Profile tab. The other tabs stay marked as not available.
+- T01 measured with DuckDB limited to 4 GB, and peak memory reached about 3 GB. DuckDB's default is 80% of the machine's memory, so profile jobs should set a limit rather than risk slowing the user's other programs.

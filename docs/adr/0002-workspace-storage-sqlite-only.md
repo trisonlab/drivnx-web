@@ -176,6 +176,8 @@ observations recompute-only.
   - update the claim in §7 to match.
   The rule also has to cover the pre-migration backups, and old values left in SQLite free pages and the WAL
   (`PRAGMA secure_delete`, or a `VACUUM` after masking). Raise it with the domain model and security review.
+  **Resolved for profiling by [ADR 0004](0004-profile-values-and-caching.md), 2026-11-05.** `DictionaryEntry.examples` is
+  due with the dictionary slice.
 - **Tests that ship with M1:**
   - A failure halfway through a transition leaves neither the state change nor its ProvenanceEvent behind.
   - Demoting a Defined item writes a Confirmed revision of its ContractRule in the same transaction. The rule drops out

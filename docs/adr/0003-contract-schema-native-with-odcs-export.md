@@ -151,6 +151,8 @@ the exporter and re-running its tests, with no database migration.
     migration that the append-only tests explicitly allow.
 - **Accepted values can be copied from source data.** Enum values exported here may include personal data, and so fall
   under the source-derived values finding in ADR 0002. That rule, due before M3, has to cover them too.
+  **[ADR 0004](0004-profile-values-and-caching.md) covers profiling only, so this one is now due with the contract
+  slice (2026-11-05).**
 - **Finding to resolve, not decided here: what is `packages/contracts`?** §10 doesn't define it. It could be this
   exporter or API contracts. The domain rule types belong in `packages/domain`, and the exporter goes with the Export
   service.
