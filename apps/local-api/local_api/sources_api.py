@@ -96,7 +96,7 @@ def _cell(value: str | None) -> CellResponse:
     return CellResponse(value=value[:MAX_CELL_CHARACTERS], cut=True)
 
 
-def _is_available(path: Path) -> bool:
+def is_available(path: Path) -> bool:
     try:
         return path.is_file()
     except OSError:
@@ -116,7 +116,7 @@ def _response(source: StoredSource) -> SourceResponse:
         skip_lines=source.skip_lines,
         size_bytes=source.size_bytes,
         modified_at=source.modified_at,
-        available=_is_available(source.path),
+        available=is_available(source.path),
         columns=[
             ColumnResponse(
                 name=field.name,
@@ -133,16 +133,16 @@ def _refuse(message: str) -> HTTPException:
     return HTTPException(status_code=422, detail=message)
 
 
-def _cannot_read(message: str) -> HTTPException:
+def cannot_read(message: str) -> HTTPException:
     # The request was fine, and the file is no longer in a state that can answer it.
     return HTTPException(status_code=409, detail=message)
 
 
-def _modified_at(stat: os.stat_result) -> str:
+def modified_at(stat: os.stat_result) -> str:
     return datetime.fromtimestamp(stat.st_mtime, UTC).isoformat()
 
 
-def _current_encoding(source: StoredSource) -> str:
+def current_encoding(source: StoredSource) -> str:
     """Read with the saved encoding unless the file changed, because detecting reads all of it.
 
     An encoding the user chose always stays.
@@ -151,7 +151,7 @@ def _current_encoding(source: StoredSource) -> str:
         return source.encoding
     stat = source.path.stat()
     unchanged = (
-        stat.st_size == source.size_bytes and _modified_at(stat) == source.modified_at
+        stat.st_size == source.size_bytes and modified_at(stat) == source.modified_at
     )
     return source.encoding if unchanged else detect_encoding(source.path)
 
@@ -220,7 +220,7 @@ def sources_router(workspace: Workspace) -> APIRouter:
             encoding=scan.detection.encoding,
             has_header=scan.detection.has_header,
             size_bytes=stat.st_size,
-            modified_at=_modified_at(stat),
+            modified_at=modified_at(stat),
             fields=tuple(
                 StoredField(
                     column.name, column.duckdb_type, normalised_type(column.duckdb_type)
@@ -241,8 +241,8 @@ def sources_router(workspace: Workspace) -> APIRouter:
         source = find_source(workspace.engine, source_id)
         if source is None:
             raise HTTPException(status_code=404, detail="There's no such source.")
-        if not _is_available(source.path):
-            raise _cannot_read(
+        if not is_available(source.path):
+            raise cannot_read(
                 "Conflux can't find this file. It may have moved or been deleted."
             )
         try:
@@ -258,11 +258,11 @@ def sources_router(workspace: Workspace) -> APIRouter:
         except CsvError as error:
             raise _refuse(str(error)) from None
         except PermissionError:
-            raise _cannot_read(
+            raise cannot_read(
                 "Conflux doesn't have permission to read this file."
             ) from None
         except OSError:
-            raise _cannot_read("Conflux couldn't read this file.") from None
+            raise cannot_read("Conflux couldn't read this file.") from None
         corrected = replace(
             source,
             delimiter=body.delimiter,
@@ -270,7 +270,7 @@ def sources_router(workspace: Workspace) -> APIRouter:
             has_header=body.has_header,
             skip_lines=body.skip_lines,
             size_bytes=stat.st_size,
-            modified_at=_modified_at(stat),
+            modified_at=modified_at(stat),
             fields=tuple(
                 StoredField(
                     column.name, column.duckdb_type, normalised_type(column.duckdb_type)
@@ -290,15 +290,15 @@ def sources_router(workspace: Workspace) -> APIRouter:
         source = find_source(workspace.engine, source_id)
         if source is None:
             raise HTTPException(status_code=404, detail="There's no such source.")
-        if not _is_available(source.path):
-            raise _cannot_read(
+        if not is_available(source.path):
+            raise cannot_read(
                 "Conflux can't find this file. It may have moved or been deleted."
             )
         # One row more than the page shows whether there is a next page, without counting rows.
         try:
             page = read_page(
                 source.path,
-                _current_encoding(source),
+                current_encoding(source),
                 source.delimiter,
                 source.has_header,
                 offset,
@@ -307,13 +307,13 @@ def sources_router(workspace: Workspace) -> APIRouter:
                 source.skip_lines,
             )
         except CsvError as error:
-            raise _cannot_read(str(error)) from None
+            raise cannot_read(str(error)) from None
         except PermissionError:
-            raise _cannot_read(
+            raise cannot_read(
                 "Conflux doesn't have permission to read this file."
             ) from None
         except OSError:
-            raise _cannot_read("Conflux couldn't read this file.") from None
+            raise cannot_read("Conflux couldn't read this file.") from None
         return PageResponse(
             columns=[_cell(name) for name in page.columns],
             rows=[[_cell(value) for value in row] for row in page.rows[:limit]],

@@ -26,3 +26,6 @@ Tests naming each criterion, including a file removed during a run and a file th
 
 ## From planning
 - DuckDB's error messages quote rows, so a failed run must not save or log them. The preview already avoids this.
+- From T04: a job's guard accepts extra columns after the saved ones, because a wider row reads that way (`extra_field_in_a_row.csv`). AC-12's check must not refuse those files, while still telling them apart from a file with a real new column.
+- From T04: `load_rows` turns every DuckDB error into "a row can't be read", including running out of memory, so a failure message mustn't assume the file is at fault. `POST /api/profile-runs` already refuses a file that has gone, with no test yet for one that can't be read.
+- From T04, decided by the user: one row wider than the table inside the first rows, or just after them, fails a run, as in the preview. Skipping or cutting it would make the counts quietly wrong. Today the screen only says "This profile couldn't finish", so it needs a clear message here.

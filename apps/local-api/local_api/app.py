@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Annotated
 
 from artifacts.settings import AiMode, WorkspaceSettings, read_settings, save_settings
+from artifacts.store import WorkspaceBusy
 from artifacts.workspace import Workspace
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
@@ -12,6 +13,7 @@ from pydantic import AfterValidator, BaseModel, StringConstraints
 
 from local_api.binding import LOOPBACK_ADDRESS
 from local_api.guard import SESSION_PATH, RequestGuard, SecurityHeaders
+from local_api.profile_runs_api import profile_runs_router
 from local_api.session import LaunchSession
 from local_api.sources_api import sources_router
 
@@ -91,6 +93,10 @@ def create_app(
         ]
         return JSONResponse({"detail": problems}, status_code=422)
 
+    @app.exception_handler(WorkspaceBusy)
+    async def busy(_request: Request, error: WorkspaceBusy) -> JSONResponse:
+        return JSONResponse({"detail": str(error)}, status_code=503)
+
     # `async` keeps checking and burning the code on the event loop, so two requests can't both pass.
     @app.post(SESSION_PATH, status_code=204)
     async def start_session(body: SessionRequest, response: Response) -> None:
@@ -126,6 +132,7 @@ def create_app(
 
     app.state.workspace = workspace
     app.include_router(sources_router(workspace))
+    app.include_router(profile_runs_router(workspace))
 
     if ui_dir is not None:
         app.mount("/", StaticFiles(directory=ui_dir, html=True))

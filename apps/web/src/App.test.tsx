@@ -27,7 +27,7 @@ function workspaceNamed(name: string, ai_mode: Workspace["ai_mode"] = "off"): Wo
 
 function serverHas(workspace: Workspace, onSave?: (body: unknown) => Response) {
   fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
-    if (url === "/api/sources") {
+    if (url === "/api/sources" || url === "/api/profile-runs") {
       return Response.json([]);
     }
     if (init?.method === "PUT") {
@@ -209,14 +209,18 @@ test("everything not built is marked and has no working action", async () => {
   renderApp();
 
   const banner = await screen.findByRole("banner");
-  expect(within(banner).getByText(/profile status/i)).toHaveTextContent(/not available yet/i);
   const exportButton = within(banner).getByRole("button", { name: /export/i });
   expect(exportButton).toBeDisabled();
   expect(exportButton).toHaveAccessibleName(/not available yet/i);
-  for (const tab of screen.getAllByRole("tab")) {
+  // CFX-APP-csv-profile builds the profile status and the Profile tab, and the rest stay marked.
+  for (const name of ["Overview", "Dictionary", "Contract"]) {
+    const tab = screen.getByRole("tab", { name: new RegExp(name) });
     expect(tab).toBeDisabled();
     expect(tab).toHaveTextContent(/not available yet/i);
   }
+  const profile = screen.getByRole("tab", { name: "Profile" });
+  expect(profile).toBeEnabled();
+  expect(profile).toHaveAttribute("aria-selected", "true");
   expect(
     within(screen.getByRole("complementary", { name: "Intelligence & Review" })).getByText(
       /not available yet/i,

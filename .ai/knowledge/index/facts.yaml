@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-05T07:28:57+00:00'
+updated_at: '2026-11-05T11:27:17+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -43,7 +43,7 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'fastapi'
-  sha256: 4f5f67c65e8954b53a58f1dcdef244d1ef05a1081b57929b9240cdb02a42ee1d
+  sha256: 971fbecf685a9b732c31c8b9250e6e2aec3283e397b4b6830aafc154db3b6296
   source: detector
   planned_in: ../docs/Conflux_Phase1_Development_Direction.md:155
 - id: framework:react
@@ -74,7 +74,7 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'sqlalchemy'
-  sha256: 4f5f67c65e8954b53a58f1dcdef244d1ef05a1081b57929b9240cdb02a42ee1d
+  sha256: 971fbecf685a9b732c31c8b9250e6e2aec3283e397b4b6830aafc154db3b6296
   source: detector
 - id: pm:pnpm
   status: CONFIRMED
@@ -90,7 +90,7 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'pytest'
-  sha256: 4f5f67c65e8954b53a58f1dcdef244d1ef05a1081b57929b9240cdb02a42ee1d
+  sha256: 971fbecf685a9b732c31c8b9250e6e2aec3283e397b4b6830aafc154db3b6296
   source: detector
 - id: testing:vitest
   status: CONFIRMED

@@ -53,9 +53,8 @@ MAX_CELL_CHARACTERS = 1000
 # Not parallel: its reader can invent a row where a read buffer ends inside a quoted value, can't
 # pad rows in a file with line breaks in quotes, and made memory grow page after page. Cells are cut
 # here, one character over so a longer one can be told apart, to keep huge ones out of Python.
-READ_PAGE = f"""
-    SELECT left(COLUMNS(*), {MAX_CELL_CHARACTERS + 1})
-    FROM read_csv(
+READ_CSV = """
+    read_csv(
         ?,
         encoding = ?,
         delim = ?,
@@ -64,9 +63,18 @@ READ_PAGE = f"""
         compression = 'none',
         comment = '',
         parallel = false,
-        {{options}}
+        {options}
     )
+"""
+READ_PAGE = f"""
+    SELECT left(COLUMNS(*), {MAX_CELL_CHARACTERS + 1})
+    FROM {READ_CSV}
     LIMIT ? OFFSET ?
+"""
+LOAD_ROWS = f"""
+    CREATE OR REPLACE TEMP TABLE {{table}} AS
+    SELECT * FROM {READ_CSV}
+    LIMIT ?
 """
 NO_QUOTE_SEEN = "(empty)"
 STANDARD_QUOTE = "quote = '\"', escape = '\"'"
@@ -539,3 +547,42 @@ def read_columns(
     return tuple(
         CsvColumn(name, kind) for name, kind in zip(page.columns, types, strict=True)
     )
+
+
+def load_rows(
+    connection: duckdb.DuckDBPyConnection,
+    path: Path,
+    encoding: str,
+    delimiter: str,
+    has_header: bool,
+    chosen_skip: int | None,
+    table: str,
+    limit: int,
+) -> list[str]:
+    """Copy the file's first rows into a temp table, read as the preview reads them, as text.
+
+    Returns the table's column names, or raises `CsvError` if no way of reading manages. A row well
+    after `limit` isn't read, so it can't get in the way. DuckDB parses in chunks, so one just after
+    it still can, and that fails the read rather than leaving the row out.
+    """
+    _refuse_empty(path)
+    with _readable_path(connection, path, encoding) as (readable, duckdb_encoding):
+        file_settings: list[str | bool] = [
+            readable,
+            duckdb_encoding,
+            delimiter,
+            has_header,
+        ]
+        ways_to_read, _ = _ways_to_read(connection, file_settings, chosen_skip)
+        for options in ways_to_read:
+            try:
+                connection.execute(
+                    LOAD_ROWS.format(table=table, options=options),
+                    [*file_settings, limit],
+                )
+            except duckdb.Error:
+                # DuckDB's message quotes the row, so it must not travel any further.
+                continue
+            described = connection.execute(f"SELECT * FROM {table} LIMIT 0").description
+            return [column[0] for column in described]
+    raise CsvError(ROW_NOT_READABLE)

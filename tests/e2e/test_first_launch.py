@@ -120,10 +120,13 @@ def test_the_app_layout_shows_and_marks_what_is_not_built(
     expect(
         page.get_by_role("complementary", name="Intelligence & Review")
     ).to_contain_text("Not available yet")
-    expect(page.get_by_text("Profile status: Not available yet")).to_be_visible()
+    expect(page.get_by_text("Profile status: Not run yet")).to_be_visible()
     expect(page.get_by_role("button", name="Export")).to_be_disabled()
     expect(page.get_by_role("tab")).to_have_count(4)
-    for tab in page.get_by_role("tab").all():
+    # CFX-APP-csv-profile builds the profile status and the Profile tab, and the rest stay marked.
+    expect(page.get_by_role("tab", name="Profile", exact=True)).to_be_enabled()
+    for name in ("Overview", "Dictionary", "Contract"):
+        tab = page.get_by_role("tab", name=name)
         expect(tab).to_be_disabled()
         expect(tab).to_contain_text("Not available yet")
 

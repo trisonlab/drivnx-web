@@ -27,4 +27,6 @@ Golden tests in `tests/golden` with known expected metrics, a test of the maskin
 
 ## From planning
 - Test these inputs: a file with a header and no rows, a completely empty column (percentages have nothing to divide by), and duplicate column names.
-- Files that must be decoded in memory, have mixed line endings, or have quotes first seen late must read the same as in the preview.
+- Files that must be decoded in memory, have mixed line endings, have quotes first seen late, or have a chosen skip above uneven lines must read the same as in the preview. In T04, that last kind ends as `failed`.
+- From T04: a row wider than the rest reads as an extra column with no saved field, so it gets no metric. AC-14 says "for each column", so this needs a decision here. The Profile tab says nothing about it yet.
+- From T04: `measure_first_rows` uses columns by position through aliases, so a name from the file never reaches the SQL and `rowid` can't collide. New metrics should do the same. A `LIMIT` subquery runs out of memory on big cells where `WHERE rowid <` doesn't.

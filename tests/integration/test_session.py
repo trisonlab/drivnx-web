@@ -265,6 +265,13 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
     connected = client.post("/api/sources", json={"path": str(csv_path)})
     assert connected.status_code == 201
     source_id = connected.json()["id"]
+    run_id = client.post(
+        "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+    ).json()["id"]
+    deadline = time.monotonic() + 30
+    while client.get(f"/api/profile-runs/{run_id}").json()["status"] == "running":
+        assert time.monotonic() < deadline
+        time.sleep(0.01)
 
     def snapshot() -> list[str]:
         connection = sqlite3.connect(tmp_path / "workspace" / "workspace.db")
@@ -278,10 +285,14 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
     assert ("GET", "/api/workspace") in api_reads(client)
     assert ("GET", "/api/sources") in api_reads(client)
     assert ("GET", "/api/sources/{source_id}/rows") in api_reads(client)
+    assert ("GET", "/api/profile-runs") in api_reads(client)
+    assert ("GET", "/api/profile-runs/{run_id}") in api_reads(client)
 
     for method, path in api_reads(client):
         # A literal {source_id} would only ever reach the 404, and read nothing.
-        response = client.request(method, path.format(source_id=source_id))
+        response = client.request(
+            method, path.format(source_id=source_id, run_id=run_id)
+        )
         assert response.status_code == 200
 
     assert snapshot() == before

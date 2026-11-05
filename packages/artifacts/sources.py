@@ -133,6 +133,14 @@ def read_dataset(engine: Engine, source_id: str) -> StoredDataset:
         )
 
 
+def read_field_names(engine: Engine, dataset_id: str) -> dict[str, str]:
+    with engine.connect() as connection:
+        rows = connection.execute(
+            text("SELECT id, name FROM field WHERE dataset_id = :id"), {"id": dataset_id}
+        ).all()
+    return {row.id: row.name for row in rows}
+
+
 def _insert_dataset(connection: Connection, source: StoredSource) -> None:
     dataset_id = uuid.uuid4().hex
     connection.execute(

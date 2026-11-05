@@ -138,3 +138,60 @@ export async function saveSourceSettings(sourceId: string, settings: SourceSetti
   }
   return response.json();
 }
+
+export type ProfileRun = {
+  id: string;
+  source_id: string;
+  mode: string;
+  status: "running" | "completed" | "cancelled" | "failed" | "interrupted";
+  started_at: string;
+  ended_at: string | null;
+  current_settings: boolean;
+};
+
+export type Metric = {
+  column: string | null;
+  metric: string;
+  value: number;
+  scope: "full" | "sample" | "metadata";
+  precision: "exact" | "approximate";
+};
+
+export type ProfileRunDetail = ProfileRun & { metrics: Metric[] };
+
+const PROFILE_RUNS_PATH = "/api/profile-runs";
+
+export async function getProfileRuns(): Promise<ProfileRun[]> {
+  const response = await fetch(PROFILE_RUNS_PATH);
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function getProfileRun(runId: string): Promise<ProfileRunDetail> {
+  const response = await fetch(`${PROFILE_RUNS_PATH}/${runId}`);
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
+/** The server wouldn't start this run. The message is written for the user. */
+export class RunRefusedError extends Error {}
+
+export async function startFastProfile(sourceId: string): Promise<ProfileRun> {
+  const response = await fetch(PROFILE_RUNS_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ source_id: sourceId, mode: "fast" }),
+  });
+  if (response.status === 409 || response.status === 503) {
+    const { detail } = await response.json();
+    throw new RunRefusedError(detail);
+  }
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useId, useState } from "react";
 import { FileUnreadableError, getRows, type Source, saveSourceSettings } from "./api";
 import { SOURCES_QUERY } from "./DataExplorer";
+import { PROFILE_RUNS_QUERY } from "./ProfileTab";
 import { delimiterName } from "./sourceFormat";
 
 const DELIMITERS = [",", ";", "\t", "|"];
@@ -39,7 +40,11 @@ export function SourceSettings({ source }: { source: Source }) {
       setChanges({});
       // Removed, not refreshed, so a page read the old way can't show for a moment.
       queryClient.removeQueries({ queryKey: ["rows", source.id] });
-      await queryClient.invalidateQueries({ queryKey: SOURCES_QUERY });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: SOURCES_QUERY }),
+        // A run may no longer use the current settings.
+        queryClient.invalidateQueries({ queryKey: PROFILE_RUNS_QUERY }),
+      ]);
     },
   });
 

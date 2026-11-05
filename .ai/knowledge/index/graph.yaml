@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-05T07:28:58+00:00'
+updated_at: '2026-11-05T11:27:18+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 2b408c7757c9cd77f40fcf84e2b755f12927a2284072978c9282d95063d89022
@@ -8,14 +8,14 @@ sources:
   .ai/knowledge/work/CFX-APP-csv-profile-T01.md: d63760db42210e5a87c5372b5b4cadb69e1e203af7a125513fb660a7024a7cfa
   .ai/knowledge/work/CFX-APP-csv-profile-T02.md: 7750bac4e7f2073c9769c2f7c18eb0e1fae35b88e668529b0ec89c4b8bda5456
   .ai/knowledge/work/CFX-APP-csv-profile-T03.md: 700d11bc48a058f6259d1d3ee234030e9e6fee1af800482310e13651ee0264d6
-  .ai/knowledge/work/CFX-APP-csv-profile-T04.md: 4250f0f68c42bad569cffc2a2e1b124ec98d1256a981f23814bcf05d718005bc
-  .ai/knowledge/work/CFX-APP-csv-profile-T05.md: 15ebc8efc6424f063f32cf942466c65dcf376a259a48ff55e1b1804a38a475e7
-  .ai/knowledge/work/CFX-APP-csv-profile-T06.md: 15233e5932acd0bbcab2185284f6391aff82cfdd8d0c2e7b865419398bc66e50
-  .ai/knowledge/work/CFX-APP-csv-profile-T07.md: 73bfa98adc62a468e5c6f00bdf315579994445d4e5e7c74d18899f48e76370dd
+  .ai/knowledge/work/CFX-APP-csv-profile-T04.md: 68e289881c87db1c55529d3f7514757efb79ad2f3628e16e9d6d2f75d1195d1b
+  .ai/knowledge/work/CFX-APP-csv-profile-T05.md: 6051aaa0572a4c391a39ded510d394f7802a339c1143be466067df2ce7e7defb
+  .ai/knowledge/work/CFX-APP-csv-profile-T06.md: d096220c044401a7d81d8e25a0b71e34688a15d84f43002caa57218e5a3ff19b
+  .ai/knowledge/work/CFX-APP-csv-profile-T07.md: 6fd321123b42149b94a01ac4b51b542a0da5099d500db258182e6e994633c3ad
   .ai/knowledge/work/CFX-APP-csv-profile-T08.md: b887b41672ede0f64b1018ac640ac4a3ae853c553d3ad874408b4cdab282ec31
   .ai/knowledge/work/CFX-APP-csv-profile-T09.md: a19f64c7eb8d19d93e0f3ba4c40ee744f5343e33eeb6c3d251913a98889db5ac
   .ai/knowledge/work/CFX-APP-csv-profile-T10.md: 4260dfc3ec7371ee8eccdbb98bc70b492c1a587abfd2d05946fcc25a8b7496e1
-  .ai/knowledge/work/CFX-APP-csv-profile-T11.md: dc533f62541cde0838dd061149243ce95bb1ab65fa50a429754e5fa6cd7da545
+  .ai/knowledge/work/CFX-APP-csv-profile-T11.md: e759163c928a3733aae074d0dea037050240940cbb98696aadb178c243348e4c
   .ai/knowledge/work/CFX-APP-csv-profile-T12.md: 20269b38cdfd46caa3a6a114b27a57364e17130eb3a0cd13a1a0a2bcc7f37e80
   .ai/knowledge/work/CFX-APP-first-slice-T01.md: 2ee04dcfa5f5acbbe061cb1a2cbf6769044428aa13123fca867540a65e0c5f9c
   .ai/knowledge/work/CFX-APP-first-slice-T02.md: 10883e0f3b03e48bf71dfa6a826250f134bff036b27de62bddae30d4f273a01f
@@ -28,51 +28,56 @@ sources:
   .ai/knowledge/work/CFX-APP-first-slice-T09.md: 383f95526f852e787e27671f9f8c696f537a048b149fbc8dca5a41c351091cd2
   .ai/knowledge/work/CFX-APP-first-slice-T10.md: 51908dc3f4c256bb5424f947cb8b624f8bea8749bab207b48a80475c218adaaf
   .github/workflows/ci.yml: bb16457e9752302970b01dc7913b20d6be57be9a549d656e03b670bebc32a04e
-  apps/local-api/local_api/app.py: 19d76607100b527a0c82618a6843a82ee1aa26d532ecbe4fd53a3dd633f24dbb
+  apps/local-api/local_api/app.py: fda96def6be4041db066536ad855923e89bed3c3de23d9bb92355c1ca71025a0
   apps/local-api/local_api/binding.py: 2611a2c17106768394fe6322ea524d43e29e3771c50eed1b84c92781dbebfd39
   apps/local-api/local_api/cli.py: de2e38fe34b8cc23bf7942847ef989c2d9a10d7c3d7743a28279759823324604
   apps/local-api/local_api/guard.py: 0a065df935b5753303ddb14b6475b30cedae87d4f5d096d556509ae42288a9ae
+  apps/local-api/local_api/profile_jobs.py: 18152ee2be8f27f76d27883ed01ad126588bc5f29e898e826c4c8bb212b28eb5
+  apps/local-api/local_api/profile_runs_api.py: eed9fcb5abfb3645281593990ce76730e468871da644f0761bc2fcd26db2f696
   apps/local-api/local_api/session.py: 7ac051aeb59c75ca0c8e7326964ac611ab8b682fc49b1fb37c8dc177f2c1c4f4
-  apps/local-api/local_api/sources_api.py: ce13e2a7c7273ce6d8a8ea3f3708797dfc570970edac4f6268da2992e50a543e
+  apps/local-api/local_api/sources_api.py: 85f00e51af525d1695d28ef51f002cb03322582cadd1c1a87362b85304c1c2a1
   apps/web/package.json: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
   apps/web/pnpm-lock.yaml: c9140539e3622a70d6a0d272593b22dc12a51e3ea75a816bfd33f52a89a2708b
-  apps/web/src/App.test.tsx: 9eb6591f54b127537370a9fc272213b641dd57bb4d3a44e5b7c907df8f5bcee5
+  apps/web/src/App.test.tsx: 6e02f253814c7fbd72f808745df700cc923012e12400279c4532d9c13af7176c
   apps/web/src/App.tsx: b96d3baf0f040fa4bd0ae9862181160a51637118108057153acdf437382b6689
   apps/web/src/DataExplorer.tsx: 46957aa004142a6c5ca4955fda5b1dc70bce7acfb4ced523e129f2934d35292e
   apps/web/src/Preview.test.tsx: 5d9eaa75943a69a77ba6d14c1ae66d02985434a2508b15bd6b0324a4e29044a5
   apps/web/src/Preview.tsx: 3bf2aa6bbc84a230141f4316ebd0dfa37c0886e28daadca3c841745ee9d7dfcd
+  apps/web/src/ProfileTab.test.tsx: 3e3c93dcafa11866ebb8bd17eb944a635c8a7e202ab910cc90bed5d2c816b6a3
+  apps/web/src/ProfileTab.tsx: 5fec50146f6b27094c871d7bb72711c83d1c546824233bef3f639558e5f068cf
   apps/web/src/SetupScreen.tsx: 31e7316e6b5602e338a3646da2a27b8b2b2873bfb148aafd9db9a72478ef4794
-  apps/web/src/Shell.tsx: e06a2e2aaba105e4552e1819fe7ae6b4f81c780b0fba367e263154e6135a9c08
+  apps/web/src/Shell.tsx: 5d72882e76cf03e164ec54d1aa7a1031c9530bb8be2789f870f882d6191185d8
   apps/web/src/SourceDetails.tsx: 4dce343e7cbdac39faea2413ca25d2f82d1dc634800240d499df4d5c44ba3015
   apps/web/src/SourceSettings.test.tsx: 78712d61e9475ab3264304b5afeb25f16476ddb65be618f7f36f5509ed9bef82
-  apps/web/src/SourceSettings.tsx: 62e985c66128ee9f52d00fae891b6972cbf75b75116b06d5f353937c79559e2e
+  apps/web/src/SourceSettings.tsx: 338349b47f8719cba625a628555bcdb54a67e138765cb805206ab082aa683fb3
   apps/web/src/Sources.test.tsx: 643936a86e15baadf771846e6b07549572a235e86e2a51a350c747c76320782c
-  apps/web/src/api.ts: 85ee7b4d32a8c287e9e23e7ebf10f2f584c88a73840d1a87e4bee33cbd0a34ce
+  apps/web/src/api.ts: a39c348c67f6e50a8ac7175721c9c00a47dad36e4de24eea6c6af900e6f6a922
   apps/web/src/main.tsx: a092eb0be7e15855ffc2d8cd35c780c063e9686c2d96689d54ff3ae14deabe4c
   apps/web/src/session.test.ts: 1cfe4e0e785dafef6c141859de01b29725ba49e609b0a9d7651d2976aaa3a3a6
   apps/web/src/session.ts: 606b8ed83032ca43d62da07c2b90c3cdb5e761467e3cf1b4d907b0a96950aab4
   apps/web/src/sourceFormat.ts: 089d6d12912f71f90adc55c819869eb3ae6024e83ed2ca4eef41b816041ce15c
-  apps/web/src/styles.css: cf9e7368745d97dad5f37e15e3f9245b52ee75b3057219e8e53fecc4560f90fb
+  apps/web/src/styles.css: a4514c294ef618d929199169c88c7e00c84e45a0110843d4f0ccec7158578fd3
   apps/web/tsconfig.json: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
   hatch_build.py: 3a04470f04cbbc9eb8318259732bdd97fa9e42016c682c996962adf0e14db012
   packages/artifacts/migrations/versions/0005_source_settings.py: f9dbf1baf732afb3cc794b4b1a86dead9f4b86e3f32793c607b284ff5450df87
-  packages/artifacts/profiles.py: 23efa5c94b68e7f273b10d75a32fcf04b2db94017639345842f14cdc1cee991b
+  packages/artifacts/profiles.py: 5e5449b40fcaf155c22932d739ba0f210a87a19a57a6314c0f31886683e73b59
   packages/artifacts/provenance.py: 2a1ef8bb1363e8f61f98ff68bdb03e633368acdb5b2d28f6b3d44c0cb1911a37
   packages/artifacts/review.py: f959e1fbf57048bc3ee35a8c0d501eb18cfdd92186325e132f3f1a4a72cdbeaa
   packages/artifacts/schema.py: 3e58fcd02a4877cf892c71b0026c39e0fb8bb9674f6c4bc38ada13c71d37c92a
   packages/artifacts/settings.py: f485bc3a90b6ba403d2377b93adc64737afefd8f837458e1b9b45a3cb4596289
-  packages/artifacts/sources.py: 60f9a8a8bc4732cc8d13a1cde74102eead59f180065dbfb1e21f3b812623927a
+  packages/artifacts/sources.py: ffcbd2e5b5332a1e4e0c578d0686440c3229e7ed66921a17f005e1a753d8b7fd
   packages/artifacts/store.py: c8027ed76aca60e569313aabb96e96f5f783d56d192499819f5bf238986244a4
   packages/artifacts/workspace.py: 2d49466258379045e2479099aad91365669b1cfde0405319d6033e26e0840f39
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
-  pyproject.toml: 4f5f67c65e8954b53a58f1dcdef244d1ef05a1081b57929b9240cdb02a42ee1d
+  pyproject.toml: 971fbecf685a9b732c31c8b9250e6e2aec3283e397b4b6830aafc154db3b6296
   testdata/generate_csv.py: bc3b3f9553b76cc26f9e49af63a2dc7f3d9d653003e1145d26d212652d5afe73
   tests/conftest.py: e555bc88db4469aa97dcfd053efc2e88d9a32e664b23c5c557f2188eb208b91f
   tests/e2e/test_accessibility.py: 70789b6cb303f7f891607d1c1a3b3f79d083de65d17c80e19ad3808a5ca3423c
   tests/e2e/test_browser_security.py: d5a6f6a9444d47f11190efe42e4f67fb653987fe05e93cd64ed170d4cb9b089d
   tests/e2e/test_connect_csv.py: c7936c9f8f23d7bbec0953d82938991a64c940f61e02dd00bffb5cc98bab7904
-  tests/e2e/test_first_launch.py: d63e787b95f896b7a8e7141b54926c672cdf443ad4dba50ece7fb35218c851d2
+  tests/e2e/test_fast_profile.py: ece90cfb0f20e029bde4970d2532a36ea16490a8db4e890fdfe5b017716092ec
+  tests/e2e/test_first_launch.py: 0bc180551e37ee4b84bbe65dafab3b1f81e272b2126a3ad97d49f0f564ac03ee
   tests/e2e/test_full_journey.py: acf05e870676877d9952dd6f1d44d2157833bb8d6ab709ebc7e74d79f2638762
   tests/e2e/test_preview.py: 125b482d2ce433c417310a79a867cb3c9500a5fc08ea5b39a0cfead48ddea7e0
   tests/e2e/test_source_settings.py: 67289d003885e5b0da80516294f24a99a251a91d1c4fc8fca9603de267c8a235
@@ -83,13 +88,15 @@ sources:
   tests/integration/test_contract_rules.py: 3edf1eedc82e20f764f542126fb4e5d37f2029e6b87f42f6dc973d7c9644b0ec
   tests/integration/test_csv_detection.py: e29fbb7f02e194f223831f35f0161b408f260e3e5dc878529d2b0003e4ce5e84
   tests/integration/test_domain_entities.py: 301ceca21af25cba6884e354a8bde68e4a4874188b77747737f1b05425fbb1da
+  tests/integration/test_fast_profile.py: 5a4a21a12cd166c86b6f554e356b8bcedf1ab25207efa07db6fa1a9e60667bd9
+  tests/integration/test_first_rows.py: f54a92cccc804c395f92476610e8fd095d3cf52fd47e13330f94d22b6cfd9e41
   tests/integration/test_launch.py: b2a2fffd3078dd6b58e1878ef0537265289e83368ffbd78762de59635679b510
   tests/integration/test_lockfiles.py: d04c655bbf0d73a55efca921996aaed96a943010384addf630418228a82fd4d2
   tests/integration/test_preview_api.py: 2c80362b86e11b8e44c8fd7e2dda578b52691c4b28af29b5fb069ff7dae87657
   tests/integration/test_profile_runs.py: 353423797d60259b4ca44b0a844ac1a1c3d8e23f7c2b2439beab019705e0acb1
   tests/integration/test_replacing_column_names.py: 617826d9612906f81ab62e732b7a985c27e43e1bf26c82bdbae68438b088b352
   tests/integration/test_review.py: 7ff50b8ff75bb4ba8fa544930a2122817fa0885a327cdadd3c9a3b2a5c50bcb5
-  tests/integration/test_session.py: 204a8bf3ad6a59f47bdb69cf801a57aa55a718e2cf985102dd14ee914545b890
+  tests/integration/test_session.py: 769f94a80730a9235ceb5c83d4092a18ecc713de5b0b1a228fe3882473ac5dcb
   tests/integration/test_source_settings.py: 26c8015eea8c36e3076ac8ebd066158bb4f4d6335ee6518548a87c789467bbd1
   tests/integration/test_sources_api.py: c48d5bbb72915a97b126111faf184eaee64338c94c7d05f1fc9e96febb199d05
   tests/integration/test_testdata.py: aec07f92859fc1f4daf4247959769e49cfa19a2fe41bdc8a908c1a3558c043b4
@@ -701,6 +708,14 @@ nodes:
   text: Given a field with a Confirmed dictionary entry, when a second entry for that field would become
     Confirmed, then it is rejected and nothing is written. Inferred candidates for the field are allowed,
     a
+- id: endpoint:GET /api/profile-runs
+  kind: endpoint
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:105
+- id: endpoint:GET /api/profile-runs/{}
+  kind: endpoint
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:109
 - id: endpoint:GET /api/sources
   kind: endpoint
   evidence:
@@ -712,7 +727,11 @@ nodes:
 - id: endpoint:GET /api/workspace
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/app.py:117
+  - apps/local-api/local_api/app.py:123
+- id: endpoint:POST /api/profile-runs
+  kind: endpoint
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:77
 - id: endpoint:POST /api/sources
   kind: endpoint
   evidence:
@@ -724,7 +743,7 @@ nodes:
 - id: endpoint:PUT /api/workspace
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/app.py:121
+  - apps/local-api/local_api/app.py:127
 - id: feature:CFX-APP-csv-profile
   kind: feature
   evidence:
@@ -761,6 +780,14 @@ nodes:
   kind: module
   evidence:
   - apps/local-api/local_api/guard.py:1
+- id: module:apps/local-api/local_api/profile_jobs.py
+  kind: module
+  evidence:
+  - apps/local-api/local_api/profile_jobs.py:1
+- id: module:apps/local-api/local_api/profile_runs_api.py
+  kind: module
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:1
 - id: module:apps/local-api/local_api/session.py
   kind: module
   evidence:
@@ -789,6 +816,14 @@ nodes:
   kind: module
   evidence:
   - apps/web/src/Preview.tsx:1
+- id: module:apps/web/src/ProfileTab.test.tsx
+  kind: module
+  evidence:
+  - apps/web/src/ProfileTab.test.tsx:1
+- id: module:apps/web/src/ProfileTab.tsx
+  kind: module
+  evidence:
+  - apps/web/src/ProfileTab.tsx:1
 - id: module:apps/web/src/SetupScreen.tsx
   kind: module
   evidence:
@@ -901,6 +936,10 @@ nodes:
   kind: module
   evidence:
   - tests/e2e/test_connect_csv.py:1
+- id: module:tests/e2e/test_fast_profile.py
+  kind: module
+  evidence:
+  - tests/e2e/test_fast_profile.py:1
 - id: module:tests/e2e/test_first_launch.py
   kind: module
   evidence:
@@ -945,6 +984,14 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_domain_entities.py:1
+- id: module:tests/integration/test_fast_profile.py
+  kind: module
+  evidence:
+  - tests/integration/test_fast_profile.py:1
+- id: module:tests/integration/test_first_rows.py
+  kind: module
+  evidence:
+  - tests/integration/test_first_rows.py:1
 - id: module:tests/integration/test_launch.py
   kind: module
   evidence:
@@ -1163,7 +1210,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
   title: Fast profile, end to end
-  state: blocked
+  state: done
   external_key: null
 - id: ticket:CFX-APP-csv-profile-T05
   kind: ticket
@@ -1993,37 +2040,43 @@ edges:
   to: endpoint:GET /api/workspace
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/app.py:117
+  - apps/local-api/local_api/app.py:123
 - from: module:apps/local-api/local_api/app.py
   rel: exposes
   to: endpoint:PUT /api/workspace
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/app.py:121
+  - apps/local-api/local_api/app.py:127
 - from: module:apps/local-api/local_api/app.py
   rel: imports
   to: module:apps/local-api/local_api/binding.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/app.py:13
+  - apps/local-api/local_api/app.py:14
 - from: module:apps/local-api/local_api/app.py
   rel: imports
   to: module:apps/local-api/local_api/guard.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/app.py:14
+  - apps/local-api/local_api/app.py:15
+- from: module:apps/local-api/local_api/app.py
+  rel: imports
+  to: module:apps/local-api/local_api/profile_runs_api.py
+  status: CONFIRMED
+  evidence:
+  - apps/local-api/local_api/app.py:16
 - from: module:apps/local-api/local_api/app.py
   rel: imports
   to: module:apps/local-api/local_api/session.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/app.py:15
+  - apps/local-api/local_api/app.py:17
 - from: module:apps/local-api/local_api/app.py
   rel: imports
   to: module:apps/local-api/local_api/sources_api.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/app.py:16
+  - apps/local-api/local_api/app.py:18
 - from: module:apps/local-api/local_api/cli.py
   rel: imports
   to: module:apps/local-api/local_api/app.py
@@ -2048,6 +2101,39 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/local-api/local_api/guard.py:6
+- from: module:apps/local-api/local_api/profile_runs_api.py
+  rel: exposes
+  to: endpoint:GET /api/profile-runs
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:105
+  note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
+- from: module:apps/local-api/local_api/profile_runs_api.py
+  rel: exposes
+  to: endpoint:GET /api/profile-runs/{}
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:109
+  note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
+- from: module:apps/local-api/local_api/profile_runs_api.py
+  rel: exposes
+  to: endpoint:POST /api/profile-runs
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:77
+  note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
+- from: module:apps/local-api/local_api/profile_runs_api.py
+  rel: imports
+  to: module:apps/local-api/local_api/profile_jobs.py
+  status: CONFIRMED
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:18
+- from: module:apps/local-api/local_api/profile_runs_api.py
+  rel: imports
+  to: module:apps/local-api/local_api/sources_api.py
+  status: CONFIRMED
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:19
 - from: module:apps/local-api/local_api/sources_api.py
   rel: exposes
   to: endpoint:GET /api/sources
@@ -2084,6 +2170,49 @@ edges:
   - apps/web/src/App.test.tsx:5
 - from: module:apps/web/src/App.test.tsx
   rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-14
+  status: INFERRED
+  evidence:
+  - apps/web/src/App.test.tsx:67
+  - apps/web/src/App.test.tsx:92
+  note: bare AC-14; the file names only CFX-APP-csv-profile
+- from: module:apps/web/src/App.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-15
+  status: INFERRED
+  evidence:
+  - apps/web/src/App.test.tsx:187
+  note: bare AC-15; the file names only CFX-APP-csv-profile
+- from: module:apps/web/src/App.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-16
+  status: INFERRED
+  evidence:
+  - apps/web/src/App.test.tsx:80
+  note: bare AC-16; the file names only CFX-APP-csv-profile
+- from: module:apps/web/src/App.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-32
+  status: INFERRED
+  evidence:
+  - apps/web/src/App.test.tsx:187
+  note: bare AC-32; the file names only CFX-APP-csv-profile
+- from: module:apps/web/src/App.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-33
+  status: INFERRED
+  evidence:
+  - apps/web/src/App.test.tsx:207
+  note: bare AC-33; the file names only CFX-APP-csv-profile
+- from: module:apps/web/src/App.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-34
+  status: INFERRED
+  evidence:
+  - apps/web/src/App.test.tsx:236
+  note: bare AC-34; the file names only CFX-APP-csv-profile
+- from: module:apps/web/src/App.test.tsx
+  rel: verifies
   to: criterion:CFX-APP-first-slice/AC-14
   status: CONFIRMED
   evidence:
@@ -2118,7 +2247,7 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-34
   status: CONFIRMED
   evidence:
-  - apps/web/src/App.test.tsx:232
+  - apps/web/src/App.test.tsx:236
 - from: module:apps/web/src/App.tsx
   rel: imports
   to: module:apps/web/src/SetupScreen.tsx
@@ -2192,6 +2321,60 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/src/Preview.tsx:3
+- from: module:apps/web/src/ProfileTab.test.tsx
+  rel: imports
+  to: module:apps/web/src/App.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.test.tsx:5
+- from: module:apps/web/src/ProfileTab.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-07
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.test.tsx:124
+  - apps/web/src/ProfileTab.test.tsx:146
+  - apps/web/src/ProfileTab.test.tsx:257
+  - apps/web/src/ProfileTab.test.tsx:285
+- from: module:apps/web/src/ProfileTab.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-09
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.test.tsx:136
+  - apps/web/src/ProfileTab.test.tsx:159
+  - apps/web/src/ProfileTab.test.tsx:244
+  - apps/web/src/ProfileTab.test.tsx:271
+  - apps/web/src/ProfileTab.test.tsx:297
+  - apps/web/src/ProfileTab.test.tsx:316
+  - apps/web/src/ProfileTab.test.tsx:335
+  - apps/web/src/ProfileTab.test.tsx:354
+- from: module:apps/web/src/ProfileTab.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-15
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.test.tsx:175
+  - apps/web/src/ProfileTab.test.tsx:192
+  - apps/web/src/ProfileTab.test.tsx:205
+- from: module:apps/web/src/ProfileTab.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-16
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.test.tsx:175
+- from: module:apps/web/src/ProfileTab.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-17
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.test.tsx:192
+- from: module:apps/web/src/ProfileTab.tsx
+  rel: imports
+  to: module:apps/web/src/api.ts
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.tsx:3
 - from: module:apps/web/src/SetupScreen.tsx
   rel: imports
   to: module:apps/web/src/api.ts
@@ -2212,10 +2395,16 @@ edges:
   - apps/web/src/Shell.tsx:5
 - from: module:apps/web/src/Shell.tsx
   rel: imports
-  to: module:apps/web/src/SourceDetails.tsx
+  to: module:apps/web/src/ProfileTab.tsx
   status: CONFIRMED
   evidence:
   - apps/web/src/Shell.tsx:6
+- from: module:apps/web/src/Shell.tsx
+  rel: imports
+  to: module:apps/web/src/SourceDetails.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Shell.tsx:7
 - from: module:apps/web/src/Shell.tsx
   rel: imports
   to: module:apps/web/src/api.ts
@@ -2298,6 +2487,12 @@ edges:
   - apps/web/src/SourceSettings.tsx:4
 - from: module:apps/web/src/SourceSettings.tsx
   rel: imports
+  to: module:apps/web/src/ProfileTab.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/SourceSettings.tsx:5
+- from: module:apps/web/src/SourceSettings.tsx
+  rel: imports
   to: module:apps/web/src/api.ts
   status: CONFIRMED
   evidence:
@@ -2307,7 +2502,7 @@ edges:
   to: module:apps/web/src/sourceFormat.ts
   status: CONFIRMED
   evidence:
-  - apps/web/src/SourceSettings.tsx:5
+  - apps/web/src/SourceSettings.tsx:6
 - from: module:apps/web/src/Sources.test.tsx
   rel: imports
   to: module:apps/web/src/App.tsx
@@ -2594,12 +2789,112 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/e2e/test_connect_csv.py:38
+- from: module:tests/e2e/test_fast_profile.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_fast_profile.py:8
+- from: module:tests/e2e/test_fast_profile.py
+  rel: imports
+  to: module:tests/e2e/test_connect_csv.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_fast_profile.py:9
+- from: module:tests/e2e/test_fast_profile.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-07
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_fast_profile.py:1
+  - tests/e2e/test_fast_profile.py:30
+  - tests/e2e/test_fast_profile.py:45
+- from: module:tests/e2e/test_fast_profile.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-15
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_fast_profile.py:30
+- from: module:tests/e2e/test_fast_profile.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-16
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_fast_profile.py:45
+- from: module:tests/e2e/test_fast_profile.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-17
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_fast_profile.py:30
+- from: module:tests/e2e/test_fast_profile.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-36
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_fast_profile.py:62
 - from: module:tests/e2e/test_first_launch.py
   rel: imports
   to: module:tests/conftest.py
   status: CONFIRMED
   evidence:
   - tests/e2e/test_first_launch.py:9
+- from: module:tests/e2e/test_first_launch.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-01
+  status: INFERRED
+  evidence:
+  - tests/e2e/test_first_launch.py:1
+  - tests/e2e/test_first_launch.py:58
+  note: bare AC-01; the file names only CFX-APP-csv-profile
+- from: module:tests/e2e/test_first_launch.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-14
+  status: INFERRED
+  evidence:
+  - tests/e2e/test_first_launch.py:1
+  - tests/e2e/test_first_launch.py:15
+  note: bare AC-14; the file names only CFX-APP-csv-profile
+- from: module:tests/e2e/test_first_launch.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-15
+  status: INFERRED
+  evidence:
+  - tests/e2e/test_first_launch.py:1
+  - tests/e2e/test_first_launch.py:88
+  note: bare AC-15; the file names only CFX-APP-csv-profile
+- from: module:tests/e2e/test_first_launch.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-16
+  status: INFERRED
+  evidence:
+  - tests/e2e/test_first_launch.py:1
+  - tests/e2e/test_first_launch.py:138
+  note: bare AC-16; the file names only CFX-APP-csv-profile
+- from: module:tests/e2e/test_first_launch.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-32
+  status: INFERRED
+  evidence:
+  - tests/e2e/test_first_launch.py:1
+  - tests/e2e/test_first_launch.py:115
+  note: bare AC-32; the file names only CFX-APP-csv-profile
+- from: module:tests/e2e/test_first_launch.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-33
+  status: INFERRED
+  evidence:
+  - tests/e2e/test_first_launch.py:1
+  - tests/e2e/test_first_launch.py:115
+  note: bare AC-33; the file names only CFX-APP-csv-profile
+- from: module:tests/e2e/test_first_launch.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-34
+  status: INFERRED
+  evidence:
+  - tests/e2e/test_first_launch.py:1
+  - tests/e2e/test_first_launch.py:88
+  note: bare AC-34; the file names only CFX-APP-csv-profile
 - from: module:tests/e2e/test_first_launch.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-01
@@ -2624,7 +2919,7 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-16
   status: CONFIRMED
   evidence:
-  - tests/e2e/test_first_launch.py:135
+  - tests/e2e/test_first_launch.py:138
 - from: module:tests/e2e/test_first_launch.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-32
@@ -2978,6 +3273,61 @@ edges:
   - tests/integration/test_domain_entities.py:112
   - tests/integration/test_domain_entities.py:147
   - tests/integration/test_domain_entities.py:177
+- from: module:tests/integration/test_fast_profile.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-07
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_fast_profile.py:1
+  - tests/integration/test_fast_profile.py:71
+  - tests/integration/test_fast_profile.py:445
+  - tests/integration/test_fast_profile.py:477
+  - tests/integration/test_fast_profile.py:496
+  - tests/integration/test_fast_profile.py:521
+- from: module:tests/integration/test_fast_profile.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-09
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_fast_profile.py:91
+  - tests/integration/test_fast_profile.py:114
+  - tests/integration/test_fast_profile.py:215
+  - tests/integration/test_fast_profile.py:331
+- from: module:tests/integration/test_fast_profile.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-13
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_fast_profile.py:368
+- from: module:tests/integration/test_fast_profile.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-15
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_fast_profile.py:171
+  - tests/integration/test_fast_profile.py:188
+- from: module:tests/integration/test_first_rows.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-07
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_first_rows.py:1
+  - tests/integration/test_first_rows.py:63
+  - tests/integration/test_first_rows.py:74
+  - tests/integration/test_first_rows.py:96
+  - tests/integration/test_first_rows.py:107
+  - tests/integration/test_first_rows.py:118
+  - tests/integration/test_first_rows.py:139
+  - tests/integration/test_first_rows.py:152
+  - tests/integration/test_first_rows.py:167
+  - tests/integration/test_first_rows.py:178
+- from: module:tests/integration/test_first_rows.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-17
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_first_rows.py:35
+  - tests/integration/test_first_rows.py:129
 - from: module:tests/integration/test_launch.py
   rel: imports
   to: module:tests/conftest.py
@@ -3246,7 +3596,7 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_session.py:1
-  - tests/integration/test_session.py:318
+  - tests/integration/test_session.py:329
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-08
@@ -3272,7 +3622,7 @@ edges:
   - tests/integration/test_session.py:60
   - tests/integration/test_session.py:77
   - tests/integration/test_session.py:198
-  - tests/integration/test_session.py:483
+  - tests/integration/test_session.py:494
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-11
@@ -3284,7 +3634,7 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-12
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:337
+  - tests/integration/test_session.py:348
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-13
@@ -3297,16 +3647,16 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-48
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:293
+  - tests/integration/test_session.py:304
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-52
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:398
-  - tests/integration/test_session.py:411
-  - tests/integration/test_session.py:432
+  - tests/integration/test_session.py:409
+  - tests/integration/test_session.py:422
   - tests/integration/test_session.py:443
+  - tests/integration/test_session.py:454
 - from: module:tests/integration/test_source_settings.py
   rel: imports
   to: module:tests/integration/conftest.py

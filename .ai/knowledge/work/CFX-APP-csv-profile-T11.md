@@ -24,3 +24,4 @@ A user can list and open earlier runs, and can tell when results used earlier se
 
 ## Expected evidence
 Tests naming each criterion, including a restart during a run.
+- From T04: a source whose only run is `interrupted` gets an empty Profile tab, while the header says "Interrupted". AC-38 should say so in the tab.

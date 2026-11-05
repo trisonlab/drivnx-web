@@ -77,6 +77,37 @@ class Finding:
     recommended_action: str
 
 
+def _insert_run(
+    connection: Connection,
+    scope: dict[str, Any],
+    mode: str,
+    sample_size: int | None,
+    strategy: str | None,
+    seed: int | None,
+) -> str:
+    run_id = uuid.uuid4().hex
+    connection.execute(
+        text(
+            """
+            INSERT INTO profile_run
+                (id, scope, mode, sample_size, strategy, seed, status, started_at)
+            VALUES
+                (:id, :scope, :mode, :sample_size, :strategy, :seed, 'running', :started_at)
+            """
+        ),
+        {
+            "id": run_id,
+            "scope": json.dumps(scope),
+            "mode": mode,
+            "sample_size": sample_size,
+            "strategy": strategy,
+            "seed": seed,
+            "started_at": now(),
+        },
+    )
+    return run_id
+
+
 def start_profile_run(
     engine: Engine,
     scope: dict[str, Any],
@@ -86,28 +117,29 @@ def start_profile_run(
     seed: int | None = None,
 ) -> str:
     """In its own transaction, because a run can take minutes (ADR 0002 point 3)."""
-    run_id = uuid.uuid4().hex
     with write_transaction(engine) as connection:
-        connection.execute(
-            text(
-                """
-                INSERT INTO profile_run
-                    (id, scope, mode, sample_size, strategy, seed, status, started_at)
-                VALUES
-                    (:id, :scope, :mode, :sample_size, :strategy, :seed, 'running', :started_at)
-                """
-            ),
-            {
-                "id": run_id,
-                "scope": json.dumps(scope),
-                "mode": mode,
-                "sample_size": sample_size,
-                "strategy": strategy,
-                "seed": seed,
-                "started_at": now(),
-            },
-        )
-    return run_id
+        return _insert_run(connection, scope, mode, sample_size, strategy, seed)
+
+
+class RunInProgress(Exception):
+    pass
+
+
+def start_only_profile_run(
+    engine: Engine,
+    scope: dict[str, Any],
+    mode: str,
+    sample_size: int | None = None,
+    strategy: str | None = None,
+) -> str:
+    """Start a run unless one is in progress, checked under the write lock so two can't both pass."""
+    with write_transaction(engine) as connection:
+        running = connection.execute(
+            text("SELECT 1 FROM profile_run WHERE status = 'running' LIMIT 1")
+        ).first()
+        if running:
+            raise RunInProgress
+        return _insert_run(connection, scope, mode, sample_size, strategy, None)
 
 
 def read_profile_run(engine: Engine, run_id: str) -> ProfileRun:
@@ -132,6 +164,57 @@ def read_profile_run(engine: Engine, run_id: str) -> ProfileRun:
         row.started_at,
         row.ended_at,
     )
+
+
+@dataclass(frozen=True)
+class ListedProfileRun:
+    id: str
+    source_id: str
+    dataset_id: str
+    mode: str
+    status: str
+    started_at: str
+    ended_at: str | None
+    current_settings: bool
+
+
+_SELECT_LISTED_RUNS = """
+    SELECT profile_run.id, dataset.source_id, dataset.id AS dataset_id, profile_run.mode,
+           profile_run.status, profile_run.started_at, profile_run.ended_at,
+           dataset.replaced_at IS NULL AS current_settings
+    FROM profile_run
+    JOIN dataset ON dataset.id = json_extract(profile_run.scope, '$.dataset_id')
+"""
+
+
+def _listed(row: Row) -> ListedProfileRun:
+    return ListedProfileRun(
+        row.id,
+        row.source_id,
+        row.dataset_id,
+        row.mode,
+        row.status,
+        row.started_at,
+        row.ended_at,
+        bool(row.current_settings),
+    )
+
+
+def list_profile_runs(engine: Engine) -> list[ListedProfileRun]:
+    """Newest first."""
+    with engine.connect() as connection:
+        rows = connection.execute(
+            text(f"{_SELECT_LISTED_RUNS} ORDER BY profile_run.rowid DESC")
+        ).all()
+    return [_listed(row) for row in rows]
+
+
+def find_listed_profile_run(engine: Engine, run_id: str) -> ListedProfileRun | None:
+    with engine.connect() as connection:
+        row = connection.execute(
+            text(f"{_SELECT_LISTED_RUNS} WHERE profile_run.id = :id"), {"id": run_id}
+        ).first()
+    return _listed(row) if row else None
 
 
 def _status_of(connection: Connection, run_id: str) -> str | None:
