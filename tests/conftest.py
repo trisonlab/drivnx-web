@@ -6,6 +6,7 @@ import sqlite3
 import subprocess
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from queue import Empty, Queue
 from threading import Thread
@@ -37,6 +38,27 @@ CREDENTIAL_SHAPES = {
 def credential_shaped_values(data: bytes) -> list[str]:
     """What kinds of credential this holds, by name, so a failure doesn't print the value."""
     return [name for name, shape in CREDENTIAL_SHAPES.items() if re.search(shape, data)]
+
+
+class RisingClock:
+    """Each reading is later than the last, unless stopped. A real clock can repeat itself."""
+
+    def __init__(self) -> None:
+        self.moment = datetime(2026, 1, 1, tzinfo=UTC)
+        self.stopped = False
+
+    def __call__(self) -> str:
+        if not self.stopped:
+            self.moment += timedelta(seconds=1)
+        return self.moment.isoformat()
+
+
+@pytest.fixture
+def clock(monkeypatch: pytest.MonkeyPatch) -> RisingClock:
+    rising = RisingClock()
+    monkeypatch.setattr("artifacts.provenance.now", rising)
+    monkeypatch.setattr("artifacts.profiles.now", rising)
+    return rising
 
 
 WRITTEN_ONCE = {

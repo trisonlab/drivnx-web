@@ -68,6 +68,10 @@ ALLOWED = {
     (USER, Action.KEEP_AS_IS, ENTRY, CONFIRMED): CONFIRMED,
     (USER, Action.KEEP_AS_IS, RULE, CONFIRMED): CONFIRMED,
     (USER, Action.KEEP_AS_IS, RULE, DEFINED): DEFINED,
+    # Deleting a rule writes a tombstone, which keeps its state (AC-45, ADR 0002 point 4).
+    (USER, Action.DELETE, RULE, INFERRED): INFERRED,
+    (USER, Action.DELETE, RULE, CONFIRMED): CONFIRMED,
+    (USER, Action.DELETE, RULE, DEFINED): DEFINED,
 }
 
 

@@ -5,7 +5,6 @@ import threading
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -50,6 +49,8 @@ from artifacts.workspace import BUSY_TIMEOUT_MILLISECONDS, Workspace, open_works
 from domain.trust import Action, Actor, ItemKind, Rejected, TrustState
 from sqlalchemy import event, text
 from sqlalchemy.exc import DBAPIError, IntegrityError
+
+from ..conftest import RisingClock
 
 AI_DETAILS = EventDetails(
     ai_provider="ollama",
@@ -137,9 +138,9 @@ class Catalogue:
             self.engine,
             actor,
             self.contract_id,
-            "required",
+            "accepted_values",
             [("subject", self.field_id)],
-            {},
+            {"values": ["red"]},
             first,
             details=AI_DETAILS if actor is Actor.AI else NO_DETAILS,
         )
@@ -151,27 +152,6 @@ class Catalogue:
         return (
             self.entry(state) if kind is ItemKind.DICTIONARY_ENTRY else self.rule(state)
         )
-
-
-class RisingClock:
-    """Each reading is later than the last, unless stopped. A real clock can repeat itself."""
-
-    def __init__(self) -> None:
-        self.moment = datetime(2026, 1, 1, tzinfo=UTC)
-        self.stopped = False
-
-    def __call__(self) -> str:
-        if not self.stopped:
-            self.moment += timedelta(seconds=1)
-        return self.moment.isoformat()
-
-
-@pytest.fixture
-def clock(monkeypatch: pytest.MonkeyPatch) -> RisingClock:
-    rising = RisingClock()
-    monkeypatch.setattr("artifacts.provenance.now", rising)
-    monkeypatch.setattr("artifacts.profiles.now", rising)
-    return rising
 
 
 @pytest.fixture
@@ -345,8 +325,8 @@ def test_editing_an_inferred_item_confirms_it(catalogue: Catalogue) -> None:
     ("kind", "state", "content"),
     [
         (ItemKind.DICTIONARY_ENTRY, TrustState.CONFIRMED, SECOND),
-        (ItemKind.CONTRACT_RULE, TrustState.CONFIRMED, {"note": "changed"}),
-        (ItemKind.CONTRACT_RULE, TrustState.DEFINED, {"note": "changed"}),
+        (ItemKind.CONTRACT_RULE, TrustState.CONFIRMED, {"values": ["blue"]}),
+        (ItemKind.CONTRACT_RULE, TrustState.DEFINED, {"values": ["blue"]}),
     ],
 )
 def test_editing_keeps_the_state_and_the_earlier_revision(

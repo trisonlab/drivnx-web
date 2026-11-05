@@ -6,6 +6,13 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass, replace
 from typing import Any
 
+from domain.rules import (
+    AGREES_WITH,
+    check_fields,
+    check_params,
+    fields_with_role,
+    slot,
+)
 from domain.trust import Action, Actor, ItemKind, Rejected, TrustState, next_state
 from sqlalchemy import Connection, Engine, Row, text
 
@@ -111,7 +118,7 @@ class Item:
     state: TrustState
     revision: int
     content: Content
-    # Who or what the item is about, which never changes. Only `read_item` fills it in.
+    # Who or what the item is about, which never changes. `_current` leaves it empty.
     subject: EntrySubject | RuleSubject | None = None
 
 
@@ -144,6 +151,8 @@ class _Tables:
     owner: str
     content: str
     event_column: str
+    # Only a rule can be deleted, so an entry's revision never is a tombstone.
+    tombstone: str = "0"
 
 
 _TABLES = {
@@ -154,7 +163,11 @@ _TABLES = {
         "dictionary_entry_revision_id",
     ),
     ItemKind.CONTRACT_RULE: _Tables(
-        "contract_rule_revision", "rule_id", "params", "contract_rule_revision_id"
+        "contract_rule_revision",
+        "rule_id",
+        "params",
+        "contract_rule_revision_id",
+        "is_tombstone",
     ),
 }
 # These are written once and have no revisions, so an event points straight at them.
@@ -166,7 +179,7 @@ _CREATING = {
     TrustState.INFERRED: Action.CREATE_INFERRED,
     TrustState.CONFIRMED: Action.CREATE_CONFIRMED,
 }
-_LEFT_THE_INBOX = (Action.REJECT.value, Action.DEFER.value)
+_LEFT_THE_INBOX = (Action.REJECT.value, Action.DEFER.value, Action.DELETE.value)
 # None of these is a change to the item, so only provenance changes (Section 12).
 _ONLY_PROVENANCE = (
     Action.REJECT,
@@ -208,26 +221,110 @@ def _action_creating(state: TrustState, actor: Actor, kind: ItemKind) -> Action:
 
 
 def _insert_revision(
-    connection: Connection, ref: ItemRef, revision: int, state: TrustState, content: str
+    connection: Connection,
+    ref: ItemRef,
+    revision: int,
+    state: TrustState,
+    content: str,
+    **rule_columns: int | None,
 ) -> str:
     tables = _TABLES[ref.kind]
     revision_id = uuid.uuid4().hex
+    values = {
+        "id": revision_id,
+        tables.owner: ref.id,
+        "revision": revision,
+        "state": state.value,
+        tables.content: content,
+        **rule_columns,
+    }
+    columns = ", ".join(values)
+    placeholders = ", ".join(f":{column}" for column in values)
     connection.execute(
-        text(
-            f"""
-            INSERT INTO {tables.revisions} (id, {tables.owner}, revision, state, {tables.content})
-            VALUES (:id, :owner, :revision, :state, :content)
-            """
-        ),
-        {
-            "id": revision_id,
-            "owner": ref.id,
-            "revision": revision,
-            "state": state.value,
-            "content": content,
-        },
+        text(f"INSERT INTO {tables.revisions} ({columns}) VALUES ({placeholders})"),
+        values,
     )
     return revision_id
+
+
+def _new_contract_version(connection: Connection, contract_id: str) -> int:
+    """What the contract says is changing, so it gets a new version (ADR 0003 point 3)."""
+    version = connection.execute(
+        text(
+            """
+            UPDATE contract SET current_version = current_version + 1
+            WHERE id = :id RETURNING current_version
+            """
+        ),
+        {"id": contract_id},
+    ).scalar_one()
+    connection.execute(
+        text(
+            """
+            INSERT INTO contract_revision (contract_id, version, purpose, limitations)
+            SELECT contract_id, :version, purpose, limitations FROM contract_revision
+            WHERE contract_id = :id AND version = :version - 1
+            """
+        ),
+        {"id": contract_id, "version": version},
+    )
+    return version
+
+
+def _defined_rules_of_type(
+    connection: Connection, contract_id: str, rule_type: str
+) -> list[ItemRef]:
+    """The Defined rules of this type in this contract. Call this holding the write lock."""
+    holders = connection.execute(
+        text(
+            """
+            SELECT rule.id FROM contract_rule AS rule
+            JOIN contract_rule_revision AS latest ON latest.rule_id = rule.id
+            WHERE rule.contract_id = :contract AND rule.rule_type = :rule_type
+                AND latest.state = 'defined' AND latest.is_tombstone = 0
+                AND latest.revision = (
+                    SELECT max(revision) FROM contract_rule_revision
+                    WHERE rule_id = rule.id
+                )
+            """
+        ),
+        {"contract": contract_id, "rule_type": rule_type},
+    ).scalars()
+    return [ItemRef(ItemKind.CONTRACT_RULE, holder) for holder in holders]
+
+
+def _check_slot_is_free(
+    connection: Connection,
+    contract_id: str,
+    rule_type: str,
+    fields: Sequence[tuple[str, str]],
+) -> None:
+    """CFX-APP-first-slice/AC-46 and ADR 0003 point 4, so an export never has to choose."""
+    wanted = slot(rule_type, fields)
+    for holder in _defined_rules_of_type(connection, contract_id, rule_type):
+        if slot(rule_type, _rule_subject(connection, holder).fields) == wanted:
+            raise Rejected(f"The contract already has a Defined {rule_type} rule here.")
+
+
+def _check_logical_types_agree(
+    connection: Connection,
+    contract_id: str,
+    rule_type: str,
+    fields: Sequence[tuple[str, str]],
+    params: dict[str, Any],
+) -> None:
+    """ADR 0003 point 4: a range has to match its field's type rule, if there is one."""
+    other = AGREES_WITH.get(rule_type)
+    if other is None:
+        return
+    field = slot(rule_type, fields)
+    for holder in _defined_rules_of_type(connection, contract_id, other):
+        if (
+            slot(other, _rule_subject(connection, holder).fields) == field
+            and _current(connection, holder)[1].content["logical_type"]
+            != params["logical_type"]
+        ):
+            raise Rejected(f"This field's {other} rule has another logical type.")
 
 
 def _check_field_has_no_confirmed_entry(connection: Connection, field_id: str) -> None:
@@ -309,35 +406,144 @@ def create_rule(
     action = _action_creating(state, actor, kind)
     created = next_state(actor, action, kind, None)
     ref = ItemRef(kind, uuid.uuid4().hex)
+    check_params(rule_type, params)
+    check_fields(rule_type, fields)
+    content = _encode(kind, params)
     with write_transaction(engine) as connection:
+        _insert_rule(
+            connection,
+            ref,
+            contract_id,
+            rule_type,
+            fields,
+            content,
+            actor,
+            action,
+            created,
+            details,
+        )
+    return ref
+
+
+def _insert_rule(
+    connection: Connection,
+    ref: ItemRef,
+    contract_id: str,
+    rule_type: str,
+    fields: Sequence[tuple[str, str]],
+    content: str,
+    actor: Actor,
+    action: Action,
+    state: TrustState,
+    details: EventDetails,
+) -> None:
+    """A rule's first revision and event, inside the caller's transaction."""
+    _check_fields_are_in_the_right_datasets(connection, contract_id, fields)
+    connection.execute(
+        text(
+            """
+            INSERT INTO contract_rule (id, contract_id, rule_type)
+            VALUES (:id, :contract, :rule_type)
+            """
+        ),
+        {"id": ref.id, "contract": contract_id, "rule_type": rule_type},
+    )
+    for position, (role, field_id) in enumerate(fields):
         connection.execute(
             text(
                 """
-                INSERT INTO contract_rule (id, contract_id, rule_type)
-                VALUES (:id, :contract, :rule_type)
+                INSERT INTO contract_rule_field (rule_id, role, position, field_id)
+                VALUES (:rule, :role, :position, :field)
                 """
             ),
-            {"id": ref.id, "contract": contract_id, "rule_type": rule_type},
+            {"rule": ref.id, "role": role, "position": position, "field": field_id},
         )
-        for position, (role, field_id) in enumerate(fields):
+    revision_id = _insert_revision(connection, ref, 1, state, content)
+    record_event(
+        connection,
+        actor,
+        action,
+        None,
+        state,
+        _TABLES[ref.kind].event_column,
+        revision_id,
+        details,
+    )
+
+
+def _check_fields_are_in_the_right_datasets(
+    connection: Connection, contract_id: str, fields: Sequence[tuple[str, str]]
+) -> None:
+    """Found reviewing T07. A relationship's targets can be elsewhere, but all in one place."""
+    contract_dataset = connection.execute(
+        text("SELECT dataset_id FROM contract WHERE id = :id"), {"id": contract_id}
+    ).scalar()
+    if contract_dataset is None:
+        raise ValueError("There's no such contract.")
+
+    def datasets_of(role: str) -> set[str | None]:
+        return {
             connection.execute(
-                text(
-                    """
-                    INSERT INTO contract_rule_field (rule_id, role, position, field_id)
-                    VALUES (:rule, :role, :position, :field)
-                    """
-                ),
-                {"rule": ref.id, "role": role, "position": position, "field": field_id},
-            )
+                text("SELECT dataset_id FROM field WHERE id = :id"), {"id": field}
+            ).scalar()
+            for field in fields_with_role(fields, role)
+        }
+
+    subjects, targets = datasets_of("subject"), datasets_of("target")
+    if None in subjects | targets:
+        raise ValueError("There's no such field.")
+    if subjects != {contract_dataset}:
+        raise ValueError("A rule's subject fields must be in its contract's dataset.")
+    if len(targets) > 1:
+        raise ValueError("A relationship's target fields must all be in one dataset.")
+
+
+def define_rule(
+    engine: Engine,
+    actor: Actor,
+    contract_id: str,
+    rule_type: str,
+    fields: Sequence[tuple[str, str]],
+    params: dict[str, Any],
+    details: EventDetails = NO_DETAILS,
+) -> ItemRef:
+    """New -> Confirmed -> Defined in one transaction, with both events (ADR 0003 point 2)."""
+    kind = ItemKind.CONTRACT_RULE
+    confirmed = next_state(actor, Action.CREATE_CONFIRMED, kind, None)
+    defined = next_state(actor, Action.PROMOTE, kind, confirmed)
+    ref = ItemRef(kind, uuid.uuid4().hex)
+    check_params(rule_type, params)
+    check_fields(rule_type, fields)
+    content = _encode(kind, params)
+    with write_transaction(engine) as connection:
+        _check_slot_is_free(connection, contract_id, rule_type, fields)
+        _check_logical_types_agree(connection, contract_id, rule_type, fields, params)
+        _insert_rule(
+            connection,
+            ref,
+            contract_id,
+            rule_type,
+            fields,
+            content,
+            actor,
+            Action.CREATE_CONFIRMED,
+            confirmed,
+            details,
+        )
         revision_id = _insert_revision(
-            connection, ref, 1, created, _encode(kind, params)
+            connection,
+            ref,
+            2,
+            defined,
+            content,
+            contract_version=_new_contract_version(connection, contract_id),
         )
         record_event(
             connection,
             actor,
-            action,
-            None,
-            created,
+            Action.PROMOTE,
+            confirmed,
+            defined,
             _TABLES[kind].event_column,
             revision_id,
             details,
@@ -351,7 +557,8 @@ def _current(connection: Connection, ref: ItemRef) -> tuple[str, Item]:
     row = connection.execute(
         text(
             f"""
-            SELECT id, state, revision, {tables.content} AS content
+            SELECT id, state, revision, {tables.content} AS content,
+                   {tables.tombstone} AS tombstone
             FROM {tables.revisions} WHERE {tables.owner} = :id
             ORDER BY revision DESC LIMIT 1
             """
@@ -360,6 +567,8 @@ def _current(connection: Connection, ref: ItemRef) -> tuple[str, Item]:
     ).first()
     if row is None:
         raise ItemNotFound(f"There's no such {ref.kind}.")
+    if row.tombstone:
+        raise ItemNotFound(f"This {ref.kind} has been deleted.")
     return row.id, Item(
         ref, TrustState(row.state), row.revision, _decode(ref.kind, row.content)
     )
@@ -405,6 +614,88 @@ def read_item(engine: Engine, ref: ItemRef) -> Item:
             else _rule_subject(connection, ref)
         )
     return replace(item, subject=subject)
+
+
+def list_rules(engine: Engine, contract_id: str) -> list[Item]:
+    """Every rule of a contract that isn't deleted, candidates included, oldest first."""
+    with engine.connect() as connection:
+        ids = connection.execute(
+            text(
+                """
+                SELECT rule.id FROM contract_rule AS rule
+                JOIN contract_rule_revision AS latest ON latest.rule_id = rule.id
+                WHERE rule.contract_id = :contract AND latest.is_tombstone = 0
+                    AND latest.revision = (
+                        SELECT max(revision) FROM contract_rule_revision
+                        WHERE rule_id = rule.id
+                    )
+                ORDER BY rule.rowid
+                """
+            ),
+            {"contract": contract_id},
+        ).scalars()
+        found = []
+        for rule_id in ids.all():
+            ref = ItemRef(ItemKind.CONTRACT_RULE, rule_id)
+            found.append(
+                replace(
+                    _current(connection, ref)[1],
+                    subject=_rule_subject(connection, ref),
+                )
+            )
+    return found
+
+
+def rules_in_contract(
+    engine: Engine, contract_id: str, version: int | None = None
+) -> list[Item]:
+    """The contract at a version, by default its latest (ADR 0003 point 3).
+
+    For each rule, its latest revision at or below that version, if Defined and not a tombstone.
+    """
+    with engine.connect() as connection:
+        current = connection.execute(
+            text("SELECT current_version FROM contract WHERE id = :id"),
+            {"id": contract_id},
+        ).scalar()
+        if current is None:
+            raise ValueError("There's no such contract.")
+        if version is None:
+            version = current
+        if not 1 <= version <= current:
+            raise ValueError("This contract never had that version.")
+        rows = connection.execute(
+            text(
+                """
+                SELECT rule.id, revision.state, revision.revision, revision.params
+                FROM contract_rule AS rule
+                JOIN contract_rule_revision AS revision ON revision.rule_id = rule.id
+                WHERE rule.contract_id = :contract
+                    AND revision.state = 'defined'
+                    AND revision.is_tombstone = 0
+                    AND revision.revision = (
+                        SELECT max(earlier.revision) FROM contract_rule_revision AS earlier
+                        WHERE earlier.rule_id = rule.id
+                            AND earlier.contract_version <= :version
+                    )
+                ORDER BY rule.rowid
+                """
+            ),
+            {"contract": contract_id, "version": version},
+        ).all()
+        found = []
+        for row in rows:
+            ref = ItemRef(ItemKind.CONTRACT_RULE, row.id)
+            found.append(
+                Item(
+                    ref,
+                    TrustState(row.state),
+                    row.revision,
+                    _decode(ref.kind, row.params),
+                    _rule_subject(connection, ref),
+                )
+            )
+    return found
 
 
 def _latest_event(connection: Connection, ref: ItemRef) -> Row:
@@ -508,8 +799,39 @@ def _apply(
             if field_id is not None:
                 _check_field_has_no_confirmed_entry(connection, field_id)
         content = item.content if new_content is None else new_content
+        rule_columns = {}
+        if ref.kind is ItemKind.CONTRACT_RULE:
+            subject = _rule_subject(connection, ref)
+            if new_content is not None:
+                check_params(subject.rule_type, content)
+            if state is TrustState.DEFINED:
+                if item.state is not TrustState.DEFINED:
+                    _check_slot_is_free(
+                        connection,
+                        subject.contract_id,
+                        subject.rule_type,
+                        subject.fields,
+                    )
+                _check_logical_types_agree(
+                    connection,
+                    subject.contract_id,
+                    subject.rule_type,
+                    subject.fields,
+                    content,
+                )
+            if action is Action.DELETE:
+                rule_columns["is_tombstone"] = 1
+            if TrustState.DEFINED in (item.state, state):
+                rule_columns["contract_version"] = _new_contract_version(
+                    connection, subject.contract_id
+                )
         new_revision_id = _insert_revision(
-            connection, ref, item.revision + 1, state, _encode(ref.kind, content)
+            connection,
+            ref,
+            item.revision + 1,
+            state,
+            _encode(ref.kind, content),
+            **rule_columns,
         )
         record_event(
             connection,
@@ -552,6 +874,13 @@ def demote(
     engine: Engine, actor: Actor, ref: ItemRef, details: EventDetails = NO_DETAILS
 ) -> None:
     _apply(engine, actor, Action.DEMOTE, ref, details)
+
+
+def delete_rule(
+    engine: Engine, actor: Actor, ref: ItemRef, details: EventDetails = NO_DETAILS
+) -> None:
+    """A tombstone revision, so a rule never loses rows (ADR 0002 point 4)."""
+    _apply(engine, actor, Action.DELETE, ref, details)
 
 
 def reject(

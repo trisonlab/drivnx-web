@@ -37,6 +37,7 @@ class Action(StrEnum):
     RETURN_TO_INBOX = "return_to_inbox"
     FLAG_RE_REVIEW = "flag_re_review"
     KEEP_AS_IS = "keep_as_is"
+    DELETE = "delete"
 
 
 class Rejected(Exception):
@@ -85,6 +86,9 @@ _RULES: dict[tuple[Action, TrustState | None], _Rule] = {
     (Action.FLAG_RE_REVIEW, _DEFINED): _Rule(_SYSTEM, _ONLY_RULES, _DEFINED),
     (Action.KEEP_AS_IS, _CONFIRMED): _Rule(_USER, _REVIEWABLE, _CONFIRMED),
     (Action.KEEP_AS_IS, _DEFINED): _Rule(_USER, _ONLY_RULES, _DEFINED),
+    (Action.DELETE, _INFERRED): _Rule(_USER, _ONLY_RULES, _INFERRED),
+    (Action.DELETE, _CONFIRMED): _Rule(_USER, _ONLY_RULES, _CONFIRMED),
+    (Action.DELETE, _DEFINED): _Rule(_USER, _ONLY_RULES, _DEFINED),
 }
 
 

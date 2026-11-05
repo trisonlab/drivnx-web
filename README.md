@@ -6,7 +6,7 @@ evidence-backed, human-reviewed understanding (Data Profile → Data Dictionary 
 - **Source of truth:** [../docs/Conflux_Phase1_Development_Direction.md](../docs/Conflux_Phase1_Development_Direction.md)
   (approved); open findings in [../docs/Conflux_Phase1_Review_Notes.md](../docs/Conflux_Phase1_Review_Notes.md)
 - **Status:** first vertical slice in progress (`.ai/knowledge/requirements/CFX-APP-first-slice.md`): the runtime, its session protection,
-  workspace setup, the app shell, connecting a CSV, paging through its rows, the trust-state core and profile run history rules exist.
+  workspace setup, the app shell, connecting a CSV, paging through its rows, the trust-state core, profile run history rules and contract rules exist.
 - **Stack (§4):** Python 3.12, FastAPI, Pydantic v2, DuckDB, SQLite · React + TypeScript + Vite, TanStack, Radix/shadcn ·
   uv and pnpm with committed lockfiles · pytest, Vitest, Playwright, Docker Compose PostgreSQL fixture
 
