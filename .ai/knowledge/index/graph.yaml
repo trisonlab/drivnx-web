@@ -1,9 +1,22 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-05T05:47:05+00:00'
+updated_at: '2026-11-05T06:14:55+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
+  .ai/knowledge/requirements/CFX-APP-csv-profile.md: 2b408c7757c9cd77f40fcf84e2b755f12927a2284072978c9282d95063d89022
   .ai/knowledge/requirements/CFX-APP-first-slice.md: f630dcda1ae6b8a12777a0410f37648f23d09d4c12cdd6cd92433d8a463ffd85
+  .ai/knowledge/work/CFX-APP-csv-profile-T01.md: 871d974fa8e641c2c07149f4886820240e44165af8f91fe72bf6fe3e81817dee
+  .ai/knowledge/work/CFX-APP-csv-profile-T02.md: eacf842942e4e1f89bb463152ef344036c1653a07f5f30f14fde0056968bbbd4
+  .ai/knowledge/work/CFX-APP-csv-profile-T03.md: b4254be631a1ea275219e19940a7f775c03342329a0d3b5e4b084bad151e08a9
+  .ai/knowledge/work/CFX-APP-csv-profile-T04.md: 8cefef35e4861f516d5574492b72605fd3778d3f7954213034697a8600e3110b
+  .ai/knowledge/work/CFX-APP-csv-profile-T05.md: 15ebc8efc6424f063f32cf942466c65dcf376a259a48ff55e1b1804a38a475e7
+  .ai/knowledge/work/CFX-APP-csv-profile-T06.md: 15233e5932acd0bbcab2185284f6391aff82cfdd8d0c2e7b865419398bc66e50
+  .ai/knowledge/work/CFX-APP-csv-profile-T07.md: 73bfa98adc62a468e5c6f00bdf315579994445d4e5e7c74d18899f48e76370dd
+  .ai/knowledge/work/CFX-APP-csv-profile-T08.md: b887b41672ede0f64b1018ac640ac4a3ae853c553d3ad874408b4cdab282ec31
+  .ai/knowledge/work/CFX-APP-csv-profile-T09.md: a19f64c7eb8d19d93e0f3ba4c40ee744f5343e33eeb6c3d251913a98889db5ac
+  .ai/knowledge/work/CFX-APP-csv-profile-T10.md: 4260dfc3ec7371ee8eccdbb98bc70b492c1a587abfd2d05946fcc25a8b7496e1
+  .ai/knowledge/work/CFX-APP-csv-profile-T11.md: dc533f62541cde0838dd061149243ce95bb1ab65fa50a429754e5fa6cd7da545
+  .ai/knowledge/work/CFX-APP-csv-profile-T12.md: 20269b38cdfd46caa3a6a114b27a57364e17130eb3a0cd13a1a0a2bcc7f37e80
   .ai/knowledge/work/CFX-APP-first-slice-T01.md: 2ee04dcfa5f5acbbe061cb1a2cbf6769044428aa13123fca867540a65e0c5f9c
   .ai/knowledge/work/CFX-APP-first-slice-T02.md: 10883e0f3b03e48bf71dfa6a826250f134bff036b27de62bddae30d4f273a01f
   .ai/knowledge/work/CFX-APP-first-slice-T03.md: 7594acc05bcb5181f5bdbfe7344705f1163be895288d5dd1465554018fc079ac
@@ -80,6 +93,266 @@ sources:
   tests/integration/test_workspace_store.py: de5a2c32889a5e6324d436a94bade8667120e9a2ef8b7fd16e51c1f5379a46ba
   uv.lock: 4942e5e0af88130f4f436054c9ef054233bc96b076c013d98906ac63c0b2b7a3
 nodes:
+- id: criterion:CFX-APP-csv-profile/AC-01
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a connected CSV, when the user opens its settings, then the current header setting, delimiter,
+    encoding and lines to skip are shown and can be changed.
+- id: criterion:CFX-APP-csv-profile/AC-02
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a file read with the wrong delimiter, header setting, encoding or skipped lines, when the
+    user saves the right value, then the columns and the preview show the file read that way, and restarting
+- id: criterion:CFX-APP-csv-profile/AC-03
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given settings that can't read the file, or an encoding over the 100 MB limit, when the user saves,
+    then they get a clear message and the previous settings stay in use.
+- id: criterion:CFX-APP-csv-profile/AC-04
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a correction that changes the column names, then every earlier name for that source is replaced
+    with a generated name, and a raw scan of `workspace.db` and its WAL file no longer finds the old n
+- id: criterion:CFX-APP-csv-profile/AC-05
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a path already connected with corrected settings, when it is connected again, then the existing
+    source opens with the corrected settings.
+- id: criterion:CFX-APP-csv-profile/AC-06
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a profile run in progress, when the user tries to save a correction, then it is refused
+    with a clear message.
+- id: criterion:CFX-APP-csv-profile/AC-07
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a connected CSV and no run in progress, when the user chooses Fast profile, then a run reads
+    at most the first 100,000 rows and completes with its results shown.
+- id: criterion:CFX-APP-csv-profile/AC-08
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a connected CSV, when the user chooses Full profile, then a run reads every row and completes
+    with exact results and the file's row count.
+- id: criterion:CFX-APP-csv-profile/AC-09
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a run in progress, then the header's profile status and the Profile tab show that it's running,
+    and a second run is refused with a clear message.
+- id: criterion:CFX-APP-csv-profile/AC-10
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a run in progress, when the user cancels it, then it stops within the target under Non-functional,
+    its status is `cancelled`, and no results or findings from it appear as current.
+- id: criterion:CFX-APP-csv-profile/AC-11
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: 'Given a file that has moved, was deleted or can''t be read, when a run starts or fails partway,
+    then the user gets a clear message, a run that started ends as `failed`, and its results don''t appear
+    as '
+- id: criterion:CFX-APP-csv-profile/AC-12
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a file whose columns no longer match the saved ones, when a run starts, then it is refused
+    with a message pointing to the source's settings, and saving those settings reads the columns again.
+- id: criterion:CFX-APP-csv-profile/AC-13
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a profile job, then it creates nothing in the current directory, and any spill files are
+    inside `<workspace>/duckdb-tmp/`.
+- id: criterion:CFX-APP-csv-profile/AC-14
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a completed run, then for each column the Profile tab shows row count read, missing count
+    and percentage, distinct count and percentage, values not fitting the type, shortest, longest and
+    averag
+- id: criterion:CFX-APP-csv-profile/AC-15
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: 'Given any metric, then the screen shows its scope (whole file or first rows), its precision (exact
+    or approximate) and its run''s time and ID, and results from different scopes are never mixed without '
+- id: criterion:CFX-APP-csv-profile/AC-16
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a fast profile of a file with more than 100,000 rows, then its metrics are labelled "first
+    100,000 rows, not random", and no total row count is claimed.
+- id: criterion:CFX-APP-csv-profile/AC-17
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a fast profile of a file with at most 100,000 rows, then its metrics are labelled as the
+    whole file.
+- id: criterion:CFX-APP-csv-profile/AC-18
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a full profile, then its masked patterns are labelled as coming from the first 100,000 rows,
+    and its other metrics as the whole file.
+- id: criterion:CFX-APP-csv-profile/AC-19
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given each synthetic golden file, covering missing values, duplicates, dates, Unicode, mixed types
+    and high cardinality, when it is profiled, then every saved metric equals its known expected value.
+- id: criterion:CFX-APP-csv-profile/AC-20
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given Unicode text, then letters in any script become `A`, digits in any script become `9`, and
+    other characters stay. Given a value longer than 40 characters, then its pattern is cut and marked
+    as cu
+- id: criterion:CFX-APP-csv-profile/AC-21
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: 'Given a run that meets a finding''s condition, then a finding of that kind appears for each column
+    or dataset concerned: possible identifier, significant missing values, single-value column, values
+    tha'
+- id: criterion:CFX-APP-csv-profile/AC-22
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a full profile of a file with fully duplicated rows, then a duplicate-rows finding appears
+    with the count. Given a fast profile, then no duplicate-rows finding appears, and the screen says
+    the c
+- id: criterion:CFX-APP-csv-profile/AC-23
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a finding, then it shows what was observed, what's inferred, why it matters, the recommended
+    action, and its Inferred state, and its evidence link opens the cited metric with its run.
+- id: criterion:CFX-APP-csv-profile/AC-24
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a finding from a fast profile, then its text says "in the first 100,000 rows".
+- id: criterion:CFX-APP-csv-profile/AC-25
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a saved finding, then its saved text holds no column name and no value from the file, and
+    it cites at least one observation.
+- id: criterion:CFX-APP-csv-profile/AC-26
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a run that was cancelled, failed or interrupted, then it creates no findings and earlier
+    findings stay as they were.
+- id: criterion:CFX-APP-csv-profile/AC-27
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given synthetic columns matching the name rules or the email, phone or payment card patterns,
+    then each gets a possibly-sensitive finding saying whether a name or a pattern matched. No AI is involved.
+- id: criterion:CFX-APP-csv-profile/AC-28
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given findings for possibly sensitive fields, or none, then the screen says that having no flag
+    doesn't mean a column has no personal data.
+- id: criterion:CFX-APP-csv-profile/AC-29
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a column flagged as possibly sensitive, when on-request values are requested without the
+    extra confirmation, then the API refuses and shows no values. With the confirmation, they are shown.
+- id: criterion:CFX-APP-csv-profile/AC-30
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a column in a completed run, when the user asks to see its values, then min, max and the
+    10 most frequent values are shown, and for numeric and date columns also a histogram, and mean, median
+    an
+- id: criterion:CFX-APP-csv-profile/AC-31
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: 'Given values shown on request, then each is cut at 1,000 characters and marked when cut, as in
+    the preview, and the response is `Cache-Control: no-store`.'
+- id: criterion:CFX-APP-csv-profile/AC-32
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a file that is no longer readable, when values are requested, then the user gets a clear
+    message, and the saved metrics still show.
+- id: criterion:CFX-APP-csv-profile/AC-33
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a full journey with distinctive planted values in a synthetic file, including on-request
+    values, then a raw scan of `workspace.db` and its WAL finds no value from the file, except masked
+    pattern
+- id: criterion:CFX-APP-csv-profile/AC-34
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given every new GET route, when it is called, then no workspace data changes, and it follows AC-08,
+    AC-09 and AC-13 of the first slice.
+- id: criterion:CFX-APP-csv-profile/AC-35
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given several runs of a source, then the user can list them with mode, status and time, open any
+    completed one, and the newest completed run with the current settings is shown by default.
+- id: criterion:CFX-APP-csv-profile/AC-36
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a run made before a correction, then it is labelled "used earlier settings", and its findings
+    no longer appear as current.
+- id: criterion:CFX-APP-csv-profile/AC-37
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a file whose size or modified time differs from the latest run's, then the Profile tab says
+    the results may be out of date.
+- id: criterion:CFX-APP-csv-profile/AC-38
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a restart, then completed runs, their metrics and findings are as they were, and a run that
+    was in progress shows as `interrupted`.
+- id: criterion:CFX-APP-csv-profile/AC-39
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given a file with more columns than fit in one transaction's limit, when it is profiled, then
+    all its observations are saved, in transactions of at most 1,000, and a review action finishes within
+    `bus
+- id: criterion:CFX-APP-csv-profile/AC-40
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given `testdata/`, then each new file is synthetic and generated by a committed script or documented
+    as hand-written.
+- id: criterion:CFX-APP-csv-profile/AC-41
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given the installed wheel, then the journey of connecting a CSV, correcting it, running a fast
+    profile, running a full profile and opening a finding's evidence passes in Playwright from one origin,
+    wi
+- id: criterion:CFX-APP-csv-profile/AC-42
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  text: Given the threat register and the direction doc, then R3 records the rule for profiling and what
+    stays open, and an ADR records the rule and the profile-caching decision.
 - id: criterion:CFX-APP-first-slice/AC-01
   kind: criterion
   evidence:
@@ -441,6 +714,14 @@ nodes:
   kind: endpoint
   evidence:
   - apps/local-api/local_api/app.py:121
+- id: feature:CFX-APP-csv-profile
+  kind: feature
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  title: 'Profile a CSV: correct how it''s read, profile it, and see findings with evidence'
+  lifecycle: approved
+  owner: conflux-web
+  reference: false
 - id: feature:CFX-APP-first-slice
   kind: feature
   evidence:
@@ -688,6 +969,46 @@ nodes:
 - id: project
   kind: project
   evidence: []
+- id: story:CFX-APP-csv-profile/US-01
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  title: Correct how a file is read when detection got it wrong
+- id: story:CFX-APP-csv-profile/US-02
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  title: Run a fast or full profile, and cancel it
+- id: story:CFX-APP-csv-profile/US-03
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  title: Read each metric and know exactly what it was measured on
+- id: story:CFX-APP-csv-profile/US-04
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  title: See findings and check the evidence behind each one
+- id: story:CFX-APP-csv-profile/US-05
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  title: See which fields may be sensitive, without believing the list is complete
+- id: story:CFX-APP-csv-profile/US-06
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  title: See real values when I ask, without Conflux saving them
+- id: story:CFX-APP-csv-profile/US-07
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  title: Go back to earlier runs and know when results are out of date
+- id: story:CFX-APP-csv-profile/US-08
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+  title: As a developer, prove the metrics, the storage rule and the targets
 - id: story:CFX-APP-first-slice/US-01
   kind: story
   evidence:
@@ -777,6 +1098,90 @@ nodes:
   kind: technology
   evidence:
   - apps/web/package.json
+- id: ticket:CFX-APP-csv-profile-T01
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T01.md
+  title: Measure and record the rule
+  state: ready
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T02
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
+  title: Correct how a file is read
+  state: ready
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T03
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T03.md
+  title: Replace earlier column names
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T04
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
+  title: Fast profile, end to end
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T05
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
+  title: All the metrics
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T06
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T06.md
+  title: Full profile and cancel
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T07
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T07.md
+  title: Runs that can't go ahead
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T08
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
+  title: Findings with evidence
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T09
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
+  title: Possibly sensitive fields
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T10
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
+  title: Values on request
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T11
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
+  title: Earlier runs
+  state: blocked
+  external_key: null
+- id: ticket:CFX-APP-csv-profile-T12
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
+  title: Full journey and checks
+  state: blocked
+  external_key: null
 - id: ticket:CFX-APP-first-slice-T01
   kind: ticket
   evidence:
@@ -848,6 +1253,258 @@ nodes:
   state: done
   external_key: null
 edges:
+- from: criterion:CFX-APP-csv-profile/AC-01
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-02
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-03
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-04
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-05
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-06
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-07
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-08
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-09
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-10
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-11
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-12
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-13
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-14
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-15
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-16
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-17
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-18
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-19
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-20
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-21
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-22
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-23
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-24
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-25
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-26
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-27
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-28
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-29
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-30
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-31
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-32
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-33
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-34
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-35
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-36
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-37
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-38
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-39
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-40
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-41
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: criterion:CFX-APP-csv-profile/AC-42
+  rel: belongs_to
+  to: story:CFX-APP-csv-profile/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
 - from: criterion:CFX-APP-first-slice/AC-01
   rel: belongs_to
   to: story:CFX-APP-first-slice/US-01
@@ -1178,6 +1835,60 @@ edges:
   status: CONFIRMED
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-csv-profile
+  rel: has_story
+  to: story:CFX-APP-csv-profile/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: feature:CFX-APP-csv-profile
+  rel: has_story
+  to: story:CFX-APP-csv-profile/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: feature:CFX-APP-csv-profile
+  rel: has_story
+  to: story:CFX-APP-csv-profile/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: feature:CFX-APP-csv-profile
+  rel: has_story
+  to: story:CFX-APP-csv-profile/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: feature:CFX-APP-csv-profile
+  rel: has_story
+  to: story:CFX-APP-csv-profile/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: feature:CFX-APP-csv-profile
+  rel: has_story
+  to: story:CFX-APP-csv-profile/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: feature:CFX-APP-csv-profile
+  rel: has_story
+  to: story:CFX-APP-csv-profile/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: feature:CFX-APP-csv-profile
+  rel: has_story
+  to: story:CFX-APP-csv-profile/US-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
+- from: feature:CFX-APP-csv-profile
+  rel: relates_to
+  to: feature:CFX-APP-first-slice
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-csv-profile.md
 - from: feature:CFX-APP-first-slice
   rel: has_story
   to: story:CFX-APP-first-slice/US-01
@@ -2731,6 +3442,354 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/package.json
+- from: ticket:CFX-APP-csv-profile-T01
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-42
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T01.md
+- from: ticket:CFX-APP-csv-profile-T02
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
+- from: ticket:CFX-APP-csv-profile-T02
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
+- from: ticket:CFX-APP-csv-profile-T02
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
+- from: ticket:CFX-APP-csv-profile-T02
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
+- from: ticket:CFX-APP-csv-profile-T03
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T03.md
+- from: ticket:CFX-APP-csv-profile-T03
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T03.md
+- from: ticket:CFX-APP-csv-profile-T04
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
+- from: ticket:CFX-APP-csv-profile-T04
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
+- from: ticket:CFX-APP-csv-profile-T04
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
+- from: ticket:CFX-APP-csv-profile-T04
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
+- from: ticket:CFX-APP-csv-profile-T04
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-13
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
+- from: ticket:CFX-APP-csv-profile-T04
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-15
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
+- from: ticket:CFX-APP-csv-profile-T04
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-16
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
+- from: ticket:CFX-APP-csv-profile-T04
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-17
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
+- from: ticket:CFX-APP-csv-profile-T05
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
+- from: ticket:CFX-APP-csv-profile-T05
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-14
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
+- from: ticket:CFX-APP-csv-profile-T05
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-19
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
+- from: ticket:CFX-APP-csv-profile-T05
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-20
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
+- from: ticket:CFX-APP-csv-profile-T05
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-39
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
+- from: ticket:CFX-APP-csv-profile-T06
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T06.md
+- from: ticket:CFX-APP-csv-profile-T06
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T06.md
+- from: ticket:CFX-APP-csv-profile-T06
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-10
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T06.md
+- from: ticket:CFX-APP-csv-profile-T06
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-18
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T06.md
+- from: ticket:CFX-APP-csv-profile-T07
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T07.md
+- from: ticket:CFX-APP-csv-profile-T07
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T07.md
+- from: ticket:CFX-APP-csv-profile-T07
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-11
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T07.md
+- from: ticket:CFX-APP-csv-profile-T07
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-12
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T07.md
+- from: ticket:CFX-APP-csv-profile-T08
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
+- from: ticket:CFX-APP-csv-profile-T08
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-21
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
+- from: ticket:CFX-APP-csv-profile-T08
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-22
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
+- from: ticket:CFX-APP-csv-profile-T08
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-23
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
+- from: ticket:CFX-APP-csv-profile-T08
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-24
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
+- from: ticket:CFX-APP-csv-profile-T08
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-25
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
+- from: ticket:CFX-APP-csv-profile-T08
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-26
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
+- from: ticket:CFX-APP-csv-profile-T09
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
+- from: ticket:CFX-APP-csv-profile-T09
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-21
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
+- from: ticket:CFX-APP-csv-profile-T09
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-27
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
+- from: ticket:CFX-APP-csv-profile-T09
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-28
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
+- from: ticket:CFX-APP-csv-profile-T10
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
+- from: ticket:CFX-APP-csv-profile-T10
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
+- from: ticket:CFX-APP-csv-profile-T10
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-29
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
+- from: ticket:CFX-APP-csv-profile-T10
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-30
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
+- from: ticket:CFX-APP-csv-profile-T10
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-31
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
+- from: ticket:CFX-APP-csv-profile-T10
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-32
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
+- from: ticket:CFX-APP-csv-profile-T10
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-34
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
+- from: ticket:CFX-APP-csv-profile-T11
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
+- from: ticket:CFX-APP-csv-profile-T11
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-35
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
+- from: ticket:CFX-APP-csv-profile-T11
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-36
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
+- from: ticket:CFX-APP-csv-profile-T11
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-37
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
+- from: ticket:CFX-APP-csv-profile-T11
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-38
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
+- from: ticket:CFX-APP-csv-profile-T12
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
+- from: ticket:CFX-APP-csv-profile-T12
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
+- from: ticket:CFX-APP-csv-profile-T12
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T10
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
+- from: ticket:CFX-APP-csv-profile-T12
+  rel: blocked_by
+  to: ticket:CFX-APP-csv-profile-T11
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
+- from: ticket:CFX-APP-csv-profile-T12
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-33
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
+- from: ticket:CFX-APP-csv-profile-T12
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-40
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
+- from: ticket:CFX-APP-csv-profile-T12
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-41
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
 - from: ticket:CFX-APP-first-slice-T01
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-05
