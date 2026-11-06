@@ -2,7 +2,7 @@
 id: CFX-APP-csv-profile-T08
 title: "Findings with evidence"
 feature: CFX-APP-csv-profile
-feature_revision: 1
+feature_revision: 2
 stories: [US-04]
 criteria: [AC-21, AC-22, AC-23, AC-24, AC-25, AC-26]
 blocked_by: [CFX-APP-csv-profile-T06]

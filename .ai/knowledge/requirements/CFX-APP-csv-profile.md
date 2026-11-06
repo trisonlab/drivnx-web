@@ -5,10 +5,10 @@ title: "Profile a CSV: correct how it's read, profile it, and see findings with 
 summary: "Correct CSV detection, run a fast or full deterministic profile, read labelled metrics in the Profile tab, and see findings backed by evidence, with only aggregates saved."
 owner: conflux-web
 lifecycle: approved
-revision: 1
-approved_revision: 1
-approval_evidence: "user approved revision 1 in chat, 2026-11-05 ('approve revision 1, start planning')"
-updated: "2026-11-05"
+revision: 2
+approved_revision: 2
+approval_evidence: "user approved revision 2 in chat, 2026-11-06 (chose 'Revise spec first' with the AC-20 wording, on delivering T05)"
+updated: "2026-11-06"
 related: [CFX-APP-first-slice]
 status: CONFIRMED
 ---
@@ -111,7 +111,7 @@ API, following the Section 12 outline: `/api/profile-runs` to start, read status
 - AC-17 (US-03): Given a fast profile of a file with at most 100,000 rows, then its metrics are labelled as the whole file.
 - AC-18 (US-03): Given a full profile, then its masked patterns are labelled as coming from the first 100,000 rows, and its other metrics as the whole file.
 - AC-19 (US-03): Given each synthetic golden file, covering missing values, duplicates, dates, Unicode, mixed types and high cardinality, when it is profiled, then every saved metric equals its known expected value.
-- AC-20 (US-03): Given Unicode text, then letters in any script become `A`, digits in any script become `9`, and other characters stay. Given a value longer than 40 characters, then its pattern is cut and marked as cut.
+- AC-20 (US-03): Given Unicode text, then letters in any script become `A`, together with any combining marks after them, and digits and other numbers in any script, such as `½` and `Ⅷ`, become `9`. Punctuation, symbols, spaces and a mark with no letter before it stay. A character too new for DuckDB's Unicode tables becomes `A`. Given a value longer than 40 characters, then its pattern is cut and marked as cut.
 - AC-21 (US-04): Given a run that meets a finding's condition, then a finding of that kind appears for each column or dataset concerned: possible identifier, significant missing values, single-value column, values that don't fit the type, or possibly sensitive field. A run that doesn't meet a condition creates no finding of that kind.
 - AC-22 (US-04): Given a full profile of a file with fully duplicated rows, then a duplicate-rows finding appears with the count. Given a fast profile, then no duplicate-rows finding appears, and the screen says the check needs a full profile.
 - AC-23 (US-04): Given a finding, then it shows what was observed, what's inferred, why it matters, the recommended action, and its Inferred state, and its evidence link opens the cited metric with its run.
@@ -174,3 +174,4 @@ None blocks approval.
 
 ## Revision History
 - Revision 1: Initial draft from the user's decisions on 2026-11-05. Approved by the user in chat, 2026-11-05.
+- Revision 2: AC-20 matches decision 1 of ADR 0004, found while building T05. No change to the behaviour agreed in T05's plan. Approved by the user in chat, 2026-11-06.

@@ -2,7 +2,7 @@
 id: CFX-APP-csv-profile-T09
 title: "Possibly sensitive fields"
 feature: CFX-APP-csv-profile
-feature_revision: 1
+feature_revision: 2
 stories: [US-04, US-05]
 criteria: [AC-21, AC-27, AC-28]
 blocked_by: [CFX-APP-csv-profile-T08]

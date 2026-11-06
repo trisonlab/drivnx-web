@@ -2,7 +2,7 @@
 id: CFX-APP-csv-profile-T06
 title: "Full profile and cancel"
 feature: CFX-APP-csv-profile
-feature_revision: 1
+feature_revision: 2
 stories: [US-02, US-03]
 criteria: [AC-08, AC-10, AC-18]
 blocked_by: [CFX-APP-csv-profile-T05]

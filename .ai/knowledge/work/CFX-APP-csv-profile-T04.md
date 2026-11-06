@@ -2,7 +2,7 @@
 id: CFX-APP-csv-profile-T04
 title: "Fast profile, end to end"
 feature: CFX-APP-csv-profile
-feature_revision: 1
+feature_revision: 2
 stories: [US-02, US-03]
 criteria: [AC-07, AC-09, AC-13, AC-15, AC-16, AC-17]
 blocked_by: [CFX-APP-csv-profile-T01, CFX-APP-csv-profile-T02]

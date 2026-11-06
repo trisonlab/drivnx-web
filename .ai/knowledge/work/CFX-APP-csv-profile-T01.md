@@ -2,7 +2,7 @@
 id: CFX-APP-csv-profile-T01
 title: "Measure and record the rule"
 feature: CFX-APP-csv-profile
-feature_revision: 1
+feature_revision: 2
 stories: [US-08]
 criteria: [AC-42]
 blocked_by: []
