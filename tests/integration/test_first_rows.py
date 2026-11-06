@@ -18,7 +18,7 @@ def measure(
     spill = tmp_path / "duckdb-tmp"
     spill.mkdir(exist_ok=True)
     with duckdb_connection(spill) as connection:
-        columns = load_rows(
+        names = load_rows(
             connection,
             path,
             encoding,
@@ -27,8 +27,16 @@ def measure(
             chosen_skip,
             "first_rows",
             FIRST_ROWS + 1,
-        )
-        return columns, measure_first_rows(connection, "first_rows", len(columns))
+        ).names
+        return names, measure_first_rows(connection, "first_rows", ["string"] * len(names), {})
+
+
+def missing_of(measured: FirstRows) -> tuple[int, ...]:
+    return tuple(column.missing for column in measured.columns)
+
+
+def summary(measured: FirstRows) -> tuple[int, bool, tuple[int, ...]]:
+    return measured.rows_read, measured.whole_file, missing_of(measured)
 
 
 def test_a_small_file_is_read_as_the_whole_file(tmp_path: Path) -> None:
@@ -86,7 +94,7 @@ def test_empty_and_whitespace_only_cells_are_missing_in_each_column(
 
     _, measured = measure(path, tmp_path)
 
-    assert measured.missing == (0, 5, 1)
+    assert missing_of(measured) == (0, 5, 1)
 
 
 def test_a_missing_value_after_the_first_100000_rows_is_not_counted(
@@ -99,7 +107,7 @@ def test_a_missing_value_after_the_first_100000_rows_is_not_counted(
 
     _, measured = measure(path, tmp_path)
 
-    assert measured.missing == (0, 0)
+    assert missing_of(measured) == (0, 0)
 
 
 def test_column_names_can_hold_anything(tmp_path: Path) -> None:
@@ -110,7 +118,7 @@ def test_column_names_can_hold_anything(tmp_path: Path) -> None:
     columns, measured = measure(path, tmp_path)
 
     assert columns == ['a"b', 'x") FROM first_rows; DROP TABLE first_rows; --']
-    assert measured.missing == (0, 1)
+    assert missing_of(measured) == (0, 1)
 
 
 def test_duplicate_names_are_measured_as_separate_columns(tmp_path: Path) -> None:
@@ -121,7 +129,7 @@ def test_duplicate_names_are_measured_as_separate_columns(tmp_path: Path) -> Non
     columns, measured = measure(path, tmp_path)
 
     assert len(set(columns)) == 3
-    assert measured.missing == (1, 2, 0)
+    assert missing_of(measured) == (1, 2, 0)
 
 
 def test_a_header_with_no_rows_has_nothing_missing(tmp_path: Path) -> None:
@@ -131,7 +139,7 @@ def test_a_header_with_no_rows_has_nothing_missing(tmp_path: Path) -> None:
 
     _, measured = measure(path, tmp_path)
 
-    assert measured == FirstRows(0, True, (0, 0))
+    assert summary(measured) == (0, True, (0, 0))
 
 
 def test_lines_the_user_chose_to_skip_are_not_measured(tmp_path: Path) -> None:
@@ -142,7 +150,7 @@ def test_lines_the_user_chose_to_skip_are_not_measured(tmp_path: Path) -> None:
     columns, measured = measure(path, tmp_path, chosen_skip=1)
 
     assert columns == ["id", "name"]
-    assert measured == FirstRows(2, True, (0, 1))
+    assert summary(measured) == (2, True, (0, 1))
 
 
 def test_a_broken_row_after_the_first_rows_does_not_stop_the_read(
@@ -156,7 +164,7 @@ def test_a_broken_row_after_the_first_rows_does_not_stop_the_read(
     columns, measured = measure(path, tmp_path)
 
     assert columns == ["id", "name"]
-    assert measured == FirstRows(100_000, False, (0, 0))
+    assert summary(measured) == (100_000, False, (0, 0))
 
 
 @pytest.mark.parametrize("name", ["rowid", "ROWID", "RowId"])
@@ -170,7 +178,7 @@ def test_a_column_can_share_a_name_with_duckdbs_own_row_number(
     columns, measured = measure(path, tmp_path)
 
     assert columns == [name, "city"]
-    assert measured == FirstRows(4, True, (0, 1))
+    assert summary(measured) == (4, True, (0, 1))
 
 
 def test_a_broken_row_just_after_the_first_rows_fails_the_read(tmp_path: Path) -> None:
@@ -182,3 +190,19 @@ def test_a_broken_row_just_after_the_first_rows_fails_the_read(tmp_path: Path) -
 
     with pytest.raises(CsvError):
         measure(path, tmp_path)
+
+
+def test_a_surplus_column_can_share_a_name_with_duckdbs_own_row_number(
+    tmp_path: Path,
+) -> None:
+    # CFX-APP-csv-profile/AC-14: only the first column is measured, and the name after it is harmless.
+    path = tmp_path / "export.csv"
+    path.write_text("id,rowid\n1,x\n,y\n3,z\n4,w\n")
+    spill = tmp_path / "duckdb-tmp"
+    spill.mkdir()
+
+    with duckdb_connection(spill) as connection:
+        load_rows(connection, path, "UTF-8", ",", True, None, "first_rows", FIRST_ROWS + 1)
+        measured = measure_first_rows(connection, "first_rows", ["string"], {})
+
+    assert missing_of(measured) == (1,)

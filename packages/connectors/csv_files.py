@@ -71,9 +71,16 @@ READ_PAGE = f"""
     FROM {READ_CSV}
     LIMIT ? OFFSET ?
 """
+DESCRIBE_ROWS = f"DESCRIBE SELECT * FROM {READ_CSV}"
+SNIFFED_FORMATS = """
+    SELECT DateFormat, TimestampFormat
+    FROM sniff_csv(
+        ?, encoding = ?, delim = ?, header = ?, compression = 'none', comment = '', {options}
+    )
+"""
 LOAD_ROWS = f"""
     CREATE OR REPLACE TEMP TABLE {{table}} AS
-    SELECT * FROM {READ_CSV}
+    SELECT * FROM {READ_CSV} AS loaded({{positions}})
     LIMIT ?
 """
 NO_QUOTE_SEEN = "(empty)"
@@ -423,6 +430,42 @@ def read_page(
     raise CsvError(ROW_NOT_READABLE)
 
 
+def _uneven_options(names: list[str], skip: int) -> str:
+    """How to read lines above the table that have fewer fields than the rows below them.
+
+    DuckDB's sniffer can't read these, even with padding, so it's turned off and the columns are
+    given. It then refuses a row with too many fields instead of dropping any. Column names from
+    the file stay out of the SQL.
+    """
+    columns = ", ".join(f"'{name}': 'VARCHAR'" for name in names)
+    return (
+        f"skip = {skip:d}, auto_detect = false, columns = {{{columns}}}, "
+        f"{STANDARD_QUOTE}, {PADDED}"
+    )
+
+
+def _uneven_table(
+    connection: duckdb.DuckDBPyConnection,
+    file_settings: list[str | bool],
+    chosen_skip: int,
+) -> tuple[list[str], list[str | bool], list[str], int]:
+    """The table's names, its settings, its generated names and how many lines come before its rows.
+
+    A header has to be read here too, as DuckDB would throw that row away and keep the names it was
+    given.
+    """
+    readable, duckdb_encoding, delimiter, has_header = file_settings
+    plain = [readable, duckdb_encoding, delimiter, False]
+    generated = [f"column{position}" for position in range(_width(connection, plain[:3]))]
+    if not has_header:
+        return generated, plain, generated, chosen_skip
+    options = _uneven_options(generated, chosen_skip)
+    header = connection.execute(READ_PAGE.format(options=options), [*plain, 1, 0]).fetchall()
+    if not header:
+        raise CsvError(ROW_NOT_READABLE)
+    return _names_from_row(header[0]), plain, generated, chosen_skip + 1
+
+
 def _read_uneven_page(
     connection: duckdb.DuckDBPyConnection,
     file_settings: list[str | bool],
@@ -430,41 +473,18 @@ def _read_uneven_page(
     offset: int,
     limit: int,
 ) -> CsvPage:
-    """Read lines above the table that have fewer fields than the rows below them.
-
-    DuckDB's sniffer can't read these, even with padding, so it's turned off and the columns are
-    given. It then refuses a row with too many fields instead of dropping any. A header has to be
-    read here too, as DuckDB would throw that row away and keep the names it was given. Column names
-    from the file stay out of the SQL.
-    """
-    readable, duckdb_encoding, delimiter, has_header = file_settings
-    plain = [readable, duckdb_encoding, delimiter, False]
     try:
-        generated = [
-            f"column{position}" for position in range(_width(connection, plain[:3]))
-        ]
-        columns = ", ".join(f"'{name}': 'VARCHAR'" for name in generated)
-
-        def read(skip: int, how_many: int, start: int) -> list[tuple[str | None, ...]]:
-            options = (
-                f"skip = {skip:d}, auto_detect = false, columns = {{{columns}}}, "
-                f"{STANDARD_QUOTE}, {PADDED}"
-            )
-            return connection.execute(
-                READ_PAGE.format(options=options),
-                [*plain, how_many, start],
-            ).fetchall()
-
-        if not has_header:
-            return CsvPage(generated, read(chosen_skip, limit, offset), chosen_skip)
-        header = read(chosen_skip, 1, 0)
-        if not header:
-            raise CsvError(ROW_NOT_READABLE)
-        names = _names_from_row(header[0])
-        return CsvPage(names, read(chosen_skip + 1, limit, offset), chosen_skip)
+        names, plain, generated, first_row = _uneven_table(
+            connection, file_settings, chosen_skip
+        )
+        rows = connection.execute(
+            READ_PAGE.format(options=_uneven_options(generated, first_row)),
+            [*plain, limit, offset],
+        ).fetchall()
     except duckdb.Error:
         # DuckDB's message quotes the row, so it must not travel any further.
         raise CsvError(ROW_NOT_READABLE) from None
+    return CsvPage(names, rows, chosen_skip)
 
 
 def _width(
@@ -549,6 +569,32 @@ def read_columns(
     )
 
 
+@dataclass(frozen=True)
+class LoadedRows:
+    names: list[str]
+    # By normalised type: how DuckDB sniffed that the file writes it, if it does.
+    formats: dict[str, str]
+
+
+def _sniffed_formats(
+    connection: duckdb.DuckDBPyConnection,
+    file_settings: list[str | bool],
+    options: str,
+    table: str,
+) -> dict[str, str]:
+    """Takes the options that read the rows, as the sniff can fail on a file they read."""
+    # DuckDB can't sniff no rows, and with no values to fit it needs no format.
+    if connection.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone() is None:
+        return {}
+    found = connection.execute(
+        SNIFFED_FORMATS.format(options=options), file_settings
+    ).fetchone()
+    assert found is not None
+    date_format, timestamp_format = found
+    formats = {"date": date_format, "timestamp": timestamp_format}
+    return {kind: written for kind, written in formats.items() if written}
+
+
 def load_rows(
     connection: duckdb.DuckDBPyConnection,
     path: Path,
@@ -558,10 +604,13 @@ def load_rows(
     chosen_skip: int | None,
     table: str,
     limit: int,
-) -> list[str]:
+) -> LoadedRows:
     """Copy the file's first rows into a temp table, read as the preview reads them, as text.
 
-    Returns the table's column names, or raises `CsvError` if no way of reading manages. A row well
+    The table's columns are named by position, `c0`, `c1` and so on, so a name from the file never
+    reaches any SQL, and one called `rowid` can't hide DuckDB's own. Returns the file's own names
+    in the same order and the date and time formats DuckDB sniffed, or raises `CsvError` if no way
+    of reading manages. A row well
     after `limit` isn't read, so it can't get in the way. DuckDB parses in chunks, so one just after
     it still can, and that fails the read rather than leaving the row out.
     """
@@ -576,13 +625,40 @@ def load_rows(
         ways_to_read, _ = _ways_to_read(connection, file_settings, chosen_skip)
         for options in ways_to_read:
             try:
+                names = [
+                    row[0]
+                    for row in connection.execute(
+                        DESCRIBE_ROWS.format(options=options), file_settings
+                    ).fetchall()
+                ]
+                positions = ", ".join(f"c{position}" for position in range(len(names)))
                 connection.execute(
-                    LOAD_ROWS.format(table=table, options=options),
+                    LOAD_ROWS.format(table=table, options=options, positions=positions),
                     [*file_settings, limit],
                 )
+                # In here, as carrying on without the formats would report every value in a date
+                # column written some other way as not fitting.
+                formats = _sniffed_formats(connection, file_settings, options, table)
             except duckdb.Error:
                 # DuckDB's message quotes the row, so it must not travel any further.
                 continue
-            described = connection.execute(f"SELECT * FROM {table} LIMIT 0").description
-            return [column[0] for column in described]
-    raise CsvError(ROW_NOT_READABLE)
+            return LoadedRows(names, formats)
+        if chosen_skip is None:
+            raise CsvError(ROW_NOT_READABLE)
+        try:
+            names, plain, generated, first_row = _uneven_table(
+                connection, file_settings, chosen_skip
+            )
+            positions = ", ".join(f"c{position}" for position in range(len(names)))
+            connection.execute(
+                LOAD_ROWS.format(
+                    table=table,
+                    options=_uneven_options(generated, first_row),
+                    positions=positions,
+                ),
+                [*plain, limit],
+            )
+        except duckdb.Error:
+            # DuckDB's message quotes the row, so it must not travel any further.
+            raise CsvError(ROW_NOT_READABLE) from None
+        return LoadedRows(names, {})

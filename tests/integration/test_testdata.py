@@ -32,6 +32,19 @@ def test_the_generator_makes_every_csv_exactly(tmp_path: Path) -> None:
     assert errors == []
 
 
+def test_the_generator_makes_every_golden_file_exactly(tmp_path: Path) -> None:
+    # CFX-APP-csv-profile/AC-40: golden files are synthetic and can be regenerated.
+    runpy.run_path(str(GENERATOR))["write_golden"](tmp_path)
+
+    committed = TESTDATA / "golden"
+    assert _files_in(tmp_path) == _files_in(committed)
+    _, different, errors = filecmp.cmpfiles(
+        tmp_path, committed, _files_in(tmp_path), shallow=False
+    )
+    assert different == []
+    assert errors == []
+
+
 def test_git_leaves_the_csvs_line_endings_alone() -> None:
     # A checkout with core.autocrlf on, usual on Windows, would change 24 of these files' bytes.
     listing = subprocess.run(
@@ -48,7 +61,9 @@ def test_git_leaves_the_csvs_line_endings_alone() -> None:
 def test_nothing_else_is_in_testdata() -> None:
     # CFX-APP-first-slice/AC-54: nothing is hand-written today, so anything new has to say so here.
     outside_the_csvs = {
-        name for name in _files_in(TESTDATA) if not name.startswith("csv/")
+        name
+        for name in _files_in(TESTDATA)
+        if not name.startswith(("csv/", "golden/"))
     }
 
     assert outside_the_csvs == {"generate_csv.py"}

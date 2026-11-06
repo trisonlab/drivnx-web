@@ -189,6 +189,8 @@ button:disabled {
 }
 
 .shell-centre {
+  /* A grid column won't otherwise shrink below its content, and the page would scroll, not the table. */
+  min-width: 0;
   grid-area: centre;
   padding: 1rem;
 }
@@ -395,4 +397,20 @@ button:disabled {
   caption-side: top;
   padding-bottom: 0.5rem;
   text-align: left;
+}
+
+/* Many columns: a word keeps its full width, and the table scrolls rather than splitting it. */
+.profile-tab .column-table th,
+.profile-tab .column-table td {
+  overflow-wrap: break-word;
+}
+
+.masked-patterns {
+  margin: 0.25rem 0 0;
+  padding-left: 1rem;
+}
+
+/* A pattern's spaces are part of it, and a browser would otherwise collapse them. */
+.masked-patterns code {
+  white-space: pre-wrap;
 }

@@ -17,6 +17,7 @@ from artifacts.profiles import (
     finish_profile_run,
     mark_interrupted_runs,
     read_observations,
+    read_profile_run,
     start_profile_run,
 )
 from artifacts.provenance import NO_DETAILS, EventDetails
@@ -47,6 +48,7 @@ from artifacts.sources import StoredField, StoredSource, add_csv_source, read_da
 from artifacts.store import WorkspaceBusy
 from artifacts.workspace import BUSY_TIMEOUT_MILLISECONDS, Workspace, open_workspace
 from domain.trust import Action, Actor, ItemKind, Rejected, TrustState
+from local_api import profile_jobs
 from sqlalchemy import event, text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
@@ -1720,3 +1722,62 @@ def test_a_finding_or_observation_cannot_be_flagged(catalogue: Catalogue) -> Non
         )
 
     assert catalogue.everything() == before
+
+
+def test_a_wide_file_saves_in_short_transactions_and_reviews_finish_during_the_run(
+    catalogue: Catalogue, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-csv-profile/AC-39, with the real job. 400 columns of 9 metrics each, plus the row
+    # count, don't fit in one transaction's limit of 1,000.
+    columns = 400
+    path = tmp_path / "wide.csv"
+    names = [f"n{number}" for number in range(columns)]
+    path.write_text(",".join(names) + "\n" + ",".join("abc" for _ in names) + "\n")
+    source = StoredSource(
+        id="wide",
+        path=path,
+        delimiter=",",
+        encoding="UTF-8",
+        has_header=True,
+        size_bytes=path.stat().st_size,
+        modified_at="2024-01-01T00:00:00+00:00",
+        fields=tuple(StoredField(name, "VARCHAR", "string") for name in names),
+    )
+    add_csv_source(catalogue.engine, source)
+    refs = [catalogue.entry() for _ in range(15)]
+    batches: list[int] = []
+    first_saved = threading.Event()
+    save = profile_jobs.add_observations
+
+    def counting_save(engine, actor, run, batch, *rest):
+        batches.append(len(batch))
+        save(engine, actor, run, batch, *rest)
+        first_saved.set()
+
+    monkeypatch.setattr(profile_jobs, "add_observations", counting_save)
+    run = profile_jobs.start_fast_profile(
+        catalogue.workspace, source, "UTF-8", path.stat(), source.modified_at
+    )
+    assert first_saved.wait(60)
+
+    durations = []
+    still_running = []
+    for ref in refs:
+        started = time.monotonic()
+        accept(catalogue.engine, Actor.USER, ref)
+        durations.append(time.monotonic() - started)
+        still_running.append(read_profile_run(catalogue.engine, run).status == "running")
+
+    deadline = time.monotonic() + 60
+    while read_profile_run(catalogue.engine, run).status == "running":
+        assert time.monotonic() < deadline
+        time.sleep(0.01)
+    assert read_profile_run(catalogue.engine, run).status == "completed"
+    assert len(read_observations(catalogue.engine, run)) == 1 + columns * 9
+    assert len(batches) > 1
+    assert max(batches) <= MAX_OBSERVATIONS_PER_TRANSACTION
+    assert still_running[0], "the run had already ended, so this proves nothing about reviews"
+    assert max(durations) < BUSY_TIMEOUT_MILLISECONDS / 1000
+    assert all(
+        read_item(catalogue.engine, ref).state is TrustState.CONFIRMED for ref in refs
+    )

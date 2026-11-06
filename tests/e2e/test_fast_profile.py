@@ -30,13 +30,29 @@ def test_a_file_under_100000_rows_is_labelled_as_the_whole_file(app: Page) -> No
     # CFX-APP-csv-profile/AC-07, CFX-APP-csv-profile/AC-15 and CFX-APP-csv-profile/AC-17
     panel = run_a_fast_profile(app, CSV_DIR / "comma_utf8.csv")
 
-    rows = panel.get_by_role("row")
-    expect(rows.filter(has_text="Rows read")).to_contain_text("whole file")
-    expect(rows.filter(has_text="Rows read")).to_contain_text("Exact")
-    expect(panel.get_by_role("table")).to_contain_text("Missing values")
+    city = panel.get_by_role("row").filter(has_text="city")
+    expect(city).to_contain_text("whole file")
+    expect(city).to_contain_text("Exact")
+    expect(panel.get_by_role("table")).to_contain_text("Missing")
     expect(panel.get_by_role("table")).not_to_contain_text("first 100,000")
     expect(panel.get_by_role("table")).to_contain_text("Run ")
     expect(app.get_by_text("Profile status: Completed")).to_be_visible()
+
+
+def test_patterns_that_differ_only_in_spaces_look_different(
+    app: Page, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-14: found reviewing T05. They're separate patterns, and a browser
+    # collapses spaces unless told not to, which would show the same pattern twice.
+    path = tmp_path / "spaces.csv"
+    path.write_text("id,value\n1, 8\n2,9 \n3,x 7\n")
+
+    panel = run_a_fast_profile(app, path)
+
+    row = panel.get_by_role("row").filter(has_text="value")
+    row.get_by_text("3 patterns").click()
+    assert sorted(row.locator("code").all_inner_texts()) == [" 9", "9 ", "A 9"]
+    expect(row.get_by_role("listitem").first).to_contain_text("× 1")
 
 
 def test_a_file_over_100000_rows_is_labelled_as_its_first_rows(
@@ -50,9 +66,9 @@ def test_a_file_over_100000_rows_is_labelled_as_its_first_rows(
 
     panel = run_a_fast_profile(app, path)
 
-    rows_read = panel.get_by_role("row").filter(has_text="Rows read")
-    expect(rows_read).to_contain_text("100,000")
-    expect(rows_read).to_contain_text("first 100,000 rows, not random")
+    name = panel.get_by_role("row").filter(has_text="name")
+    expect(name).to_contain_text("100,000")
+    expect(name).to_contain_text("first 100,000 rows, not random")
     expect(panel).not_to_contain_text("whole file")
     expect(panel).not_to_contain_text("150,000")
     expect(app.get_by_text("Profile status: Completed")).to_be_visible()

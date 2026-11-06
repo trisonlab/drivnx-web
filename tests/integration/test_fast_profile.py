@@ -44,7 +44,7 @@ def finished(client: TestClient, run: dict) -> dict:
     raise AssertionError("The run didn't end.")
 
 
-def metric_values(run: dict) -> dict[tuple[str | None, str], int]:
+def metric_values(run: dict) -> dict[tuple[str | None, str], int | float | list]:
     return {
         (metric["column"], metric["metric"]): metric["value"] for metric in run["metrics"]
     }
@@ -78,11 +78,10 @@ def test_a_fast_profile_runs_in_the_background_and_shows_its_results(
     assert run["status"] == "completed"
     assert run["source_id"] == source["id"]
     assert run["mode"] == "fast"
-    assert metric_values(run) == {
-        (None, "rows_read"): 3,
-        ("id", "missing_count"): 0,
-        ("name", "missing_count"): 1,
-    }
+    values = metric_values(run)
+    assert values[(None, "rows_read")] == 3
+    assert values[("id", "missing_count")] == 0
+    assert values[("name", "missing_count")] == 1
 
 
 def test_a_second_run_is_refused_while_one_is_in_progress(
@@ -347,16 +346,17 @@ def test_a_failed_run_does_not_stop_the_next_one(
 def test_a_file_too_wide_for_one_transaction_saves_every_metric(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # ADR 0002 point 3: at most 1,000 observations a transaction.
+    # ADR 0002 point 3: at most 1,000 observations a transaction, and each column has several.
     path = tmp_path / "wide.csv"
-    names = ",".join(f"c{number}" for number in range(1_500))
-    values = ",".join("1" for _ in range(1_500))
+    names = ",".join(f"c{number}" for number in range(200))
+    values = ",".join("1" for _ in range(200))
     path.write_text(f"{names}\n{values}\n")
 
     run = finished(client, start(client, connect(client, path)))
 
     assert run["status"] == "completed"
-    assert len(run["metrics"]) == 1_501
+    # Every column's 9 metrics, as its one value has lengths, percentages and a pattern.
+    assert len(run["metrics"]) == 1 + 200 * 9
 
 
 def test_a_job_spills_only_inside_the_workspace_and_stays_within_its_memory_limit(
@@ -482,12 +482,9 @@ def test_a_field_past_the_saved_columns_gets_no_metric(client: TestClient) -> No
     run = finished(client, start(client, source))
 
     assert run["status"] == "completed"
-    assert metric_values(run) == {
-        (None, "rows_read"): 9,
-        ("id", "missing_count"): 0,
-        ("name", "missing_count"): 0,
-        ("amount", "missing_count"): 0,
-    }
+    values = metric_values(run)
+    assert values[(None, "rows_read")] == 9
+    assert {column for column, _ in values} == {None, "id", "name", "amount"}
 
 
 def test_a_wider_row_in_a_file_with_no_header_is_measured_by_position(
@@ -509,7 +506,7 @@ def test_a_wider_row_in_a_file_with_no_header_is_measured_by_position(
     assert values[(None, "rows_read")] == 12
     assert values[("column3", "missing_count")] == 1
     assert values[("column8", "missing_count")] == 0
-    assert len(run["metrics"]) == 10
+    assert {column for column, _ in values} == {None, *(f"column{n}" for n in range(9))}
 
 
 def test_a_file_with_no_header_that_lost_columns_fails(
@@ -562,3 +559,372 @@ def test_a_run_records_what_it_read_and_how(
         "size_bytes": 49,
         "modified_at": corrected.json()["modified_at"],
     }
+
+
+def test_each_column_gets_its_lengths_distinct_count_and_percentages(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-14. Worked by hand: 4 rows, and `city` has 1 missing and 3 values of
+    # which 2 differ, with lengths 3, 3 and 5.
+    path = tmp_path / "people.csv"
+    path.write_text("id,city\n1,Rio\n2,Rio\n3,\n4,Paris\n")
+
+    run = finished(client, start(client, connect(client, path)))
+
+    values = metric_values(run)
+    assert values[("city", "missing_count")] == 1
+    assert values[("city", "missing_percent")] == 25.0
+    assert values[("city", "distinct_count")] == 2
+    assert values[("city", "distinct_percent")] == 66.67
+    assert values[("city", "shortest_length")] == 3
+    assert values[("city", "longest_length")] == 5
+    assert values[("city", "average_length")] == 3.67
+
+
+def test_a_header_with_no_rows_saves_nothing_it_would_have_to_divide_by(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-14
+    path = tmp_path / "header_only.csv"
+    path.write_text("id,name\n")
+
+    run = finished(client, start(client, connect(client, path)))
+
+    assert run["status"] == "completed"
+    values = metric_values(run)
+    assert values[(None, "rows_read")] == 0
+    assert {metric for column, metric in values if column == "name"} == {
+        "missing_count",
+        "distinct_count",
+        "not_fitting_count",
+    }
+
+
+def test_a_completely_empty_column_has_no_lengths_or_distinct_percentage(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-14: there are rows, so its missing percentage still means something.
+    path = tmp_path / "empty_column.csv"
+    path.write_text("id,blank\n1,\n2,   \n3,\n4,\n")
+
+    run = finished(client, start(client, connect(client, path)))
+
+    values = metric_values(run)
+    assert values[("blank", "missing_count")] == 4
+    assert values[("blank", "missing_percent")] == 100.0
+    assert {metric for column, metric in values if column == "blank"} == {
+        "missing_count",
+        "missing_percent",
+        "distinct_count",
+        "not_fitting_count",
+    }
+    assert values[("blank", "distinct_count")] == 0
+
+
+def test_columns_with_the_same_name_are_measured_separately(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-14
+    path = tmp_path / "duplicates.csv"
+    path.write_text("a,a\nxx,yyyy\nzz,yyyy\nww,yyyy\n")
+
+    source = connect(client, path)
+    run = finished(client, start(client, source))
+
+    first, second = [column["name"] for column in source["columns"]]
+    values = metric_values(run)
+    assert values[(first, "distinct_count")] == 3
+    assert values[(first, "longest_length")] == 2
+    assert values[(second, "distinct_count")] == 1
+    assert values[(second, "longest_length")] == 4
+
+
+@pytest.mark.parametrize(
+    ("good", "late", "not_fitting"),
+    [
+        ("7", ["1.5", "abc", "12", ""], 2),
+        ("1.5", ["2", "abc"], 1),
+        ("true", ["false", "maybe"], 1),
+        ("2024-03-05", ["2024-02-30", "2024-02-28", "soon"], 2),
+        ("03/25/2024", ["12/31/2024", "31/12/2024"], 1),
+        ("25/03/2024", ["31/12/2024", "12/31/2024"], 1),
+        ("2024-03-05 10:00:00", ["2024-03-05 25:00:00", "2024-03-06 11:00:00"], 1),
+        ("25/03/2024 10:00:00", ["31/12/2024 23:59:00", "12/31/2024 10:00:00"], 1),
+        ("10:00:00", ["25:00:00", "11:30:00"], 1),
+        ("abc", ["1", "\N{GRINNING FACE}"], 0),
+    ],
+    ids=[
+        "integer",
+        "number",
+        "boolean",
+        "date",
+        "us_date",
+        "eu_date",
+        "timestamp",
+        "eu_timestamp",
+        "time",
+        "text",
+    ],
+)
+def test_values_past_the_detection_sample_are_checked_against_the_type(
+    client: TestClient, tmp_path: Path, good: str, late: list[str], not_fitting: int
+) -> None:
+    # CFX-APP-csv-profile/AC-14: DuckDB detects a type from about the first 20,000 rows.
+    path = tmp_path / "typed.csv"
+    rows = [f"{good},1\n"] * 20_600 + [f"{value},1\n" for value in late]
+    path.write_text("value,other\n" + "".join(rows), encoding="utf-8")
+    source = connect(client, path)
+
+    run = finished(client, start(client, source))
+
+    assert run["status"] == "completed"
+    assert metric_values(run)[("value", "not_fitting_count")] == not_fitting
+
+
+def test_every_value_in_a_date_format_other_than_iso_fits(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-14: a plain cast reports each of these as not fitting.
+    path = tmp_path / "dates.csv"
+    path.write_text("joined,x\n03/25/2024,1\n03/26/2024,2\n12/27/2024,3\n")
+    source = connect(client, path)
+    assert source["columns"][0]["physical_type"] == "DATE"
+
+    run = finished(client, start(client, source))
+
+    assert metric_values(run)[("joined", "not_fitting_count")] == 0
+
+
+@pytest.mark.parametrize(
+    ("contents", "physical_type", "not_fitting"),
+    [
+        pytest.param(
+            b"joined,x\r\n03/25/2024,1\n03/26/2024,2\r\n12/27/2024,3\n",
+            "DATE",
+            0,
+            id="mixed line endings",
+        ),
+        pytest.param(
+            b"joined,x\r\n25/03/2024 10:00:00,1\n26/03/2024 11:00:00,2\r\n27/12/2024 12:00:00,3\n",
+            "TIMESTAMP",
+            0,
+            id="timestamps with mixed line endings",
+        ),
+        pytest.param(
+            "joined,x\r\n03/25/2024,1\n03/26/2024,2\r\n12/27/2024,3\n".encode("utf-16"),
+            "DATE",
+            0,
+            id="decoded in memory with mixed line endings",
+        ),
+        pytest.param(
+            b"joined,x\n03/25/2024,1\n03/26/2024,2\n12/27/2024\n",
+            "DATE",
+            0,
+            id="short row",
+        ),
+        pytest.param(
+            b"joined,x\n25/03/2024 10:00:00,1\n26/03/2024 11:00:00,2\n27/12/2024 12:00:00\n",
+            "TIMESTAMP",
+            0,
+            id="timestamps with a short row",
+        ),
+        # Past the sample, so the column is still detected as a date. It must still count.
+        pytest.param(
+            b"joined,x\r\n"
+            + b"03/25/2024,1\n03/26/2024,2\r\n" * 15_000
+            + b"not a date,3\n",
+            "DATE",
+            1,
+            id="a value that really doesn't fit",
+        ),
+    ],
+)
+def test_a_format_other_than_iso_fits_however_the_file_had_to_be_read(
+    client: TestClient,
+    tmp_path: Path,
+    contents: bytes,
+    physical_type: str,
+    not_fitting: int,
+) -> None:
+    # CFX-APP-csv-profile/AC-14: found verifying T05. Detecting the format strictly failed on these
+    # files, which left a plain cast to report every value as not fitting.
+    path = tmp_path / "dates.csv"
+    path.write_bytes(contents)
+    source = connect(client, path)
+    assert source["columns"][0]["physical_type"] == physical_type
+
+    run = finished(client, start(client, source))
+
+    assert run["status"] == "completed"
+    assert metric_values(run)[("joined", "not_fitting_count")] == not_fitting
+
+
+@pytest.mark.parametrize(
+    ("contents", "column", "physical_type"),
+    [
+        pytest.param(
+            "id,a,b\n1,2024-03-25,2024/03/25\n2,2024-03-26,2024/03/26\n3,2024-03-27,2024/03/27\n",
+            "b",
+            "DATE",
+            id="dates",
+        ),
+        pytest.param(
+            "id,local,utc\n"
+            "1,25/03/2024 10:00:00,2024-03-25 09:00:00\n"
+            "2,26/03/2024 10:00:00,2024-03-26 09:00:00\n"
+            "3,27/03/2024 10:00:00,2024-03-27 09:00:00\n",
+            "utc",
+            "TIMESTAMP WITH TIME ZONE",
+            id="timestamps",
+        ),
+    ],
+)
+def test_a_column_in_another_format_of_its_type_fits(
+    client: TestClient, tmp_path: Path, contents: str, column: str, physical_type: str
+) -> None:
+    # CFX-APP-csv-profile/AC-14: found reviewing T05. DuckDB detects one format per type, and still
+    # types a second column that its plain cast can read.
+    path = tmp_path / "formats.csv"
+    path.write_text(contents)
+    source = connect(client, path)
+    assert source["columns"][2]["physical_type"] == physical_type
+
+    run = finished(client, start(client, source))
+
+    assert metric_values(run)[(column, "not_fitting_count")] == 0
+
+
+@pytest.mark.parametrize(
+    ("values", "physical_type"),
+    [
+        (["-9345230074912938", "-9253028069769886", "-9066624320668406"], "BIGINT"),
+        (["65573643442266533278", "65573643442266533279"], "HUGEINT"),
+        (["170141183460469231731687303715884105727", "5"], "HUGEINT"),
+    ],
+    ids=["large_negative", "above_2_to_the_64", "largest_hugeint"],
+)
+def test_a_large_integer_fits_an_integer_column(
+    client: TestClient, tmp_path: Path, values: list[str], physical_type: str
+) -> None:
+    # CFX-APP-csv-profile/AC-14: found reviewing T05. Converted two ways, the same whole number can
+    # round to two different doubles.
+    path = tmp_path / "integers.csv"
+    path.write_text("id,big\n" + "".join(f"{row},{value}\n" for row, value in enumerate(values)))
+    source = connect(client, path)
+    assert source["columns"][1]["physical_type"] == physical_type
+
+    run = finished(client, start(client, source))
+
+    assert metric_values(run)[("big", "not_fitting_count")] == 0
+
+
+def test_skipping_every_line_leaves_nothing_to_measure_and_the_run_still_finishes(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-14: found verifying T05. DuckDB can't sniff a format from no rows, and
+    # with nothing to fit it doesn't need one.
+    path = tmp_path / "header_only.csv"
+    path.write_text("id,name\n")
+    source = corrected(client, connect(client, path), skip_lines=1)
+
+    run = finished(client, start(client, source))
+
+    assert run["status"] == "completed"
+    assert metric_values(run)[(None, "rows_read")] == 0
+
+
+def paged_through_the_preview(client: TestClient, source: dict) -> tuple[list, list[list]]:
+    """Every column name and row the preview shows, a page at a time."""
+    rows: list[list] = []
+    offset = 0
+    while True:
+        page = client.get(f"/api/sources/{source['id']}/rows", params={"offset": offset})
+        assert page.status_code == 200, page.text
+        body = page.json()
+        rows += [[cell["value"] for cell in row] for row in body["rows"]]
+        if not body["has_next"]:
+            return [cell["value"] for cell in body["columns"]], rows
+        offset += len(body["rows"])
+
+
+def corrected(client: TestClient, source: dict, **changes: object) -> dict:
+    settings = {
+        "delimiter": source["delimiter"],
+        "encoding": source["encoding"],
+        "has_header": source["has_header"],
+        "skip_lines": source["skip_lines"],
+        **changes,
+    }
+    response = client.put(f"/api/sources/{source['id']}/settings", json=settings)
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+@pytest.mark.parametrize(
+    ("contents", "changes"),
+    [
+        (
+            "id,name\n1,Caf\u00e9\n2,\n3,Zo\u00eb\n4,\u20ac5\n".encode("cp1252"),
+            {"encoding": "Windows-1252"},
+        ),
+        (b"id,name\n1,Ann\r\n2,\n3,Cid\r\n4,Dee\n", {}),
+        (
+            b"id,note\n"
+            + b"".join(b"%d,plain\n" % row for row in range(30_000))
+            + b'30000,"a, quoted one"\n30001,\n',
+            {},
+        ),
+        ((CSV_DIR / "title_line.csv").read_bytes(), {"skip_lines": 0}),
+        ((CSV_DIR / "title_line.csv").read_bytes(), {"skip_lines": 0, "has_header": False}),
+    ],
+    ids=[
+        "decoded_in_memory",
+        "mixed_line_endings",
+        "quote_first_seen_late",
+        "uneven_lines_left_in_the_table",
+        "uneven_lines_left_in_the_table_no_header",
+    ],
+)
+def test_a_profile_reads_a_file_the_same_way_as_the_preview(
+    client: TestClient, tmp_path: Path, contents: bytes, changes: dict
+) -> None:
+    # CFX-APP-csv-profile/AC-14: counted from what the preview shows, not from how it was read.
+    path = tmp_path / "file.csv"
+    path.write_bytes(contents)
+    source = connect(client, path)
+    if changes:
+        source = corrected(client, source, **changes)
+    names, rows = paged_through_the_preview(client, source)
+
+    run = finished(client, start(client, source))
+
+    assert run["status"] == "completed"
+    values = metric_values(run)
+    assert values[(None, "rows_read")] == len(rows)
+    for position, column in enumerate(source["columns"]):
+        assert names[position] == column["name"]
+        cells = [row[position] for row in rows]
+        missing = sum(1 for cell in cells if cell is None or not cell.strip())
+        assert values[(column["name"], "missing_count")] == missing
+
+
+def test_a_surplus_column_is_counted_as_not_measured(client: TestClient) -> None:
+    # CFX-APP-csv-profile/AC-14, by the user's decision: it has no saved field to give metrics to,
+    # and the tab says so from this count.
+    source = connect(client, CSV_DIR / "extra_field_in_a_row.csv")
+
+    run = finished(client, start(client, source))
+
+    assert metric_values(run)[(None, "extra_columns")] == 1
+
+
+def test_a_file_with_no_surplus_columns_says_nothing_about_them(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-14
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n2,Bob\n")
+
+    run = finished(client, start(client, connect(client, path)))
+
+    assert (None, "extra_columns") not in metric_values(run)

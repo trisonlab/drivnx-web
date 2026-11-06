@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-05T11:27:17+00:00'
+updated_at: '2026-11-06T01:56:50+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -12,7 +12,7 @@ facts:
 - id: ci:github-actions
   status: CONFIRMED
   evidence: .github/workflows/ci.yml
-  sha256: bb16457e9752302970b01dc7913b20d6be57be9a549d656e03b670bebc32a04e
+  sha256: ac5080294ae367239347e84a59eea9552b914673a4c769f7baf42cc52467fd9f
   source: detector
 - id: cloud:aws
   status: INFERRED

@@ -1,11 +1,12 @@
-"""Writes the synthetic CSV files in testdata/csv. Everything in them is invented.
+"""Writes the synthetic CSV files in testdata/csv and testdata/golden. Everything in them is invented.
 
-Run with `uv run python testdata/generate_csv.py`. CFX-APP-first-slice/AC-54
+Run with `uv run python testdata/generate_csv.py`. CFX-APP-first-slice/AC-54, CFX-APP-csv-profile/AC-40
 """
 
 from pathlib import Path
 
 CSV_DIR = Path(__file__).parent / "csv"
+GOLDEN_DIR = Path(__file__).parent / "golden"
 BOM_UTF8 = b"\xef\xbb\xbf"
 BOM_UTF16_LE = b"\xff\xfe"
 BOM_UTF16_BE = b"\xfe\xff"
@@ -87,6 +88,63 @@ FILES: dict[str, bytes] = {
 }
 
 
+# tests/golden/test_metrics.py holds what each of these should measure, worked out by hand.
+GOLDEN = {
+    "missing_values.csv": b"id,name,note\n1,Ann,\n2,,\n3,   ,\n4,Dee,\n",
+    "duplicates.csv": (
+        b"id,city,code\n1,Paris,X1\n2,Paris,X1\n3,Lyon,X1\n4,Paris,X1\n5,Lyon,Y2\n"
+    ),
+    "dates_iso.csv": (
+        b"id,joined,stamp\n"
+        b"1,2024-01-15,2024-01-15 10:00:00\n"
+        b"2,2024-02-29,2024-02-29 11:30:00\n"
+        b"3,2024-12-31,2024-12-31 23:59:59\n"
+    ),
+    "dates_us.csv": b"id,joined\n1,03/25/2024\n2,12/31/2024\n3,01/15/2024\n",
+    "dates_two_formats.csv": (
+        b"id,first,second\n"
+        b"1,2024-03-25,2024/03/25\n"
+        b"2,2024-03-26,2024/03/26\n"
+        b"3,2024-03-27,2024/03/27\n"
+    ),
+    "timestamps_two_formats.csv": (
+        b"id,local,utc\n"
+        b"1,25/03/2024 10:00:00,2024-03-25 09:00:00\n"
+        b"2,26/03/2024 10:00:00,2024-03-26 09:00:00\n"
+        b"3,27/03/2024 10:00:00,2024-03-27 09:00:00\n"
+    ),
+    "large_integers.csv": (
+        b"id,balance,ref\n"
+        b"1,-9345230074912938,65573643442266533278\n"
+        b"2,-9253028069769886,65573643442266533279\n"
+        b"3,-9066624320668406,65573643442266533277\n"
+        b"4,-5,7\n"
+    ),
+    "unicode.csv": (
+        "id,name,price\n"
+        "1,Zo\u00e9,\u0663\u0664\n"
+        "2,\u674e\u660e,\uff13\uff14\n"
+        "3,\u0418\u0432\u0430\u043d,12\n"
+        "4,Zoe\u0301,\u00bd\n"
+    ).encode(),
+    "mixed_types.csv": (
+        "id,value\n"
+        + "".join(f"{row},7\n" for row in range(20_600))
+        + "20600,1.5\n20601,abc\n20602,12\n20603,\n"
+    ).encode(),
+    "high_cardinality.csv": (
+        "id,code,group\n"
+        + "".join(f"{row},C{row:04},g{row % 3}\n" for row in range(1_000))
+    ).encode(),
+}
+
+
+def write_golden(directory: Path = GOLDEN_DIR) -> None:
+    directory.mkdir(parents=True, exist_ok=True)
+    for name, contents in GOLDEN.items():
+        (directory / name).write_bytes(contents)
+
+
 def write_all(directory: Path = CSV_DIR) -> None:
     directory.mkdir(parents=True, exist_ok=True)
     for name, contents in FILES.items():
@@ -95,3 +153,4 @@ def write_all(directory: Path = CSV_DIR) -> None:
 
 if __name__ == "__main__":
     write_all()
+    write_golden()

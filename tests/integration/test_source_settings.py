@@ -11,7 +11,8 @@ from fastapi.testclient import TestClient
 from local_api.app import create_app
 from local_api.session import LaunchSession
 
-from .conftest import ORIGIN, PORT
+from ..conftest import CLIENT_ORIGIN as ORIGIN
+from ..conftest import CLIENT_PORT as PORT
 
 CSV_DIR = Path(__file__).parents[2] / "testdata" / "csv"
 

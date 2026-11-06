@@ -149,10 +149,12 @@ export type ProfileRun = {
   current_settings: boolean;
 };
 
+export type MaskedPattern = { pattern: string; count: number; cut: boolean };
+
 export type Metric = {
   column: string | null;
   metric: string;
-  value: number;
+  value: number | MaskedPattern[];
   scope: "full" | "sample" | "metadata";
   precision: "exact" | "approximate";
 };

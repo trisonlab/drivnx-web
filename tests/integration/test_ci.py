@@ -10,7 +10,7 @@ from ..conftest import REPO_ROOT
 WORKFLOW = REPO_ROOT / ".github/workflows/ci.yml"
 README = REPO_ROOT / "README.md"
 CHECKS = {
-    "pytest": "uv run --frozen pytest tests/integration",
+    "pytest": "uv run --frozen pytest tests/integration tests/golden",
     "Playwright": "uv run --frozen pytest tests/e2e",
     "Vitest": "pnpm --dir apps/web test",
     "secret scanning": (

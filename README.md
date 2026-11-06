@@ -44,7 +44,7 @@ uv run --frozen playwright install --with-deps chromium    # only if there's no 
 pytest, then Playwright, then Vitest. The first two each build and install the wheel:
 
 ```bash
-uv run --frozen pytest tests/integration
+uv run --frozen pytest tests/integration tests/golden
 uv run --frozen pytest tests/e2e
 pnpm --dir apps/web test
 ```

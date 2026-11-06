@@ -33,7 +33,7 @@ jobs:
       - run: uv sync --frozen
       - run: pnpm --dir apps/web install --frozen-lockfile
       - run: uv run --frozen playwright install --with-deps chromium
-      - run: uv run --frozen pytest tests/integration
+      - run: uv run --frozen pytest tests/integration tests/golden
       - run: uv run --frozen pytest tests/e2e
       - run: pnpm --dir apps/web test
 

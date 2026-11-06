@@ -64,4 +64,4 @@ An independent review and the author's own checks found these, all fixed and hel
 - **Only `CsvError`, `duckdb.Error`, `OSError` and `WorkspaceBusy` are caught.** A `ValueError` or SQLAlchemy error is a mistake in Conflux, so it ends the run as `failed` and stays visible. Neither holds row text: SQLAlchemy hides parameters here.
 - **The tab says when a run is on another file,** as AC-09 asks of both the header and the tab.
 - **Decided by the user:** a row wider than the table inside the first rows fails the run rather than being cut or skipped, as in the preview, because leaving it out would make the counts and "whole file" quietly wrong. A row just after 100,000 can do the same, as DuckDB parses in chunks. T07 gives this a clear message.
-- **Accepted limit:** a column named `rowid` after the saved ones fails the run. T07 refuses that kind of changed file.
+- **Accepted limit:** a column named `rowid` after the saved ones fails the run. T07 refuses that kind of changed file. T05 removed this limit, as `load_rows` now names every column by position.

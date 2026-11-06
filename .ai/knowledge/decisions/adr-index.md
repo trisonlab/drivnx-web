@@ -10,7 +10,7 @@ evidence:
 - path: docs/adr/0003-contract-schema-native-with-odcs-export.md
   sha256: 942d3adabdccac24bf4842dd401a0817fe79ccc8e2703af28daadcbbfa16adc8
 - path: docs/adr/0004-profile-values-and-caching.md
-  sha256: 6b4d8c148aa7c1cc83f1615959971a97660c55af0f2cedf0a8bd283737b7abe3
+  sha256: 12322e4c09166082db9f7d0aaf9f2778771e08f1f3d831f9d0349ef795516980
 ---
 # Architecture decisions
 

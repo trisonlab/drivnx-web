@@ -1,14 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId } from "react";
-import { getProfileRun, getProfileRuns, type Metric, type ProfileRun, RunRefusedError, type Source, startFastProfile } from "./api";
+import {
+  getProfileRun,
+  getProfileRuns,
+  type MaskedPattern,
+  type Metric,
+  type ProfileRun,
+  RunRefusedError,
+  type Source,
+  startFastProfile,
+} from "./api";
 
 export const PROFILE_RUNS_QUERY = ["profile-runs"];
 const POLL_MILLISECONDS = 1000;
 const NOT_KNOWN = "Not known";
-const METRIC_NAMES: Record<string, string> = {
-  rows_read: "Rows read",
-  missing_count: "Missing values",
-};
+const NOT_SAVED = "\u2014";
 const SCOPE_LABELS: Record<Metric["scope"], string> = {
   full: "whole file",
   sample: "first 100,000 rows, not random",
@@ -63,6 +69,56 @@ function startFailure(error: Error): string {
   return error instanceof RunRefusedError ? error.message : "Conflux couldn't start this profile. Start Conflux again.";
 }
 
+function shown(value: Metric["value"] | undefined): string {
+  return typeof value === "number" ? value.toLocaleString() : NOT_SAVED;
+}
+
+function withPercent(count: Metric["value"] | undefined, percent: Metric["value"] | undefined): string {
+  return typeof percent === "number" ? `${shown(count)} (${percent}%)` : shown(count);
+}
+
+function Patterns({ patterns }: { patterns: MaskedPattern[] }) {
+  return (
+    <details>
+      <summary>{patterns.length === 1 ? "1 pattern" : `${patterns.length} patterns`}</summary>
+      <ul className="masked-patterns">
+        {patterns.map((found) => (
+          <li key={`${found.pattern}|${found.cut}`}>
+            <code>{found.pattern}</code> &times; {found.count.toLocaleString()}
+            {found.cut && <span className="cut-mark"> … cut at 40 characters</span>}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function ColumnRow({ name, metrics, rowsRead }: { name: string; metrics: Metric[]; rowsRead: Metric["value"] | undefined }) {
+  const value = (metric: string) => metrics.find((candidate) => candidate.metric === metric)?.value;
+  const patterns = value("masked_patterns");
+  return (
+    <tr>
+      <th scope="row">{name}</th>
+      <td>{SCOPE_LABELS[metrics[0].scope]}</td>
+      <td>{PRECISION_LABELS[metrics[0].precision]}</td>
+      <td>{shown(rowsRead)}</td>
+      <td>{withPercent(value("missing_count"), value("missing_percent"))}</td>
+      <td>{withPercent(value("distinct_count"), value("distinct_percent"))}</td>
+      <td>{shown(value("not_fitting_count"))}</td>
+      <td>{shown(value("shortest_length"))}</td>
+      <td>{shown(value("longest_length"))}</td>
+      <td>{shown(value("average_length"))}</td>
+      <td>{Array.isArray(patterns) ? <Patterns patterns={patterns} /> : NOT_SAVED}</td>
+    </tr>
+  );
+}
+
+function extraColumnsNote(count: number): string {
+  return count === 1
+    ? "Some rows have 1 more field than the columns shown, and it isn't measured."
+    : `Some rows have ${count} more fields than the columns shown, and they aren't measured.`;
+}
+
 function Results({ run }: { run: ProfileRun }) {
   const results = useQuery({ queryKey: ["profile-run", run.id], queryFn: () => getProfileRun(run.id) });
   if (results.isError) {
@@ -71,34 +127,46 @@ function Results({ run }: { run: ProfileRun }) {
   if (!results.data) {
     return null;
   }
+  const metrics = results.data.metrics;
+  const ofTheFile = (name: string) => metrics.find((metric) => metric.column === null && metric.metric === name)?.value;
+  const extraColumns = ofTheFile("extra_columns");
+  const columns = [...new Set(metrics.flatMap((metric) => metric.column ?? []))];
   return (
-    <div className="table-scroll">
-      <table className="column-table">
-        <caption>
-          Run {run.id}, finished {new Date(run.ended_at ?? run.started_at).toLocaleString()}
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Column</th>
-            <th scope="col">Metric</th>
-            <th scope="col">Value</th>
-            <th scope="col">Measured on</th>
-            <th scope="col">Precision</th>
-          </tr>
-        </thead>
-        <tbody>
-          {results.data.metrics.map((metric) => (
-            <tr key={`${metric.column}|${metric.metric}`}>
-              <td>{metric.column ?? "All columns"}</td>
-              <td>{METRIC_NAMES[metric.metric] ?? metric.metric}</td>
-              <td>{metric.value.toLocaleString()}</td>
-              <td>{SCOPE_LABELS[metric.scope]}</td>
-              <td>{PRECISION_LABELS[metric.precision]}</td>
+    <>
+      {typeof extraColumns === "number" && <p>{extraColumnsNote(extraColumns)}</p>}
+      <div className="table-scroll">
+        <table className="column-table">
+          <caption>
+            Run {run.id}, finished {new Date(run.ended_at ?? run.started_at).toLocaleString()}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Column</th>
+              <th scope="col">Measured on</th>
+              <th scope="col">Precision</th>
+              <th scope="col">Rows read</th>
+              <th scope="col">Missing</th>
+              <th scope="col">Distinct</th>
+              <th scope="col">Not fitting</th>
+              <th scope="col">Shortest</th>
+              <th scope="col">Longest</th>
+              <th scope="col">Average</th>
+              <th scope="col">Patterns</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {columns.map((column) => (
+              <ColumnRow
+                key={column}
+                name={column}
+                metrics={metrics.filter((metric) => metric.column === column)}
+                rowsRead={ofTheFile("rows_read")}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 

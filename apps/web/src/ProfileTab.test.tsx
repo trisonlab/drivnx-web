@@ -51,9 +51,29 @@ function run(overrides: Partial<Run> = {}): Run {
 }
 
 function metrics(scope: string) {
+  const metric = (column: string | null, name: string, value: unknown) => ({
+    column,
+    metric: name,
+    value,
+    scope,
+    precision: "exact",
+  });
   return [
-    { column: null, metric: "rows_read", value: 100000, scope, precision: "exact" },
-    { column: "city", metric: "missing_count", value: 12, scope, precision: "exact" },
+    metric(null, "rows_read", 100000),
+    ...extraMetrics.map(([name, value]) => metric(null, name, value)),
+    metric("id", "missing_count", 0),
+    metric("city", "missing_count", 12),
+    metric("city", "missing_percent", 0.01),
+    metric("city", "distinct_count", 2500),
+    metric("city", "distinct_percent", 2.5),
+    metric("city", "not_fitting_count", 7),
+    metric("city", "shortest_length", 3),
+    metric("city", "longest_length", 41),
+    metric("city", "average_length", 6.75),
+    metric("city", "masked_patterns", [
+      { pattern: "AAAAA", count: 900, cut: false },
+      { pattern: "A".repeat(40), count: 2, cut: true },
+    ]),
   ];
 }
 
@@ -61,8 +81,10 @@ const fetchMock = vi.fn();
 let runs: Run[];
 let scope: string;
 let onStart: () => Response;
+let extraMetrics: [string, unknown][];
 
 beforeEach(() => {
+  extraMetrics = [];
   runs = [];
   scope = "full";
   onStart = () => {
@@ -358,4 +380,87 @@ test("a run on another file shows in the Profile tab too", async () => {
   const panel = await profilePanel();
 
   expect(await within(panel).findByRole("status")).toHaveTextContent("A profile is running on another file.");
+});
+
+async function rowFor(column: string) {
+  const table = await within(await profilePanel()).findByRole("table");
+  return within(table).getByRole("row", { name: new RegExp(`^${column}\\b`) });
+}
+
+test("each column shows every metric, on one row", async () => {
+  // CFX-APP-csv-profile/AC-14
+  runs = [run()];
+  renderApp();
+
+  const row = await rowFor("city");
+
+  const cells = within(row).getAllByRole("cell").map((cell) => cell.textContent);
+  expect(cells.slice(2, 9)).toEqual(["100,000", "12 (0.01%)", "2,500 (2.5%)", "7", "3", "41", "6.75"]);
+});
+
+test("a metric that wasn't saved shows as a dash", async () => {
+  // CFX-APP-csv-profile/AC-14: nothing to divide by, or a run from before these metrics existed.
+  runs = [run()];
+  renderApp();
+
+  const row = await rowFor("id");
+
+  const cells = within(row).getAllByRole("cell").map((cell) => cell.textContent);
+  expect(cells.slice(2, 10)).toEqual(["100,000", "0", "\u2014", "\u2014", "\u2014", "\u2014", "\u2014", "\u2014"]);
+});
+
+test("the most common patterns open from their cell, with their counts", async () => {
+  // CFX-APP-csv-profile/AC-14
+  runs = [run()];
+  renderApp();
+  const row = await rowFor("city");
+
+  await userEvent.click(within(row).getByText("2 patterns"));
+
+  expect(within(row).getByText("AAAAA").closest("li")).toHaveTextContent("AAAAA \u00d7 900");
+});
+
+test("a cut pattern says so", async () => {
+  // CFX-APP-csv-profile/AC-20
+  runs = [run()];
+  renderApp();
+  const row = await rowFor("city");
+
+  await userEvent.click(within(row).getByText("2 patterns"));
+
+  expect(within(row).getByText("A".repeat(40)).closest("li")).toHaveTextContent("cut at 40 characters");
+  expect(within(row).getByText("AAAAA").closest("li")).not.toHaveTextContent("cut at");
+});
+
+test.each([
+  [1, "Some rows have 1 more field than the columns shown, and it isn't measured."],
+  [2, "Some rows have 2 more fields than the columns shown, and they aren't measured."],
+])("%i surplus columns are mentioned", async (count, message) => {
+  // CFX-APP-csv-profile/AC-14, by the user's decision: they have no saved field to give metrics to.
+  extraMetrics = [["extra_columns", count]];
+  runs = [run()];
+  renderApp();
+
+  expect(await within(await profilePanel()).findByText(message)).toBeInTheDocument();
+});
+
+test("a file with no surplus columns doesn't mention them", async () => {
+  // CFX-APP-csv-profile/AC-14
+  runs = [run()];
+  renderApp();
+  await rowFor("city");
+
+  expect(await profilePanel()).not.toHaveTextContent("more field");
+});
+
+test("what a metric was measured on comes straight after its column", async () => {
+  // CFX-APP-csv-profile/AC-15: the table scrolls on a smaller screen, and these must stay in view.
+  runs = [run()];
+  scope = "sample";
+  renderApp();
+
+  const row = await rowFor("city");
+
+  const cells = within(row).getAllByRole("cell").map((cell) => cell.textContent);
+  expect(cells.slice(0, 2)).toEqual(["first 100,000 rows, not random", "Exact"]);
 });

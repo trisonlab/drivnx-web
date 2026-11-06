@@ -19,7 +19,12 @@ Observations are evidence, so they're always stored and can't become recompute-o
 
 **1. A profile saves only aggregates.** An observation can hold a count, a percentage, a text length or a masked pattern.
 In a masked pattern, letters in any script become `A` and digits in any script become `9`, and other characters stay.
-A column keeps its 10 most common patterns, and a pattern is cut at 40 characters and marked as cut.
+A combining mark after a letter counts as part of it, so `é` gives one `A` whether it's written as one character or two. A
+mark with no letter before it stays, as other characters do, and text written differently can still give different patterns:
+Korean `민수` gives `AA` composed and `AAAAA` decomposed. Numbers that aren't decimal digits, like `½` and `Ⅷ`, become `9`
+too, as the pattern would otherwise be the value itself. Characters too new for DuckDB's Unicode tables become `A`, digits
+included, for the same reason (decided building T05 of the spec, 2026-11-05). A column keeps its 10 most common patterns, and
+a pattern is cut at 40 characters and marked as cut.
 
 **2. Values from the file are computed on request and never saved.** This covers min, max, frequent values, histograms,
 mean, median and standard deviation. Histograms are included because their bucket edges reveal real values. Mean and

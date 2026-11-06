@@ -3,6 +3,7 @@
 import os
 import threading
 from itertools import batched
+from typing import Any
 
 import duckdb
 from artifacts.profiles import (
@@ -70,9 +71,10 @@ def _run_fast_profile(
     # In `finally`, so even a mistake in Conflux can't leave a run refusing every later one.
     status = "failed"
     try:
-        measured = _measure(workspace, source, encoding, dataset)
+        measured, extra_columns = _measure(workspace, source, encoding, dataset)
         for batch in batched(
-            _observations(dataset, measured), MAX_OBSERVATIONS_PER_TRANSACTION
+            _observations(dataset, measured, extra_columns),
+            MAX_OBSERVATIONS_PER_TRANSACTION,
         ):
             add_observations(workspace.engine, Actor.SYSTEM, run_id, batch)
         status = "completed"
@@ -88,10 +90,11 @@ def _measure(
     source: StoredSource,
     encoding: str,
     dataset: StoredDataset,
-) -> FirstRows:
+) -> tuple[FirstRows, int]:
+    """What was measured, and how many columns past the saved ones weren't."""
     with duckdb_connection(workspace.temp_directory) as connection:
         connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
-        columns = load_rows(
+        loaded = load_rows(
             connection,
             source.path,
             encoding,
@@ -106,23 +109,31 @@ def _measure(
         saved = [field.name for field in dataset.fields]
         # With no header the names are generated, and past 10 columns DuckDB renumbers them, so they
         # say nothing. Too few columns fails when they're measured.
-        if source.has_header and columns[: len(saved)] != saved:
+        if source.has_header and loaded.names[: len(saved)] != saved:
             raise CsvError(COLUMNS_CHANGED)
-        return measure_first_rows(connection, FIRST_ROWS_TABLE, len(saved))
+        measured = measure_first_rows(
+            connection,
+            FIRST_ROWS_TABLE,
+            [field.normalised_type for field in dataset.fields],
+            loaded.formats,
+        )
+        return measured, max(len(loaded.names) - len(saved), 0)
 
 
 def _observations(
-    dataset: StoredDataset, measured: FirstRows
+    dataset: StoredDataset, measured: FirstRows, extra_columns: int
 ) -> list[NewObservation]:
     scope = "full" if measured.whole_file else "sample"
+
+    def observation(field_id: str | None, metric: str, value: Any) -> NewObservation:
+        return NewObservation(dataset.id, field_id, metric, value, scope, "count", "exact")
+
     return [
-        NewObservation(
-            dataset.id, None, "rows_read", measured.rows_read, scope, "count", "exact"
-        ),
+        observation(None, "rows_read", measured.rows_read),
+        *([observation(None, "extra_columns", extra_columns)] if extra_columns else []),
         *(
-            NewObservation(
-                dataset.id, field.id, "missing_count", missing, scope, "count", "exact"
-            )
-            for field, missing in zip(dataset.fields, measured.missing, strict=True)
+            observation(field.id, metric, value)
+            for field, column in zip(dataset.fields, measured.columns, strict=True)
+            for metric, value in column.saved_metrics().items()
         ),
     ]

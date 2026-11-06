@@ -41,10 +41,16 @@ class ProfileRunResponse(BaseModel):
     current_settings: bool
 
 
+class PatternResponse(BaseModel):
+    pattern: str
+    count: int
+    cut: bool
+
+
 class MetricResponse(BaseModel):
     column: str | None
     metric: str
-    value: int
+    value: int | float | list[PatternResponse]
     scope: str
     precision: str
 
