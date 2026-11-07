@@ -142,7 +142,7 @@ export async function saveSourceSettings(sourceId: string, settings: SourceSetti
 export type ProfileRun = {
   id: string;
   source_id: string;
-  mode: string;
+  mode: "fast" | "full";
   status: "running" | "completed" | "cancelled" | "failed" | "interrupted";
   started_at: string;
   ended_at: string | null;
@@ -184,11 +184,19 @@ export async function getProfileRun(runId: string): Promise<ProfileRunDetail> {
 /** The server wouldn't start this run. The message is written for the user. */
 export class RunRefusedError extends Error {}
 
-export async function startFastProfile(sourceId: string): Promise<ProfileRun> {
+export async function cancelProfile(runId: string): Promise<ProfileRun> {
+  const response = await fetch(`${PROFILE_RUNS_PATH}/${runId}/cancel`, { method: "POST" });
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function startProfile(sourceId: string, mode: ProfileRun["mode"]): Promise<ProfileRun> {
   const response = await fetch(PROFILE_RUNS_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ source_id: sourceId, mode: "fast" }),
+    body: JSON.stringify({ source_id: sourceId, mode }),
   });
   if (response.status === 409 || response.status === 503) {
     const { detail } = await response.json();

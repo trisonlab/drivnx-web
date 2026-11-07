@@ -1,7 +1,5 @@
 """`/api/profile-runs`: starting a profile run, and reading its status and results."""
 
-from typing import Literal
-
 from artifacts.profiles import (
     ListedProfileRun,
     RunInProgress,
@@ -17,7 +15,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.exc import NoResultFound
 
-from local_api.profile_jobs import failure_of, start_fast_profile
+from local_api.profile_jobs import Mode, cancel_profile, failure_of, start_profile
 from local_api.sources_api import (
     cannot_read,
     current_encoding,
@@ -26,6 +24,7 @@ from local_api.sources_api import (
 )
 
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
+ALREADY_FINISHED = "This profile has already finished."
 SETTINGS_CHANGED = "This file's settings changed just now. Start the profile again."
 COLUMNS_NO_LONGER_MATCH = (
     "This file's columns no longer match the saved ones. "
@@ -35,7 +34,7 @@ COLUMNS_NO_LONGER_MATCH = (
 
 class ProfileRunRequest(BaseModel):
     source_id: str
-    mode: Literal["fast"]
+    mode: Mode
 
 
 class ProfileRunResponse(BaseModel):
@@ -144,13 +143,21 @@ def profile_runs_router(workspace: Workspace) -> APIRouter:
         if columns is not None and columns != [field.name for field in source.fields]:
             raise cannot_read(COLUMNS_NO_LONGER_MATCH)
         try:
-            run_id = start_fast_profile(
-                workspace, source, dataset, encoding, stat, modified_at(stat)
+            run_id = start_profile(
+                workspace, body.mode, source, dataset, encoding, stat, modified_at(stat)
             )
         except RunInProgress:
             raise HTTPException(status_code=409, detail=RUN_IN_PROGRESS) from None
         except SettingsChanged:
             raise HTTPException(status_code=409, detail=SETTINGS_CHANGED) from None
+        return _response(existing_run(run_id))
+
+    @router.post("/{run_id}/cancel", status_code=202)
+    def cancel_run(run_id: str) -> ProfileRunResponse:
+        """The job stops and ends the run as `cancelled` within moments (AC-10)."""
+        existing_run(run_id)
+        if not cancel_profile(run_id):
+            raise HTTPException(status_code=409, detail=ALREADY_FINISHED)
         return _response(existing_run(run_id))
 
     @router.get("")

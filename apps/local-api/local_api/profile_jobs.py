@@ -1,10 +1,12 @@
 """A profile run's work, done in the background."""
 
+import dataclasses
 import os
 import threading
+import time
 from itertools import batched
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import duckdb
 from artifacts.profiles import (
@@ -19,10 +21,13 @@ from artifacts.store import WorkspaceBusy
 from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, RowNotReadable, duckdb_connection, load_rows
 from domain.trust import Actor
-from profiling.first_rows import FIRST_ROWS, FirstRows, measure_first_rows
+from profiling.first_rows import FIRST_ROWS, MeasuredRows, measure_rows
 
-FIRST_ROWS_TABLE = "first_rows"
+ROWS_TABLE = "loaded_rows"
 JOB_THREAD_NAME = "conflux-profile-job"
+INTERRUPTING_THREAD_NAME = "conflux-profile-stop"
+# How long shutting down waits for jobs to stop, which an interrupt does within moments.
+SHUTDOWN_WAIT_SECONDS = 5
 # The queries measured peak at about 3 GB here (ADR 0004). DuckDB's default of 80% of the machine's
 # memory could slow the user's other programs.
 PROFILE_MEMORY_LIMIT = "4GB"
@@ -39,10 +44,33 @@ ROW_NOT_READABLE = (
 # Why each run failed since Conflux started, written for the user. Never DuckDB's text, which can
 # quote a row.
 _failures: dict[str, str] = {}
+# An interrupt between two queries is lost, so a cancel repeats it this often until the job ends.
+INTERRUPT_EVERY_SECONDS = 0.05
 
 
-def start_fast_profile(
+@dataclasses.dataclass
+class _Job:
+    stop: threading.Event = dataclasses.field(default_factory=threading.Event)
+    ended: threading.Event = dataclasses.field(default_factory=threading.Event)
+    # Stopped because Conflux is shutting down, so the run is left for the next start to mark
+    # `interrupted`, as the user didn't cancel it.
+    leaving: bool = False
+    thread: threading.Thread | None = None
+    # Set while the job's DuckDB connection is open, and only under `_jobs_lock`.
+    connection: duckdb.DuckDBPyConnection | None = None
+
+
+# The jobs that haven't ended, by run ID.
+_jobs: dict[str, _Job] = {}
+_jobs_lock = threading.Lock()
+
+
+Mode = Literal["fast", "full"]
+
+
+def start_profile(
     workspace: Workspace,
+    mode: Mode,
     source: StoredSource,
     dataset: StoredDataset,
     encoding: str,
@@ -53,28 +81,74 @@ def start_fast_profile(
 
     Raises `RunInProgress`, or `SettingsChanged` if a correction has replaced `dataset`.
     """
-    run_id = start_only_profile_run(
-        workspace.engine,
-        scope={
-            "dataset_id": dataset.id,
-            "delimiter": source.delimiter,
-            "encoding": encoding,
-            "has_header": source.has_header,
-            "skip_lines": source.skip_lines,
-            "size_bytes": stat.st_size,
-            "modified_at": modified_at,
-        },
-        mode="fast",
-        sample_size=FIRST_ROWS,
-        strategy="first_rows",
-    )
-    threading.Thread(
-        target=_run_fast_profile,
-        args=(workspace, run_id, source, encoding, dataset, stat),
-        name=JOB_THREAD_NAME,
-        daemon=True,
-    ).start()
+    job = _Job()
+    # Under the lock that a cancel takes, as the run can be seen, and cancelled, once it's saved.
+    with _jobs_lock:
+        run_id = start_only_profile_run(
+            workspace.engine,
+            scope={
+                "dataset_id": dataset.id,
+                "delimiter": source.delimiter,
+                "encoding": encoding,
+                "has_header": source.has_header,
+                "skip_lines": source.skip_lines,
+                "size_bytes": stat.st_size,
+                "modified_at": modified_at,
+            },
+            mode=mode,
+            sample_size=FIRST_ROWS if mode == "fast" else None,
+            strategy="first_rows" if mode == "fast" else None,
+        )
+        job.thread = threading.Thread(
+            target=_run_profile,
+            args=(workspace, run_id, job, mode, source, encoding, dataset, stat),
+            name=JOB_THREAD_NAME,
+            daemon=True,
+        )
+        _jobs[run_id] = job
+    job.thread.start()
     return run_id
+
+
+def cancel_profile(run_id: str) -> bool:
+    """Ask a running job to stop, and it ends the run as `cancelled`. False if it has ended."""
+    with _jobs_lock:
+        job = _jobs.get(run_id)
+        if job is None:
+            return False
+        job.stop.set()
+    _interrupt(job)
+    return True
+
+
+def stop_jobs() -> None:
+    """For shutting down: stop every job, leaving its run `running` for the next start to mark."""
+    with _jobs_lock:
+        jobs = list(_jobs.values())
+        for job in jobs:
+            job.leaving = True
+            job.stop.set()
+    for job in jobs:
+        _interrupt(job)
+    deadline = time.monotonic() + SHUTDOWN_WAIT_SECONDS
+    for job in jobs:
+        assert job.thread is not None
+        job.thread.join(max(deadline - time.monotonic(), 0))
+
+
+def _interrupt(job: _Job) -> None:
+    threading.Thread(
+        target=_interrupt_until_ended, args=(job,), name=INTERRUPTING_THREAD_NAME, daemon=True
+    ).start()
+
+
+def _interrupt_until_ended(job: _Job) -> None:
+    while not job.ended.is_set():
+        with _jobs_lock:
+            # Under the lock, so the job can't close the connection meanwhile.
+            if job.connection is not None:
+                job.connection.interrupt()
+        job.ended.wait(INTERRUPT_EVERY_SECONDS)
 
 
 class FileChanged(CsvError):
@@ -117,9 +191,11 @@ def failure_of(run_id: str) -> str | None:
     return _failures.get(run_id)
 
 
-def _run_fast_profile(
+def _run_profile(
     workspace: Workspace,
     run_id: str,
+    job: _Job,
+    mode: Mode,
     source: StoredSource,
     encoding: str,
     dataset: StoredDataset,
@@ -129,7 +205,7 @@ def _run_fast_profile(
     status = "failed"
     try:
         measured, extra_columns, skipped_lines = _measure(
-            workspace, source, encoding, dataset
+            workspace, job, mode, source, encoding, dataset
         )
         # What was measured must still be the file.
         if not _same_file(started_on, source.path.stat()):
@@ -138,57 +214,96 @@ def _run_fast_profile(
             _observations(dataset, measured, extra_columns, skipped_lines),
             MAX_OBSERVATIONS_PER_TRANSACTION,
         ):
+            if job.stop.is_set():
+                # The run ends as `cancelled` below, so what's saved isn't shown.
+                break
             add_observations(workspace.engine, Actor.SYSTEM, run_id, batch)
         status = "completed"
     except (CsvError, duckdb.Error, OSError, WorkspaceBusy) as error:
         # DuckDB's message can quote a row from the file, so this must not travel any further.
-        _failures[run_id] = _why_it_failed(error, source.path, started_on)
+        if not job.stop.is_set():
+            _failures[run_id] = _why_it_failed(error, source.path, started_on)
     finally:
-        finish_profile_run(workspace.engine, run_id, status)
+        # Under the lock that a cancel takes, so a cancel is either refused or what the run ends as.
+        with _jobs_lock:
+            try:
+                if not job.leaving:
+                    if job.stop.is_set():
+                        status = "cancelled"
+                    finish_profile_run(workspace.engine, run_id, status)
+            finally:
+                del _jobs[run_id]
+                # Also when the ending can't be recorded, or its interrupting would never stop.
+                job.ended.set()
 
 
 def _measure(
     workspace: Workspace,
+    job: _Job,
+    mode: Mode,
     source: StoredSource,
     encoding: str,
     dataset: StoredDataset,
-) -> tuple[FirstRows, int, int]:
+) -> tuple[MeasuredRows, int, int]:
     """What was measured, how many columns past the saved ones weren't, and lines skipped."""
     with duckdb_connection(workspace.temp_directory) as connection:
-        connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
-        loaded = load_rows(
-            connection,
-            source.path,
-            encoding,
-            source.delimiter,
-            source.has_header,
-            source.skip_lines,
-            FIRST_ROWS_TABLE,
-            FIRST_ROWS + 1,
-        )
-        # Observations are matched to fields by position, so they mustn't land on the wrong field.
-        # A row wider than the rest reads as extra columns after these, with no field to point at.
-        saved = [field.name for field in dataset.fields]
-        # With no header the names are generated, and past 10 columns DuckDB renumbers them, so they
-        # say nothing. Too few columns fails when they're measured.
-        if source.has_header and loaded.names[: len(saved)] != saved:
-            raise CsvError(COLUMNS_CHANGED)
-        measured = measure_first_rows(
-            connection,
-            FIRST_ROWS_TABLE,
-            [field.normalised_type for field in dataset.fields],
-            loaded.formats,
-        )
-        return measured, max(len(loaded.names) - len(saved), 0), loaded.skipped_lines
+        with _jobs_lock:
+            job.connection = connection
+        try:
+            return _measure_with(connection, mode, source, encoding, dataset)
+        finally:
+            with _jobs_lock:
+                job.connection = None
+
+
+def _measure_with(
+    connection: duckdb.DuckDBPyConnection,
+    mode: Mode,
+    source: StoredSource,
+    encoding: str,
+    dataset: StoredDataset,
+) -> tuple[MeasuredRows, int, int]:
+    connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
+    loaded = load_rows(
+        connection,
+        source.path,
+        encoding,
+        source.delimiter,
+        source.has_header,
+        source.skip_lines,
+        ROWS_TABLE,
+        # One more than is measured, to know whether that was the whole file.
+        FIRST_ROWS + 1 if mode == "fast" else None,
+    )
+    # Observations are matched to fields by position, so they mustn't land on the wrong field.
+    # A row wider than the rest reads as extra columns after these, with no field to point at.
+    saved = [field.name for field in dataset.fields]
+    # With no header the names are generated, and past 10 columns DuckDB renumbers them, so they
+    # say nothing. Too few columns fails when they're measured.
+    if source.has_header and loaded.names[: len(saved)] != saved:
+        raise CsvError(COLUMNS_CHANGED)
+    measured = measure_rows(
+        connection,
+        ROWS_TABLE,
+        [field.normalised_type for field in dataset.fields],
+        loaded.formats,
+        every_row=mode == "full",
+    )
+    return measured, max(len(loaded.names) - len(saved), 0), loaded.skipped_lines
 
 
 def _observations(
-    dataset: StoredDataset, measured: FirstRows, extra_columns: int, skipped_lines: int
+    dataset: StoredDataset, measured: MeasuredRows, extra_columns: int, skipped_lines: int
 ) -> list[NewObservation]:
     scope = "full" if measured.whole_file else "sample"
+    # Patterns only ever come from the first rows (ADR 0004), so a full profile's are a sample too.
+    patterns_scope = (
+        "full" if measured.whole_file and measured.rows_read <= FIRST_ROWS else "sample"
+    )
 
     def observation(field_id: str | None, metric: str, value: Any) -> NewObservation:
-        return NewObservation(dataset.id, field_id, metric, value, scope, "count", "exact")
+        measured_on = patterns_scope if metric == "masked_patterns" else scope
+        return NewObservation(dataset.id, field_id, metric, value, measured_on, "count", "exact")
 
     return [
         observation(None, "rows_read", measured.rows_read),

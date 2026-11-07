@@ -27,9 +27,9 @@ def connect(client: TestClient, path: Path) -> dict:
     return response.json()
 
 
-def start(client: TestClient, source: dict) -> dict:
+def start(client: TestClient, source: dict, mode: str = "fast") -> dict:
     response = client.post(
-        "/api/profile-runs", json={"source_id": source["id"], "mode": "fast"}
+        "/api/profile-runs", json={"source_id": source["id"], "mode": mode}
     )
     assert response.status_code == 202, response.text
     return response.json()
@@ -436,7 +436,7 @@ def test_a_failed_run_keeps_the_errors_text_to_itself(
     def failing_measure(*_args, **_kwargs):
         raise duckdb.Error("row 7: Zanzibar")
 
-    monkeypatch.setattr(profile_jobs, "measure_first_rows", failing_measure)
+    monkeypatch.setattr(profile_jobs, "measure_rows", failing_measure)
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
 
@@ -548,16 +548,6 @@ def test_a_file_with_no_lines_above_the_table_saves_none_left_out(
     assert (None, "skipped_lines") not in metric_values(run)
 
 
-@pytest.fixture
-def escaped_errors(monkeypatch: pytest.MonkeyPatch) -> list[BaseException | None]:
-    """Errors that left a job's thread. Python prints these, and pytest would otherwise take them."""
-    escaped: list[BaseException | None] = []
-    monkeypatch.setattr(
-        threading, "excepthook", lambda args: escaped.append(args.exc_value)
-    )
-    return escaped
-
-
 def wait_for_jobs_to_end() -> None:
     """A run's status shows before an escaping error is reported."""
     for thread in threading.enumerate():
@@ -585,7 +575,7 @@ def test_a_mistake_in_a_job_ends_the_run_and_stays_visible(
     def buggy_measure(*_args, **_kwargs):
         raise mistake
 
-    monkeypatch.setattr(profile_jobs, "measure_first_rows", buggy_measure)
+    monkeypatch.setattr(profile_jobs, "measure_rows", buggy_measure)
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
 
@@ -600,17 +590,17 @@ def test_a_failed_run_does_not_stop_the_next_one(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # CFX-APP-csv-profile/AC-09: only a run in progress refuses another.
-    measure = profile_jobs.measure_first_rows
+    measure = profile_jobs.measure_rows
 
     def failing_measure(*_args, **_kwargs):
         raise duckdb.Error("Can't be read")
 
-    monkeypatch.setattr(profile_jobs, "measure_first_rows", failing_measure)
+    monkeypatch.setattr(profile_jobs, "measure_rows", failing_measure)
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
     source = connect(client, path)
     assert finished(client, start(client, source))["status"] == "failed"
-    monkeypatch.setattr(profile_jobs, "measure_first_rows", measure)
+    monkeypatch.setattr(profile_jobs, "measure_rows", measure)
 
     assert finished(client, start(client, source))["status"] == "completed"
 
@@ -648,16 +638,16 @@ def test_a_job_spills_only_inside_the_workspace_and_stays_within_its_memory_limi
     )
     source = connect(client, path)
     seen: dict[str, object] = {}
-    measure = profile_jobs.measure_first_rows
+    measure = profile_jobs.measure_rows
 
-    def watching_measure(connection, *args):
+    def watching_measure(connection, *args, **kwargs):
         seen["limit"] = connection.execute(
             "SELECT current_setting('memory_limit')"
         ).fetchone()[0]
         seen["spilled"] = list((workspace_dir / "duckdb-tmp").rglob("*"))
-        return measure(connection, *args)
+        return measure(connection, *args, **kwargs)
 
-    monkeypatch.setattr(profile_jobs, "measure_first_rows", watching_measure)
+    monkeypatch.setattr(profile_jobs, "measure_rows", watching_measure)
     monkeypatch.setattr(profile_jobs, "PROFILE_MEMORY_LIMIT", "100MB")
 
     run = finished(client, start(client, source))
@@ -669,10 +659,9 @@ def test_a_job_spills_only_inside_the_workspace_and_stays_within_its_memory_limi
     assert list((workspace_dir / "duckdb-tmp").iterdir()) == []
 
 
-def test_starting_a_run_needs_a_source_and_a_mode_built_so_far(
+def test_starting_a_run_needs_a_source_and_a_known_mode(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # T06 adds `full`.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
     source = connect(client, path)
@@ -680,12 +669,12 @@ def test_starting_a_run_needs_a_source_and_a_mode_built_so_far(
     no_source = client.post(
         "/api/profile-runs", json={"source_id": "nope", "mode": "fast"}
     )
-    full = client.post(
-        "/api/profile-runs", json={"source_id": source["id"], "mode": "full"}
+    unknown = client.post(
+        "/api/profile-runs", json={"source_id": source["id"], "mode": "sample"}
     )
 
     assert no_source.status_code == 404
-    assert full.status_code == 422
+    assert unknown.status_code == 422
     assert client.get("/api/profile-runs/nope").status_code == 404
     assert client.get("/api/profile-runs").json() == []
 

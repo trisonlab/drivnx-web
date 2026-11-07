@@ -1755,8 +1755,9 @@ def test_a_wide_file_saves_in_short_transactions_and_reviews_finish_during_the_r
         first_saved.set()
 
     monkeypatch.setattr(profile_jobs, "add_observations", counting_save)
-    run = profile_jobs.start_fast_profile(
+    run = profile_jobs.start_profile(
         catalogue.workspace,
+        "fast",
         source,
         read_dataset(catalogue.engine, source.id),
         "UTF-8",

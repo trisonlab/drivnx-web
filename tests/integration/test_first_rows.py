@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from connectors.csv_files import CsvError, duckdb_connection, load_rows
-from profiling.first_rows import FIRST_ROWS, FirstRows, measure_first_rows
+from profiling.first_rows import FIRST_ROWS, MeasuredRows, measure_rows
 
 
 def measure(
@@ -14,7 +14,7 @@ def measure(
     encoding: str = "UTF-8",
     has_header: bool = True,
     chosen_skip: int | None = None,
-) -> tuple[list[str], FirstRows]:
+) -> tuple[list[str], MeasuredRows]:
     spill = tmp_path / "duckdb-tmp"
     spill.mkdir(exist_ok=True)
     with duckdb_connection(spill) as connection:
@@ -28,14 +28,16 @@ def measure(
             "first_rows",
             FIRST_ROWS + 1,
         ).names
-        return names, measure_first_rows(connection, "first_rows", ["string"] * len(names), {})
+        return names, measure_rows(
+            connection, "first_rows", ["string"] * len(names), {}, every_row=False
+        )
 
 
-def missing_of(measured: FirstRows) -> tuple[int, ...]:
+def missing_of(measured: MeasuredRows) -> tuple[int, ...]:
     return tuple(column.missing for column in measured.columns)
 
 
-def summary(measured: FirstRows) -> tuple[int, bool, tuple[int, ...]]:
+def summary(measured: MeasuredRows) -> tuple[int, bool, tuple[int, ...]]:
     return measured.rows_read, measured.whole_file, missing_of(measured)
 
 
@@ -203,6 +205,8 @@ def test_a_surplus_column_can_share_a_name_with_duckdbs_own_row_number(
 
     with duckdb_connection(spill) as connection:
         load_rows(connection, path, "UTF-8", ",", True, None, "first_rows", FIRST_ROWS + 1)
-        measured = measure_first_rows(connection, "first_rows", ["string"], {})
+        measured = measure_rows(
+            connection, "first_rows", ["string"], {}, every_row=False
+        )
 
     assert missing_of(measured) == (1,)

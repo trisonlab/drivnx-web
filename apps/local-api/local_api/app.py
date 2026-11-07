@@ -1,4 +1,6 @@
 import unicodedata
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
 
@@ -13,6 +15,7 @@ from pydantic import AfterValidator, BaseModel, StringConstraints
 
 from local_api.binding import LOOPBACK_ADDRESS
 from local_api.guard import SESSION_PATH, RequestGuard, SecurityHeaders
+from local_api.profile_jobs import stop_jobs
 from local_api.profile_runs_api import profile_runs_router
 from local_api.session import LaunchSession
 from local_api.sources_api import sources_router
@@ -70,7 +73,13 @@ def create_app(
             f"The UI bundle is missing from {ui_dir}. Reinstall Conflux."
         )
     # The generated API docs are off: they load scripts from a CDN, and nothing may leave the machine.
-    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        yield
+        # A job still reading as the process exits would hold DuckDB, whose binding then warns.
+        stop_jobs()
+
+    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     host = f"{LOOPBACK_ADDRESS}:{port}"
     origins = {f"http://{host}"}
     if dev_origin is not None:

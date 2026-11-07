@@ -56,11 +56,11 @@ function metrics(scope: string) {
     column,
     metric: name,
     value,
-    scope,
+    scope: name === "masked_patterns" ? (patternsScope ?? scope) : scope,
     precision: "exact",
   });
   return [
-    metric(null, "rows_read", 100000),
+    metric(null, "rows_read", rowsRead),
     ...extraMetrics.map(([name, value]) => metric(null, name, value)),
     metric("id", "missing_count", 0),
     metric("city", "missing_count", 12),
@@ -81,15 +81,24 @@ function metrics(scope: string) {
 const fetchMock = vi.fn();
 let runs: Run[];
 let scope: string;
+let patternsScope: string | undefined;
+let rowsRead: number;
 let onStart: () => Response;
+let onCancel: (url: string) => Response;
 let extraMetrics: [string, unknown][];
 
 beforeEach(() => {
   extraMetrics = [];
   runs = [];
   scope = "full";
+  patternsScope = undefined;
+  rowsRead = 100000;
   onStart = () => {
     runs = [run({ status: "running", ended_at: null })];
+    return Response.json(runs[0], { status: 202 });
+  };
+  onCancel = () => {
+    runs = runs.map((candidate) => ({ ...candidate, status: "cancelled" }));
     return Response.json(runs[0], { status: 202 });
   };
   fetchMock.mockReset();
@@ -108,6 +117,9 @@ beforeEach(() => {
     }
     if (url === "/api/profile-runs") {
       return Response.json(runs);
+    }
+    if (url.endsWith("/cancel") && init?.method === "POST") {
+      return onCancel(url);
     }
     if (url.startsWith("/api/profile-runs/")) {
       const found = runs.find((candidate) => url.endsWith(candidate.id));
@@ -155,6 +167,18 @@ test("choosing Fast profile starts a run for this source", async () => {
   expect(JSON.parse(String(started?.[1]?.body))).toEqual({ source_id: "s1", mode: "fast" });
 });
 
+test("choosing Full profile starts a full run for this source", async () => {
+  // CFX-APP-csv-profile/AC-08
+  renderApp();
+
+  await userEvent.click(await within(await profilePanel()).findByRole("button", { name: "Full profile" }));
+
+  const started = fetchMock.mock.calls.find(
+    ([url, init]) => url === "/api/profile-runs" && init?.method === "POST",
+  );
+  expect(JSON.parse(String(started?.[1]?.body))).toEqual({ source_id: "s1", mode: "full" });
+});
+
 test("a run in progress shows in the header and the Profile tab", async () => {
   // CFX-APP-csv-profile/AC-09
   runs = [run({ status: "running", ended_at: null })];
@@ -163,6 +187,18 @@ test("a run in progress shows in the header and the Profile tab", async () => {
   const banner = await screen.findByRole("banner");
   await within(banner).findByText("Profile status: Running on customers.csv");
   expect(within(await profilePanel()).getByRole("status")).toHaveTextContent(/profile is running/i);
+});
+
+test("a run in progress on this file can be cancelled", async () => {
+  // CFX-APP-csv-profile/AC-10
+  runs = [run({ status: "running", ended_at: null })];
+  renderApp();
+
+  await userEvent.click(await within(await profilePanel()).findByRole("button", { name: "Cancel profile" }));
+
+  expect(
+    fetchMock.mock.calls.some(([url, init]) => url === "/api/profile-runs/run-1/cancel" && init?.method === "POST"),
+  ).toBe(true);
 });
 
 test("the results appear by themselves when the run completes", async () => {
@@ -224,6 +260,28 @@ test("a metric from a whole file says so", async () => {
   expect(table).not.toHaveTextContent(/first 100,000/);
 });
 
+test.each([
+  [1, "This file has 1 row."],
+  [100000, "This file has 100,000 rows."],
+])("a run that read the whole file of %i rows says how many it has", async (rows, said) => {
+  // CFX-APP-csv-profile/AC-08
+  runs = [run({ mode: "full" })];
+  rowsRead = rows;
+  renderApp();
+
+  expect(await within(await profilePanel()).findByText(said)).toBeInTheDocument();
+});
+
+test("a run of the first rows doesn't say how many rows the file has", async () => {
+  // CFX-APP-csv-profile/AC-16
+  runs = [run()];
+  scope = "sample";
+  renderApp();
+
+  await within(await profilePanel()).findByRole("table");
+  expect(await profilePanel()).not.toHaveTextContent("This file has");
+});
+
 test("every metric shows its precision, and the results show their run", async () => {
   // CFX-APP-csv-profile/AC-15
   runs = [run()];
@@ -276,6 +334,20 @@ test("a run that failed says so, and earlier results stay", async () => {
   expect(panel).toHaveTextContent("The results below are from the run before.");
   expect(panel).toHaveTextContent("run-1");
   expect(within(await screen.findByRole("banner")).getByText("Profile status: Failed")).toBeInTheDocument();
+});
+
+test("a cancelled run says so, and its results don't appear as current", async () => {
+  // CFX-APP-csv-profile/AC-10
+  runs = [run({ id: "run-2", status: "cancelled" }), run()];
+  renderApp();
+
+  const panel = await profilePanel();
+
+  expect(await within(panel).findByText("This profile was cancelled.")).toBeInTheDocument();
+  expect(await within(panel).findByRole("table")).toBeInTheDocument();
+  expect(panel).toHaveTextContent("The results below are from the run before.");
+  expect(panel).toHaveTextContent("run-1");
+  expect(within(await screen.findByRole("banner")).getByText("Profile status: Cancelled")).toBeInTheDocument();
 });
 
 test("a failed run says why, in the server's words", async () => {
@@ -396,6 +468,8 @@ test("a run on another file shows in the Profile tab too", async () => {
   const panel = await profilePanel();
 
   expect(await within(panel).findByRole("status")).toHaveTextContent("A profile is running on another file.");
+  // CFX-APP-csv-profile/AC-10: it's cancelled from its own file's tab.
+  expect(within(panel).queryByRole("button", { name: "Cancel profile" })).not.toBeInTheDocument();
 });
 
 async function rowFor(column: string) {
@@ -434,6 +508,17 @@ test("the most common patterns open from their cell, with their counts", async (
   await userEvent.click(within(row).getByText("2 patterns"));
 
   expect(within(row).getByText("AAAAA").closest("li")).toHaveTextContent("AAAAA \u00d7 900");
+});
+
+test("a full profile's patterns say they come from the first rows", async () => {
+  // CFX-APP-csv-profile/AC-18
+  runs = [run({ mode: "full" })];
+  patternsScope = "sample";
+  renderApp();
+  const row = await rowFor("city");
+
+  expect(within(row).getAllByRole("cell")[0]).toHaveTextContent("whole file");
+  expect(within(row).getByText(/2 patterns/)).toHaveTextContent("2 patterns, from the first 100,000 rows, not random");
 });
 
 test("a cut pattern says so", async () => {

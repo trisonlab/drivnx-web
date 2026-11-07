@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId } from "react";
 import {
+  cancelProfile,
   getProfileRun,
   getProfileRuns,
   type MaskedPattern,
@@ -8,7 +9,7 @@ import {
   type ProfileRun,
   RunRefusedError,
   type Source,
-  startFastProfile,
+  startProfile,
 } from "./api";
 
 export const PROFILE_RUNS_QUERY = ["profile-runs"];
@@ -77,10 +78,11 @@ function withPercent(count: Metric["value"] | undefined, percent: Metric["value"
   return typeof percent === "number" ? `${shown(count)} (${percent}%)` : shown(count);
 }
 
-function Patterns({ patterns }: { patterns: MaskedPattern[] }) {
+function Patterns({ patterns, measuredOn }: { patterns: MaskedPattern[]; measuredOn?: string }) {
+  const count = patterns.length === 1 ? "1 pattern" : `${patterns.length} patterns`;
   return (
     <details>
-      <summary>{patterns.length === 1 ? "1 pattern" : `${patterns.length} patterns`}</summary>
+      <summary>{measuredOn ? `${count}, from the ${measuredOn}` : count}</summary>
       <ul className="masked-patterns">
         {patterns.map((found) => (
           <li key={`${found.pattern}|${found.cut}`}>
@@ -96,6 +98,8 @@ function Patterns({ patterns }: { patterns: MaskedPattern[] }) {
 function ColumnRow({ name, metrics, rowsRead }: { name: string; metrics: Metric[]; rowsRead: Metric["value"] | undefined }) {
   const value = (metric: string) => metrics.find((candidate) => candidate.metric === metric)?.value;
   const patterns = value("masked_patterns");
+  // A full profile still takes its patterns from the first rows only.
+  const patternsScope = metrics.find((candidate) => candidate.metric === "masked_patterns")?.scope;
   return (
     <tr>
       <th scope="row">{name}</th>
@@ -108,7 +112,16 @@ function ColumnRow({ name, metrics, rowsRead }: { name: string; metrics: Metric[
       <td>{shown(value("shortest_length"))}</td>
       <td>{shown(value("longest_length"))}</td>
       <td>{shown(value("average_length"))}</td>
-      <td>{Array.isArray(patterns) ? <Patterns patterns={patterns} /> : NOT_SAVED}</td>
+      <td>
+        {Array.isArray(patterns) ? (
+          <Patterns
+            patterns={patterns}
+            measuredOn={patternsScope && patternsScope !== metrics[0].scope ? SCOPE_LABELS[patternsScope] : undefined}
+          />
+        ) : (
+          NOT_SAVED
+        )}
+      </td>
     </tr>
   );
 }
@@ -137,9 +150,15 @@ function Results({ run }: { run: ProfileRun }) {
   const ofTheFile = (name: string) => metrics.find((metric) => metric.column === null && metric.metric === name)?.value;
   const extraColumns = ofTheFile("extra_columns");
   const skippedLines = ofTheFile("skipped_lines");
+  const rowsRead = metrics.find((metric) => metric.column === null && metric.metric === "rows_read");
+  // Only a run that read every row knows how many the file has (first slice AC-25).
+  const fileRows = rowsRead?.scope === "full" && typeof rowsRead.value === "number" ? rowsRead.value : null;
   const columns = [...new Set(metrics.flatMap((metric) => metric.column ?? []))];
   return (
     <>
+      {fileRows !== null && (
+        <p>{fileRows === 1 ? "This file has 1 row." : `This file has ${fileRows.toLocaleString()} rows.`}</p>
+      )}
       {typeof skippedLines === "number" && <p>{skippedLinesNote(skippedLines)}</p>}
       {typeof extraColumns === "number" && <p>{extraColumnsNote(extraColumns)}</p>}
       <div className="table-scroll">
@@ -183,8 +202,12 @@ export function ProfileTab({ source }: { source: Source }) {
   const queryClient = useQueryClient();
   const runs = useProfileRuns();
   const start = useMutation({
-    mutationFn: () => startFastProfile(source.id),
+    mutationFn: (mode: ProfileRun["mode"]) => startProfile(source.id, mode),
     // Also after a refusal, which can come from a run this page hasn't heard of.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: PROFILE_RUNS_QUERY }),
+  });
+  const cancel = useMutation({
+    mutationFn: cancelProfile,
     onSettled: () => queryClient.invalidateQueries({ queryKey: PROFILE_RUNS_QUERY }),
   });
   const { reset: forgetRefusal } = start;
@@ -203,8 +226,11 @@ export function ProfileTab({ source }: { source: Source }) {
     <section className="profile-tab" aria-labelledby={headingId}>
       <h2 id={headingId}>Profile</h2>
       <p>
-        <button type="button" onClick={() => start.mutate()}>
+        <button type="button" onClick={() => start.mutate("fast")}>
           Fast profile
+        </button>{" "}
+        <button type="button" onClick={() => start.mutate("full")}>
+          Full profile
         </button>
       </p>
       {start.isError && <p role="alert">{startFailure(start.error)}</p>}
@@ -215,6 +241,13 @@ export function ProfileTab({ source }: { source: Source }) {
             : "A profile is running on another file."}
         </p>
       )}
+      {running?.source_id === source.id && (
+        <p>
+          <button type="button" onClick={() => cancel.mutate(running.id)}>
+            Cancel profile
+          </button>
+        </p>
+      )}
       {mine[0]?.status === "failed" && (
         <p role="alert">
           {mine[0].failure
@@ -222,7 +255,10 @@ export function ProfileTab({ source }: { source: Source }) {
             : "This profile couldn't finish, so it has no results."}
         </p>
       )}
-      {mine[0]?.status === "failed" && completed && <p>The results below are from the run before.</p>}
+      {mine[0]?.status === "cancelled" && <p>This profile was cancelled.</p>}
+      {(mine[0]?.status === "failed" || mine[0]?.status === "cancelled") && completed && (
+        <p>The results below are from the run before.</p>
+      )}
       {completed ? (
         <Results run={completed} />
       ) : (

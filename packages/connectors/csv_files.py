@@ -84,6 +84,8 @@ LOAD_ROWS = f"""
     LIMIT ?
 """
 COUNT_ROWS = f"SELECT count(*) FROM (SELECT 1 FROM {READ_CSV} LIMIT ?)"
+# DuckDB's largest `LIMIT`, for reading every row.
+EVERY_ROW = 2**63 - 1
 NO_QUOTE_SEEN = "(empty)"
 STANDARD_QUOTE = "quote = '\"', escape = '\"'"
 PADDED = "null_padding = true"
@@ -665,9 +667,10 @@ def load_rows(
     has_header: bool,
     chosen_skip: int | None,
     table: str,
-    limit: int,
+    limit: int | None,
 ) -> LoadedRows:
-    """Copy the file's first rows into a temp table, read as the preview reads them, as text.
+    """Copy the file's first `limit` rows, or every row, into a temp table, read as the preview
+    reads them, as text.
 
     The table's columns are named by position, `c0`, `c1` and so on, so a name from the file never
     reaches any SQL, and one called `rowid` can't hide DuckDB's own. Returns the file's own names
@@ -677,6 +680,8 @@ def load_rows(
     it still can, and that fails the read rather than leaving the row out.
     """
     _refuse_empty(path)
+    if limit is None:
+        limit = EVERY_ROW
     with _readable_path(connection, path, encoding) as (readable, duckdb_encoding):
         file_settings: list[str | bool] = [
             readable,
@@ -707,8 +712,9 @@ def load_rows(
                 ):
                     # Another way of reading could swallow the rest into one value, so none is tried.
                     raise RowNotReadable(ROW_NOT_READABLE)
-            except duckdb.OutOfMemoryException:
-                # Not the file's fault, and another way of reading would need the memory too.
+            except (duckdb.OutOfMemoryException, duckdb.InterruptException):
+                # Not the file's fault: memory ran out, which another way of reading would need too,
+                # or the run was cancelled.
                 raise
             except duckdb.Error:
                 # DuckDB's message quotes the row, so it must not travel any further.

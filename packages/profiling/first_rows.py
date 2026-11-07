@@ -1,4 +1,5 @@
-"""Measuring a table's first rows through DuckDB. It knows nothing about where they came from."""
+"""Measuring a table's first rows, or every row, through DuckDB. It knows nothing about where
+they came from."""
 
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
@@ -73,7 +74,7 @@ class ColumnMetrics:
 
 
 @dataclass(frozen=True)
-class FirstRows:
+class MeasuredRows:
     rows_read: int
     whole_file: bool
     columns: tuple[ColumnMetrics, ...]
@@ -83,8 +84,9 @@ def _percent(part: int, whole: int) -> float | None:
     return round(100 * part / whole, 2) if whole else None
 
 
-def _cells(column: str, table: str) -> str:
-    """A column's first rows as `cell`, with missing values as NULL."""
+def _cells(column: str, table: str, every_row: bool = False) -> str:
+    """A column's first rows, or every row, as `cell`, with missing values as NULL."""
+    first_rows_only = "" if every_row else f"WHERE rowid < {FIRST_ROWS}"
     return f"""
         WITH cells AS (
             SELECT CASE
@@ -92,7 +94,7 @@ def _cells(column: str, table: str) -> str:
                 ELSE {column}
             END AS cell
             FROM {table}
-            WHERE rowid < {FIRST_ROWS}
+            {first_rows_only}
         )
     """
 
@@ -122,6 +124,7 @@ def _measure_column(
     rows_read: int,
     column_type: str,
     formats: Mapping[str, str],
+    every_row: bool,
 ) -> ColumnMetrics:
     column = f"c{position}"
     # A format comes from what DuckDB sniffed. A plain cast only knows the ISO one, and would say
@@ -133,7 +136,7 @@ def _measure_column(
         fits = f"try_strptime(cell, ?) IS NOT NULL OR {fits}"
     row = connection.execute(
         f"""
-        {_cells(column, table)}
+        {_cells(column, table, every_row)}
         SELECT count(cell), count(DISTINCT cell),
                count(cell) FILTER (WHERE NOT coalesce({fits}, FALSE)),
                min(length(cell)), max(length(cell)), avg(length(cell))
@@ -156,24 +159,27 @@ def _measure_column(
     )
 
 
-def measure_first_rows(
+def measure_rows(
     connection: duckdb.DuckDBPyConnection,
     table: str,
     types: Sequence[str],
     formats: Mapping[str, str],
-) -> FirstRows:
-    """Measure a table's first columns, one for each of `types`, and only its first rows.
+    every_row: bool,
+) -> MeasuredRows:
+    """Measure a table's first columns, one for each of `types`, on its first rows or every row.
 
     The table's columns are named by position, `c0`, `c1` and so on. One short query per column
     keeps a wide file's queries small. A `LIMIT` in them ran out of memory where `rowid` doesn't.
     """
     loaded = connection.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
-    rows_read = min(loaded, FIRST_ROWS)
-    return FirstRows(
+    rows_read = loaded if every_row else min(loaded, FIRST_ROWS)
+    return MeasuredRows(
         rows_read,
-        loaded <= FIRST_ROWS,
+        every_row or loaded <= FIRST_ROWS,
         tuple(
-            _measure_column(connection, table, position, rows_read, column_type, formats)
+            _measure_column(
+                connection, table, position, rows_read, column_type, formats, every_row
+            )
             for position, column_type in enumerate(types)
         ),
     )
