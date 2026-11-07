@@ -49,7 +49,9 @@ def test_patterns_that_differ_only_in_spaces_look_different(
 
     panel = run_a_fast_profile(app, path)
 
-    row = panel.get_by_role("row").filter(has_text="value")
+    # By its header, as every row has a "Show values" button.
+    header = app.get_by_role("rowheader", name="value", exact=True)
+    row = panel.get_by_role("row").filter(has=header)
     row.get_by_text("3 patterns").click()
     assert sorted(row.locator("code").all_inner_texts()) == [" 9", "9 ", "A 9"]
     expect(row.get_by_role("listitem").first).to_contain_text("× 1")

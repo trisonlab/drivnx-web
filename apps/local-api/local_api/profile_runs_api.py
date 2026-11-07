@@ -1,13 +1,20 @@
-"""`/api/profile-runs`: starting a profile run, and reading its status and results."""
+"""`/api/profile-runs`: starting a profile run, reading its status and results, and its columns'
+values on request."""
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+
+import duckdb
 from artifacts.profiles import (
     ListedProfileRun,
     RunInProgress,
     SettingsChanged,
     find_listed_profile_run,
     list_profile_runs,
+    read_findings,
     read_observations,
 )
+from artifacts.provenance import now
 from artifacts.sources import StoredSource, find_source, read_dataset, read_field_names
 from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, read_page, sniffed_columns
@@ -15,12 +22,21 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.exc import NoResultFound
 
-from local_api.profile_jobs import Mode, cancel_profile, failure_of, start_profile
+from local_api.profile_jobs import (
+    Busy,
+    Mode,
+    cancel_profile,
+    failure_of,
+    start_profile,
+    values_of,
+)
 from local_api.sources_api import (
+    CellResponse,
     cannot_read,
     current_encoding,
     is_available,
     modified_at,
+    shown_cell,
 )
 
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
@@ -30,6 +46,13 @@ COLUMNS_NO_LONGER_MATCH = (
     "This file's columns no longer match the saved ones. "
     "Open this source's settings and save them to read the columns again."
 )
+FILE_GONE = "Conflux can't find this file. It may have moved or been deleted."
+NOT_COMPLETED = "This profile hasn't completed, so it has no values to show."
+EARLIER_SETTINGS = "This profile used earlier settings. Profile the file again to see its values."
+POSSIBLY_SENSITIVE = (
+    "This column may hold personal data. Confirm that you want to see its values."
+)
+BUSY = "Conflux is already reading a file. Wait for it to finish, then try again."
 
 
 class ProfileRunRequest(BaseModel):
@@ -67,6 +90,54 @@ class ProfileRunDetail(ProfileRunResponse):
     metrics: list[MetricResponse]
 
 
+class FrequentResponse(BaseModel):
+    value: CellResponse
+    count: int
+
+
+class BucketResponse(BaseModel):
+    """Values above `low` up to `high`. The first bucket's `low` is the minimum, and holds it."""
+
+    low: CellResponse
+    high: CellResponse
+    count: int
+
+
+class ValuesResponse(BaseModel):
+    """Computed now and never saved (ADR 0004). Every value is text, cut as the preview's are."""
+
+    profile_run_id: str
+    column: str
+    # The part of the file read, as a metric's scope says it.
+    scope: str
+    rows_read: int
+    computed_at: str
+    minimum: CellResponse | None
+    maximum: CellResponse | None
+    frequent: list[FrequentResponse]
+    histogram: list[BucketResponse] | None
+    mean: CellResponse | None
+    median: CellResponse | None
+    standard_deviation: CellResponse | None
+
+
+def _shown(value: str | None) -> CellResponse | None:
+    return None if value is None else shown_cell(value)
+
+
+@contextmanager
+def _reading() -> Iterator[None]:
+    """A file that can't be read, as a message for the user. DuckDB's text never travels."""
+    try:
+        yield
+    except CsvError as error:
+        raise cannot_read(str(error)) from None
+    except PermissionError:
+        raise cannot_read("Conflux doesn't have permission to read this file.") from None
+    except (OSError, duckdb.Error):
+        raise cannot_read("Conflux couldn't read this file.") from None
+
+
 def _response(run: ListedProfileRun) -> ProfileRunResponse:
     return ProfileRunResponse(
         id=run.id,
@@ -80,31 +151,34 @@ def _response(run: ListedProfileRun) -> ProfileRunResponse:
     )
 
 
-def profile_runs_router(workspace: Workspace) -> APIRouter:
-    router = APIRouter(prefix="/api/profile-runs")
-
-    def columns_now(source: StoredSource, encoding: str) -> list[str] | None:
-        """The file's columns, read the way the saved ones were, or `None` if they can't be."""
-        if source.corrected:
-            # Saved settings take the preview's columns, which include a wider row's extra one.
-            return read_page(
-                source.path,
-                encoding,
-                source.delimiter,
-                source.has_header,
-                0,
-                1,
-                workspace.temp_directory,
-                source.skip_lines,
-            ).columns
-        return sniffed_columns(
+def columns_now(
+    workspace: Workspace, source: StoredSource, encoding: str
+) -> list[str] | None:
+    """The file's columns, read the way the saved ones were, or `None` if they can't be."""
+    if source.corrected:
+        # Saved settings take the preview's columns, which include a wider row's extra one.
+        return read_page(
             source.path,
             encoding,
             source.delimiter,
             source.has_header,
-            source.skip_lines,
+            0,
+            1,
             workspace.temp_directory,
-        )
+            source.skip_lines,
+        ).columns
+    return sniffed_columns(
+        source.path,
+        encoding,
+        source.delimiter,
+        source.has_header,
+        source.skip_lines,
+        workspace.temp_directory,
+    )
+
+
+def profile_runs_router(workspace: Workspace) -> APIRouter:
+    router = APIRouter(prefix="/api/profile-runs")
 
     def existing_run(run_id: str) -> ListedProfileRun:
         run = find_listed_profile_run(workspace.engine, run_id)
@@ -125,21 +199,11 @@ def profile_runs_router(workspace: Workspace) -> APIRouter:
         if source is None:
             raise no_such_source
         if not is_available(source.path):
-            raise cannot_read(
-                "Conflux can't find this file. It may have moved or been deleted."
-            )
-        try:
+            raise cannot_read(FILE_GONE)
+        with _reading():
             encoding = current_encoding(source)
             stat = source.path.stat()
-            columns = columns_now(source, encoding)
-        except CsvError as error:
-            raise cannot_read(str(error)) from None
-        except PermissionError:
-            raise cannot_read(
-                "Conflux doesn't have permission to read this file."
-            ) from None
-        except OSError:
-            raise cannot_read("Conflux couldn't read this file.") from None
+            columns = columns_now(workspace, source, encoding)
         if columns is not None and columns != [field.name for field in source.fields]:
             raise cannot_read(COLUMNS_NO_LONGER_MATCH)
         try:
@@ -148,6 +212,8 @@ def profile_runs_router(workspace: Workspace) -> APIRouter:
             )
         except RunInProgress:
             raise HTTPException(status_code=409, detail=RUN_IN_PROGRESS) from None
+        except Busy:
+            raise HTTPException(status_code=409, detail=BUSY) from None
         except SettingsChanged:
             raise HTTPException(status_code=409, detail=SETTINGS_CHANGED) from None
         return _response(existing_run(run_id))
@@ -188,6 +254,73 @@ def profile_runs_router(workspace: Workspace) -> APIRouter:
                 )
                 for observation in observations
             ],
+        )
+
+    def flagged(run_id: str, field_id: str) -> bool:
+        """Whether the run found the column possibly sensitive."""
+        fields = {seen.id: seen.field_id for seen in read_observations(workspace.engine, run_id)}
+        return any(
+            fields.get(cited) == field_id
+            for finding in read_findings(workspace.engine, run_id)
+            if finding.kind == "possibly_sensitive"
+            for cited in finding.observation_ids
+        )
+
+    @router.get("/{run_id}/values")
+    def get_values(run_id: str, column: str, confirmed: bool = False) -> ValuesResponse:
+        """A column's values from the part of the file the run read (AC-30), computed now."""
+        run = existing_run(run_id)
+        if run.status != "completed":
+            raise HTTPException(status_code=409, detail=NOT_COMPLETED)
+        # Its columns may have been renamed since, and its settings no longer read the file.
+        if not run.current_settings:
+            raise HTTPException(status_code=409, detail=EARLIER_SETTINGS)
+        dataset = read_dataset(workspace.engine, run.source_id)
+        position = next(
+            (at for at, field in enumerate(dataset.fields) if field.name == column), None
+        )
+        if position is None:
+            raise HTTPException(status_code=404, detail="There's no such column in this profile.")
+        # Before the file is read, so a refusal shows nothing (AC-29).
+        if not confirmed and flagged(run.id, dataset.fields[position].id):
+            raise HTTPException(status_code=409, detail=POSSIBLY_SENSITIVE)
+        source = find_source(workspace.engine, run.source_id)
+        if source is None or not is_available(source.path):
+            raise cannot_read(FILE_GONE)
+        with _reading():
+            encoding = current_encoding(source)
+            columns = columns_now(workspace, source, encoding)
+            if columns is not None and columns != [field.name for field in source.fields]:
+                raise cannot_read(COLUMNS_NO_LONGER_MATCH)
+            try:
+                found = values_of(
+                    workspace, source, encoding, dataset, position, run.mode == "full"
+                )
+            except Busy:
+                raise HTTPException(status_code=409, detail=BUSY) from None
+        return ValuesResponse(
+            profile_run_id=run.id,
+            column=column,
+            scope="full" if found.whole_file else "sample",
+            rows_read=found.rows_read,
+            computed_at=now(),
+            minimum=_shown(found.minimum),
+            maximum=_shown(found.maximum),
+            frequent=[
+                FrequentResponse(value=shown_cell(frequent.value), count=frequent.count)
+                for frequent in found.frequent
+            ],
+            histogram=None
+            if found.histogram is None
+            else [
+                BucketResponse(
+                    low=shown_cell(bucket.low), high=shown_cell(bucket.high), count=bucket.count
+                )
+                for bucket in found.histogram
+            ],
+            mean=_shown(found.mean),
+            median=_shown(found.median),
+            standard_deviation=_shown(found.standard_deviation),
         )
 
     return router

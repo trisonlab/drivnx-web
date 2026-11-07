@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
+  type Cell,
   cancelProfile,
+  FileUnreadableError,
+  getColumnValues,
+  getFindings,
   getProfileRun,
   getProfileRuns,
   type MaskedPattern,
@@ -11,6 +15,7 @@ import {
   type Source,
   startProfile,
 } from "./api";
+import { CellText } from "./Preview";
 
 export const PROFILE_RUNS_QUERY = ["profile-runs"];
 const POLL_MILLISECONDS = 1000;
@@ -100,7 +105,19 @@ function Patterns({ patterns, measuredOn }: { patterns: MaskedPattern[]; measure
   );
 }
 
-function ColumnRow({ name, metrics, rowsRead }: { name: string; metrics: Metric[]; rowsRead: Metric["value"] | undefined }) {
+function ColumnRow({
+  name,
+  metrics,
+  rowsRead,
+  buttonId,
+  onShowValues,
+}: {
+  name: string;
+  metrics: Metric[];
+  rowsRead: Metric["value"] | undefined;
+  buttonId: string;
+  onShowValues: () => void;
+}) {
   const value = (metric: string) => metrics.find((candidate) => candidate.metric === metric)?.value;
   const patterns = value("masked_patterns");
   // A full profile still takes its patterns from the first rows only.
@@ -133,6 +150,11 @@ function ColumnRow({ name, metrics, rowsRead }: { name: string; metrics: Metric[
           NOT_SAVED
         )}
       </td>
+      <td>
+        <button type="button" id={buttonId} aria-label={`Show values of ${name}`} onClick={onShowValues}>
+          Show values
+        </button>
+      </td>
     </tr>
   );
 }
@@ -163,8 +185,171 @@ function skippedLinesNote(lines: number): string {
     : `${lines} lines above the table were left out, as in the preview.`;
 }
 
+const VALUES_FAILED = "Conflux couldn't work out these values. Start Conflux again.";
+
+/** A column's values, worked out from the file when asked for. They're forgotten once closed, as
+ * nothing keeps them (ADR 0004). */
+function ColumnValuesSection({
+  run,
+  column,
+  confirmed,
+  onClose,
+}: {
+  run: ProfileRun;
+  column: string;
+  confirmed: boolean;
+  onClose: () => void;
+}) {
+  const headingId = useId();
+  const heading = useRef<HTMLHeadingElement>(null);
+  const values = useQuery({
+    queryKey: ["values", run.id, column, confirmed],
+    queryFn: () => getColumnValues(run.id, column, confirmed),
+    gcTime: 0,
+    retry: false,
+  });
+  useEffect(() => heading.current?.focus(), []);
+  const found = values.data;
+  const terms: [string, Cell | null][] = found
+    ? [
+        ["Minimum", found.minimum],
+        ["Maximum", found.maximum],
+        ["Mean", found.mean],
+        ["Median", found.median],
+        ["Standard deviation", found.standard_deviation],
+      ]
+    : [];
+  return (
+    <section className="column-values" aria-labelledby={headingId}>
+      <h3 id={headingId} ref={heading} tabIndex={-1}>
+        Values in {column}
+      </h3>
+      {values.isPending && <p role="status">Working out the values…</p>}
+      {values.isError && (
+        <p role="alert">{values.error instanceof FileUnreadableError ? values.error.message : VALUES_FAILED}</p>
+      )}
+      {found && (
+        <>
+          {/* AC-30: the part of the file and the time, as they can differ from the run's. */}
+          <p>
+            Computed {new Date(found.computed_at).toLocaleString()} from{" "}
+            {found.scope === "full" ? "the whole file" : "the first 100,000 rows, not random"}, and not saved.
+          </p>
+          {found.frequent.length === 0 ? (
+            <p>This column has no values in that part of the file.</p>
+          ) : (
+            <>
+              <dl>
+                {terms.map(
+                  ([term, value]) =>
+                    value && (
+                      <div key={term}>
+                        <dt>{term}</dt>
+                        <dd>
+                          <CellText cell={value} />
+                        </dd>
+                      </div>
+                    ),
+                )}
+              </dl>
+              <table>
+                <caption>Most frequent values</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Value</th>
+                    <th scope="col">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* By position, as two values cut at 1,000 characters can read the same. */}
+                  {found.frequent.map((frequent, rank) => (
+                    <tr key={rank}>
+                      <td>
+                        <CellText cell={frequent.value} />
+                      </td>
+                      <td>{frequent.count.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+          {found.histogram && found.histogram.length > 0 && (
+            <>
+              <table>
+                <caption>Histogram</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">From</th>
+                    <th scope="col">To</th>
+                    <th scope="col">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* By position, as edges printed to 15 digits can read the same. */}
+                  {found.histogram.map((bucket, position) => (
+                    <tr key={position}>
+                      <td>
+                        <CellText cell={bucket.low} />
+                      </td>
+                      <td>
+                        <CellText cell={bucket.high} />
+                      </td>
+                      <td>{bucket.count.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p>Each range holds values above From, up to and including To. The first includes From too.</p>
+            </>
+          )}
+        </>
+      )}
+      <p>
+        <button type="button" onClick={onClose}>
+          Close values
+        </button>
+      </p>
+    </section>
+  );
+}
+
+/** AC-29: asked before a possibly-sensitive column's values are worked out. */
+function SensitiveConfirmation({ onShow, onDecline }: { onShow: () => void; onDecline: () => void }) {
+  const questionId = useId();
+  const decline = useRef<HTMLButtonElement>(null);
+  useEffect(() => decline.current?.focus(), []);
+  return (
+    <div role="alertdialog" aria-labelledby={questionId} className="sensitive-confirmation">
+      <p id={questionId}>This column may hold personal data. Show its values?</p>
+      <p>
+        <button type="button" onClick={onShow}>
+          Show values
+        </button>{" "}
+        <button type="button" ref={decline} onClick={onDecline}>
+          Don't show
+        </button>
+      </p>
+    </div>
+  );
+}
+
 function Results({ run }: { run: ProfileRun }) {
   const results = useQuery({ queryKey: ["profile-run", run.id], queryFn: () => getProfileRun(run.id) });
+  // The same query the findings panel makes, so the server's refusal is rarely what asks.
+  const findings = useQuery({ queryKey: ["findings", run.id], queryFn: () => getFindings(run.id) });
+  const [asked, setAsked] = useState<{ column: string; confirmed: boolean } | null>(null);
+  const [confirming, setConfirming] = useState<string | null>(null);
+  const buttonsId = useId();
+  const flagged = new Set(
+    findings.data
+      ?.filter((finding) => finding.kind === "possibly_sensitive")
+      .flatMap((finding) => finding.evidence.flatMap((cited) => cited.column ?? [])),
+  );
+  const showValues = (column: string) => {
+    setAsked(flagged.has(column) ? null : { column, confirmed: false });
+    setConfirming(flagged.has(column) ? column : null);
+  };
   if (results.isError) {
     return <p role="alert">Conflux couldn't load these results. Start Conflux again.</p>;
   }
@@ -180,6 +365,9 @@ function Results({ run }: { run: ProfileRun }) {
   // Only a run that read every row knows how many the file has (first slice AC-25).
   const fileRows = rowsRead?.scope === "full" && typeof rowsRead.value === "number" ? rowsRead.value : null;
   const columns = [...new Set(metrics.flatMap((metric) => metric.column ?? []))];
+  const buttonOf = (column: string) => `${buttonsId}-${columns.indexOf(column)}`;
+  // Back where it was once what opened from it closes, as for a keyboard it would be lost.
+  const focusButtonOf = (column: string) => document.getElementById(buttonOf(column))?.focus();
   return (
     <>
       {fileRows !== null && (
@@ -210,6 +398,7 @@ function Results({ run }: { run: ProfileRun }) {
               <th scope="col">Longest</th>
               <th scope="col">Average</th>
               <th scope="col">Patterns</th>
+              <th scope="col">Values</th>
             </tr>
           </thead>
           <tbody>
@@ -219,11 +408,37 @@ function Results({ run }: { run: ProfileRun }) {
                 name={column}
                 metrics={metrics.filter((metric) => metric.column === column)}
                 rowsRead={ofTheFile("rows_read")}
+                buttonId={buttonOf(column)}
+                onShowValues={() => showValues(column)}
               />
             ))}
           </tbody>
         </table>
       </div>
+      {confirming && (
+        <SensitiveConfirmation
+          onShow={() => {
+            setAsked({ column: confirming, confirmed: true });
+            setConfirming(null);
+          }}
+          onDecline={() => {
+            setConfirming(null);
+            focusButtonOf(confirming);
+          }}
+        />
+      )}
+      {asked && (
+        <ColumnValuesSection
+          key={`${asked.column}-${asked.confirmed}`}
+          run={run}
+          column={asked.column}
+          confirmed={asked.confirmed}
+          onClose={() => {
+            setAsked(null);
+            focusButtonOf(asked.column);
+          }}
+        />
+      )}
     </>
   );
 }
@@ -291,7 +506,7 @@ export function ProfileTab({ source }: { source: Source }) {
         <p>The results below are from the run before.</p>
       )}
       {completed ? (
-        <Results run={completed} />
+        <Results key={completed.id} run={completed} />
       ) : (
         runs.isSuccess && mine.length === 0 && <p>No profile has been run with these settings yet.</p>
       )}

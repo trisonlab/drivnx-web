@@ -289,13 +289,16 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
     assert ("GET", "/api/profile-runs/{run_id}") in api_reads(client)
     # CFX-APP-csv-profile/AC-34
     assert ("GET", "/api/findings") in api_reads(client)
+    assert ("GET", "/api/profile-runs/{run_id}/values") in api_reads(client)
+    params = {
+        "/api/findings": {"profile_run_id": run_id},
+        "/api/profile-runs/{run_id}/values": {"column": "name", "confirmed": "true"},
+    }
 
     for method, path in api_reads(client):
         # A literal {source_id} would only ever reach the 404, and read nothing.
         response = client.request(
-            method,
-            path.format(source_id=source_id, run_id=run_id),
-            params={"profile_run_id": run_id} if path == "/api/findings" else None,
+            method, path.format(source_id=source_id, run_id=run_id), params=params.get(path)
         )
         assert response.status_code == 200
 

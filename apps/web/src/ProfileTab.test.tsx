@@ -88,9 +88,11 @@ let findingsOf: string;
 let onStart: () => Response;
 let onCancel: (url: string) => Response;
 let extraMetrics: [string, unknown][];
+let onValues: (url: string) => Response;
 
 beforeEach(() => {
   extraMetrics = [];
+  onValues = () => Response.json(cityValues);
   runs = [];
   scope = "full";
   patternsScope = undefined;
@@ -127,6 +129,9 @@ beforeEach(() => {
     }
     if (url.endsWith("/cancel") && init?.method === "POST") {
       return onCancel(url);
+    }
+    if (url.includes("/values?")) {
+      return onValues(url);
     }
     if (url.startsWith("/api/profile-runs/")) {
       const found = runs.find((candidate) => url.endsWith(candidate.id));
@@ -883,4 +888,216 @@ test("if the runs can't be read, the findings say so instead of asking for a pro
 
   expect(await within(panel).findByRole("alert")).toHaveTextContent("couldn't load the findings");
   expect(panel).not.toHaveTextContent("Profile this file");
+});
+
+const cell = (value: string, cut = false) => ({ value, cut });
+
+const cityValues = {
+  profile_run_id: "run-1",
+  column: "city",
+  scope: "full",
+  rows_read: 3000,
+  computed_at: "2024-03-05T11:00:00+00:00",
+  minimum: cell("Aarhus"),
+  maximum: cell("Zürich"),
+  frequent: [
+    { value: cell("Paris"), count: 900 },
+    { value: cell("L".repeat(1000), true), count: 2 },
+  ],
+  histogram: null,
+  mean: null,
+  median: null,
+  standard_deviation: null,
+};
+
+function valuesRequests(): string[] {
+  return fetchMock.mock.calls.map(([url]) => String(url)).filter((url) => url.includes("/values?"));
+}
+
+async function showValuesOf(column: string) {
+  const row = await rowFor(column);
+  await userEvent.click(within(row).getByRole("button", { name: `Show values of ${column}` }));
+}
+
+async function valuesSection() {
+  return within(await profilePanel()).findByRole("region", { name: /^Values in / });
+}
+
+test("a column's values show on request, labelled with the part of the file and when", async () => {
+  // CFX-APP-csv-profile/AC-30
+  runs = [run()];
+  renderApp();
+
+  await showValuesOf("city");
+
+  const shown = await valuesSection();
+  expect(valuesRequests()).toEqual(["/api/profile-runs/run-1/values?column=city"]);
+  expect(within(shown).getByRole("heading", { name: "Values in city" })).toBeInTheDocument();
+  expect(shown).toHaveTextContent(
+    `Computed ${new Date("2024-03-05T11:00:00+00:00").toLocaleString()} from the whole file, and not saved.`,
+  );
+  expect(within(shown).getByText("Minimum").nextElementSibling).toHaveTextContent("Aarhus");
+  expect(within(shown).getByText("Maximum").nextElementSibling).toHaveTextContent("Zürich");
+  const frequent = within(shown).getByRole("table", { name: "Most frequent values" });
+  expect(within(frequent).getAllByRole("row").map((row) => row.textContent)).toEqual([
+    "ValueCount",
+    "Paris900",
+    `${"L".repeat(1000)} … cut at 1,000 characters2`,
+  ]);
+  expect(within(shown).queryByRole("table", { name: "Histogram" })).not.toBeInTheDocument();
+});
+
+test("a number column's values show its histogram and statistics, from the first rows", async () => {
+  // CFX-APP-csv-profile/AC-30
+  runs = [run()];
+  onValues = () =>
+    Response.json({
+      ...cityValues,
+      scope: "sample",
+      minimum: cell("1"),
+      maximum: cell("9"),
+      histogram: [
+        { low: cell("1"), high: cell("5"), count: 3 },
+        { low: cell("5"), high: cell("9"), count: 1 },
+      ],
+      mean: cell("3.5"),
+      median: cell("3.0"),
+      standard_deviation: cell("2.38"),
+    });
+  renderApp();
+
+  await showValuesOf("city");
+
+  const shown = await valuesSection();
+  expect(shown).toHaveTextContent("from the first 100,000 rows, not random, and not saved.");
+  const histogram = within(shown).getByRole("table", { name: "Histogram" });
+  expect(within(histogram).getAllByRole("row").map((row) => row.textContent)).toEqual([
+    "FromToCount",
+    "153",
+    "591",
+  ]);
+  expect(within(shown).getByText("Mean").nextElementSibling).toHaveTextContent("3.5");
+  expect(within(shown).getByText("Median").nextElementSibling).toHaveTextContent("3.0");
+  expect(within(shown).getByText("Standard deviation").nextElementSibling).toHaveTextContent("2.38");
+});
+
+test("a value cut at 1,000 characters is marked as cut", async () => {
+  // CFX-APP-csv-profile/AC-31, as in the preview
+  runs = [run()];
+  onValues = () => Response.json({ ...cityValues, maximum: cell("Z".repeat(1000), true) });
+  renderApp();
+
+  await showValuesOf("city");
+
+  const shown = await valuesSection();
+  expect(within(shown).getByText("Maximum").nextElementSibling?.textContent).toBe(
+    `${"Z".repeat(1000)} … cut at 1,000 characters`,
+  );
+});
+
+const flaggedCity = () => [
+  finding("possibly_sensitive", [{ column: "city", metric: "missing_count", value: 12 }]),
+];
+
+test("a possibly-sensitive column's values need the extra confirmation", async () => {
+  // CFX-APP-csv-profile/AC-29
+  runs = [run()];
+  findings = flaggedCity();
+  renderApp();
+  await within(await findingsPanel()).findByRole("article");
+
+  await showValuesOf("city");
+
+  const asking = await within(await profilePanel()).findByRole("alertdialog", { name: /personal data/ });
+  expect(asking).toHaveTextContent("This column may hold personal data. Show its values?");
+  expect(valuesRequests()).toEqual([]);
+  await userEvent.click(within(asking).getByRole("button", { name: "Show values" }));
+  await valuesSection();
+  expect(valuesRequests()).toEqual(["/api/profile-runs/run-1/values?column=city&confirmed=true"]);
+});
+
+test("declining the confirmation shows no values and asks for none", async () => {
+  // CFX-APP-csv-profile/AC-29
+  runs = [run()];
+  findings = flaggedCity();
+  renderApp();
+  await within(await findingsPanel()).findByRole("article");
+
+  await showValuesOf("city");
+  await userEvent.click(await within(await profilePanel()).findByRole("button", { name: "Don't show" }));
+
+  expect(within(await profilePanel()).queryByRole("alertdialog")).not.toBeInTheDocument();
+  expect(within(await profilePanel()).queryByRole("region", { name: /^Values in / })).not.toBeInTheDocument();
+  expect(valuesRequests()).toEqual([]);
+});
+
+test("values that can't be worked out say why, and the saved metrics still show", async () => {
+  // CFX-APP-csv-profile/AC-32
+  runs = [run()];
+  onValues = () =>
+    Response.json(
+      { detail: "Conflux can't find this file. It may have moved or been deleted." },
+      { status: 409 },
+    );
+  renderApp();
+
+  await showValuesOf("city");
+
+  const shown = await valuesSection();
+  expect(await within(shown).findByRole("alert")).toHaveTextContent(
+    "Conflux can't find this file. It may have moved or been deleted.",
+  );
+  expect(within(await rowFor("city")).getByText("12 (0.01%)")).toBeInTheDocument();
+});
+
+test("closing the values forgets them, so showing them again works them out again", async () => {
+  // CFX-APP-csv-profile/AC-30: computed on request each time (ADR 0004).
+  runs = [run()];
+  renderApp();
+  await showValuesOf("city");
+  const shown = await valuesSection();
+  await within(shown).findByText("Aarhus");
+
+  await userEvent.click(within(shown).getByRole("button", { name: "Close values" }));
+  expect(within(await profilePanel()).queryByText("Aarhus")).not.toBeInTheDocument();
+  await showValuesOf("city");
+  await within(await valuesSection()).findByText("Aarhus");
+
+  expect(valuesRequests()).toHaveLength(2);
+});
+
+test("the values section takes the focus when it opens", async () => {
+  // CFX-APP-csv-profile/AC-30, by keyboard alone
+  runs = [run()];
+  renderApp();
+
+  await showValuesOf("city");
+
+  const shown = await valuesSection();
+  await waitFor(() => expect(document.activeElement).toBe(within(shown).getByRole("heading", { name: "Values in city" })));
+});
+
+test("closing the values gives the focus back to the column's button", async () => {
+  // CFX-APP-csv-profile/AC-30, by keyboard alone
+  runs = [run()];
+  renderApp();
+  await showValuesOf("city");
+  const shown = await valuesSection();
+
+  await userEvent.click(within(shown).getByRole("button", { name: "Close values" }));
+
+  expect(document.activeElement).toBe(within(await rowFor("city")).getByRole("button", { name: "Show values of city" }));
+});
+
+test("declining the confirmation gives the focus back to the column's button", async () => {
+  // CFX-APP-csv-profile/AC-29, by keyboard alone
+  runs = [run()];
+  findings = flaggedCity();
+  renderApp();
+  await within(await findingsPanel()).findByRole("article");
+  await showValuesOf("city");
+
+  await userEvent.click(await within(await profilePanel()).findByRole("button", { name: "Don't show" }));
+
+  expect(document.activeElement).toBe(within(await rowFor("city")).getByRole("button", { name: "Show values of city" }));
 });

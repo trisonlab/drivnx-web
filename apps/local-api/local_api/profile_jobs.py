@@ -25,8 +25,10 @@ from connectors.csv_files import CsvError, RowNotReadable, duckdb_connection, lo
 from domain.trust import Actor
 from profiling.findings import findings_for
 from profiling.first_rows import FIRST_ROWS, MeasuredRows, measure_rows
+from profiling.on_request import ColumnValues, values_for
 
 ROWS_TABLE = "loaded_rows"
+VALUES_TABLE = "rows_asked_for"
 JOB_THREAD_NAME = "conflux-profile-job"
 INTERRUPTING_THREAD_NAME = "conflux-profile-stop"
 # How long shutting down waits for jobs to stop, which an interrupt does within moments.
@@ -66,6 +68,12 @@ class _Job:
 # The jobs that haven't ended, by run ID.
 _jobs: dict[str, _Job] = {}
 _jobs_lock = threading.Lock()
+# Held while values are worked out on request, as two DuckDB jobs could take twice the memory.
+_values_lock = threading.Lock()
+
+
+class Busy(Exception):
+    """A profile is running, or other values are being worked out."""
 
 
 Mode = Literal["fast", "full"]
@@ -82,11 +90,15 @@ def start_profile(
 ) -> str:
     """Record the run, then work in the background. Returns its ID.
 
-    Raises `RunInProgress`, or `SettingsChanged` if a correction has replaced `dataset`.
+    Raises `RunInProgress`, `Busy` while values are being worked out, or `SettingsChanged` if a
+    correction has replaced `dataset`.
     """
     job = _Job()
     # Under the lock that a cancel takes, as the run can be seen, and cancelled, once it's saved.
     with _jobs_lock:
+        # `values_of` takes its lock before it looks at the jobs, so one of the two always waits.
+        if _values_lock.locked():
+            raise Busy
         run_id = start_only_profile_run(
             workspace.engine,
             scope={
@@ -345,3 +357,49 @@ def _observations(
             for metric, value in column.saved_metrics().items()
         ),
     ]
+
+
+def values_of(
+    workspace: Workspace,
+    source: StoredSource,
+    encoding: str,
+    dataset: StoredDataset,
+    position: int,
+    every_row: bool,
+) -> ColumnValues:
+    """A column's values, read as a run reads the file, now, and never saved (ADR 0004).
+
+    Raises `Busy` while a profile runs or other values are being worked out.
+    """
+    if not _values_lock.acquire(blocking=False):
+        raise Busy
+    try:
+        with _jobs_lock:
+            if _jobs:
+                raise Busy
+        with duckdb_connection(workspace.temp_directory) as connection:
+            connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
+            loaded = load_rows(
+                connection,
+                source.path,
+                encoding,
+                source.delimiter,
+                source.has_header,
+                source.skip_lines,
+                VALUES_TABLE,
+                None if every_row else FIRST_ROWS + 1,
+            )
+            saved = [field.name for field in dataset.fields]
+            # As a run checks, so a value can't be taken from the wrong column.
+            if source.has_header and loaded.names[: len(saved)] != saved:
+                raise CsvError(COLUMNS_CHANGED)
+            return values_for(
+                connection,
+                VALUES_TABLE,
+                position,
+                dataset.fields[position].normalised_type,
+                loaded.formats,
+                every_row,
+            )
+    finally:
+        _values_lock.release()

@@ -94,7 +94,7 @@ class PageResponse(BaseModel):
     skipped_lines: int
 
 
-def _cell(value: str | None) -> CellResponse:
+def shown_cell(value: str | None) -> CellResponse:
     if value is None or len(value) <= MAX_CELL_CHARACTERS:
         return CellResponse(value=value, cut=False)
     return CellResponse(value=value[:MAX_CELL_CHARACTERS], cut=True)
@@ -322,8 +322,8 @@ def sources_router(workspace: Workspace) -> APIRouter:
         except OSError:
             raise cannot_read("Conflux couldn't read this file.") from None
         return PageResponse(
-            columns=[_cell(name) for name in page.columns],
-            rows=[[_cell(value) for value in row] for row in page.rows[:limit]],
+            columns=[shown_cell(name) for name in page.columns],
+            rows=[[shown_cell(value) for value in row] for row in page.rows[:limit]],
             offset=offset,
             has_next=len(page.rows) > limit,
             skipped_lines=page.skipped_lines,

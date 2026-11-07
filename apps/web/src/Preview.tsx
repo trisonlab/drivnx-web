@@ -16,7 +16,7 @@ function skippedLinesNote(lines: number): string {
     : `${lines} lines above this table aren't shown.`;
 }
 
-function CellText({ cell }: { cell: Cell }) {
+export function CellText({ cell }: { cell: Cell }) {
   return (
     <>
       {cell.value}

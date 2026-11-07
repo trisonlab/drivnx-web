@@ -181,6 +181,38 @@ export async function getProfileRun(runId: string): Promise<ProfileRunDetail> {
   return response.json();
 }
 
+export type ColumnValues = {
+  profile_run_id: string;
+  column: string;
+  // The part of the file read, as a metric's scope says it.
+  scope: "full" | "sample";
+  rows_read: number;
+  computed_at: string;
+  minimum: Cell | null;
+  maximum: Cell | null;
+  frequent: { value: Cell; count: number }[];
+  // Values above `low` up to `high`. The first bucket holds the minimum too.
+  histogram: { low: Cell; high: Cell; count: number }[] | null;
+  mean: Cell | null;
+  median: Cell | null;
+  standard_deviation: Cell | null;
+};
+
+/** Computed now from the file, and never saved (ADR 0004). `confirmed` is the extra confirmation a
+ * possibly-sensitive column needs (AC-29). */
+export async function getColumnValues(runId: string, column: string, confirmed: boolean): Promise<ColumnValues> {
+  const params = new URLSearchParams({ column, ...(confirmed && { confirmed: "true" }) });
+  const response = await fetch(`${PROFILE_RUNS_PATH}/${runId}/values?${params}`);
+  if (response.status === 404 || response.status === 409) {
+    const { detail } = await response.json();
+    throw new FileUnreadableError(detail);
+  }
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
 /** The server wouldn't start this run. The message is written for the user. */
 export class RunRefusedError extends Error {}
 
