@@ -83,6 +83,7 @@ LOAD_ROWS = f"""
     SELECT * FROM {READ_CSV} AS loaded({{positions}})
     LIMIT ?
 """
+COUNT_ROWS = f"SELECT count(*) FROM (SELECT 1 FROM {READ_CSV} LIMIT ?)"
 NO_QUOTE_SEEN = "(empty)"
 STANDARD_QUOTE = "quote = '\"', escape = '\"'"
 PADDED = "null_padding = true"
@@ -114,6 +115,10 @@ class CsvError(Exception):
 
 class TooLargeToDecode(CsvError):
     """This file is over the limit for decoding it in memory."""
+
+
+class RowNotReadable(CsvError):
+    """No way of reading manages every row that was asked for."""
 
 
 @dataclass(frozen=True)
@@ -569,11 +574,42 @@ def read_columns(
     )
 
 
+def sniffed_columns(
+    path: Path,
+    encoding: str,
+    delimiter: str,
+    has_header: bool,
+    chosen_skip: int | None,
+    temp_directory: Path,
+) -> list[str] | None:
+    """The column names a sniff with these settings finds, as connecting found them.
+
+    A padded read can find more, from a row wider than the rest. `None` if no sniff can read it.
+    """
+    _refuse_empty(path)
+    chosen = "" if chosen_skip is None else f", skip = {chosen_skip:d}"
+    settings = f"delim = '{delimiter}', header = {str(has_header).lower()}{chosen}"
+    with (
+        duckdb_connection(temp_directory) as connection,
+        _readable_path(connection, path, encoding) as (readable, duckdb_encoding),
+    ):
+        # In the order connecting tries them.
+        for strictness in ("ignore_errors = false", "ignore_errors = true", LAX):
+            found = _sniff_with(
+                connection, readable, duckdb_encoding, f"{settings}, {strictness}"
+            )
+            if found is not None:
+                return [column["name"] for column in found[2]]
+    return None
+
+
 @dataclass(frozen=True)
 class LoadedRows:
     names: list[str]
     # By normalised type: how DuckDB sniffed that the file writes it, if it does.
     formats: dict[str, str]
+    # Lines above the table that aren't rows, as the preview says.
+    skipped_lines: int
 
 
 def _sniffed_formats(
@@ -593,6 +629,32 @@ def _sniffed_formats(
     date_format, timestamp_format = found
     formats = {"date": date_format, "timestamp": timestamp_format}
     return {kind: written for kind, written in formats.items() if written}
+
+
+def _rows_in(connection: duckdb.DuckDBPyConnection, table: str) -> int:
+    found = connection.execute(f"SELECT count(*) FROM {table}").fetchone()
+    assert found is not None
+    return found[0]
+
+
+def _counted_alike(
+    connection: duckdb.DuckDBPyConnection,
+    file_settings: list[str | bool],
+    options: str,
+    rows: int,
+    limit: int,
+) -> bool:
+    """Whether a lax read finds as many rows, up to `limit`, as this way of reading did.
+
+    DuckDB 2.0.0 drops every row from a quote that's never closed onwards, with no error, once it
+    comes after 2,046 rows. A lax read keeps them, as one more row.
+    """
+    if LAX in options:
+        return True
+    found = connection.execute(
+        COUNT_ROWS.format(options=f"{options}, {LAX}"), [*file_settings, limit]
+    ).fetchone()
+    return found == (rows,)
 
 
 def load_rows(
@@ -622,7 +684,7 @@ def load_rows(
             delimiter,
             has_header,
         ]
-        ways_to_read, _ = _ways_to_read(connection, file_settings, chosen_skip)
+        ways_to_read, skipped_lines = _ways_to_read(connection, file_settings, chosen_skip)
         for options in ways_to_read:
             try:
                 names = [
@@ -639,12 +701,21 @@ def load_rows(
                 # In here, as carrying on without the formats would report every value in a date
                 # column written some other way as not fitting.
                 formats = _sniffed_formats(connection, file_settings, options, table)
+                rows = _rows_in(connection, table)
+                if rows < limit and not _counted_alike(
+                    connection, file_settings, options, rows, limit
+                ):
+                    # Another way of reading could swallow the rest into one value, so none is tried.
+                    raise RowNotReadable(ROW_NOT_READABLE)
+            except duckdb.OutOfMemoryException:
+                # Not the file's fault, and another way of reading would need the memory too.
+                raise
             except duckdb.Error:
                 # DuckDB's message quotes the row, so it must not travel any further.
                 continue
-            return LoadedRows(names, formats)
+            return LoadedRows(names, formats, skipped_lines)
         if chosen_skip is None:
-            raise CsvError(ROW_NOT_READABLE)
+            raise RowNotReadable(ROW_NOT_READABLE)
         try:
             names, plain, generated, first_row = _uneven_table(
                 connection, file_settings, chosen_skip
@@ -660,5 +731,5 @@ def load_rows(
             )
         except duckdb.Error:
             # DuckDB's message quotes the row, so it must not travel any further.
-            raise CsvError(ROW_NOT_READABLE) from None
-        return LoadedRows(names, {})
+            raise RowNotReadable(ROW_NOT_READABLE) from None
+        return LoadedRows(names, {}, chosen_skip)

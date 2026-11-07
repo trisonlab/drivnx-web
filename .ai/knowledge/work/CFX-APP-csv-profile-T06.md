@@ -27,3 +27,4 @@ Tests naming each criterion, and the cancel time measured on a large file.
 ## From planning
 - Test a cancel arriving just as a run finishes. A run's status can only change once.
 - From T04: pressing Ctrl+C during a run exits cleanly and the next start marks it `interrupted`, but DuckDB's binding prints "leaked function" warnings, as the job's thread still holds a connection. No rows or names were in the output. Fast runs are short, and a full profile makes this much more likely, so stopping a job should also cover shutting down.
+- From planning T07: DuckDB 2.0.0 silently drops every row after an unterminated quote that comes after the first 2,046 rows. T07 catches this in a fast run with a lax count of the same read when the run would claim the whole file. A full profile always claims the whole file, so it needs the same check across all of it, and its cost on a large file needs measuring.

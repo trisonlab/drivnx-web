@@ -119,6 +119,12 @@ function extraColumnsNote(count: number): string {
     : `Some rows have ${count} more fields than the columns shown, and they aren't measured.`;
 }
 
+function skippedLinesNote(lines: number): string {
+  return lines === 1
+    ? "1 line above the table was left out, as in the preview."
+    : `${lines} lines above the table were left out, as in the preview.`;
+}
+
 function Results({ run }: { run: ProfileRun }) {
   const results = useQuery({ queryKey: ["profile-run", run.id], queryFn: () => getProfileRun(run.id) });
   if (results.isError) {
@@ -130,9 +136,11 @@ function Results({ run }: { run: ProfileRun }) {
   const metrics = results.data.metrics;
   const ofTheFile = (name: string) => metrics.find((metric) => metric.column === null && metric.metric === name)?.value;
   const extraColumns = ofTheFile("extra_columns");
+  const skippedLines = ofTheFile("skipped_lines");
   const columns = [...new Set(metrics.flatMap((metric) => metric.column ?? []))];
   return (
     <>
+      {typeof skippedLines === "number" && <p>{skippedLinesNote(skippedLines)}</p>}
       {typeof extraColumns === "number" && <p>{extraColumnsNote(extraColumns)}</p>}
       <div className="table-scroll">
         <table className="column-table">
@@ -207,7 +215,14 @@ export function ProfileTab({ source }: { source: Source }) {
             : "A profile is running on another file."}
         </p>
       )}
-      {mine[0]?.status === "failed" && <p role="alert">This profile couldn't finish, so it has no results.</p>}
+      {mine[0]?.status === "failed" && (
+        <p role="alert">
+          {mine[0].failure
+            ? `This profile couldn't finish. ${mine[0].failure}`
+            : "This profile couldn't finish, so it has no results."}
+        </p>
+      )}
+      {mine[0]?.status === "failed" && completed && <p>The results below are from the run before.</p>}
       {completed ? (
         <Results run={completed} />
       ) : (

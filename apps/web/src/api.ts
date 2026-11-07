@@ -129,7 +129,7 @@ export async function saveSourceSettings(sourceId: string, settings: SourceSetti
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(settings),
   });
-  if (response.status === 409 || response.status === 422) {
+  if (response.status === 409 || response.status === 422 || response.status === 503) {
     const { detail } = await response.json();
     throw new FileUnreadableError(typeof detail === "string" ? detail : "Conflux couldn't save these settings.");
   }
@@ -147,6 +147,8 @@ export type ProfileRun = {
   started_at: string;
   ended_at: string | null;
   current_settings: boolean;
+  // Why it failed, when Conflux knows. Not kept across a restart.
+  failure: string | null;
 };
 
 export type MaskedPattern = { pattern: string; count: number; cut: boolean };

@@ -125,6 +125,10 @@ class RunInProgress(Exception):
     pass
 
 
+class SettingsChanged(Exception):
+    """The settings a run was about to read with have just been replaced."""
+
+
 def start_only_profile_run(
     engine: Engine,
     scope: dict[str, Any],
@@ -132,13 +136,23 @@ def start_only_profile_run(
     sample_size: int | None = None,
     strategy: str | None = None,
 ) -> str:
-    """Start a run unless one is in progress, checked under the write lock so two can't both pass."""
+    """Start a run unless one is in progress, or its dataset was replaced, `SettingsChanged`.
+
+    Both are checked under the write lock, so two starts can't both pass, and a correction can't
+    be saved between the check and the start.
+    """
     with write_transaction(engine) as connection:
         running = connection.execute(
             text("SELECT 1 FROM profile_run WHERE status = 'running' LIMIT 1")
         ).first()
         if running:
             raise RunInProgress
+        replaced = connection.execute(
+            text("SELECT replaced_at IS NOT NULL FROM dataset WHERE id = :id"),
+            {"id": scope["dataset_id"]},
+        ).scalar()
+        if replaced:
+            raise SettingsChanged
         return _insert_run(connection, scope, mode, sample_size, strategy, None)
 
 

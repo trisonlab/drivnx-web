@@ -4,6 +4,7 @@ import sqlite3
 import subprocess
 import sys
 from collections.abc import Iterator
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,7 @@ from artifacts.profiles import (
     NewFinding,
     NewObservation,
     ProfileRun,
+    SettingsChanged,
     add_finding,
     add_observations,
     finish_profile_run,
@@ -19,9 +21,17 @@ from artifacts.profiles import (
     read_findings,
     read_observations,
     read_profile_run,
+    start_only_profile_run,
     start_profile_run,
 )
-from artifacts.sources import StoredField, StoredSource, add_csv_source, read_dataset
+from artifacts.sources import (
+    StoredField,
+    StoredSource,
+    add_csv_source,
+    find_source,
+    read_dataset,
+    save_corrected_settings,
+)
 from artifacts.workspace import Workspace, open_workspace
 from domain.trust import Actor
 from sqlalchemy import text
@@ -430,3 +440,19 @@ def test_a_findings_observations_must_be_from_its_own_run(
 
     with workspace.engine.connect() as connection:
         assert connection.execute(text("SELECT count(*) FROM finding")).scalar() == 0
+
+
+def test_a_run_cant_start_on_settings_a_correction_just_replaced(
+    workspace: Workspace, dataset_id: str
+) -> None:
+    # CFX-APP-csv-profile/AC-06, the other way round: a correction saved between reading the
+    # settings and starting the run.
+    source = find_source(workspace.engine, "source-1")
+    assert source is not None
+    save_corrected_settings(workspace.engine, replace(source, has_header=False))
+
+    with pytest.raises(SettingsChanged):
+        start_only_profile_run(workspace.engine, scope={"dataset_id": dataset_id}, mode="fast")
+
+    with workspace.engine.connect() as connection:
+        assert connection.execute(text("SELECT count(*) FROM profile_run")).scalar() == 0

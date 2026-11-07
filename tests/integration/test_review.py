@@ -1756,7 +1756,12 @@ def test_a_wide_file_saves_in_short_transactions_and_reviews_finish_during_the_r
 
     monkeypatch.setattr(profile_jobs, "add_observations", counting_save)
     run = profile_jobs.start_fast_profile(
-        catalogue.workspace, source, "UTF-8", path.stat(), source.modified_at
+        catalogue.workspace,
+        source,
+        read_dataset(catalogue.engine, source.id),
+        "UTF-8",
+        path.stat(),
+        source.modified_at,
     )
     assert first_saved.wait(60)
 

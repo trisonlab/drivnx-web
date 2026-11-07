@@ -6,6 +6,7 @@ from pathlib import Path
 
 from sqlalchemy import Connection, Engine, text
 
+from artifacts.profiles import RunInProgress
 from artifacts.provenance import now
 from artifacts.store import empty_the_wal, write_transaction
 
@@ -206,11 +207,26 @@ def _names(source: StoredSource) -> list[str]:
 
 
 def save_corrected_settings(engine: Engine, source: StoredSource) -> None:
-    """Save a user's settings. New settings or columns get a new current dataset.
+    """Save a user's settings, or raise `RunInProgress` while a run reads this source.
 
-    Earlier datasets stay, so what a run measured still points at what it read (ADR 0002).
+    New settings or columns get a new current dataset. Earlier datasets stay, so what a run
+    measured still points at what it read (ADR 0002).
     """
     with write_transaction(engine) as connection:
+        # Under the write lock, so a run can't start between this check and the save.
+        running = connection.execute(
+            text(
+                """
+                SELECT 1 FROM profile_run
+                JOIN dataset ON dataset.id = json_extract(profile_run.scope, '$.dataset_id')
+                WHERE profile_run.status = 'running' AND dataset.source_id = :id
+                LIMIT 1
+                """
+            ),
+            {"id": source.id},
+        ).first()
+        if running:
+            raise RunInProgress
         row = connection.execute(
             text(f"{_SELECT_SOURCES} WHERE id = :id"), {"id": source.id}
         ).one()

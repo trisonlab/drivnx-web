@@ -1,5 +1,6 @@
 """Running a fast profile through the API, CFX-APP-csv-profile AC-07, AC-09, AC-13, AC-15, AC-16, AC-17."""
 
+import os
 import sqlite3
 import threading
 import time
@@ -11,8 +12,9 @@ import duckdb
 import pytest
 from artifacts.profiles import read_profile_run
 from artifacts.sources import read_dataset
+from artifacts.store import WorkspaceBusy
 from fastapi.testclient import TestClient
-from local_api import profile_jobs
+from local_api import profile_jobs, profile_runs_api
 from sqlalchemy.exc import ProgrammingError
 
 WAIT_FOR_A_RUN_SECONDS = 30
@@ -155,6 +157,123 @@ def test_a_run_made_before_a_correction_no_longer_uses_the_current_settings(
     assert [entry["current_settings"] for entry in listed] == [False]
 
 
+def settings_of(source: dict, **changes: object) -> dict:
+    settings = {
+        "delimiter": source["delimiter"],
+        "encoding": source["encoding"],
+        "has_header": source["has_header"],
+        "skip_lines": source["skip_lines"],
+    }
+    return {**settings, **changes}
+
+
+def test_a_correction_during_a_run_on_the_same_file_is_refused(
+    client: TestClient, tmp_path: Path, held_run: threading.Event
+) -> None:
+    # CFX-APP-csv-profile/AC-06
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n2,Bob\n")
+    source = connect(client, path)
+    run = start(client, source)
+
+    response = client.put(
+        f"/api/sources/{source['id']}/settings", json=settings_of(source, has_header=False)
+    )
+
+    assert response.status_code == 409, response.text
+    assert response.json()["detail"] == (
+        "A profile is running on this file. Wait for it to finish, then save your settings."
+    )
+    assert client.get("/api/sources").json() == [source]
+    held_run.set()
+    ended = finished(client, run)
+    assert (ended["status"], ended["current_settings"]) == ("completed", True)
+
+
+def test_a_start_that_meets_a_correction_is_refused(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-csv-profile/AC-06, the other way round: the correction lands just after the start has
+    # read the dataset, so the run would record a dataset that's no longer current.
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n")
+    source = connect(client, path)
+    read = profile_runs_api.read_dataset
+
+    def read_then_correct(*args):
+        dataset = read(*args)
+        response = client.put(
+            f"/api/sources/{source['id']}/settings", json=settings_of(source, has_header=False)
+        )
+        assert response.status_code == 200, response.text
+        return dataset
+
+    monkeypatch.setattr(profile_runs_api, "read_dataset", read_then_correct)
+
+    response = client.post(
+        "/api/profile-runs", json={"source_id": source["id"], "mode": "fast"}
+    )
+
+    assert response.status_code == 409, response.text
+    assert response.json()["detail"] == (
+        "This file's settings changed just now. Start the profile again."
+    )
+    assert client.get("/api/profile-runs").json() == []
+
+
+def test_a_correction_while_a_start_reads_the_file_is_refused(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-csv-profile/AC-06: found reviewing T07. A correction saved while the start reads the
+    # file's columns gave a completed run, shown as current, that counted the header as a row.
+    path = tmp_path / "numbers.csv"
+    path.write_text("1,2\n3,4\n")
+    source = connect(client, path)
+    assert source["has_header"] is False
+    sniff = profile_runs_api.sniffed_columns
+
+    def sniff_then_correct(*args):
+        found = sniff(*args)
+        response = client.put(
+            f"/api/sources/{source['id']}/settings", json=settings_of(source, has_header=True)
+        )
+        assert response.status_code == 200, response.text
+        return found
+
+    monkeypatch.setattr(profile_runs_api, "sniffed_columns", sniff_then_correct)
+
+    response = client.post(
+        "/api/profile-runs", json={"source_id": source["id"], "mode": "fast"}
+    )
+
+    assert response.status_code == 409, response.text
+    assert response.json()["detail"] == (
+        "This file's settings changed just now. Start the profile again."
+    )
+    assert client.get("/api/profile-runs").json() == []
+
+
+def test_a_correction_to_another_file_during_a_run_is_saved(
+    client: TestClient, tmp_path: Path, held_run: threading.Event
+) -> None:
+    # CFX-APP-csv-profile/AC-06 refuses only what the run reads.
+    running = tmp_path / "people.csv"
+    running.write_text("id,name\n1,Ann\n")
+    other = tmp_path / "other.csv"
+    other.write_text("a,b\n1,2\n")
+    run = start(client, connect(client, running))
+    source = connect(client, other)
+
+    response = client.put(
+        f"/api/sources/{source['id']}/settings", json=settings_of(source, has_header=False)
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["has_header"] is False
+    held_run.set()
+    finished(client, run)
+
+
 def numbered_csv(path: Path, rows: int) -> Path:
     path.write_text("id\n" + "".join(f"{number}\n" for number in range(rows)))
     return path
@@ -248,6 +367,63 @@ def test_a_file_whose_columns_changed_fails_rather_than_saving_wrong_evidence(
     assert ended["metrics"] == []
 
 
+COLUMNS_NO_LONGER_MATCH = (
+    "This file's columns no longer match the saved ones. "
+    "Open this source's settings and save them to read the columns again."
+)
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ("a,b\n1,2\n", "a,b,secret\n1,2,x\n"),
+        ("a,b\n1,2\n", "b,a\n2,1\n"),
+        ("a,b,c\n1,2,3\n", "a,b\n1,2\n"),
+        ("1,2\n3,4\n", "1,2,3\n4,5,6\n"),
+        ("1,2,3\n4,5,6\n", "1,2\n4,5\n"),
+    ],
+    ids=["new column", "renamed", "removed", "no header, wider", "no header, narrower"],
+)
+@pytest.mark.parametrize("saved_settings", [False, True], ids=["detected", "saved"])
+def test_a_file_whose_columns_changed_is_refused_before_a_run_starts(
+    client: TestClient, tmp_path: Path, before: str, after: str, saved_settings: bool
+) -> None:
+    # CFX-APP-csv-profile/AC-12. A new column is told apart from a wider row, which reads the same.
+    path = tmp_path / "people.csv"
+    path.write_text(before)
+    source = connect(client, path)
+    if saved_settings:
+        source = corrected(client, source)
+    path.write_text(after)
+
+    response = client.post(
+        "/api/profile-runs", json={"source_id": source["id"], "mode": "fast"}
+    )
+
+    assert response.status_code == 409, response.text
+    assert response.json()["detail"] == COLUMNS_NO_LONGER_MATCH
+    assert client.get("/api/profile-runs").json() == []
+
+
+def test_saving_the_settings_after_a_refusal_reads_the_columns_again(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-12, the second half.
+    path = tmp_path / "people.csv"
+    path.write_text("a,b\n1,2\n")
+    source = connect(client, path)
+    path.write_text("a,b,c\n1,2,3\n")
+    refused = client.post("/api/profile-runs", json={"source_id": source["id"], "mode": "fast"})
+    assert refused.status_code == 409
+
+    saved = corrected(client, source)
+    run = finished(client, start(client, saved))
+
+    assert [column["name"] for column in saved["columns"]] == ["a", "b", "c"]
+    assert run["status"] == "completed"
+    assert metric_values(run)[("c", "missing_count")] == 0
+
+
 def test_a_failed_run_keeps_the_errors_text_to_itself(
     client: TestClient,
     workspace_dir: Path,
@@ -268,12 +444,108 @@ def test_a_failed_run_keeps_the_errors_text_to_itself(
 
     wait_for_jobs_to_end()
     assert ended["status"] == "failed"
+    # CFX-APP-csv-profile/AC-11: a reason of Conflux's own, not DuckDB's.
+    assert ended["failure"] == "Conflux couldn't profile this file."
     # Python would print an error that escapes the thread, with the row in its text.
     assert escaped_errors == []
     captured = capfd.readouterr()
     assert "Zanzibar" not in captured.out + captured.err
     assert b"Zanzibar" not in (workspace_dir / "workspace.db").read_bytes()
     assert b"Zanzibar" not in (workspace_dir / "workspace.db-wal").read_bytes()
+
+
+def test_a_run_that_meets_a_busy_workspace_says_so(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-csv-profile/AC-11: the file is fine, so the message mustn't blame it.
+    def busy_save(*_args) -> None:
+        raise WorkspaceBusy("Conflux is busy writing to this workspace. Try again.")
+
+    monkeypatch.setattr(profile_jobs, "add_observations", busy_save)
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n")
+
+    run = finished(client, start(client, connect(client, path)))
+
+    assert run["status"] == "failed"
+    assert run["failure"] == "Conflux is busy writing to this workspace. Try again."
+
+
+def test_a_run_that_runs_out_of_memory_says_so(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-csv-profile/AC-11: nothing is wrong with the file, so the message mustn't blame a row.
+    path = tmp_path / "wide_cells.csv"
+    path.write_text("id,name\n" + "".join(f"{row},{'x' * 2000}\n" for row in range(3000)))
+    source = connect(client, path)
+    monkeypatch.setattr(profile_jobs, "PROFILE_MEMORY_LIMIT", "1MB")
+
+    run = finished(client, start(client, source))
+
+    assert run["status"] == "failed"
+    assert run["failure"] == "Conflux ran out of memory profiling this file."
+
+
+def test_a_row_that_cant_be_read_fails_the_run_and_says_so(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-11, and T04's decision: a wider row past the sample fails the run
+    # rather than being cut.
+    path = tmp_path / "wide.csv"
+    rows = "".join(f"{number},Ann\n" for number in range(30_000))
+    path.write_text(f"id,name\n{rows}1,Ann,extra\n")
+
+    run = finished(client, start(client, connect(client, path)))
+
+    assert run["status"] == "failed"
+    assert run["failure"] == (
+        "A row in this file can't be read, so it can't be profiled without leaving that row out."
+    )
+
+
+@pytest.mark.parametrize("rows_after", [500, 100_500], ids=["small file", "past the first rows"])
+def test_a_quote_never_closed_late_in_a_file_fails_the_run(
+    client: TestClient, tmp_path: Path, rows_after: int
+) -> None:
+    # CFX-APP-csv-profile/AC-11: DuckDB 2.0.0 drops every row from an unclosed quote onwards without
+    # an error once it comes after 2,046 rows, so the run would claim a short count as the file.
+    path = tmp_path / "late_quote.csv"
+    before = "".join(f"{number},v{number}\n" for number in range(3000))
+    after = "".join(f"{number},w{number}\n" for number in range(rows_after))
+    path.write_text(f'id,name\n{before}2,"oops\n{after}')
+
+    run = finished(client, start(client, connect(client, path)))
+
+    assert run["status"] == "failed"
+    assert run["failure"] == (
+        "A row in this file can't be read, so it can't be profiled without leaving that row out."
+    )
+
+
+def test_lines_left_out_above_the_table_are_saved_with_the_run(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # As in the preview (first slice, AC-27): DuckDB takes the lines above a wider last row as lines
+    # to skip, so a run must say how many it left out, or 1 row would look like the whole file.
+    path = tmp_path / "last_row_wider.csv"
+    path.write_text("".join(f"{number},x\n" for number in range(40)) + "1,2,3\n")
+
+    run = finished(client, start(client, connect(client, path)))
+
+    assert run["status"] == "completed"
+    values = metric_values(run)
+    assert (values[(None, "rows_read")], values[(None, "skipped_lines")]) == (1, 40)
+
+
+def test_a_file_with_no_lines_above_the_table_saves_none_left_out(
+    client: TestClient, tmp_path: Path
+) -> None:
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n")
+
+    run = finished(client, start(client, connect(client, path)))
+
+    assert (None, "skipped_lines") not in metric_values(run)
 
 
 @pytest.fixture
@@ -421,7 +693,7 @@ def test_starting_a_run_needs_a_source_and_a_mode_built_so_far(
 def test_a_file_that_has_gone_is_refused_before_a_run_starts(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # T07 proves the rest of AC-11.
+    # CFX-APP-csv-profile/AC-11
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
     source = connect(client, path)
@@ -433,6 +705,146 @@ def test_a_file_that_has_gone_is_refused_before_a_run_starts(
 
     assert response.status_code == 409
     assert "can't find this file" in response.json()["detail"]
+    assert client.get("/api/profile-runs").json() == []
+
+
+def after_reading(monkeypatch: pytest.MonkeyPatch, change) -> None:
+    """Do something to the file once the job has read its rows."""
+    load_rows = profile_jobs.load_rows
+
+    def load_then_change(*args, **kwargs):
+        loaded = load_rows(*args, **kwargs)
+        change()
+        return loaded
+
+    monkeypatch.setattr(profile_jobs, "load_rows", load_then_change)
+
+
+def before_reading(monkeypatch: pytest.MonkeyPatch, change) -> None:
+    """Do something to the file once the run has started, just before the job reads it."""
+    load_rows = profile_jobs.load_rows
+
+    def change_then_load(*args, **kwargs):
+        change()
+        return load_rows(*args, **kwargs)
+
+    monkeypatch.setattr(profile_jobs, "load_rows", change_then_load)
+
+
+def test_a_file_removed_during_a_run_fails_and_says_so(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-csv-profile/AC-11
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n")
+    source = connect(client, path)
+    after_reading(monkeypatch, path.unlink)
+
+    run = finished(client, start(client, source))
+
+    assert run["status"] == "failed"
+    assert run["failure"] == "Conflux can't find this file. It may have moved or been deleted."
+    assert run["metrics"] == []
+
+
+def test_a_file_changed_during_a_run_fails_and_says_so(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-csv-profile/AC-11: what was measured may not be the file any more.
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n")
+    source = connect(client, path)
+
+    def add_a_row() -> None:
+        with path.open("a") as file:
+            file.write("2,Bob\n")
+
+    after_reading(monkeypatch, add_a_row)
+
+    run = finished(client, start(client, source))
+
+    assert run["status"] == "failed"
+    assert run["failure"] == "The file changed while it was being profiled. Profile it again."
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root can read any file")
+def test_a_file_that_becomes_unreadable_during_a_run_fails_and_says_so(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-csv-profile/AC-11
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n")
+    source = connect(client, path)
+    before_reading(monkeypatch, lambda: path.chmod(0))
+
+    try:
+        run = finished(client, start(client, source))
+    finally:
+        path.chmod(0o600)
+
+    assert run["status"] == "failed"
+    assert run["failure"] == "Conflux doesn't have permission to read this file."
+
+
+def test_a_file_replaced_by_a_pipe_during_a_run_still_ends_the_run(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-csv-profile/AC-11: opening a pipe waits for a writer, which never comes.
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n")
+    source = connect(client, path)
+
+    def replace_with_a_pipe() -> None:
+        path.unlink()
+        os.mkfifo(path)
+
+    after_reading(monkeypatch, replace_with_a_pipe)
+
+    run = finished(client, start(client, source))
+
+    assert run["status"] == "failed"
+    assert run["failure"] == "The file changed while it was being profiled. Profile it again."
+
+
+def test_a_file_that_cant_be_looked_at_during_a_run_still_says_why(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-csv-profile/AC-11: a link to itself is neither missing nor forbidden.
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n")
+    source = connect(client, path)
+
+    def replace_with_a_loop() -> None:
+        path.unlink()
+        path.symlink_to(path)
+
+    after_reading(monkeypatch, replace_with_a_loop)
+
+    run = finished(client, start(client, source))
+
+    assert run["status"] == "failed"
+    assert run["failure"] == "Conflux couldn't read this file."
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root can read any file")
+def test_a_file_that_cant_be_read_is_refused_before_a_run_starts(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-11
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n")
+    source = connect(client, path)
+    path.chmod(0)
+
+    try:
+        response = client.post(
+            "/api/profile-runs", json={"source_id": source["id"], "mode": "fast"}
+        )
+    finally:
+        path.chmod(0o600)
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Conflux doesn't have permission to read this file."
     assert client.get("/api/profile-runs").json() == []
 
 
@@ -452,6 +864,28 @@ def test_every_file_that_can_be_connected_can_be_profiled(
     assert run["status"] == "completed"
 
 
+@pytest.mark.parametrize(
+    "name", sorted(path.name for path in CSV_DIR.iterdir() if path.is_file())
+)
+def test_every_file_can_be_profiled_after_saving_its_settings(
+    client: TestClient, name: str
+) -> None:
+    # CFX-APP-csv-profile/AC-12: saved settings read the columns the preview's way, so a wider
+    # row's extra column is saved too, and the check at the start mustn't refuse it.
+    response = client.post("/api/sources", json={"path": str(CSV_DIR / name)})
+    if response.status_code != 201:
+        pytest.skip("This file can't be connected, by design.")
+    saved = client.put(
+        f"/api/sources/{response.json()['id']}/settings", json=settings_of(response.json())
+    )
+    if saved.status_code != 200:
+        pytest.skip("These settings can't be saved for this file, by design.")
+
+    run = finished(client, start(client, saved.json()))
+
+    assert run["status"] == "completed"
+
+
 def test_a_busy_workspace_says_so(
     client: TestClient, workspace_dir: Path, tmp_path: Path
 ) -> None:
@@ -464,6 +898,27 @@ def test_a_busy_workspace_says_so(
     try:
         response = client.post(
             "/api/profile-runs", json={"source_id": source["id"], "mode": "fast"}
+        )
+    finally:
+        writer.execute("ROLLBACK")
+        writer.close()
+
+    assert response.status_code == 503
+    assert "busy" in response.json()["detail"]
+
+
+def test_a_busy_workspace_says_so_when_saving_settings_too(
+    client: TestClient, workspace_dir: Path, tmp_path: Path
+) -> None:
+    # T03's note: saving settings answered a bare 500 when another program held the write lock.
+    path = tmp_path / "people.csv"
+    path.write_text("id,name\n1,Ann\n")
+    source = connect(client, path)
+    writer = sqlite3.connect(workspace_dir / "workspace.db", isolation_level=None)
+    writer.execute("BEGIN IMMEDIATE")
+    try:
+        response = client.put(
+            f"/api/sources/{source['id']}/settings", json=settings_of(source, has_header=False)
         )
     finally:
         writer.execute("ROLLBACK")

@@ -35,6 +35,7 @@ type Run = {
   started_at: string;
   ended_at: string | null;
   current_settings: boolean;
+  failure?: string | null;
 };
 
 function run(overrides: Partial<Run> = {}): Run {
@@ -271,8 +272,23 @@ test("a run that failed says so, and earlier results stay", async () => {
 
   expect(await within(panel).findByRole("alert")).toHaveTextContent("couldn't finish");
   expect(await within(panel).findByRole("table")).toBeInTheDocument();
+  // CFX-APP-csv-profile/AC-11: they aren't the failed run's.
+  expect(panel).toHaveTextContent("The results below are from the run before.");
   expect(panel).toHaveTextContent("run-1");
   expect(within(await screen.findByRole("banner")).getByText("Profile status: Failed")).toBeInTheDocument();
+});
+
+test("a failed run says why, in the server's words", async () => {
+  // CFX-APP-csv-profile/AC-11
+  runs = [run({ status: "failed", failure: "Conflux can't find this file. It may have moved or been deleted." })];
+  renderApp();
+
+  const panel = await profilePanel();
+
+  expect(await within(panel).findByRole("alert")).toHaveTextContent(
+    "This profile couldn't finish. Conflux can't find this file. It may have moved or been deleted.",
+  );
+  expect(panel).not.toHaveTextContent("from the run before");
 });
 
 test("with no source, the Profile tab says what to do first", async () => {
@@ -451,6 +467,26 @@ test("a file with no surplus columns doesn't mention them", async () => {
   await rowFor("city");
 
   expect(await profilePanel()).not.toHaveTextContent("more field");
+});
+
+test.each([
+  [1, "1 line above the table was left out, as in the preview."],
+  [40, "40 lines above the table were left out, as in the preview."],
+])("%i lines left out above the table are mentioned", async (count, message) => {
+  // As the preview says (first slice, AC-27), or a short count would look like the whole file.
+  extraMetrics = [["skipped_lines", count]];
+  runs = [run()];
+  renderApp();
+
+  expect(await within(await profilePanel()).findByText(message)).toBeInTheDocument();
+});
+
+test("a file with no lines left out above the table doesn't mention them", async () => {
+  runs = [run()];
+  renderApp();
+  await rowFor("city");
+
+  expect(await profilePanel()).not.toHaveTextContent("above the table");
 });
 
 test("what a metric was measured on comes straight after its column", async () => {

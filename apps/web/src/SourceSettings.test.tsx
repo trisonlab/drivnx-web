@@ -221,6 +221,17 @@ test("a file that has gone says so when saving", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("Conflux can't find this file");
 });
 
+test("a busy workspace says so when saving, so the user tries again", async () => {
+  // Found reviewing T07: the server says it's busy, and "Start Conflux again" was the wrong advice.
+  onSave = () => Response.json({ detail: "Conflux is busy writing to this workspace. Try again." }, { status: 503 });
+  showSettings();
+  await open();
+
+  await userEvent.click(screen.getByRole("button", { name: "Save settings" }));
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("Conflux is busy writing to this workspace. Try again.");
+});
+
 test.each(["", "1001", "2.5"])("%j isn't accepted as lines to skip", async (typed) => {
   // CFX-APP-csv-profile/AC-01
   showSettings();

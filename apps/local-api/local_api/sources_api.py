@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Literal
 
+from artifacts.profiles import RunInProgress
 from artifacts.sources import (
     StoredField,
     StoredSource,
@@ -33,6 +34,9 @@ DEFAULT_PAGE_ROWS = 50
 MAX_PAGE_ROWS = 200
 # The largest position DuckDB accepts. Past the end of a file, a page is just empty.
 MAX_OFFSET = 2**63 - 1
+RUN_ON_THIS_FILE = (
+    "A profile is running on this file. Wait for it to finish, then save your settings."
+)
 
 
 def _no_nul(value: str) -> str:
@@ -278,7 +282,10 @@ def sources_router(workspace: Workspace) -> APIRouter:
                 for column in columns
             ),
         )
-        save_corrected_settings(workspace.engine, corrected)
+        try:
+            save_corrected_settings(workspace.engine, corrected)
+        except RunInProgress:
+            raise HTTPException(status_code=409, detail=RUN_ON_THIS_FILE) from None
         return _response(corrected)
 
     @router.get("/{source_id}/rows")
