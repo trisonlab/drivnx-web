@@ -127,7 +127,7 @@ class Catalogue:
             add_finding(
                 self.engine,
                 actor,
-                NewFinding(run, (observation,), "A key?", "It joins", "Confirm it"),
+                NewFinding(run, (observation,), "A key?", "It joins", "Confirm it", kind="possible_identifier"),
                 details or NO_DETAILS,
             ),
         )
@@ -619,6 +619,7 @@ OPERATIONS = {
             "A key?",
             "It joins",
             "Confirm it",
+            kind="possible_identifier",
         ),
     ),
 }
@@ -989,7 +990,7 @@ def test_a_user_cannot_write_a_finding(catalogue: Catalogue) -> None:
         add_finding(
             catalogue.engine,
             Actor.USER,
-            NewFinding(run, (), "A key?", "It joins", "Confirm it"),
+            NewFinding(run, (), "A key?", "It joins", "Confirm it", kind="possible_identifier"),
         )
 
     assert catalogue.everything() == before

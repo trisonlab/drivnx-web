@@ -184,6 +184,26 @@ export async function getProfileRun(runId: string): Promise<ProfileRunDetail> {
 /** The server wouldn't start this run. The message is written for the user. */
 export class RunRefusedError extends Error {}
 
+export type Finding = {
+  id: string;
+  profile_run_id: string;
+  kind: string;
+  interpretation: string;
+  why_it_matters: string;
+  recommended_action: string;
+  state: "inferred";
+  // The observations it cites, with the column's current name.
+  evidence: Metric[];
+};
+
+export async function getFindings(runId: string): Promise<Finding[]> {
+  const response = await fetch(`/api/findings?profile_run_id=${encodeURIComponent(runId)}`);
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
 export async function cancelProfile(runId: string): Promise<ProfileRun> {
   const response = await fetch(`${PROFILE_RUNS_PATH}/${runId}/cancel`, { method: "POST" });
   if (!response.ok) {

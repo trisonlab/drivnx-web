@@ -35,6 +35,7 @@ from artifacts.sources import (
 from artifacts.workspace import Workspace, open_workspace
 from domain.trust import Actor
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 from ..conftest import StartConflux
 
@@ -86,7 +87,7 @@ def run_with_finding(workspace: Workspace, dataset_id: str) -> tuple[str, str]:
     finding = add_finding(
         workspace.engine,
         Actor.SYSTEM,
-        NewFinding(run, (observation,), "Few rows", "Too few", "Check the export"),
+        NewFinding(run, (observation,), "Few rows", "Too few", "Check the export", kind="missing_values"),
     )
     return run, finding
 
@@ -340,7 +341,7 @@ def test_a_run_that_did_not_complete_takes_no_findings(
         add_finding(
             workspace.engine,
             Actor.SYSTEM,
-            NewFinding(run, (observation,), "Few rows", "Too few", "Check the export"),
+            NewFinding(run, (observation,), "Few rows", "Too few", "Check the export", kind="missing_values"),
         )
 
     with workspace.engine.connect() as connection:
@@ -359,10 +360,84 @@ def test_a_completed_run_still_takes_findings(
     finding = add_finding(
         workspace.engine,
         Actor.SYSTEM,
-        NewFinding(run, (observation,), "Few rows", "Too few", "Check the export"),
+        NewFinding(run, (observation,), "Few rows", "Too few", "Check the export", kind="missing_values"),
     )
 
     assert read_findings(workspace.engine) == [read_finding(workspace.engine, finding)]
+
+
+def test_a_finding_keeps_its_kind(workspace: Workspace, dataset_id: str) -> None:
+    # CFX-APP-csv-profile/AC-21: findings are listed in a fixed order by kind.
+    run = start_profile_run(workspace.engine, scope={}, mode="full")
+    add_observations(workspace.engine, Actor.SYSTEM, run, one_observation(dataset_id))
+    observation = read_observations(workspace.engine, run)[0].id
+
+    finding = add_finding(
+        workspace.engine,
+        Actor.SYSTEM,
+        NewFinding(
+            run,
+            (observation,),
+            "Possible identifier",
+            "It may be the key",
+            "Confirm it",
+            kind="possible_identifier",
+        ),
+    )
+
+    assert read_finding(workspace.engine, finding).kind == "possible_identifier"
+
+
+def test_a_finding_of_an_unknown_kind_is_refused(
+    workspace: Workspace, dataset_id: str
+) -> None:
+    # CFX-APP-csv-profile/AC-21: the fixed order only knows the six kinds.
+    run = start_profile_run(workspace.engine, scope={}, mode="full")
+    add_observations(workspace.engine, Actor.SYSTEM, run, one_observation(dataset_id))
+    observation = read_observations(workspace.engine, run)[0].id
+
+    with pytest.raises(IntegrityError):
+        add_finding(
+            workspace.engine,
+            Actor.SYSTEM,
+            NewFinding(run, (observation,), "Odd", "Odd", "Odd", kind="interesting"),
+        )
+
+    assert read_findings(workspace.engine) == []
+
+
+def test_findings_are_saved_only_with_a_completed_ending(
+    workspace: Workspace, dataset_id: str
+) -> None:
+    # CFX-APP-csv-profile/AC-26: found reviewing T08, no test held this.
+    run = start_profile_run(workspace.engine, scope={}, mode="full")
+    add_observations(workspace.engine, Actor.SYSTEM, run, one_observation(dataset_id))
+    observation = read_observations(workspace.engine, run)[0].id
+    found = NewFinding(run, (observation,), "Odd", "Odd", "Odd", kind="missing_values")
+
+    with pytest.raises(ValueError, match="Only a completed run takes findings"):
+        finish_profile_run(workspace.engine, run, "cancelled", [found])
+
+    assert read_profile_run(workspace.engine, run).status == "running"
+    with workspace.engine.connect() as connection:
+        assert connection.execute(text("SELECT count(*) FROM finding")).scalar() == 0
+
+
+def test_a_run_ends_only_with_its_own_findings(workspace: Workspace, dataset_id: str) -> None:
+    # CFX-APP-csv-profile/AC-26: found reviewing T08. Nothing of the ending is kept.
+    other = start_profile_run(workspace.engine, scope={}, mode="full")
+    add_observations(workspace.engine, Actor.SYSTEM, other, one_observation(dataset_id))
+    run = start_profile_run(workspace.engine, scope={}, mode="full")
+    # It cites its own run's observation, so only this guard stops it.
+    observation = read_observations(workspace.engine, other)[0].id
+    stray = NewFinding(other, (observation,), "Odd", "Odd", "Odd", kind="missing_values")
+
+    with pytest.raises(ValueError, match="A finding must be from the run it ends with"):
+        finish_profile_run(workspace.engine, run, "completed", [stray])
+
+    assert read_profile_run(workspace.engine, run).status == "running"
+    with workspace.engine.connect() as connection:
+        assert connection.execute(text("SELECT count(*) FROM finding")).scalar() == 0
 
 
 def test_a_finding_cannot_list_an_observation_twice(
@@ -377,7 +452,7 @@ def test_a_finding_cannot_list_an_observation_twice(
         add_finding(
             workspace.engine,
             Actor.SYSTEM,
-            NewFinding(run, (observation, observation), "Few rows", "Too few", "Check"),
+            NewFinding(run, (observation, observation), "Few rows", "Too few", "Check", kind="missing_values"),
         )
 
 
@@ -395,7 +470,7 @@ def test_a_finding_keeps_its_observations_in_order(
         finding = add_finding(
             workspace.engine,
             Actor.SYSTEM,
-            NewFinding(run, order, "Few rows", "Too few", "Check the export"),
+            NewFinding(run, order, "Few rows", "Too few", "Check the export", kind="missing_values"),
         )
 
         assert read_finding(workspace.engine, finding).observation_ids == order
@@ -409,7 +484,7 @@ def test_a_finding_needs_an_observation(workspace: Workspace) -> None:
         add_finding(
             workspace.engine,
             Actor.SYSTEM,
-            NewFinding(run, (), "Few rows", "Too few", "Check the export"),
+            NewFinding(run, (), "Few rows", "Too few", "Check the export", kind="missing_values"),
         )
 
 
@@ -435,6 +510,7 @@ def test_a_findings_observations_must_be_from_its_own_run(
                 "Few rows",
                 "Too few",
                 "Check the export",
+                kind="missing_values",
             ),
         )
 

@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import AfterValidator, BaseModel, StringConstraints
 
 from local_api.binding import LOOPBACK_ADDRESS
+from local_api.findings_api import findings_router
 from local_api.guard import SESSION_PATH, RequestGuard, SecurityHeaders
 from local_api.profile_jobs import stop_jobs
 from local_api.profile_runs_api import profile_runs_router
@@ -142,6 +143,7 @@ def create_app(
     app.state.workspace = workspace
     app.include_router(sources_router(workspace))
     app.include_router(profile_runs_router(workspace))
+    app.include_router(findings_router(workspace))
 
     if ui_dir is not None:
         app.mount("/", StaticFiles(directory=ui_dir, html=True))

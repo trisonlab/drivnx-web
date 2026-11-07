@@ -2,6 +2,7 @@
 
 import json
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -40,12 +41,53 @@ def record_event(
     previous_value: object = None,
 ) -> None:
     """`target_column` is a column name written in this module's callers, never input."""
+    record_events(
+        connection,
+        actor,
+        action,
+        from_state,
+        to_state,
+        target_column,
+        [target_id],
+        details,
+        previous_value,
+    )
+
+
+def record_events(
+    connection: Connection,
+    actor: Actor,
+    action: Action,
+    from_state: TrustState | None,
+    to_state: TrustState,
+    target_column: str,
+    target_ids: Sequence[str],
+    details: EventDetails,
+    previous_value: object = None,
+) -> None:
+    """One event for each of `target_ids`, in one statement, so many keep the write lock briefly."""
     if actor is Actor.AI and not (
         details.ai_provider and details.ai_model and details.prompt_version
     ):
         raise Rejected(
             "An AI event must say which provider, model and prompt wrote it."
         )
+    if not target_ids:
+        return
+    shared = {
+        "author": actor.value,
+        "occurred_at": now(),
+        "action": action.value,
+        "from_state": from_state.value if from_state else None,
+        "to_state": to_state.value,
+        "previous_value": None if previous_value is None else json.dumps(previous_value),
+        "ai_provider": details.ai_provider,
+        "ai_model": details.ai_model,
+        "prompt_version": details.prompt_version,
+        "approved_context_categories": json.dumps(details.approved_context_categories),
+        "evidence_references": json.dumps(details.evidence_references),
+        "reviewer": details.reviewer,
+    }
     connection.execute(
         text(
             f"""
@@ -60,24 +102,5 @@ def record_event(
             )
             """
         ),
-        {
-            "id": uuid.uuid4().hex,
-            "author": actor.value,
-            "occurred_at": now(),
-            "action": action.value,
-            "from_state": from_state.value if from_state else None,
-            "to_state": to_state.value,
-            "previous_value": None
-            if previous_value is None
-            else json.dumps(previous_value),
-            "ai_provider": details.ai_provider,
-            "ai_model": details.ai_model,
-            "prompt_version": details.prompt_version,
-            "approved_context_categories": json.dumps(
-                details.approved_context_categories
-            ),
-            "evidence_references": json.dumps(details.evidence_references),
-            "reviewer": details.reviewer,
-            "target_id": target_id,
-        },
+        [{"id": uuid.uuid4().hex, "target_id": target_id, **shared} for target_id in target_ids],
     )

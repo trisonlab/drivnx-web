@@ -83,6 +83,8 @@ let runs: Run[];
 let scope: string;
 let patternsScope: string | undefined;
 let rowsRead: number;
+let findings: unknown[];
+let findingsOf: string;
 let onStart: () => Response;
 let onCancel: (url: string) => Response;
 let extraMetrics: [string, unknown][];
@@ -93,6 +95,8 @@ beforeEach(() => {
   scope = "full";
   patternsScope = undefined;
   rowsRead = 100000;
+  findings = [];
+  findingsOf = "run-1";
   onStart = () => {
     runs = [run({ status: "running", ended_at: null })];
     return Response.json(runs[0], { status: 202 });
@@ -117,6 +121,9 @@ beforeEach(() => {
     }
     if (url === "/api/profile-runs") {
       return Response.json(runs);
+    }
+    if (url.startsWith("/api/findings?")) {
+      return Response.json(url.endsWith(`profile_run_id=${findingsOf}`) ? findings : []);
     }
     if (url.endsWith("/cancel") && init?.method === "POST") {
       return onCancel(url);
@@ -584,4 +591,234 @@ test("what a metric was measured on comes straight after its column", async () =
 
   const cells = within(row).getAllByRole("cell").map((cell) => cell.textContent);
   expect(cells.slice(0, 2)).toEqual(["first 100,000 rows, not random", "Exact"]);
+});
+
+function finding(kind: string, evidence: { column: string | null; metric: string; value: unknown }[], scope = "full") {
+  return {
+    id: `finding-${kind}`,
+    profile_run_id: "run-1",
+    kind,
+    interpretation: `Saved interpretation of ${kind}`,
+    why_it_matters: `Saved reason for ${kind}`,
+    recommended_action: `Saved action for ${kind}`,
+    state: "inferred",
+    evidence: evidence.map((cited) => ({ ...cited, scope, precision: "exact" })),
+  };
+}
+
+async function findingsPanel() {
+  const panel = await screen.findByRole("complementary", { name: "Intelligence & Review" });
+  return within(panel).findByRole("region", { name: "Findings" });
+}
+
+test("a finding says what was observed and inferred, why it matters and what to do, as Inferred", async () => {
+  // CFX-APP-csv-profile/AC-23
+  runs = [run()];
+  findings = [
+    finding("possible_identifier", [
+      { column: "city", metric: "distinct_count", value: 2500 },
+      { column: "city", metric: "distinct_percent", value: 100 },
+    ]),
+  ];
+  renderApp();
+
+  const shown = await within(await findingsPanel()).findByRole("article");
+
+  expect(shown).toHaveTextContent("Saved interpretation of possible_identifier");
+  expect(shown).toHaveTextContent("Inferred");
+  expect(shown).toHaveTextContent("Observed: city has 2,500 distinct values (100%).");
+  expect(shown).toHaveTextContent("Why it matters: Saved reason for possible_identifier");
+  expect(shown).toHaveTextContent("Recommended action: Saved action for possible_identifier");
+});
+
+test.each([
+  ["not_fitting", [{ column: "amount", metric: "not_fitting_count", value: 7 }], "amount has 7 values that don't fit its type"],
+  ["not_fitting", [{ column: "amount", metric: "not_fitting_count", value: 1 }], "amount has 1 value that doesn't fit its type"],
+  ["duplicate_rows", [{ column: null, metric: "duplicate_rows", value: 3 }], "3 rows are exact copies of another row"],
+  ["duplicate_rows", [{ column: null, metric: "duplicate_rows", value: 1 }], "1 row is an exact copy of another row"],
+  [
+    "missing_values",
+    [
+      { column: "note", metric: "missing_count", value: 7500 },
+      { column: "note", metric: "missing_percent", value: 25 },
+    ],
+    "note is missing 7,500 values (25%)",
+  ],
+  ["single_value", [{ column: "country", metric: "distinct_count", value: 1 }], "every value in country is the same"],
+  [
+    "missing_values",
+    [
+      { column: "note", metric: "missing_count", value: 1 },
+      { column: "note", metric: "missing_percent", value: 25 },
+    ],
+    "note is missing 1 value (25%)",
+  ],
+  [
+    "possible_identifier",
+    [
+      { column: "id", metric: "distinct_count", value: 1 },
+      { column: "id", metric: "distinct_percent", value: 100 },
+    ],
+    "id has 1 distinct value (100%)",
+  ],
+])("a %s finding says what was observed: %#", async (kind, evidence, said) => {
+  // CFX-APP-csv-profile/AC-23
+  runs = [run()];
+  findings = [finding(kind, evidence)];
+  renderApp();
+
+  const shown = await within(await findingsPanel()).findByRole("article");
+  // Exact, as toHaveTextContent would hide a doubled space.
+  expect(within(shown).getByText(/^Observed:/).textContent).toBe(`Observed: ${said}.`);
+});
+
+test("a finding from the first rows only says so", async () => {
+  // CFX-APP-csv-profile/AC-24, as revised in revision 3
+  runs = [run()];
+  scope = "sample";
+  findings = [
+    finding(
+      "possible_identifier",
+      [
+        { column: "city", metric: "distinct_count", value: 99500 },
+        { column: "city", metric: "distinct_percent", value: 99.5 },
+      ],
+      "sample",
+    ),
+  ];
+  renderApp();
+
+  const shown = await within(await findingsPanel()).findByRole("article");
+
+  expect(within(shown).getByText(/^Observed:/).textContent).toBe(
+    "Observed: city has 99,500 distinct values (99.5%) in the first 100,000 rows.",
+  );
+});
+
+test.each([
+  ["fast", true],
+  ["full", false],
+] as const)("after a %s profile, whether duplicate rows need a full profile is said: %s", async (mode, said) => {
+  // CFX-APP-csv-profile/AC-22
+  runs = [run({ mode })];
+  renderApp();
+
+  const panel = await findingsPanel();
+  await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).startsWith("/api/findings?"))).toBe(true));
+
+  expect(within(panel).queryByText("Duplicate rows are checked only by a full profile.") !== null).toBe(said);
+});
+
+test.each([
+  [3, "3 rows are exact copies of another row."],
+  [1, "1 row is an exact copy of another row."],
+  [0, "No row is an exact copy of another row."],
+])("a full profile says how many rows copy another: %i", async (copies, said) => {
+  // CFX-APP-csv-profile/AC-22: the count a duplicate-rows finding cites.
+  runs = [run({ mode: "full" })];
+  extraMetrics = [["duplicate_rows", copies]];
+  renderApp();
+
+  expect(await within(await profilePanel()).findByText(said)).toBeInTheDocument();
+});
+
+test("a finding's evidence link goes to the metric it cites, with its run", async () => {
+  // CFX-APP-csv-profile/AC-23
+  runs = [run()];
+  findings = [
+    finding("possible_identifier", [
+      { column: "city", metric: "distinct_count", value: 2500 },
+      { column: "city", metric: "distinct_percent", value: 2.5 },
+    ]),
+  ];
+  renderApp();
+  const shown = await within(await findingsPanel()).findByRole("article");
+  const table = await within(await profilePanel()).findByRole("table");
+
+  await userEvent.click(within(shown).getByRole("button", { name: /evidence/i }));
+
+  expect(document.activeElement).toBe(within(await rowFor("city")).getByText("2,500 (2.5%)"));
+  expect(table).toHaveTextContent("Run run-1");
+});
+
+test.each([
+  ["duplicate_rows", { column: null, metric: "duplicate_rows", value: 3 }, "3 rows are exact copies of another row."],
+  ["missing_values", { column: "city", metric: "missing_count", value: 12 }, "12 (0.01%)"],
+  ["not_fitting", { column: "city", metric: "not_fitting_count", value: 7 }, "7"],
+])("a %s finding's evidence link goes to its metric", async (kind, cited, shownAs) => {
+  // CFX-APP-csv-profile/AC-23
+  runs = [run({ mode: "full" })];
+  extraMetrics = [["duplicate_rows", 3]];
+  findings = [finding(kind, [cited])];
+  renderApp();
+  const shown = await within(await findingsPanel()).findByRole("article");
+  await within(await profilePanel()).findByRole("table");
+
+  await userEvent.click(within(shown).getByRole("button", { name: /evidence/i }));
+
+  expect(document.activeElement?.textContent).toBe(shownAs);
+});
+
+test("before any profile, the findings say what to do", async () => {
+  // CFX-APP-csv-profile/AC-21
+  renderApp();
+
+  expect(await within(await findingsPanel()).findByText("Profile this file to see what it finds.")).toBeInTheDocument();
+});
+
+test("a profile that found nothing says so", async () => {
+  // CFX-APP-csv-profile/AC-21: no condition met, so no finding of any kind.
+  runs = [run({ mode: "full" })];
+  renderApp();
+
+  expect(await within(await findingsPanel()).findByText("This profile found nothing to point out.")).toBeInTheDocument();
+});
+
+test("findings that can't be read say so", async () => {
+  // CFX-APP-csv-profile/AC-23
+  runs = [run()];
+  const answer = fetchMock.getMockImplementation();
+  fetchMock.mockImplementation(async (url: string, init?: RequestInit) =>
+    url.startsWith("/api/findings?") ? new Response(null, { status: 500 }) : answer?.(url, init),
+  );
+  renderApp();
+
+  expect(await within(await findingsPanel()).findByRole("alert")).toHaveTextContent("couldn't load the findings");
+});
+
+test("after a cancelled run, the earlier run's findings stay", async () => {
+  // CFX-APP-csv-profile/AC-26
+  runs = [run({ id: "run-2", status: "cancelled" }), run()];
+  findings = [finding("single_value", [{ column: "city", metric: "distinct_count", value: 1 }])];
+  renderApp();
+
+  expect(await within(await findingsPanel()).findByRole("article")).toHaveTextContent("every value in city");
+});
+
+test("with no file connected, the findings don't ask for a profile", async () => {
+  // Found reviewing T08: the centre already says to connect a file.
+  const answer = fetchMock.getMockImplementation();
+  fetchMock.mockImplementation(async (url: string, init?: RequestInit) =>
+    url === "/api/sources" ? Response.json([]) : answer?.(url, init),
+  );
+  renderApp();
+
+  const panel = await findingsPanel();
+  await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => url === "/api/profile-runs")).toBe(true));
+
+  expect(panel).not.toHaveTextContent("Profile this file");
+});
+
+test("if the runs can't be read, the findings say so instead of asking for a profile", async () => {
+  // Found reviewing T08: there may well be runs.
+  const answer = fetchMock.getMockImplementation();
+  fetchMock.mockImplementation(async (url: string, init?: RequestInit) =>
+    url === "/api/profile-runs" ? new Response(null, { status: 500 }) : answer?.(url, init),
+  );
+  renderApp();
+
+  const panel = await findingsPanel();
+
+  expect(await within(panel).findByRole("alert")).toHaveTextContent("couldn't load the findings");
+  expect(panel).not.toHaveTextContent("Profile this file");
 });

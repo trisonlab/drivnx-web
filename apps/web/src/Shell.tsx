@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { type AiMode, getSources, type Workspace } from "./api";
 import { DataExplorer, SOURCES_QUERY } from "./DataExplorer";
+import { Findings } from "./Findings";
 import { Preview } from "./Preview";
 import { ProfileTab, profileStatus, useProfileRuns } from "./ProfileTab";
 import { SourceDetails } from "./SourceDetails";
@@ -83,7 +84,14 @@ export function Shell({ workspace }: { workspace: Workspace }) {
       </main>
       <aside className="shell-review" aria-label="Intelligence & Review">
         <h2>Intelligence &amp; Review</h2>
-        <p className="unavailable">{NOT_AVAILABLE}</p>
+        <Findings source={chosen} />
+        <ul className="unavailable-sections">
+          {["AI suggestions", "Evidence", "Provenance", "Review actions"].map((section) => (
+            <li key={section}>
+              {section} <span className="unavailable">{NOT_AVAILABLE}</span>
+            </li>
+          ))}
+        </ul>
       </aside>
     </div>
   );

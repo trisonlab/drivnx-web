@@ -163,6 +163,7 @@ def test_a_finding_reads_back_with_its_observations(
             interpretation="Only a dozen rows",
             why_it_matters="Too few to draw conclusions from",
             recommended_action="Check the export",
+            kind="missing_values",
         ),
     )
 

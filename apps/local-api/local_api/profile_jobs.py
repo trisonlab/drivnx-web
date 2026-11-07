@@ -11,9 +11,11 @@ from typing import Any, Literal
 import duckdb
 from artifacts.profiles import (
     MAX_OBSERVATIONS_PER_TRANSACTION,
+    NewFinding,
     NewObservation,
     add_observations,
     finish_profile_run,
+    read_observations,
     start_only_profile_run,
 )
 from artifacts.sources import StoredDataset, StoredSource
@@ -21,6 +23,7 @@ from artifacts.store import WorkspaceBusy
 from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, RowNotReadable, duckdb_connection, load_rows
 from domain.trust import Actor
+from profiling.findings import findings_for
 from profiling.first_rows import FIRST_ROWS, MeasuredRows, measure_rows
 
 ROWS_TABLE = "loaded_rows"
@@ -203,6 +206,7 @@ def _run_profile(
 ) -> None:
     # In `finally`, so even a mistake in Conflux can't leave a run refusing every later one.
     status = "failed"
+    findings: list[NewFinding] = []
     try:
         measured, extra_columns, skipped_lines = _measure(
             workspace, job, mode, source, encoding, dataset
@@ -218,6 +222,19 @@ def _run_profile(
                 # The run ends as `cancelled` below, so what's saved isn't shown.
                 break
             add_observations(workspace.engine, Actor.SYSTEM, run_id, batch)
+        # From what was saved, so a finding's evidence is exactly what it cites. A cancelled run
+        # may have saved only some of it, and takes no findings.
+        findings = [] if job.stop.is_set() else [
+            NewFinding(
+                run_id,
+                draft.observation_ids,
+                draft.interpretation,
+                draft.why_it_matters,
+                draft.recommended_action,
+                kind=draft.kind,
+            )
+            for draft in findings_for(read_observations(workspace.engine, run_id))
+        ]
         status = "completed"
     except (CsvError, duckdb.Error, OSError, WorkspaceBusy) as error:
         # DuckDB's message can quote a row from the file, so this must not travel any further.
@@ -230,7 +247,12 @@ def _run_profile(
                 if not job.leaving:
                     if job.stop.is_set():
                         status = "cancelled"
-                    finish_profile_run(workspace.engine, run_id, status)
+                    finish_profile_run(
+                        workspace.engine,
+                        run_id,
+                        status,
+                        findings if status == "completed" else (),
+                    )
             finally:
                 del _jobs[run_id]
                 # Also when the ending can't be recorded, or its interrupting would never stop.
@@ -309,6 +331,11 @@ def _observations(
         observation(None, "rows_read", measured.rows_read),
         *([observation(None, "extra_columns", extra_columns)] if extra_columns else []),
         *([observation(None, "skipped_lines", skipped_lines)] if skipped_lines else []),
+        *(
+            [observation(None, "duplicate_rows", measured.duplicate_rows)]
+            if measured.duplicate_rows is not None
+            else []
+        ),
         *(
             observation(field.id, metric, value)
             for field, column in zip(dataset.fields, measured.columns, strict=True)

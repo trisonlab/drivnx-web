@@ -6,7 +6,7 @@ evidence:
 - path: docs/adr/0001-workspace-packaging-and-session-token.md
   sha256: a503e93394754482d4e3a3296e93a02b1ac8a6ee74c2a765979096254e508a9f
 - path: docs/adr/0002-workspace-storage-sqlite-only.md
-  sha256: 8a41017f914abcbc26f485a106daecbdf2e745f9950722ca8965186031726b10
+  sha256: 3b5b87a1aa81a57127f92fb1f22422f4e86353b9f8580d987f1bc340c7eb83fa
 - path: docs/adr/0003-contract-schema-native-with-odcs-export.md
   sha256: 942d3adabdccac24bf4842dd401a0817fe79ccc8e2703af28daadcbbfa16adc8
 - path: docs/adr/0004-profile-values-and-caching.md

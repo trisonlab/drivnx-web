@@ -2,7 +2,7 @@
 
 import json
 import uuid
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -10,7 +10,13 @@ from domain.trust import Action, Actor, ItemKind, next_state
 from sqlalchemy import Connection, Engine, Row, text
 from sqlalchemy.exc import DBAPIError
 
-from artifacts.provenance import NO_DETAILS, EventDetails, now, record_event
+from artifacts.provenance import (
+    NO_DETAILS,
+    EventDetails,
+    now,
+    record_event,
+    record_events,
+)
 from artifacts.schema import WorkspaceError
 from artifacts.store import write_transaction
 
@@ -65,6 +71,7 @@ class NewFinding:
     interpretation: str
     why_it_matters: str
     recommended_action: str
+    kind: str
 
 
 @dataclass(frozen=True)
@@ -75,6 +82,7 @@ class Finding:
     interpretation: str
     why_it_matters: str
     recommended_action: str
+    kind: str
 
 
 def _insert_run(
@@ -237,16 +245,28 @@ def _status_of(connection: Connection, run_id: str) -> str | None:
     ).scalar()
 
 
-def finish_profile_run(engine: Engine, run_id: str, status: str) -> None:
-    """In its own transaction, after the run's observations (ADR 0002 point 3)."""
+def finish_profile_run(
+    engine: Engine, run_id: str, status: str, findings: Iterable[NewFinding] = ()
+) -> None:
+    """In its own transaction, after the run's observations (ADR 0002 point 3).
+
+    A completed run's findings are saved in the same transaction, so a run that ends any other way
+    has none, and a completed run never has only some of them (AC-26).
+    """
     if status not in _ENDINGS:
         raise ValueError(f"A profile run can't end as {status}.")
+    findings = list(findings)
+    if findings and status != "completed":
+        raise ValueError("Only a completed run takes findings.")
     with write_transaction(engine) as connection:
         current = _status_of(connection, run_id)
         if current is None:
             raise ValueError("There's no such profile run.")
         if current != "running":
             raise ValueError("This profile run has already ended.")
+        if any(finding.profile_run_id != run_id for finding in findings):
+            raise ValueError("A finding must be from the run it ends with.")
+        _insert_findings(connection, Actor.SYSTEM, findings, NO_DETAILS)
         connection.execute(
             text(
                 """
@@ -369,64 +389,88 @@ def add_finding(
     details: EventDetails = NO_DETAILS,
 ) -> str:
     """A finding's interpretation is Inferred (Section 5), and nothing reviews it further."""
-    state = next_state(actor, Action.CREATE_INFERRED, ItemKind.FINDING, None)
-    if not finding.observation_ids:
-        raise ValueError("A finding needs at least one observation.")
-    if len(set(finding.observation_ids)) != len(finding.observation_ids):
-        raise ValueError("A finding can't list an observation twice.")
-    finding_id = uuid.uuid4().hex
     with write_transaction(engine) as connection:
         # `read_findings` would never return it, so the write would seem to work.
         if _status_of(connection, finding.profile_run_id) in _DID_NOT_COMPLETE:
             raise ValueError("A run that didn't complete takes no findings.")
+        return _insert_findings(connection, actor, [finding], details)[0]
+
+
+def _insert_findings(
+    connection: Connection,
+    actor: Actor,
+    findings: Sequence[NewFinding],
+    details: EventDetails,
+) -> list[str]:
+    """In a few statements, not a few per finding, as a wide file's findings all go into one
+    transaction that holds the write lock (ADR 0002 point 3)."""
+    state = next_state(actor, Action.CREATE_INFERRED, ItemKind.FINDING, None)
+    runs = sorted({finding.profile_run_id for finding in findings})
+    owners = dict(
         connection.execute(
             text(
-                """
-                INSERT INTO finding
-                    (id, profile_run_id, interpretation, why_it_matters, recommended_action)
-                VALUES
-                    (:id, :run, :interpretation, :why_it_matters, :recommended_action)
-                """
+                "SELECT id, profile_run_id FROM observation "
+                "WHERE profile_run_id IN (SELECT value FROM json_each(:runs))"
             ),
+            {"runs": json.dumps(runs)},
+        ).all()
+    )
+    for finding in findings:
+        if not finding.observation_ids:
+            raise ValueError("A finding needs at least one observation.")
+        if len(set(finding.observation_ids)) != len(finding.observation_ids):
+            raise ValueError("A finding can't list an observation twice.")
+        if any(owners.get(cited) != finding.profile_run_id for cited in finding.observation_ids):
+            raise ValueError("A finding's observations must be from its own run.")
+    finding_ids = [uuid.uuid4().hex for _ in findings]
+    if not findings:
+        return finding_ids
+    connection.execute(
+        text(
+            """
+            INSERT INTO finding
+                (id, profile_run_id, kind, interpretation, why_it_matters,
+                 recommended_action)
+            VALUES
+                (:id, :run, :kind, :interpretation, :why_it_matters, :recommended_action)
+            """
+        ),
+        [
             {
                 "id": finding_id,
                 "run": finding.profile_run_id,
+                "kind": finding.kind,
                 "interpretation": finding.interpretation,
                 "why_it_matters": finding.why_it_matters,
                 "recommended_action": finding.recommended_action,
-            },
-        )
-        for position, observation_id in enumerate(finding.observation_ids):
-            owner = connection.execute(
-                text("SELECT profile_run_id FROM observation WHERE id = :id"),
-                {"id": observation_id},
-            ).scalar()
-            if owner != finding.profile_run_id:
-                raise ValueError("A finding's observations must be from its own run.")
-            connection.execute(
-                text(
-                    """
-                    INSERT INTO finding_observation (finding_id, observation_id, position)
-                    VALUES (:finding, :observation, :position)
-                    """
-                ),
-                {
-                    "finding": finding_id,
-                    "observation": observation_id,
-                    "position": position,
-                },
-            )
-        record_event(
-            connection,
-            actor,
-            Action.CREATE_INFERRED,
-            None,
-            state,
-            "finding_id",
-            finding_id,
-            details,
-        )
-    return finding_id
+            }
+            for finding_id, finding in zip(finding_ids, findings, strict=True)
+        ],
+    )
+    connection.execute(
+        text(
+            """
+            INSERT INTO finding_observation (finding_id, observation_id, position)
+            VALUES (:finding, :observation, :position)
+            """
+        ),
+        [
+            {"finding": finding_id, "observation": cited, "position": position}
+            for finding_id, finding in zip(finding_ids, findings, strict=True)
+            for position, cited in enumerate(finding.observation_ids)
+        ],
+    )
+    record_events(
+        connection,
+        actor,
+        Action.CREATE_INFERRED,
+        None,
+        state,
+        "finding_id",
+        finding_ids,
+        details,
+    )
+    return finding_ids
 
 
 def _with_observations(connection: Connection, row: Row) -> Finding:
@@ -446,6 +490,7 @@ def _with_observations(connection: Connection, row: Row) -> Finding:
         row.interpretation,
         row.why_it_matters,
         row.recommended_action,
+        row.kind,
     )
 
 
@@ -454,7 +499,8 @@ def read_finding(engine: Engine, finding_id: str) -> Finding:
         row = connection.execute(
             text(
                 """
-                SELECT id, profile_run_id, interpretation, why_it_matters, recommended_action
+                SELECT id, profile_run_id, interpretation, why_it_matters, recommended_action,
+                       kind
                 FROM finding WHERE id = :id
                 """
             ),
@@ -463,18 +509,23 @@ def read_finding(engine: Engine, finding_id: str) -> Finding:
         return _with_observations(connection, row)
 
 
-def read_findings(engine: Engine) -> list[Finding]:
-    """Findings from completed runs only, so a partial run is never shown as complete."""
+def read_findings(engine: Engine, run_id: str | None = None) -> list[Finding]:
+    """Findings from completed runs only, so a partial run is never shown as complete.
+
+    In the order they were saved, which is the fixed order by kind. `run_id` keeps one run's.
+    """
     with engine.connect() as connection:
         rows = connection.execute(
             text(
                 """
                 SELECT finding.id, finding.profile_run_id, finding.interpretation,
-                       finding.why_it_matters, finding.recommended_action
+                       finding.why_it_matters, finding.recommended_action, finding.kind
                 FROM finding JOIN profile_run ON profile_run.id = finding.profile_run_id
                 WHERE profile_run.status = 'completed'
+                  AND (:run IS NULL OR finding.profile_run_id = :run)
                 ORDER BY finding.rowid
                 """
-            )
+            ),
+            {"run": run_id},
         ).all()
         return [_with_observations(connection, row) for row in rows]

@@ -45,6 +45,11 @@ function runsWithCurrentSettings(runs: ProfileRun[] | undefined, source: Source)
   return runs?.filter((run) => run.source_id === source.id && run.current_settings) ?? [];
 }
 
+/** The run whose results are shown: the newest completed one with the current settings. */
+export function shownRun(runs: ProfileRun[] | undefined, source: Source): ProfileRun | undefined {
+  return runsWithCurrentSettings(runs, source).find((run) => run.status === "completed");
+}
+
 /** One run at a time across the workspace, so a run in progress is named wherever the user is. */
 export function profileStatus(
   runs: ProfileRun[] | undefined,
@@ -106,9 +111,15 @@ function ColumnRow({ name, metrics, rowsRead }: { name: string; metrics: Metric[
       <td>{SCOPE_LABELS[metrics[0].scope]}</td>
       <td>{PRECISION_LABELS[metrics[0].precision]}</td>
       <td>{shown(rowsRead)}</td>
-      <td>{withPercent(value("missing_count"), value("missing_percent"))}</td>
-      <td>{withPercent(value("distinct_count"), value("distinct_percent"))}</td>
-      <td>{shown(value("not_fitting_count"))}</td>
+      <td id={evidenceId(name, "missing_count")} tabIndex={-1}>
+        {withPercent(value("missing_count"), value("missing_percent"))}
+      </td>
+      <td id={evidenceId(name, "distinct_count")} tabIndex={-1}>
+        {withPercent(value("distinct_count"), value("distinct_percent"))}
+      </td>
+      <td id={evidenceId(name, "not_fitting_count")} tabIndex={-1}>
+        {shown(value("not_fitting_count"))}
+      </td>
       <td>{shown(value("shortest_length"))}</td>
       <td>{shown(value("longest_length"))}</td>
       <td>{shown(value("average_length"))}</td>
@@ -132,6 +143,20 @@ function extraColumnsNote(count: number): string {
     : `Some rows have ${count} more fields than the columns shown, and they aren't measured.`;
 }
 
+function duplicateRowsNote(copies: number): string {
+  if (copies === 0) {
+    return "No row is an exact copy of another row.";
+  }
+  return copies === 1
+    ? "1 row is an exact copy of another row."
+    : `${copies.toLocaleString()} rows are exact copies of another row.`;
+}
+
+/** Where a metric is shown, so a finding's evidence link can go to it. */
+export function evidenceId(column: string | null, metric: string): string {
+  return `evidence-${metric.replace(/_(count|percent)$/, "")}-${encodeURIComponent(column ?? "")}`;
+}
+
 function skippedLinesNote(lines: number): string {
   return lines === 1
     ? "1 line above the table was left out, as in the preview."
@@ -150,6 +175,7 @@ function Results({ run }: { run: ProfileRun }) {
   const ofTheFile = (name: string) => metrics.find((metric) => metric.column === null && metric.metric === name)?.value;
   const extraColumns = ofTheFile("extra_columns");
   const skippedLines = ofTheFile("skipped_lines");
+  const duplicates = ofTheFile("duplicate_rows");
   const rowsRead = metrics.find((metric) => metric.column === null && metric.metric === "rows_read");
   // Only a run that read every row knows how many the file has (first slice AC-25).
   const fileRows = rowsRead?.scope === "full" && typeof rowsRead.value === "number" ? rowsRead.value : null;
@@ -158,6 +184,11 @@ function Results({ run }: { run: ProfileRun }) {
     <>
       {fileRows !== null && (
         <p>{fileRows === 1 ? "This file has 1 row." : `This file has ${fileRows.toLocaleString()} rows.`}</p>
+      )}
+      {typeof duplicates === "number" && (
+        <p id={evidenceId(null, "duplicate_rows")} tabIndex={-1}>
+          {duplicateRowsNote(duplicates)}
+        </p>
       )}
       {typeof skippedLines === "number" && <p>{skippedLinesNote(skippedLines)}</p>}
       {typeof extraColumns === "number" && <p>{extraColumnsNote(extraColumns)}</p>}
@@ -220,7 +251,7 @@ export function ProfileTab({ source }: { source: Source }) {
     }
   }, [anyRunning, forgetRefusal]);
   const mine = runsWithCurrentSettings(runs.data, source);
-  const completed = mine.find((run) => run.status === "completed");
+  const completed = shownRun(runs.data, source);
 
   return (
     <section className="profile-tab" aria-labelledby={headingId}>

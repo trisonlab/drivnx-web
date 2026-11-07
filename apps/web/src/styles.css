@@ -414,3 +414,41 @@ button:disabled {
 .masked-patterns code {
   white-space: pre-wrap;
 }
+
+.shell-review h3 {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+}
+
+.shell-review article {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.shell-review article h4,
+.shell-review article p {
+  margin: 0;
+}
+
+/* Said in words, so the state doesn't rest on colour. */
+.trust-state {
+  padding: 0 0.375rem;
+  border: 1px solid var(--muted);
+  border-radius: 0.25rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: normal;
+}
+
+.unavailable-sections {
+  margin: 0.5rem 0 0;
+  padding-left: 1rem;
+}
+
+/* Where a finding's evidence link lands. */
+[id^="evidence-"]:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: -2px;
+}

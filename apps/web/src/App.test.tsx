@@ -221,11 +221,13 @@ test("everything not built is marked and has no working action", async () => {
   const profile = screen.getByRole("tab", { name: "Profile" });
   expect(profile).toBeEnabled();
   expect(profile).toHaveAttribute("aria-selected", "true");
-  expect(
-    within(screen.getByRole("complementary", { name: "Intelligence & Review" })).getByText(
-      /not available yet/i,
-    ),
-  ).toBeInTheDocument();
+  // CFX-APP-csv-profile builds the panel's findings, and its other sections stay marked.
+  const panel = screen.getByRole("complementary", { name: "Intelligence & Review" });
+  expect(within(panel).getByRole("region", { name: "Findings" })).not.toHaveTextContent(/not available yet/i);
+  const items = within(panel).getAllByRole("listitem");
+  for (const name of ["AI suggestions", "Evidence", "Provenance", "Review actions"]) {
+    expect(items.find((item) => item.textContent?.startsWith(name))).toHaveTextContent(/not available yet/i);
+  }
 });
 
 test.each([

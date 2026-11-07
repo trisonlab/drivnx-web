@@ -78,6 +78,8 @@ class MeasuredRows:
     rows_read: int
     whole_file: bool
     columns: tuple[ColumnMetrics, ...]
+    # Rows that are an exact copy of an earlier one, counted only when every row is measured.
+    duplicate_rows: int | None = None
 
 
 def _percent(part: int, whole: int) -> float | None:
@@ -182,4 +184,12 @@ def measure_rows(
             )
             for position, column_type in enumerate(types)
         ),
+        _duplicate_rows(connection, table) if every_row else None,
     )
+
+
+def _duplicate_rows(connection: duckdb.DuckDBPyConnection, table: str) -> int:
+    """Every column read is compared, so a row is a copy only if all of it is the same."""
+    return connection.execute(
+        f"SELECT count(*) - (SELECT count(*) FROM (SELECT DISTINCT * FROM {table})) FROM {table}"
+    ).fetchone()[0]
