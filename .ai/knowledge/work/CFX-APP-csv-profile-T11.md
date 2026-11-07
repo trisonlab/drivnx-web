@@ -2,7 +2,7 @@
 id: CFX-APP-csv-profile-T11
 title: "Earlier runs"
 feature: CFX-APP-csv-profile
-feature_revision: 2
+feature_revision: 4
 stories: [US-07]
 criteria: [AC-35, AC-36, AC-37, AC-38]
 blocked_by: [CFX-APP-csv-profile-T08]

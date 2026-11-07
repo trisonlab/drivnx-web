@@ -2,7 +2,7 @@
 id: CFX-APP-csv-profile-T03
 title: "Replace earlier column names"
 feature: CFX-APP-csv-profile
-feature_revision: 2
+feature_revision: 4
 stories: [US-01]
 criteria: [AC-04]
 blocked_by: [CFX-APP-csv-profile-T02]

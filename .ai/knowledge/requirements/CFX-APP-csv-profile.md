@@ -5,10 +5,10 @@ title: "Profile a CSV: correct how it's read, profile it, and see findings with 
 summary: "Correct CSV detection, run a fast or full deterministic profile, read labelled metrics in the Profile tab, and see findings backed by evidence, with only aggregates saved."
 owner: conflux-web
 lifecycle: approved
-revision: 2
-approved_revision: 2
-approval_evidence: "user approved revision 2 in chat, 2026-11-06 (chose 'Revise spec first' with the AC-20 wording, on delivering T05)"
-updated: "2026-11-06"
+revision: 4
+approved_revision: 4
+approval_evidence: "user approved revision 4 in chat, 2026-11-07 (accepted all recommendations from reviewing T08, including two values for a possible identifier)"
+updated: "2026-11-07"
 related: [CFX-APP-first-slice]
 status: CONFIRMED
 ---
@@ -37,7 +37,7 @@ In:
 - ASSUMPTION: lines to skip is a whole number from 0 to 1,000.
 - ASSUMPTION: a correction is applied when saved. There's no separate trial preview before saving.
 - ASSUMPTION: "missing" means no value, or a value holding only whitespace.
-- ASSUMPTION: "possible identifier" means at least 99% unique among non-missing values, and at least one non-missing value. The direction doc's example is 99.8%.
+- ASSUMPTION: "possible identifier" means at least 99% unique among non-missing values, and at least two non-missing values. The direction doc's example is 99.8%.
 - ASSUMPTION: "significant missing values" means at least 20% missing.
 - ASSUMPTION: masked patterns keep the 10 most common per column, and a pattern is cut at 40 characters and marked as cut.
 - ASSUMPTION: findings are listed in a fixed order by kind: possibly sensitive, values that don't fit the type, duplicate rows, significant missing values, possible identifier, single-value column. Real prioritisation is M5.
@@ -67,7 +67,7 @@ Decided with the user in chat, 2026-11-05:
 - **Corrections:** header, delimiter, encoding and skipped lines. Column types move to the "other local sources" slice.
 - **Earlier runs after a correction:** they're kept, labelled "used earlier settings", and their findings stop being current.
 - **Column names replaced after a correction:** a row wrongly used as column names may hold personal data, so previous names are replaced with generated ones in the saved data. To keep the rule simple, this applies to any correction that changes the names, so an earlier run may lose good labels too.
-- **Findings:** the six kinds in the Assumptions. Duplicate rows appear on a full profile only. Findings from a fast profile say "in the first 100,000 rows".
+- **Findings:** the six kinds in the Assumptions. Duplicate rows appear on a full profile only. Findings from a fast profile that read only the first rows say "in the first 100,000 rows".
 - **Relationships:** candidate relationships move to the executive overview slice, with spike 3.
 - **Sensitive fields:** rule-based (Section 9 of the direction doc), marked Inferred, with an extra confirmation before showing values from a flagged column.
 - **What counts as a contradiction (AC-39 of the first slice):** an item is flagged for re-review when a newer completed run shows that a column it cites has gone or changed type, or that a percentage it cites moved by more than 5 points. A sample run can't contradict evidence from a full run. This definition is agreed now and built in the dictionary slice, because no screen can confirm an item until then. The flags must be written in the transaction that finishes the run, as the first slice's spec records.
@@ -115,7 +115,7 @@ API, following the Section 12 outline: `/api/profile-runs` to start, read status
 - AC-21 (US-04): Given a run that meets a finding's condition, then a finding of that kind appears for each column or dataset concerned: possible identifier, significant missing values, single-value column, values that don't fit the type, or possibly sensitive field. A run that doesn't meet a condition creates no finding of that kind.
 - AC-22 (US-04): Given a full profile of a file with fully duplicated rows, then a duplicate-rows finding appears with the count. Given a fast profile, then no duplicate-rows finding appears, and the screen says the check needs a full profile.
 - AC-23 (US-04): Given a finding, then it shows what was observed, what's inferred, why it matters, the recommended action, and its Inferred state, and its evidence link opens the cited metric with its run.
-- AC-24 (US-04): Given a finding from a fast profile, then its text says "in the first 100,000 rows".
+- AC-24 (US-04): Given a finding from a fast profile that read only the first rows, then its text says "in the first 100,000 rows".
 - AC-25 (US-04): Given a saved finding, then its saved text holds no column name and no value from the file, and it cites at least one observation.
 - AC-26 (US-04): Given a run that was cancelled, failed or interrupted, then it creates no findings and earlier findings stay as they were.
 - AC-27 (US-05): Given synthetic columns matching the name rules or the email, phone or payment card patterns, then each gets a possibly-sensitive finding saying whether a name or a pattern matched. No AI is involved.
@@ -175,3 +175,5 @@ None blocks approval.
 ## Revision History
 - Revision 1: Initial draft from the user's decisions on 2026-11-05. Approved by the user in chat, 2026-11-05.
 - Revision 2: AC-20 matches decision 1 of ADR 0004, found while building T05. No change to the behaviour agreed in T05's plan. Approved by the user in chat, 2026-11-06.
+- Revision 3: AC-24 and the findings decision apply "in the first 100,000 rows" only to a fast profile that read only the first rows, found while planning T08. A fast profile of a smaller file reads the whole file, and AC-17 labels its metrics that way. Approved by the user in chat, 2026-11-07.
+- Revision 4: a possible identifier needs at least two non-missing values, not one, found reviewing T08. With one, a column of a single value among blanks was called a possible identifier. It matches the single-value rule agreed in T08's plan. Approved by the user in chat, 2026-11-07.

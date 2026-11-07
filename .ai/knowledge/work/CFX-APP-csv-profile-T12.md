@@ -2,7 +2,7 @@
 id: CFX-APP-csv-profile-T12
 title: "Full journey and checks"
 feature: CFX-APP-csv-profile
-feature_revision: 2
+feature_revision: 4
 stories: [US-06, US-08]
 criteria: [AC-33, AC-40, AC-41]
 blocked_by: [CFX-APP-csv-profile-T03, CFX-APP-csv-profile-T07, CFX-APP-csv-profile-T10, CFX-APP-csv-profile-T11]

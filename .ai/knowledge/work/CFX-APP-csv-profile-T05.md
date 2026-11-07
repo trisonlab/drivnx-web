@@ -2,7 +2,7 @@
 id: CFX-APP-csv-profile-T05
 title: "All the metrics"
 feature: CFX-APP-csv-profile
-feature_revision: 2
+feature_revision: 4
 stories: [US-03, US-08]
 criteria: [AC-14, AC-19, AC-20, AC-39]
 blocked_by: [CFX-APP-csv-profile-T04]

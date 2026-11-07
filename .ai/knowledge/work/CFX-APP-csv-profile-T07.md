@@ -2,7 +2,7 @@
 id: CFX-APP-csv-profile-T07
 title: "Runs that can't go ahead"
 feature: CFX-APP-csv-profile
-feature_revision: 2
+feature_revision: 4
 stories: [US-01, US-02]
 criteria: [AC-06, AC-11, AC-12]
 blocked_by: [CFX-APP-csv-profile-T04]
