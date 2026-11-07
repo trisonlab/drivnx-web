@@ -532,8 +532,8 @@ def test_a_cancel_after_findings_are_worked_out_still_saves_none(
     ready, cancelled = threading.Event(), threading.Event()
     findings_for = profile_jobs.findings_for
 
-    def findings_then_cancel(observations):
-        found = findings_for(observations)
+    def findings_then_cancel(observations, names):
+        found = findings_for(observations, names)
         ready.set()
         assert cancelled.wait(WAIT_FOR_A_RUN_SECONDS)
         return found
@@ -553,9 +553,17 @@ def test_saved_findings_hold_no_column_name_or_value_and_cite_evidence(
 ) -> None:
     # CFX-APP-csv-profile/AC-25: the names and values are planted to be found if they leak.
     path = tmp_path / "planted.csv"
-    rows = [f"Zebulon{row},{'' if row % 3 == 0 else 'Quokkaland'},{row % 9}" for row in range(300)]
-    path.write_text("Xanthippe_ref,Marmaduke_region,Ptolemy_count\n" + "\n".join(rows) + "\n")
-    planted = ("Xanthippe", "Marmaduke", "Ptolemy", "Zebulon", "Quokkaland")
+    rows = [
+        f"Zebulon{row},{'' if row % 3 == 0 else 'Quokkaland'},{row % 9},Wilhelmina@Quixotic.org"
+        for row in range(300)
+    ]
+    path.write_text(
+        "Xanthippe_ref,Marmaduke_region,Ptolemy_count,Ermengarde_email\n" + "\n".join(rows) + "\n"
+    )
+    planted = (
+        *("Xanthippe", "Marmaduke", "Ptolemy", "Ermengarde"),
+        *("Zebulon", "Quokkaland", "Wilhelmina", "Quixotic"),
+    )
     run = finished(client, start(client, connect(client, path), "full"))
 
     with client.app.state.workspace.engine.connect() as connection:
@@ -571,7 +579,12 @@ def test_saved_findings_hold_no_column_name_or_value_and_cite_evidence(
             {"run": run["id"]},
         ).all()
 
-    assert {row.kind for row in saved} == {"possible_identifier", "missing_values", "single_value"}
+    assert {row.kind for row in saved} == {
+        "possibly_sensitive",
+        "possible_identifier",
+        "missing_values",
+        "single_value",
+    }
     for row in saved:
         text_saved = " ".join(row[:4])
         assert not [word for word in planted if word.lower() in text_saved.lower()]

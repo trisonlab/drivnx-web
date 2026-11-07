@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-07T13:05:41+00:00'
+updated_at: '2026-11-07T17:10:21+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 3357810a944ba8177c989810d0c82f923deda407a0b8033ad574a99d83fd2096
@@ -13,7 +13,7 @@ sources:
   .ai/knowledge/work/CFX-APP-csv-profile-T06.md: b4bbb2041caf403ef00abc60963d948a13ce701923f16cca725296f47a2c1b9b
   .ai/knowledge/work/CFX-APP-csv-profile-T07.md: ea0a19ed528eff4c89b8d43a71ffd12644c0a166cc3029151b00179a1efc74ab
   .ai/knowledge/work/CFX-APP-csv-profile-T08.md: c50b648c29f4702f2bdb6db6db195400f1367f41c910b0dbcbb59454ecc00ab7
-  .ai/knowledge/work/CFX-APP-csv-profile-T09.md: 1e014996f237642cacc44e1c22a228eb6b80d11d0d9d3b5b5fffc9cca64597f7
+  .ai/knowledge/work/CFX-APP-csv-profile-T09.md: 9ff83890575ee83fe36d58d7e285f7fa3c016bcdc4b06b73d0ee0096b391e322
   .ai/knowledge/work/CFX-APP-csv-profile-T10.md: 354df8c2a85392febd8f78fd2c24de9a3a45b8be4e44f354934b762f0dcf0222
   .ai/knowledge/work/CFX-APP-csv-profile-T11.md: c3a707d4fc0dcd6e6c017dfeeadcda746f4603107a7ec91364c9876a42c7c230
   .ai/knowledge/work/CFX-APP-csv-profile-T12.md: af3a3d929e6fc773a20547db41127b19224ffde6acfe7a0ba4bfb6bc40f729e2
@@ -33,7 +33,7 @@ sources:
   apps/local-api/local_api/cli.py: de2e38fe34b8cc23bf7942847ef989c2d9a10d7c3d7743a28279759823324604
   apps/local-api/local_api/findings_api.py: b8457388ca7df1413e7685aa3e434b6d81ab8d17be4ad09e322654ed5c233853
   apps/local-api/local_api/guard.py: 0a065df935b5753303ddb14b6475b30cedae87d4f5d096d556509ae42288a9ae
-  apps/local-api/local_api/profile_jobs.py: e8e03ebbac3368c5c5d59e3811c7728f746ef99ebc4036c73ce275904978e22c
+  apps/local-api/local_api/profile_jobs.py: 8b22bff42baf5fad008105c1d7c67c47969d6de49ad228be7b9ace0006f906c4
   apps/local-api/local_api/profile_runs_api.py: bb4c2c5f04a47c57631232adaaa6ef36f701a24df10eaabf6470a0ba8edbad9c
   apps/local-api/local_api/session.py: 7ac051aeb59c75ca0c8e7326964ac611ab8b682fc49b1fb37c8dc177f2c1c4f4
   apps/local-api/local_api/sources_api.py: 6b30864a94a77c6a5f2602dceaca614436c1823acdcfe2f6abbe60ba166b7b1f
@@ -42,11 +42,11 @@ sources:
   apps/web/src/App.test.tsx: 599ceec11f15281d07df9540e53a51fdb073c81b452de32ff29b968ee6a52785
   apps/web/src/App.tsx: b96d3baf0f040fa4bd0ae9862181160a51637118108057153acdf437382b6689
   apps/web/src/DataExplorer.tsx: 46957aa004142a6c5ca4955fda5b1dc70bce7acfb4ced523e129f2934d35292e
-  apps/web/src/Findings.tsx: 2f04313df065695fc037f599cf65024c56c5966851e911221b5319a67cbb7278
+  apps/web/src/Findings.tsx: 3c4ea56e6b8cff3518880df1526a26edb9618b8578a433ea1f2e12ed0434b3b9
   apps/web/src/Preview.test.tsx: 5d9eaa75943a69a77ba6d14c1ae66d02985434a2508b15bd6b0324a4e29044a5
   apps/web/src/Preview.tsx: 3bf2aa6bbc84a230141f4316ebd0dfa37c0886e28daadca3c841745ee9d7dfcd
-  apps/web/src/ProfileTab.test.tsx: 8b78bd557f5bdd768e8fc97527047fb9608443f9b0528ee972413cae18e174d5
-  apps/web/src/ProfileTab.tsx: 5244989c9ef84e066b96a19ccf798a25bd2b94f5a4c11791d4333416ed54e89e
+  apps/web/src/ProfileTab.test.tsx: ad5f31b8aa2e3b959477754ef644a42c7db5ff6dbfa5b09663d5a0eac08ca618
+  apps/web/src/ProfileTab.tsx: f86311d928260bcba768505a3baddd4f3e0f3eecb464364fbf593d7d432307e1
   apps/web/src/SetupScreen.tsx: 31e7316e6b5602e338a3646da2a27b8b2b2873bfb148aafd9db9a72478ef4794
   apps/web/src/Shell.tsx: 28a44bf6731282de8b813358dee4e986134cd2adb49289b8831601dcb1f825d7
   apps/web/src/SourceDetails.tsx: 4dce343e7cbdac39faea2413ca25d2f82d1dc634800240d499df4d5c44ba3015
@@ -73,6 +73,8 @@ sources:
   packages/artifacts/workspace.py: 2d49466258379045e2479099aad91365669b1cfde0405319d6033e26e0840f39
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
+  packages/profiling/findings.py: 60e9053ec8d2a80e29cfacb8fcf8f48b66ec22347e9d9a113b03ddda06bb51ee
+  packages/profiling/sensitive.py: d0afb67b6b9c983d59cba82ce543bad90c283ef1d957d8ee19845e0ec573f550
   pyproject.toml: 971fbecf685a9b732c31c8b9250e6e2aec3283e397b4b6830aafc154db3b6296
   testdata/generate_csv.py: 1efaee1071657759b0fc2d4b941aa442869dd30091144663bb4fc2be74738c91
   tests/conftest.py: a5fa0441acf01d505b64424f2fa6973e20a5f5b03b0f0f54ebca1eae7157275b
@@ -94,10 +96,10 @@ sources:
   tests/integration/test_csv_detection.py: e29fbb7f02e194f223831f35f0161b408f260e3e5dc878529d2b0003e4ce5e84
   tests/integration/test_domain_entities.py: 6cb0f793dd39676a2162c779ca8722482c63ce4c09498a079262a85900ead3fb
   tests/integration/test_fast_profile.py: 8d999ef8c36abb2148800c99c221265192bc079246e77d1191aeaeac39f8a828
-  tests/integration/test_finding_rules.py: 6132abe7a0d8a497c84e4a5cb5a539d919aa9946d9caa714aba9a4f69e233ae7
-  tests/integration/test_findings_api.py: a659e1a6908217c6235cc27be07174ae5d9cd43516094098cf57e74aba94de41
+  tests/integration/test_finding_rules.py: 7787025fbd878895511827db96aa3f802aff9b50f8f676b527ba01c8303aa551
+  tests/integration/test_findings_api.py: 6e7c46db97094eca0ed09a7fb78647e11c2e7f71a5a04d44f39dfce218156b03
   tests/integration/test_first_rows.py: 6ca527768da1909fc37fd0d351ba1f7697f12d5285bbcedfe42ab7f3475e3ca1
-  tests/integration/test_full_profile.py: efebdd7a3ca17a8b59b765a76d7114aa92ad0754619ea1695ce1c5095c4558ce
+  tests/integration/test_full_profile.py: 63bbe8dfb77fa4eeb531c3a5e59948b7b757bcad2209da4b9dc15a70ed245c72
   tests/integration/test_launch.py: b2a2fffd3078dd6b58e1878ef0537265289e83368ffbd78762de59635679b510
   tests/integration/test_lockfiles.py: d04c655bbf0d73a55efca921996aaed96a943010384addf630418228a82fd4d2
   tests/integration/test_masked_patterns.py: aa2d0c69e59b42a0c0508cb912f80009100cac6eb7f3e1c4d9603f216ff164cf
@@ -945,6 +947,14 @@ nodes:
   kind: module
   evidence:
   - packages/domain/trust.py:1
+- id: module:packages/profiling/findings.py
+  kind: module
+  evidence:
+  - packages/profiling/findings.py:1
+- id: module:packages/profiling/sensitive.py
+  kind: module
+  evidence:
+  - packages/profiling/sensitive.py:1
 - id: module:testdata/generate_csv.py
   kind: module
   evidence:
@@ -1298,7 +1308,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
   title: Possibly sensitive fields
-  state: blocked
+  state: done
   external_key: null
 - id: ticket:CFX-APP-csv-profile-T10
   kind: ticket
@@ -2517,15 +2527,15 @@ edges:
   to: criterion:CFX-APP-csv-profile/AC-21
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.test.tsx:763
-  - apps/web/src/ProfileTab.test.tsx:770
+  - apps/web/src/ProfileTab.test.tsx:825
+  - apps/web/src/ProfileTab.test.tsx:832
 - from: module:apps/web/src/ProfileTab.test.tsx
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-22
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.test.tsx:702
-  - apps/web/src/ProfileTab.test.tsx:717
+  - apps/web/src/ProfileTab.test.tsx:735
+  - apps/web/src/ProfileTab.test.tsx:750
 - from: module:apps/web/src/ProfileTab.test.tsx
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-23
@@ -2533,21 +2543,34 @@ edges:
   evidence:
   - apps/web/src/ProfileTab.test.tsx:615
   - apps/web/src/ProfileTab.test.tsx:665
-  - apps/web/src/ProfileTab.test.tsx:726
-  - apps/web/src/ProfileTab.test.tsx:749
-  - apps/web/src/ProfileTab.test.tsx:778
+  - apps/web/src/ProfileTab.test.tsx:759
+  - apps/web/src/ProfileTab.test.tsx:782
+  - apps/web/src/ProfileTab.test.tsx:840
 - from: module:apps/web/src/ProfileTab.test.tsx
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-24
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.test.tsx:676
+  - apps/web/src/ProfileTab.test.tsx:709
 - from: module:apps/web/src/ProfileTab.test.tsx
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-26
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.test.tsx:790
+  - apps/web/src/ProfileTab.test.tsx:852
+- from: module:apps/web/src/ProfileTab.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-27
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.test.tsx:697
+  - apps/web/src/ProfileTab.test.tsx:796
+- from: module:apps/web/src/ProfileTab.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-28
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.test.tsx:816
 - from: module:apps/web/src/ProfileTab.tsx
   rel: imports
   to: module:apps/web/src/api.ts
@@ -2866,6 +2889,12 @@ edges:
   status: CONFIRMED
   evidence:
   - packages/artifacts/workspace.py:19
+- from: module:packages/profiling/findings.py
+  rel: imports
+  to: module:packages/profiling/sensitive.py
+  status: CONFIRMED
+  evidence:
+  - packages/profiling/findings.py:7
 - from: module:testdata/generate_csv.py
   rel: implements
   to: criterion:CFX-APP-csv-profile/AC-40
@@ -3657,20 +3686,39 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_finding_rules.py:1
-  - tests/integration/test_finding_rules.py:40
-  - tests/integration/test_finding_rules.py:52
-  - tests/integration/test_finding_rules.py:65
-  - tests/integration/test_finding_rules.py:86
-  - tests/integration/test_finding_rules.py:100
-  - tests/integration/test_finding_rules.py:136
-  - tests/integration/test_finding_rules.py:163
+  - tests/integration/test_finding_rules.py:46
+  - tests/integration/test_finding_rules.py:58
+  - tests/integration/test_finding_rules.py:71
+  - tests/integration/test_finding_rules.py:92
+  - tests/integration/test_finding_rules.py:106
+  - tests/integration/test_finding_rules.py:142
   - tests/integration/test_finding_rules.py:171
+  - tests/integration/test_finding_rules.py:179
+  - tests/integration/test_finding_rules.py:266
+  - tests/integration/test_finding_rules.py:301
+  - tests/integration/test_finding_rules.py:358
+  - tests/integration/test_finding_rules.py:407
+  - tests/integration/test_finding_rules.py:412
 - from: module:tests/integration/test_finding_rules.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-22
   status: CONFIRMED
   evidence:
-  - tests/integration/test_finding_rules.py:125
+  - tests/integration/test_finding_rules.py:131
+- from: module:tests/integration/test_finding_rules.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-27
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_finding_rules.py:249
+  - tests/integration/test_finding_rules.py:266
+  - tests/integration/test_finding_rules.py:286
+  - tests/integration/test_finding_rules.py:301
+  - tests/integration/test_finding_rules.py:319
+  - tests/integration/test_finding_rules.py:358
+  - tests/integration/test_finding_rules.py:378
+  - tests/integration/test_finding_rules.py:407
+  - tests/integration/test_finding_rules.py:412
 - from: module:tests/integration/test_findings_api.py
   rel: imports
   to: module:tests/integration/test_fast_profile.py
@@ -3685,6 +3733,12 @@ edges:
   - tests/integration/test_findings_api.py:11
 - from: module:tests/integration/test_findings_api.py
   rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-21
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_findings_api.py:88
+- from: module:tests/integration/test_findings_api.py
+  rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-23
   status: CONFIRMED
   evidence:
@@ -3697,6 +3751,12 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_findings_api.py:61
+- from: module:tests/integration/test_findings_api.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-27
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_findings_api.py:88
 - from: module:tests/integration/test_first_rows.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-07

@@ -80,3 +80,47 @@ def test_only_that_runs_findings_are_given_and_only_once_it_has_completed(
     finally:
         release.set()
         finished(client, running)
+
+
+def test_columns_matching_a_sensitive_field_rule_are_flagged_saying_what_matched(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # CFX-APP-csv-profile/AC-21 and CFX-APP-csv-profile/AC-27: synthetic columns for each rule, with
+    # some that match none, through a real run. Only names and masked patterns are read.
+    path = tmp_path / "people.csv"
+    path.write_text(
+        "customer_email,contact,Phone,ref,date_of_birth,amount,note\n"
+        + "".join(
+            f"user{row}@example.com,c{row}@example.org,+44 20 7946 {row:04d},"
+            f"4111 1111 1111 {row:04d},1990-01-{row % 28 + 1:02d},{row}.5,note {row}\n"
+            for row in range(50)
+        )
+    )
+    source = connect(client, path)
+    run = finished(client, start(client, source, "fast"))
+
+    flagged = [
+        (finding["evidence"][0]["column"], finding["interpretation"])
+        for finding in findings_of(client, run)
+        if finding["kind"] == "possibly_sensitive"
+    ]
+
+    assert flagged == [
+        (
+            "customer_email",
+            (
+                "Possibly sensitive field: its name suggests an email address, and its values are"
+                " shaped like email addresses"
+            ),
+        ),
+        ("contact", "Possibly sensitive field: its values are shaped like email addresses"),
+        (
+            "Phone",
+            (
+                "Possibly sensitive field: its name suggests a phone number, and its values are"
+                " shaped like phone numbers"
+            ),
+        ),
+        ("ref", "Possibly sensitive field: its values are shaped like payment card numbers"),
+        ("date_of_birth", "Possibly sensitive field: its name suggests a date of birth"),
+    ]

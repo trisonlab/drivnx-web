@@ -1,8 +1,10 @@
 """Rule-based findings from a run's saved observations. Nothing here reads the file again."""
 
-from collections.abc import Sequence
-from dataclasses import dataclass
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, replace
 from typing import Any, Protocol
+
+from profiling.sensitive import name_suggests, values_shaped_like
 
 
 class Evidence(Protocol):
@@ -39,6 +41,12 @@ KINDS = (
 # What a kind of finding says. It's saved, so it holds no column name, value or number (AC-25): the
 # screen shows what was observed from the observations it cites.
 _TEXTS = {
+    # Its interpretation says what matched, when it's made.
+    "possibly_sensitive": (
+        "Possibly sensitive field",
+        "Personal data needs care over who sees it, where it goes and how long it's kept.",
+        "Check what this column holds, and treat it as personal data until you know.",
+    ),
     "not_fitting": (
         "Values that don't fit the column's type",
         "They may be mistakes, or the column may hold more than one kind of value.",
@@ -71,8 +79,34 @@ def _draft(kind: str, cited: Sequence[Evidence]) -> DraftFinding:
     return DraftFinding(kind, tuple(evidence.id for evidence in cited), *_TEXTS[kind])
 
 
-def findings_for(observations: Sequence[Evidence]) -> list[DraftFinding]:
-    """Findings in the fixed order by kind, then in the order their columns were saved."""
+def _possibly_sensitive(name: str, metrics: dict[str, Evidence]) -> DraftFinding | None:
+    """One finding for a column whose name or values match, saying which. A name isn't an
+    observation, so the missing count, which every column saves, stands for it."""
+    patterns = metrics.get("masked_patterns")
+    shaped_like = values_shaped_like(patterns.value) if patterns is not None else None
+    suggests = name_suggests(name)
+    said = [
+        *([f"its name suggests {suggests}"] if suggests else []),
+        *([f"its values are shaped like {shaped_like}"] if shaped_like else []),
+    ]
+    if not said:
+        return None
+    # The patterns first, as the screen's evidence link goes to what's cited first.
+    cited = [
+        *([patterns] if shaped_like else []),
+        *([metrics["missing_count"]] if suggests else []),
+    ]
+    return replace(
+        _draft("possibly_sensitive", cited),
+        interpretation=f"Possibly sensitive field: {', and '.join(said)}",
+    )
+
+
+def findings_for(
+    observations: Sequence[Evidence], names: Mapping[str, str]
+) -> list[DraftFinding]:
+    """Findings in the fixed order by kind, then in the order their columns were saved. `names`
+    gives each column's name by its field ID."""
     of_the_file = {e.metric: e for e in observations if e.field_id is None}
     rows_read = of_the_file["rows_read"].value
     columns: dict[str, dict[str, Evidence]] = {}
@@ -84,7 +118,10 @@ def findings_for(observations: Sequence[Evidence]) -> list[DraftFinding]:
     duplicates = of_the_file.get("duplicate_rows")
     if duplicates is not None and duplicates.value >= 1:
         found.append(_draft("duplicate_rows", [duplicates]))
-    for metrics in columns.values():
+    for field_id, metrics in columns.items():
+        sensitive = _possibly_sensitive(names[field_id], metrics)
+        if sensitive is not None:
+            found.append(sensitive)
         not_fitting = metrics["not_fitting_count"]
         if not_fitting.value >= 1:
             found.append(_draft("not_fitting", [not_fitting]))

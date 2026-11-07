@@ -123,7 +123,7 @@ function ColumnRow({ name, metrics, rowsRead }: { name: string; metrics: Metric[
       <td>{shown(value("shortest_length"))}</td>
       <td>{shown(value("longest_length"))}</td>
       <td>{shown(value("average_length"))}</td>
-      <td>
+      <td id={evidenceId(name, "masked_patterns")} tabIndex={-1}>
         {Array.isArray(patterns) ? (
           <Patterns
             patterns={patterns}

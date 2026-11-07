@@ -233,7 +233,10 @@ def _run_profile(
                 draft.recommended_action,
                 kind=draft.kind,
             )
-            for draft in findings_for(read_observations(workspace.engine, run_id))
+            for draft in findings_for(
+                read_observations(workspace.engine, run_id),
+                {field.id: field.name for field in dataset.fields},
+            )
         ]
         status = "completed"
     except (CsvError, duckdb.Error, OSError, WorkspaceBusy) as error:

@@ -11,6 +11,18 @@ function values(value: Metric["value"] | undefined, what: string): string {
   return [count(value), what, value === 1 ? "value" : "values"].filter(Boolean).join(" ");
 }
 
+function cites(finding: Finding, metric: string): boolean {
+  return finding.evidence.some((cited) => cited.metric === metric);
+}
+
+/** Whether what was observed comes from the first rows only. A name doesn't, though the missing
+ * count a possibly-sensitive finding cites for it may. */
+function fromFirstRows(finding: Finding): boolean {
+  return finding.evidence.some(
+    (cited) => cited.scope === "sample" && (finding.kind !== "possibly_sensitive" || cited.metric === "masked_patterns"),
+  );
+}
+
 /** What was observed, from the observations a finding cites, as the saved text holds no names. */
 function observed(finding: Finding): string {
   const value = (metric: string) => finding.evidence.find((cited) => cited.metric === metric)?.value;
@@ -34,6 +46,17 @@ function observed(finding: Finding): string {
       return `${column} has ${values(value("distinct_count"), "distinct")} (${value("distinct_percent")}%)`;
     case "single_value":
       return `every value in ${column} is the same`;
+    case "possibly_sensitive": {
+      // It cites the missing count when the column's name matched, and the patterns when they did.
+      const named = cites(finding, "missing_count");
+      const shaped = cites(finding, "masked_patterns");
+      return [
+        named && `the column is named ${column}`,
+        shaped && `${named ? "it" : column} has a value of this shape among its most common masked patterns`,
+      ]
+        .filter(Boolean)
+        .join(", and ");
+    }
     default:
       return "";
   }
@@ -57,7 +80,7 @@ function FindingItem({ finding }: { finding: Finding }) {
       <p>
         Observed: {observed(finding)}
         {/* AC-24: only when the run read just the first rows, as its metrics say. */}
-        {finding.evidence.some((cited) => cited.scope === "sample") && " in the first 100,000 rows"}.
+        {fromFirstRows(finding) && " in the first 100,000 rows"}.
       </p>
       <p>Why it matters: {finding.why_it_matters}</p>
       <p>Recommended action: {finding.recommended_action}</p>
@@ -89,6 +112,13 @@ export function Findings({ source }: { source: Source | undefined }) {
       {findings.data?.map((finding) => (
         <FindingItem key={finding.id} finding={finding} />
       ))}
+      {/* AC-28: whatever was found, as the rules can't find every kind of personal data. */}
+      {findings.isSuccess && (
+        <p>
+          Having no possibly-sensitive flag doesn't mean a column has no personal data. Only column names, and
+          values shaped like email addresses, phone numbers or payment card numbers, are checked.
+        </p>
+      )}
       {run?.mode === "fast" && <p>Duplicate rows are checked only by a full profile.</p>}
     </section>
   );

@@ -672,6 +672,39 @@ test.each([
   expect(within(shown).getByText(/^Observed:/).textContent).toBe(`Observed: ${said}.`);
 });
 
+const PATTERNS = [{ pattern: "AAAA@AAAA.AAA", count: 40, cut: false }];
+
+test.each([
+  [
+    "its name matched",
+    [{ column: "city", metric: "missing_count", value: 12 }],
+    "the column is named city",
+  ],
+  [
+    "its patterns matched",
+    [{ column: "city", metric: "masked_patterns", value: PATTERNS }],
+    "city has a value of this shape among its most common masked patterns in the first 100,000 rows",
+  ],
+  [
+    "both matched",
+    [
+      { column: "city", metric: "masked_patterns", value: PATTERNS },
+      { column: "city", metric: "missing_count", value: 12 },
+    ],
+    "the column is named city, and it has a value of this shape among its most common masked patterns in the first 100,000 rows",
+  ],
+])("a possibly-sensitive finding says what was observed when %s", async (_, evidence, said) => {
+  // CFX-APP-csv-profile/AC-27: it cites the missing count when the name matched, and the
+  // patterns, which come from the first rows, when they did. A name isn't from the first rows.
+  runs = [run()];
+  scope = "sample";
+  findings = [finding("possibly_sensitive", evidence, "sample")];
+  renderApp();
+
+  const shown = await within(await findingsPanel()).findByRole("article");
+  expect(within(shown).getByText(/^Observed:/).textContent).toBe(`Observed: ${said}.`);
+});
+
 test("a finding from the first rows only says so", async () => {
   // CFX-APP-csv-profile/AC-24, as revised in revision 3
   runs = [run()];
@@ -757,6 +790,35 @@ test.each([
   await userEvent.click(within(shown).getByRole("button", { name: /evidence/i }));
 
   expect(document.activeElement?.textContent).toBe(shownAs);
+});
+
+test("a possibly-sensitive finding's evidence link goes to the patterns it cites", async () => {
+  // CFX-APP-csv-profile/AC-27, as AC-23 asks of every finding
+  runs = [run()];
+  findings = [finding("possibly_sensitive", [{ column: "city", metric: "masked_patterns", value: PATTERNS }])];
+  renderApp();
+  const shown = await within(await findingsPanel()).findByRole("article");
+  const row = await rowFor("city");
+
+  await userEvent.click(within(shown).getByRole("button", { name: /evidence/i }));
+
+  expect(document.activeElement).toBe(within(row).getByText("2 patterns").closest("td"));
+});
+
+const NO_FLAG_NOTE =
+  "Having no possibly-sensitive flag doesn't mean a column has no personal data. Only column names, and values shaped like email addresses, phone numbers or payment card numbers, are checked.";
+
+test.each([
+  ["with a possibly-sensitive finding", [finding("possibly_sensitive", [{ column: "city", metric: "missing_count", value: 12 }])]],
+  ["with findings of other kinds", [finding("single_value", [{ column: "city", metric: "distinct_count", value: 1 }])]],
+  ["with no findings", []],
+])("the findings say having no flag doesn't mean no personal data, %s", async (_, found) => {
+  // CFX-APP-csv-profile/AC-28
+  runs = [run()];
+  findings = found;
+  renderApp();
+
+  expect(await within(await findingsPanel()).findByText(NO_FLAG_NOTE)).toBeInTheDocument();
 });
 
 test("before any profile, the findings say what to do", async () => {
