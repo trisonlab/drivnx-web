@@ -17,6 +17,8 @@ from fastapi.testclient import TestClient
 from local_api import profile_jobs, profile_runs_api
 from sqlalchemy.exc import ProgrammingError
 
+from ..conftest import posix_only
+
 WAIT_FOR_A_RUN_SECONDS = 30
 CSV_DIR = Path(__file__).parents[2] / "testdata" / "csv"
 
@@ -756,7 +758,8 @@ def test_a_file_changed_during_a_run_fails_and_says_so(
     assert run["failure"] == "The file changed while it was being profiled. Profile it again."
 
 
-@pytest.mark.skipif(os.geteuid() == 0, reason="root can read any file")
+@posix_only
+@pytest.mark.skipif(hasattr(os, "geteuid") and os.geteuid() == 0, reason="root can read any file")
 def test_a_file_that_becomes_unreadable_during_a_run_fails_and_says_so(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -775,6 +778,7 @@ def test_a_file_that_becomes_unreadable_during_a_run_fails_and_says_so(
     assert run["failure"] == "DrivnX doesn't have permission to read this file."
 
 
+@posix_only
 def test_a_file_replaced_by_a_pipe_during_a_run_still_ends_the_run(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -795,6 +799,7 @@ def test_a_file_replaced_by_a_pipe_during_a_run_still_ends_the_run(
     assert run["failure"] == "The file changed while it was being profiled. Profile it again."
 
 
+@posix_only
 def test_a_file_that_cant_be_looked_at_during_a_run_still_says_why(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -815,7 +820,8 @@ def test_a_file_that_cant_be_looked_at_during_a_run_still_says_why(
     assert run["failure"] == "DrivnX couldn't read this file."
 
 
-@pytest.mark.skipif(os.geteuid() == 0, reason="root can read any file")
+@posix_only
+@pytest.mark.skipif(hasattr(os, "geteuid") and os.geteuid() == 0, reason="root can read any file")
 def test_a_file_that_cant_be_read_is_refused_before_a_run_starts(
     client: TestClient, tmp_path: Path
 ) -> None:
