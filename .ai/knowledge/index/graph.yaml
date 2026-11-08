@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-08T15:56:11+00:00'
+updated_at: '2026-11-08T16:19:11+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 3ed3f976e9a1b5a34eb96c5016d7d30c5d41ff6f2aabf340ba26c7c196d0fb3f
@@ -27,6 +27,7 @@ sources:
   .ai/knowledge/work/DRIVN-30.md: 1fdd387ae5b738995394e87c4d5cfdd4cf885f563d23049195af7ccb74526f36
   .ai/knowledge/work/DRIVN-31.md: db34d1714d3434380216d521ac89b6dd1e54964a220b85fff99778fe0cd43bd7
   .ai/knowledge/work/DRIVN-32.md: b644e71752f2f464563d1ecb7e65deddb20d024a8113ac9e0a19ec677f2884b0
+  .ai/knowledge/work/DRIVN-42.md: c435a0e33b84e9e50412113320e7bc7c0f43ea750469898d0f06938ba0546364
   .github/workflows/ci.yml: ac5080294ae367239347e84a59eea9552b914673a4c769f7baf42cc52467fd9f
   apps/local-api/local_api/app.py: 030458dedbe9837471aee1f496d1c2efbbc098d55df80e6d9a7769361bc8f294
   apps/local-api/local_api/binding.py: 8c76ea6d3c19e6a0675913f0219a36bb2d9a28db55f177d50e5b288eda052d84
@@ -1430,6 +1431,13 @@ nodes:
   title: Full journey and checks
   state: blocked
   external_key: DRIVN-32
+- id: ticket:DRIVN-42
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-42.md
+  title: Integration tests pass on Windows
+  state: ready
+  external_key: DRIVN-42
 edges:
 - from: criterion:CFX-APP-csv-profile/AC-01
   rel: belongs_to
@@ -5562,3 +5570,9 @@ edges:
   status: CONFIRMED
   evidence:
   - .ai/knowledge/work/DRIVN-32.md
+- from: ticket:DRIVN-42
+  rel: covers
+  to: criterion:CFX-APP-first-slice/AC-53
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-42.md
