@@ -105,4 +105,4 @@ ask if the current branch isn't the ticket's.
 ## AI skills
 
 Set up with `../ai-skills/drivnx-skills.sh` (the shared DrivnX baseline plus this repo's stack skills); the list is in
-`.ai/manifest.yaml`.
+`.ai/manifest.yaml`. How to use them, and the workflow for a ticket, are in [CONTRIBUTING.md](CONTRIBUTING.md).
