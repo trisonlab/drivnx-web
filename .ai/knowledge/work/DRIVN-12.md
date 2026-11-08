@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-first-slice-T02
+id: DRIVN-12
+legacy_id: CFX-APP-first-slice-T02
 title: "Session protection"
 feature: CFX-APP-first-slice
 feature_revision: 9
 stories: [US-01, US-02, US-09]
 criteria: [AC-06, AC-08, AC-09, AC-10, AC-11, AC-12, AC-13, AC-52]
-blocked_by: [CFX-APP-first-slice-T01]
+blocked_by: [DRIVN-11]
 state: done
-external_key: null
+external_key: DRIVN-12
 status: CONFIRMED
 ---
 
 # Session protection
+
+Plane: [DRIVN-12](https://app.plane.so/drivnx/browse/DRIVN-12/) · was `CFX-APP-first-slice-T02`
 
 ## Outcome
 The browser signs in with the launch code and holds the session in an `HttpOnly` cookie, and every bad request is refused, including on `/api/session`. Part of spike 6 (local browser security).

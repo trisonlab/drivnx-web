@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-csv-profile-T12
+id: DRIVN-32
+legacy_id: CFX-APP-csv-profile-T12
 title: "Full journey and checks"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-06, US-08]
 criteria: [AC-33, AC-40, AC-41]
-blocked_by: [CFX-APP-csv-profile-T03, CFX-APP-csv-profile-T07, CFX-APP-csv-profile-T10, CFX-APP-csv-profile-T11]
+blocked_by: [DRIVN-23, DRIVN-27, DRIVN-30, DRIVN-31]
 state: blocked
-external_key: null
+external_key: DRIVN-32
 status: CONFIRMED
 ---
 
 # Full journey and checks
+
+Plane: [DRIVN-32](https://app.plane.so/drivnx/browse/DRIVN-32/) · was `CFX-APP-csv-profile-T12`
 
 ## Outcome
 The whole journey passes against the installed wheel, a scan for planted values proves the R3 rule, the new screens pass the accessibility check, and the targets are measured.

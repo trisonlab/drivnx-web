@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-first-slice-T07
+id: DRIVN-17
+legacy_id: CFX-APP-first-slice-T07
 title: "Trust-state core"
 feature: CFX-APP-first-slice
 feature_revision: 9
 stories: [US-08]
 criteria: [AC-35, AC-36, AC-37, AC-38, AC-40, AC-41, AC-48, AC-55]
-blocked_by: [CFX-APP-first-slice-T03]
+blocked_by: [DRIVN-13]
 state: done
-external_key: null
+external_key: DRIVN-17
 status: CONFIRMED
 ---
 
 # Trust-state core
+
+Plane: [DRIVN-17](https://app.plane.so/drivnx/browse/DRIVN-17/) · was `CFX-APP-first-slice-T07`
 
 ## Outcome
 All M1 entities can be saved and read back, and every allowed trust-state transition records its ProvenanceEvent in the same transaction. AI and system actors can't promote anything, and a failure halfway leaves nothing behind.

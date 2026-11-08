@@ -1,32 +1,32 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-08T00:11:30+00:00'
+updated_at: '2026-11-08T14:14:30+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
-  .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4d798e0995bf5701c0f836f80a960de9d96d550082f73a188355c00723954503
-  .ai/knowledge/requirements/CFX-APP-first-slice.md: ca4bc32beb786a8866fbe46ca86e21d08daf505a9dd52f75ee90a886bc05b0b1
-  .ai/knowledge/work/CFX-APP-csv-profile-T01.md: 7e869e8ff8d2e57c196ddc9b2113473ac97068813ce4f1f60774f66353efd386
-  .ai/knowledge/work/CFX-APP-csv-profile-T02.md: 8b86be88ee55bfddd7954b0413769ff824ce69aff6e4d3ba12dc19b6bb8dab1e
-  .ai/knowledge/work/CFX-APP-csv-profile-T03.md: 731b1b56db525c19811162d8b72165a9bcb5e473dc6ad21b1eaad3a0b3e2f1e1
-  .ai/knowledge/work/CFX-APP-csv-profile-T04.md: 6914ecd70fce15ea7d199324ffd52a456416527022e4ddc94440ab5aefae921e
-  .ai/knowledge/work/CFX-APP-csv-profile-T05.md: 15969b68ac42f884025de579676001769682733ff9bd770f021fc55500f98e86
-  .ai/knowledge/work/CFX-APP-csv-profile-T06.md: a7cecf12818043cf63b9e19cb2ad6026e8b961ac4e7e65fd300c32cee9c730b6
-  .ai/knowledge/work/CFX-APP-csv-profile-T07.md: a4292e954b92497014d44d354360b0b581828108eb3de84f0b8038bcf28078da
-  .ai/knowledge/work/CFX-APP-csv-profile-T08.md: c50b648c29f4702f2bdb6db6db195400f1367f41c910b0dbcbb59454ecc00ab7
-  .ai/knowledge/work/CFX-APP-csv-profile-T09.md: 9ff83890575ee83fe36d58d7e285f7fa3c016bcdc4b06b73d0ee0096b391e322
-  .ai/knowledge/work/CFX-APP-csv-profile-T10.md: c66f586647c0ac2ed04691a81a6306f85f9e29ef9177f83731952e2712f31e2b
-  .ai/knowledge/work/CFX-APP-csv-profile-T11.md: c3a707d4fc0dcd6e6c017dfeeadcda746f4603107a7ec91364c9876a42c7c230
-  .ai/knowledge/work/CFX-APP-csv-profile-T12.md: af3a3d929e6fc773a20547db41127b19224ffde6acfe7a0ba4bfb6bc40f729e2
-  .ai/knowledge/work/CFX-APP-first-slice-T01.md: b962819dc27a33b8c5b9d4a2903955e73077cfde49d2d075d2e40523927268c5
-  .ai/knowledge/work/CFX-APP-first-slice-T02.md: 10883e0f3b03e48bf71dfa6a826250f134bff036b27de62bddae30d4f273a01f
-  .ai/knowledge/work/CFX-APP-first-slice-T03.md: 4ff95f784b3d54a76a0c7d61792905378cd024e1fa361aa618689607f2a3b462
-  .ai/knowledge/work/CFX-APP-first-slice-T04.md: 8889b97d42e63c1d55f1a71b39ea7ca53de1a76d5083356137b33a22711bac66
-  .ai/knowledge/work/CFX-APP-first-slice-T05.md: 9281a7292d6c5aaf745ccef44b052b0633d9089ebfa2ece8583d45a513211879
-  .ai/knowledge/work/CFX-APP-first-slice-T06.md: 219ff97479d6b322011ef32a0da2de69682c78704d0780fd5d45df4225a54084
-  .ai/knowledge/work/CFX-APP-first-slice-T07.md: f007d5eae63b2415e3cd34a71431e887be80992bc593ffc935f321ac78115902
-  .ai/knowledge/work/CFX-APP-first-slice-T08.md: 08e51339605b6d5a4d77e76d0904f8ae7f79b66700f2bff0e58ce98082eb4414
-  .ai/knowledge/work/CFX-APP-first-slice-T09.md: 383f95526f852e787e27671f9f8c696f537a048b149fbc8dca5a41c351091cd2
-  .ai/knowledge/work/CFX-APP-first-slice-T10.md: dda9460451ba29c031a0cde933be97eba42e20986ce760fca6515da1e38be523
+  .ai/knowledge/requirements/CFX-APP-csv-profile.md: 3ed3f976e9a1b5a34eb96c5016d7d30c5d41ff6f2aabf340ba26c7c196d0fb3f
+  .ai/knowledge/requirements/CFX-APP-first-slice.md: fdcbb7daff3d3c33c9ffb475a11f2ac0c597c9f5e8fdd3f1501bed4aa519b438
+  .ai/knowledge/work/DRIVN-11.md: f44a791c6d85100d42137c62ec7cc0dc7a92fac7b7fa57ca6e91e8d68c8e9341
+  .ai/knowledge/work/DRIVN-12.md: 1b8b30c5425c8e76cf0e6aedfc47fabf3973bab253649ac0a1fdfa87abf9e811
+  .ai/knowledge/work/DRIVN-13.md: 804ef8532f1f6937f42901d039bbe62f1ae54aafe76d9471a6a7a707116c40e9
+  .ai/knowledge/work/DRIVN-14.md: fc350a529f3f3f6a11477d46e6ac9df91270a74989f2f6cf097543efca4ab685
+  .ai/knowledge/work/DRIVN-15.md: 7fdd6825677f9c8f59e02dd9e9794be986782b6a84d4894d61f406599f9107e1
+  .ai/knowledge/work/DRIVN-16.md: 62aeeb863bdf697e29e62ab64fb218e50e479cead0fd821323c9bf752dfe1203
+  .ai/knowledge/work/DRIVN-17.md: 75bcac20cc3338507580adb2b7450a80f9f0111f9a17e200c533ab7724a5d44e
+  .ai/knowledge/work/DRIVN-18.md: b4dd318d4bcbc13210c6a08fec275c119a7d634b7d397547f3a4823c48214774
+  .ai/knowledge/work/DRIVN-19.md: 415aa5dc8dcb3138a7472664e0274e05563ab1540e8bac28eeb3adafc23a3274
+  .ai/knowledge/work/DRIVN-20.md: c2ae0969378ae23dd2c67ec4990e57fad024eb47e152a28576fbdf3cfc2869e9
+  .ai/knowledge/work/DRIVN-21.md: 6f555a8409d17febb35e31b3b854fec859481612cf2ba86ba87924c3e75a7537
+  .ai/knowledge/work/DRIVN-22.md: 05f674fa15a9a559cb08417088ed6cba21e2dec56eac32e6707b0d939c54a3f4
+  .ai/knowledge/work/DRIVN-23.md: 61c79789e69b5eb5e47d449549a1575708936e30559ec3b589bf68b952fa0cc9
+  .ai/knowledge/work/DRIVN-24.md: 715136705bda588216e6090d90a5ebcff134d297dc1075405b5b313cbe735763
+  .ai/knowledge/work/DRIVN-25.md: 713d464ca35182ea8b8b75c9cfe9f2356cdc5fc4473f75cca4858376d5a1eeab
+  .ai/knowledge/work/DRIVN-26.md: c00fd88c4000a137aef5d3626609eacce1dd8647b5f18cb6c28c6b79d6bd672d
+  .ai/knowledge/work/DRIVN-27.md: edc35af17d4fc2764035a369ab0a869354a3b75854114f52c1bc29d1774c8f30
+  .ai/knowledge/work/DRIVN-28.md: 8227f9426848b00e37752966c877ca58ea55ca11946e36ee43fa3eb39fd1777d
+  .ai/knowledge/work/DRIVN-29.md: bf522f187c29412dc7ff3a3fb3217a9dc23e25c2c0881e99493209c6657c6133
+  .ai/knowledge/work/DRIVN-30.md: 1fdd387ae5b738995394e87c4d5cfdd4cf885f563d23049195af7ccb74526f36
+  .ai/knowledge/work/DRIVN-31.md: db34d1714d3434380216d521ac89b6dd1e54964a220b85fff99778fe0cd43bd7
+  .ai/knowledge/work/DRIVN-32.md: b644e71752f2f464563d1ecb7e65deddb20d024a8113ac9e0a19ec677f2884b0
   .github/workflows/ci.yml: ac5080294ae367239347e84a59eea9552b914673a4c769f7baf42cc52467fd9f
   apps/local-api/local_api/app.py: 030458dedbe9837471aee1f496d1c2efbbc098d55df80e6d9a7769361bc8f294
   apps/local-api/local_api/binding.py: 8c76ea6d3c19e6a0675913f0219a36bb2d9a28db55f177d50e5b288eda052d84
@@ -1276,160 +1276,160 @@ nodes:
   kind: technology
   evidence:
   - apps/web/package.json
-- id: ticket:CFX-APP-csv-profile-T01
+- id: ticket:DRIVN-11
   kind: ticket
   evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T01.md
-  title: Measure and record the rule
-  state: done
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T02
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
-  title: Correct how a file is read
-  state: done
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T03
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T03.md
-  title: Replace earlier column names
-  state: done
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T04
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
-  title: Fast profile, end to end
-  state: done
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T05
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
-  title: All the metrics
-  state: done
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T06
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T06.md
-  title: Full profile and cancel
-  state: done
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T07
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T07.md
-  title: Runs that can't go ahead
-  state: done
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T08
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
-  title: Findings with evidence
-  state: done
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T09
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
-  title: Possibly sensitive fields
-  state: done
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T10
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
-  title: Values on request
-  state: done
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T11
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
-  title: Earlier runs
-  state: blocked
-  external_key: null
-- id: ticket:CFX-APP-csv-profile-T12
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
-  title: Full journey and checks
-  state: blocked
-  external_key: null
-- id: ticket:CFX-APP-first-slice-T01
-  kind: ticket
-  evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T01.md
+  - .ai/knowledge/work/DRIVN-11.md
   title: Installable runtime serves a page
   state: done
-  external_key: null
-- id: ticket:CFX-APP-first-slice-T02
+  external_key: DRIVN-11
+- id: ticket:DRIVN-12
   kind: ticket
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
+  - .ai/knowledge/work/DRIVN-12.md
   title: Session protection
   state: done
-  external_key: null
-- id: ticket:CFX-APP-first-slice-T03
+  external_key: DRIVN-12
+- id: ticket:DRIVN-13
   kind: ticket
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
+  - .ai/knowledge/work/DRIVN-13.md
   title: Workspace opens safely
   state: done
-  external_key: null
-- id: ticket:CFX-APP-first-slice-T04
+  external_key: DRIVN-13
+- id: ticket:DRIVN-14
   kind: ticket
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
+  - .ai/knowledge/work/DRIVN-14.md
   title: Set up a workspace in the app shell
   state: done
-  external_key: null
-- id: ticket:CFX-APP-first-slice-T05
+  external_key: DRIVN-14
+- id: ticket:DRIVN-15
   kind: ticket
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
+  - .ai/knowledge/work/DRIVN-15.md
   title: Connect a CSV and see its metadata
   state: done
-  external_key: null
-- id: ticket:CFX-APP-first-slice-T06
+  external_key: DRIVN-15
+- id: ticket:DRIVN-16
   kind: ticket
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
+  - .ai/knowledge/work/DRIVN-16.md
   title: Page through the rows
   state: done
-  external_key: null
-- id: ticket:CFX-APP-first-slice-T07
+  external_key: DRIVN-16
+- id: ticket:DRIVN-17
   kind: ticket
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
+  - .ai/knowledge/work/DRIVN-17.md
   title: Trust-state core
   state: done
-  external_key: null
-- id: ticket:CFX-APP-first-slice-T08
+  external_key: DRIVN-17
+- id: ticket:DRIVN-18
   kind: ticket
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T08.md
+  - .ai/knowledge/work/DRIVN-18.md
   title: Profile runs and history rules
   state: done
-  external_key: null
-- id: ticket:CFX-APP-first-slice-T09
+  external_key: DRIVN-18
+- id: ticket:DRIVN-19
   kind: ticket
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T09.md
+  - .ai/knowledge/work/DRIVN-19.md
   title: Contract rules
   state: done
-  external_key: null
-- id: ticket:CFX-APP-first-slice-T10
+  external_key: DRIVN-19
+- id: ticket:DRIVN-20
   kind: ticket
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
+  - .ai/knowledge/work/DRIVN-20.md
   title: Full journey and project checks
   state: done
-  external_key: null
+  external_key: DRIVN-20
+- id: ticket:DRIVN-21
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-21.md
+  title: Measure and record the rule
+  state: done
+  external_key: DRIVN-21
+- id: ticket:DRIVN-22
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-22.md
+  title: Correct how a file is read
+  state: done
+  external_key: DRIVN-22
+- id: ticket:DRIVN-23
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-23.md
+  title: Replace earlier column names
+  state: done
+  external_key: DRIVN-23
+- id: ticket:DRIVN-24
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-24.md
+  title: Fast profile, end to end
+  state: done
+  external_key: DRIVN-24
+- id: ticket:DRIVN-25
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-25.md
+  title: All the metrics
+  state: done
+  external_key: DRIVN-25
+- id: ticket:DRIVN-26
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-26.md
+  title: Full profile and cancel
+  state: done
+  external_key: DRIVN-26
+- id: ticket:DRIVN-27
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-27.md
+  title: Runs that can't go ahead
+  state: done
+  external_key: DRIVN-27
+- id: ticket:DRIVN-28
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-28.md
+  title: Findings with evidence
+  state: done
+  external_key: DRIVN-28
+- id: ticket:DRIVN-29
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-29.md
+  title: Possibly sensitive fields
+  state: done
+  external_key: DRIVN-29
+- id: ticket:DRIVN-30
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-30.md
+  title: Values on request
+  state: done
+  external_key: DRIVN-30
+- id: ticket:DRIVN-31
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-31.md
+  title: Earlier runs
+  state: blocked
+  external_key: DRIVN-31
+- id: ticket:DRIVN-32
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-32.md
+  title: Full journey and checks
+  state: blocked
+  external_key: DRIVN-32
 edges:
 - from: criterion:CFX-APP-csv-profile/AC-01
   rel: belongs_to
@@ -4806,753 +4806,753 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/package.json
-- from: ticket:CFX-APP-csv-profile-T01
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-42
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T01.md
-- from: ticket:CFX-APP-csv-profile-T02
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-01
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
-- from: ticket:CFX-APP-csv-profile-T02
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-02
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
-- from: ticket:CFX-APP-csv-profile-T02
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-03
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
-- from: ticket:CFX-APP-csv-profile-T02
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-05
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T02.md
-- from: ticket:CFX-APP-csv-profile-T03
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T02
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T03.md
-- from: ticket:CFX-APP-csv-profile-T03
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-04
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T03.md
-- from: ticket:CFX-APP-csv-profile-T04
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T01
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
-- from: ticket:CFX-APP-csv-profile-T04
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T02
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
-- from: ticket:CFX-APP-csv-profile-T04
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-07
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
-- from: ticket:CFX-APP-csv-profile-T04
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-09
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
-- from: ticket:CFX-APP-csv-profile-T04
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-13
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
-- from: ticket:CFX-APP-csv-profile-T04
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-15
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
-- from: ticket:CFX-APP-csv-profile-T04
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-16
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
-- from: ticket:CFX-APP-csv-profile-T04
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-17
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T04.md
-- from: ticket:CFX-APP-csv-profile-T05
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T04
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
-- from: ticket:CFX-APP-csv-profile-T05
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-14
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
-- from: ticket:CFX-APP-csv-profile-T05
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-19
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
-- from: ticket:CFX-APP-csv-profile-T05
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-20
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
-- from: ticket:CFX-APP-csv-profile-T05
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-39
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T05.md
-- from: ticket:CFX-APP-csv-profile-T06
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T05
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T06.md
-- from: ticket:CFX-APP-csv-profile-T06
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-08
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T06.md
-- from: ticket:CFX-APP-csv-profile-T06
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-10
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T06.md
-- from: ticket:CFX-APP-csv-profile-T06
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-18
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T06.md
-- from: ticket:CFX-APP-csv-profile-T07
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T04
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T07.md
-- from: ticket:CFX-APP-csv-profile-T07
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-06
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T07.md
-- from: ticket:CFX-APP-csv-profile-T07
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-11
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T07.md
-- from: ticket:CFX-APP-csv-profile-T07
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-12
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T07.md
-- from: ticket:CFX-APP-csv-profile-T08
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T06
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
-- from: ticket:CFX-APP-csv-profile-T08
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-21
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
-- from: ticket:CFX-APP-csv-profile-T08
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-22
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
-- from: ticket:CFX-APP-csv-profile-T08
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-23
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
-- from: ticket:CFX-APP-csv-profile-T08
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-24
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
-- from: ticket:CFX-APP-csv-profile-T08
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-25
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
-- from: ticket:CFX-APP-csv-profile-T08
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-26
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T08.md
-- from: ticket:CFX-APP-csv-profile-T09
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T08
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
-- from: ticket:CFX-APP-csv-profile-T09
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-21
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
-- from: ticket:CFX-APP-csv-profile-T09
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-27
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
-- from: ticket:CFX-APP-csv-profile-T09
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-28
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T09.md
-- from: ticket:CFX-APP-csv-profile-T10
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T06
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
-- from: ticket:CFX-APP-csv-profile-T10
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T09
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
-- from: ticket:CFX-APP-csv-profile-T10
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-29
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
-- from: ticket:CFX-APP-csv-profile-T10
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-30
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
-- from: ticket:CFX-APP-csv-profile-T10
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-31
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
-- from: ticket:CFX-APP-csv-profile-T10
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-32
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
-- from: ticket:CFX-APP-csv-profile-T10
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-34
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T10.md
-- from: ticket:CFX-APP-csv-profile-T11
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T08
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
-- from: ticket:CFX-APP-csv-profile-T11
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-35
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
-- from: ticket:CFX-APP-csv-profile-T11
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-36
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
-- from: ticket:CFX-APP-csv-profile-T11
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-37
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
-- from: ticket:CFX-APP-csv-profile-T11
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-38
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T11.md
-- from: ticket:CFX-APP-csv-profile-T12
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T03
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
-- from: ticket:CFX-APP-csv-profile-T12
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T07
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
-- from: ticket:CFX-APP-csv-profile-T12
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T10
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
-- from: ticket:CFX-APP-csv-profile-T12
-  rel: blocked_by
-  to: ticket:CFX-APP-csv-profile-T11
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
-- from: ticket:CFX-APP-csv-profile-T12
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-33
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
-- from: ticket:CFX-APP-csv-profile-T12
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-40
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
-- from: ticket:CFX-APP-csv-profile-T12
-  rel: covers
-  to: criterion:CFX-APP-csv-profile/AC-41
-  status: CONFIRMED
-  evidence:
-  - .ai/knowledge/work/CFX-APP-csv-profile-T12.md
-- from: ticket:CFX-APP-first-slice-T01
+- from: ticket:DRIVN-11
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-05
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T01.md
-- from: ticket:CFX-APP-first-slice-T01
+  - .ai/knowledge/work/DRIVN-11.md
+- from: ticket:DRIVN-11
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-07
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T01.md
-- from: ticket:CFX-APP-first-slice-T01
+  - .ai/knowledge/work/DRIVN-11.md
+- from: ticket:DRIVN-11
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-50
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T01.md
-- from: ticket:CFX-APP-first-slice-T02
+  - .ai/knowledge/work/DRIVN-11.md
+- from: ticket:DRIVN-12
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T01
+  to: ticket:DRIVN-11
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
-- from: ticket:CFX-APP-first-slice-T02
+  - .ai/knowledge/work/DRIVN-12.md
+- from: ticket:DRIVN-12
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-06
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
-- from: ticket:CFX-APP-first-slice-T02
+  - .ai/knowledge/work/DRIVN-12.md
+- from: ticket:DRIVN-12
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-08
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
-- from: ticket:CFX-APP-first-slice-T02
+  - .ai/knowledge/work/DRIVN-12.md
+- from: ticket:DRIVN-12
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-09
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
-- from: ticket:CFX-APP-first-slice-T02
+  - .ai/knowledge/work/DRIVN-12.md
+- from: ticket:DRIVN-12
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-10
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
-- from: ticket:CFX-APP-first-slice-T02
+  - .ai/knowledge/work/DRIVN-12.md
+- from: ticket:DRIVN-12
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-11
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
-- from: ticket:CFX-APP-first-slice-T02
+  - .ai/knowledge/work/DRIVN-12.md
+- from: ticket:DRIVN-12
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-12
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
-- from: ticket:CFX-APP-first-slice-T02
+  - .ai/knowledge/work/DRIVN-12.md
+- from: ticket:DRIVN-12
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-13
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
-- from: ticket:CFX-APP-first-slice-T02
+  - .ai/knowledge/work/DRIVN-12.md
+- from: ticket:DRIVN-12
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-52
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T02.md
-- from: ticket:CFX-APP-first-slice-T03
+  - .ai/knowledge/work/DRIVN-12.md
+- from: ticket:DRIVN-13
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T01
+  to: ticket:DRIVN-11
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
-- from: ticket:CFX-APP-first-slice-T03
+  - .ai/knowledge/work/DRIVN-13.md
+- from: ticket:DRIVN-13
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-02
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
-- from: ticket:CFX-APP-first-slice-T03
+  - .ai/knowledge/work/DRIVN-13.md
+- from: ticket:DRIVN-13
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-03
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
-- from: ticket:CFX-APP-first-slice-T03
+  - .ai/knowledge/work/DRIVN-13.md
+- from: ticket:DRIVN-13
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-04
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
-- from: ticket:CFX-APP-first-slice-T03
+  - .ai/knowledge/work/DRIVN-13.md
+- from: ticket:DRIVN-13
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-17
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
-- from: ticket:CFX-APP-first-slice-T03
+  - .ai/knowledge/work/DRIVN-13.md
+- from: ticket:DRIVN-13
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-18
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
-- from: ticket:CFX-APP-first-slice-T03
+  - .ai/knowledge/work/DRIVN-13.md
+- from: ticket:DRIVN-13
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-19
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
-- from: ticket:CFX-APP-first-slice-T03
+  - .ai/knowledge/work/DRIVN-13.md
+- from: ticket:DRIVN-13
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-44
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T03.md
-- from: ticket:CFX-APP-first-slice-T04
+  - .ai/knowledge/work/DRIVN-13.md
+- from: ticket:DRIVN-14
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T02
+  to: ticket:DRIVN-12
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
-- from: ticket:CFX-APP-first-slice-T04
+  - .ai/knowledge/work/DRIVN-14.md
+- from: ticket:DRIVN-14
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T03
+  to: ticket:DRIVN-13
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
-- from: ticket:CFX-APP-first-slice-T04
+  - .ai/knowledge/work/DRIVN-14.md
+- from: ticket:DRIVN-14
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-01
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
-- from: ticket:CFX-APP-first-slice-T04
+  - .ai/knowledge/work/DRIVN-14.md
+- from: ticket:DRIVN-14
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-14
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
-- from: ticket:CFX-APP-first-slice-T04
+  - .ai/knowledge/work/DRIVN-14.md
+- from: ticket:DRIVN-14
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-15
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
-- from: ticket:CFX-APP-first-slice-T04
+  - .ai/knowledge/work/DRIVN-14.md
+- from: ticket:DRIVN-14
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-16
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
-- from: ticket:CFX-APP-first-slice-T04
+  - .ai/knowledge/work/DRIVN-14.md
+- from: ticket:DRIVN-14
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-32
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
-- from: ticket:CFX-APP-first-slice-T04
+  - .ai/knowledge/work/DRIVN-14.md
+- from: ticket:DRIVN-14
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-33
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
-- from: ticket:CFX-APP-first-slice-T04
+  - .ai/knowledge/work/DRIVN-14.md
+- from: ticket:DRIVN-14
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-34
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T04.md
-- from: ticket:CFX-APP-first-slice-T05
+  - .ai/knowledge/work/DRIVN-14.md
+- from: ticket:DRIVN-15
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T04
+  to: ticket:DRIVN-14
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
-- from: ticket:CFX-APP-first-slice-T05
+  - .ai/knowledge/work/DRIVN-15.md
+- from: ticket:DRIVN-15
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-20
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
-- from: ticket:CFX-APP-first-slice-T05
+  - .ai/knowledge/work/DRIVN-15.md
+- from: ticket:DRIVN-15
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-21
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
-- from: ticket:CFX-APP-first-slice-T05
+  - .ai/knowledge/work/DRIVN-15.md
+- from: ticket:DRIVN-15
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-22
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
-- from: ticket:CFX-APP-first-slice-T05
+  - .ai/knowledge/work/DRIVN-15.md
+- from: ticket:DRIVN-15
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-23
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
-- from: ticket:CFX-APP-first-slice-T05
+  - .ai/knowledge/work/DRIVN-15.md
+- from: ticket:DRIVN-15
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-24
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
-- from: ticket:CFX-APP-first-slice-T05
+  - .ai/knowledge/work/DRIVN-15.md
+- from: ticket:DRIVN-15
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-25
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
-- from: ticket:CFX-APP-first-slice-T05
+  - .ai/knowledge/work/DRIVN-15.md
+- from: ticket:DRIVN-15
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-26
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
-- from: ticket:CFX-APP-first-slice-T05
+  - .ai/knowledge/work/DRIVN-15.md
+- from: ticket:DRIVN-15
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-49
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T05.md
-- from: ticket:CFX-APP-first-slice-T06
+  - .ai/knowledge/work/DRIVN-15.md
+- from: ticket:DRIVN-16
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T05
+  to: ticket:DRIVN-15
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
-- from: ticket:CFX-APP-first-slice-T06
+  - .ai/knowledge/work/DRIVN-16.md
+- from: ticket:DRIVN-16
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-27
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
-- from: ticket:CFX-APP-first-slice-T06
+  - .ai/knowledge/work/DRIVN-16.md
+- from: ticket:DRIVN-16
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-28
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
-- from: ticket:CFX-APP-first-slice-T06
+  - .ai/knowledge/work/DRIVN-16.md
+- from: ticket:DRIVN-16
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-29
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
-- from: ticket:CFX-APP-first-slice-T06
+  - .ai/knowledge/work/DRIVN-16.md
+- from: ticket:DRIVN-16
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-30
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
-- from: ticket:CFX-APP-first-slice-T06
+  - .ai/knowledge/work/DRIVN-16.md
+- from: ticket:DRIVN-16
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-31
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T06.md
-- from: ticket:CFX-APP-first-slice-T07
+  - .ai/knowledge/work/DRIVN-16.md
+- from: ticket:DRIVN-17
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T03
+  to: ticket:DRIVN-13
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
-- from: ticket:CFX-APP-first-slice-T07
+  - .ai/knowledge/work/DRIVN-17.md
+- from: ticket:DRIVN-17
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-35
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
-- from: ticket:CFX-APP-first-slice-T07
+  - .ai/knowledge/work/DRIVN-17.md
+- from: ticket:DRIVN-17
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-36
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
-- from: ticket:CFX-APP-first-slice-T07
+  - .ai/knowledge/work/DRIVN-17.md
+- from: ticket:DRIVN-17
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-37
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
-- from: ticket:CFX-APP-first-slice-T07
+  - .ai/knowledge/work/DRIVN-17.md
+- from: ticket:DRIVN-17
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-38
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
-- from: ticket:CFX-APP-first-slice-T07
+  - .ai/knowledge/work/DRIVN-17.md
+- from: ticket:DRIVN-17
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-40
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
-- from: ticket:CFX-APP-first-slice-T07
+  - .ai/knowledge/work/DRIVN-17.md
+- from: ticket:DRIVN-17
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-41
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
-- from: ticket:CFX-APP-first-slice-T07
+  - .ai/knowledge/work/DRIVN-17.md
+- from: ticket:DRIVN-17
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-48
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
-- from: ticket:CFX-APP-first-slice-T07
+  - .ai/knowledge/work/DRIVN-17.md
+- from: ticket:DRIVN-17
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-55
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T07.md
-- from: ticket:CFX-APP-first-slice-T08
+  - .ai/knowledge/work/DRIVN-17.md
+- from: ticket:DRIVN-18
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T07
+  to: ticket:DRIVN-17
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T08.md
-- from: ticket:CFX-APP-first-slice-T08
+  - .ai/knowledge/work/DRIVN-18.md
+- from: ticket:DRIVN-18
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-39
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T08.md
-- from: ticket:CFX-APP-first-slice-T08
+  - .ai/knowledge/work/DRIVN-18.md
+- from: ticket:DRIVN-18
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-42
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T08.md
-- from: ticket:CFX-APP-first-slice-T08
+  - .ai/knowledge/work/DRIVN-18.md
+- from: ticket:DRIVN-18
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-43
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T08.md
-- from: ticket:CFX-APP-first-slice-T09
+  - .ai/knowledge/work/DRIVN-18.md
+- from: ticket:DRIVN-19
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T07
+  to: ticket:DRIVN-17
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T09.md
-- from: ticket:CFX-APP-first-slice-T09
+  - .ai/knowledge/work/DRIVN-19.md
+- from: ticket:DRIVN-19
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-45
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T09.md
-- from: ticket:CFX-APP-first-slice-T09
+  - .ai/knowledge/work/DRIVN-19.md
+- from: ticket:DRIVN-19
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-46
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T09.md
-- from: ticket:CFX-APP-first-slice-T09
+  - .ai/knowledge/work/DRIVN-19.md
+- from: ticket:DRIVN-19
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-47
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T09.md
-- from: ticket:CFX-APP-first-slice-T10
+  - .ai/knowledge/work/DRIVN-19.md
+- from: ticket:DRIVN-20
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T06
+  to: ticket:DRIVN-16
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
-- from: ticket:CFX-APP-first-slice-T10
+  - .ai/knowledge/work/DRIVN-20.md
+- from: ticket:DRIVN-20
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T08
+  to: ticket:DRIVN-18
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
-- from: ticket:CFX-APP-first-slice-T10
+  - .ai/knowledge/work/DRIVN-20.md
+- from: ticket:DRIVN-20
   rel: blocked_by
-  to: ticket:CFX-APP-first-slice-T09
+  to: ticket:DRIVN-19
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
-- from: ticket:CFX-APP-first-slice-T10
+  - .ai/knowledge/work/DRIVN-20.md
+- from: ticket:DRIVN-20
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-51
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
-- from: ticket:CFX-APP-first-slice-T10
+  - .ai/knowledge/work/DRIVN-20.md
+- from: ticket:DRIVN-20
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-53
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
-- from: ticket:CFX-APP-first-slice-T10
+  - .ai/knowledge/work/DRIVN-20.md
+- from: ticket:DRIVN-20
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-54
   status: CONFIRMED
   evidence:
-  - .ai/knowledge/work/CFX-APP-first-slice-T10.md
+  - .ai/knowledge/work/DRIVN-20.md
+- from: ticket:DRIVN-21
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-42
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-21.md
+- from: ticket:DRIVN-22
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-22.md
+- from: ticket:DRIVN-22
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-22.md
+- from: ticket:DRIVN-22
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-22.md
+- from: ticket:DRIVN-22
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-22.md
+- from: ticket:DRIVN-23
+  rel: blocked_by
+  to: ticket:DRIVN-22
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-23.md
+- from: ticket:DRIVN-23
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-23.md
+- from: ticket:DRIVN-24
+  rel: blocked_by
+  to: ticket:DRIVN-21
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-24.md
+- from: ticket:DRIVN-24
+  rel: blocked_by
+  to: ticket:DRIVN-22
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-24.md
+- from: ticket:DRIVN-24
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-24.md
+- from: ticket:DRIVN-24
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-24.md
+- from: ticket:DRIVN-24
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-13
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-24.md
+- from: ticket:DRIVN-24
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-15
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-24.md
+- from: ticket:DRIVN-24
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-16
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-24.md
+- from: ticket:DRIVN-24
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-17
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-24.md
+- from: ticket:DRIVN-25
+  rel: blocked_by
+  to: ticket:DRIVN-24
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-25.md
+- from: ticket:DRIVN-25
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-14
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-25.md
+- from: ticket:DRIVN-25
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-19
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-25.md
+- from: ticket:DRIVN-25
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-20
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-25.md
+- from: ticket:DRIVN-25
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-39
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-25.md
+- from: ticket:DRIVN-26
+  rel: blocked_by
+  to: ticket:DRIVN-25
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-26.md
+- from: ticket:DRIVN-26
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-26.md
+- from: ticket:DRIVN-26
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-10
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-26.md
+- from: ticket:DRIVN-26
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-18
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-26.md
+- from: ticket:DRIVN-27
+  rel: blocked_by
+  to: ticket:DRIVN-24
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-27.md
+- from: ticket:DRIVN-27
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-27.md
+- from: ticket:DRIVN-27
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-11
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-27.md
+- from: ticket:DRIVN-27
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-12
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-27.md
+- from: ticket:DRIVN-28
+  rel: blocked_by
+  to: ticket:DRIVN-26
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-28.md
+- from: ticket:DRIVN-28
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-21
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-28.md
+- from: ticket:DRIVN-28
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-22
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-28.md
+- from: ticket:DRIVN-28
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-23
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-28.md
+- from: ticket:DRIVN-28
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-24
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-28.md
+- from: ticket:DRIVN-28
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-25
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-28.md
+- from: ticket:DRIVN-28
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-26
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-28.md
+- from: ticket:DRIVN-29
+  rel: blocked_by
+  to: ticket:DRIVN-28
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-29.md
+- from: ticket:DRIVN-29
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-21
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-29.md
+- from: ticket:DRIVN-29
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-27
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-29.md
+- from: ticket:DRIVN-29
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-28
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-29.md
+- from: ticket:DRIVN-30
+  rel: blocked_by
+  to: ticket:DRIVN-26
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-30.md
+- from: ticket:DRIVN-30
+  rel: blocked_by
+  to: ticket:DRIVN-29
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-30.md
+- from: ticket:DRIVN-30
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-29
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-30.md
+- from: ticket:DRIVN-30
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-30
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-30.md
+- from: ticket:DRIVN-30
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-31
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-30.md
+- from: ticket:DRIVN-30
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-32
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-30.md
+- from: ticket:DRIVN-30
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-34
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-30.md
+- from: ticket:DRIVN-31
+  rel: blocked_by
+  to: ticket:DRIVN-28
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-31.md
+- from: ticket:DRIVN-31
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-35
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-31.md
+- from: ticket:DRIVN-31
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-36
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-31.md
+- from: ticket:DRIVN-31
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-37
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-31.md
+- from: ticket:DRIVN-31
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-38
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-31.md
+- from: ticket:DRIVN-32
+  rel: blocked_by
+  to: ticket:DRIVN-23
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-32.md
+- from: ticket:DRIVN-32
+  rel: blocked_by
+  to: ticket:DRIVN-27
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-32.md
+- from: ticket:DRIVN-32
+  rel: blocked_by
+  to: ticket:DRIVN-30
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-32.md
+- from: ticket:DRIVN-32
+  rel: blocked_by
+  to: ticket:DRIVN-31
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-32.md
+- from: ticket:DRIVN-32
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-33
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-32.md
+- from: ticket:DRIVN-32
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-40
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-32.md
+- from: ticket:DRIVN-32
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-41
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-32.md

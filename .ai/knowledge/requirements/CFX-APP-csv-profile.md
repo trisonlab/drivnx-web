@@ -1,5 +1,6 @@
 ---
 id: CFX-APP-csv-profile
+external_key: DRIVN-9
 kind: feature
 title: "Profile a CSV: correct how it's read, profile it, and see findings with evidence"
 summary: "Correct CSV detection, run a fast or full deterministic profile, read labelled metrics in the Profile tab, and see findings backed by evidence, with only aggregates saved."

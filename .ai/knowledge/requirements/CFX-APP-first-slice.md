@@ -1,5 +1,6 @@
 ---
 id: CFX-APP-first-slice
+external_key: DRIVN-8
 kind: feature
 title: "First vertical slice: runtime to CSV preview, on the M1 domain model"
 summary: "Start DrivnX, set up a workspace in the browser, connect a CSV and see its metadata and a paginated preview, built on the full M1 domain model."

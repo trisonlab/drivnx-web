@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-csv-profile-T09
+id: DRIVN-29
+legacy_id: CFX-APP-csv-profile-T09
 title: "Possibly sensitive fields"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-04, US-05]
 criteria: [AC-21, AC-27, AC-28]
-blocked_by: [CFX-APP-csv-profile-T08]
+blocked_by: [DRIVN-28]
 state: done
-external_key: null
+external_key: DRIVN-29
 status: CONFIRMED
 ---
 
 # Possibly sensitive fields
+
+Plane: [DRIVN-29](https://app.plane.so/drivnx/browse/DRIVN-29/) · was `CFX-APP-csv-profile-T09`
 
 ## Outcome
 Columns matching the name or pattern rules get a possibly-sensitive finding, and the screen says that no flag doesn't mean no personal data.

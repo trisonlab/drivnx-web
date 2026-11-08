@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-first-slice-T08
+id: DRIVN-18
+legacy_id: CFX-APP-first-slice-T08
 title: "Profile runs and history rules"
 feature: CFX-APP-first-slice
 feature_revision: 9
 stories: [US-08]
 criteria: [AC-39, AC-42, AC-43]
-blocked_by: [CFX-APP-first-slice-T07]
+blocked_by: [DRIVN-17]
 state: done
-external_key: null
+external_key: DRIVN-18
 status: CONFIRMED
 ---
 
 # Profile runs and history rules
+
+Plane: [DRIVN-18](https://app.plane.so/drivnx/browse/DRIVN-18/) · was `CFX-APP-first-slice-T08`
 
 ## Outcome
 Interrupted runs are marked at startup, history stays append-only, and a contradicting newer run flags an item "needs re-review" without changing its state. The flag is stored as a ProvenanceEvent (spec revision 9).

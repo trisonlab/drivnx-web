@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-csv-profile-T08
+id: DRIVN-28
+legacy_id: CFX-APP-csv-profile-T08
 title: "Findings with evidence"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-04]
 criteria: [AC-21, AC-22, AC-23, AC-24, AC-25, AC-26]
-blocked_by: [CFX-APP-csv-profile-T06]
+blocked_by: [DRIVN-26]
 state: done
-external_key: null
+external_key: DRIVN-28
 status: CONFIRMED
 ---
 
 # Findings with evidence
+
+Plane: [DRIVN-28](https://app.plane.so/drivnx/browse/DRIVN-28/) · was `CFX-APP-csv-profile-T08`
 
 ## Outcome
 Completed runs produce rule-based findings in the right panel, each showing what was observed and inferred, why it matters, what to do, and a link to its evidence.

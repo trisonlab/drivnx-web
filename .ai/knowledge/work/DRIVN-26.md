@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-csv-profile-T06
+id: DRIVN-26
+legacy_id: CFX-APP-csv-profile-T06
 title: "Full profile and cancel"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-02, US-03]
 criteria: [AC-08, AC-10, AC-18]
-blocked_by: [CFX-APP-csv-profile-T05]
+blocked_by: [DRIVN-25]
 state: done
-external_key: null
+external_key: DRIVN-26
 status: CONFIRMED
 ---
 
 # Full profile and cancel
+
+Plane: [DRIVN-26](https://app.plane.so/drivnx/browse/DRIVN-26/) · was `CFX-APP-csv-profile-T06`
 
 ## Outcome
 A user can run a whole-file profile with exact results and a row count, and can cancel any run in progress.

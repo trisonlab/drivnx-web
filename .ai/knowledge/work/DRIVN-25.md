@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-csv-profile-T05
+id: DRIVN-25
+legacy_id: CFX-APP-csv-profile-T05
 title: "All the metrics"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-03, US-08]
 criteria: [AC-14, AC-19, AC-20, AC-39]
-blocked_by: [CFX-APP-csv-profile-T04]
+blocked_by: [DRIVN-24]
 state: done
-external_key: null
+external_key: DRIVN-25
 status: CONFIRMED
 ---
 
 # All the metrics
+
+Plane: [DRIVN-25](https://app.plane.so/drivnx/browse/DRIVN-25/) · was `CFX-APP-csv-profile-T05`
 
 ## Outcome
 Every stored metric is computed and shown, including masked patterns, and golden files prove each value exactly.

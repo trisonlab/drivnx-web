@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-csv-profile-T04
+id: DRIVN-24
+legacy_id: CFX-APP-csv-profile-T04
 title: "Fast profile, end to end"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-02, US-03]
 criteria: [AC-07, AC-09, AC-13, AC-15, AC-16, AC-17]
-blocked_by: [CFX-APP-csv-profile-T01, CFX-APP-csv-profile-T02]
+blocked_by: [DRIVN-21, DRIVN-22]
 state: done
-external_key: null
+external_key: DRIVN-24
 status: CONFIRMED
 ---
 
 # Fast profile, end to end
+
+Plane: [DRIVN-24](https://app.plane.so/drivnx/browse/DRIVN-24/) · was `CFX-APP-csv-profile-T04`
 
 ## Outcome
 The thin path through every layer: a user presses Fast profile, a background run reads the first rows, and the Profile tab shows the first metrics with their labels while the header shows the run's status.

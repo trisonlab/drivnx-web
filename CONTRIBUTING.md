@@ -24,14 +24,21 @@ You need Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 22 with pnpm (t
 |---|---|
 | What DrivnX is and why | `../docs/DrivnX_Phase1_Development_Direction.md`: approved and canonical; it wins over everything below |
 | Features (stories, acceptance criteria, revision, approval) | `.ai/knowledge/requirements/CFX-APP-*.md` |
-| Tickets (criteria, `blocked_by`, `state: ready / blocked / done`) | `.ai/knowledge/work/CFX-APP-*-T*.md` |
+| Tickets (criteria, `blocked_by`, `state: ready / blocked / done`) | `.ai/knowledge/work/DRIVN-*.md`, mirrored in [Plane](https://app.plane.so/drivnx/) project DRIVN |
 | Decisions | `docs/adr/` (index in `.ai/knowledge/decisions/adr-index.md`) |
 | Threats and mitigations | `docs/threat-model/threat-register.md` |
 
 Build from an approved feature and a `ready` ticket only. If a ticket turns out to be wrong, change the feature first
 (a new revision), then cut the tickets again; don't quietly build something different.
 
-IDs such as `CFX-APP-csv-profile-T03` and `CFX-APP-csv-profile/AC-24` never change, even if the product is renamed.
+A ticket's ID is its Plane key, such as `DRIVN-23`; tickets cut before Plane keep their old ID in `legacy_id`
+(`CFX-APP-csv-profile-T03`). Features and criteria keep their permanent IDs, such as `CFX-APP-csv-profile` (Plane
+`DRIVN-9`) and `CFX-APP-csv-profile/AC-24`, which never change, even if the product is renamed.
+
+**Plane.** The repo is the source of truth and Plane mirrors it. A new ticket starts in Plane, as a child of its
+feature's item, so it gets its key; then its file is written as `DRIVN-N.md` with `id` and `external_key` set to that
+key. When a ticket's `state` changes in the file, move the Plane item to match (`ready` → Todo, in progress → In
+Progress, `done` → Done, `blocked` → Backlog). With the Plane MCP server connected, the AI does this for you.
 
 ## 3. One ticket, start to finish
 
@@ -45,11 +52,11 @@ IDs such as `CFX-APP-csv-profile-T03` and `CFX-APP-csv-profile/AC-24` never chan
 | 6 | Build | Each criterion has a failing test that names its ID, then the code, then green | `tdd` |
 | 7 | Verify | Whole suite and scans run, with a table of every criterion and its evidence | `verification` |
 | 8 | Review | Diff checked against the ticket; findings fixed or accepted | `code-review` (`security` for input, auth, secrets) |
-| 9 | Ship | Commits, PR, ticket set to `state: done` | `delivery`, `finish-branch` |
+| 9 | Ship | Commits, PR, ticket set to `state: done`, Plane item moved to Done | `delivery`, `finish-branch` |
 | 10 | Learn | Knowledge updated; rework explained | `knowledge-update`, `retrospective` |
 
 **Branches.** One branch per ticket, created before its first change, named `feat/<ticket-id-lowercase>-<short-title>`,
-e.g. `feat/cfx-app-csv-profile-t09-possibly-sensitive-fields`. Branch from `main`, or from the branch of the ticket
+e.g. `feat/drivn-31-earlier-runs`. Branch from `main`, or from the branch of the ticket
 yours depends on while that one is unmerged.
 
 **Commits.** Title `<ticket-id>: <description>`, with `Spec:`, `Ticket:` and `Criteria:` lines at the end. Each
@@ -75,7 +82,7 @@ conversation, tells you which step of the table above you're on, and gives you a
 
 A good first prompt names the ticket and the limits:
 
-> /tdd CFX-APP-csv-profile-T11: start with AC-35. Read the ticket and its feature first; don't commit.
+> /tdd DRIVN-31: start with AC-35. Read the ticket and its feature first; don't commit.
 
 ### Skills by stage
 

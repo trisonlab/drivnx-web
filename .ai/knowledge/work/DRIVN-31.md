@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-csv-profile-T11
+id: DRIVN-31
+legacy_id: CFX-APP-csv-profile-T11
 title: "Earlier runs"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-07]
 criteria: [AC-35, AC-36, AC-37, AC-38]
-blocked_by: [CFX-APP-csv-profile-T08]
+blocked_by: [DRIVN-28]
 state: blocked
-external_key: null
+external_key: DRIVN-31
 status: CONFIRMED
 ---
 
 # Earlier runs
+
+Plane: [DRIVN-31](https://app.plane.so/drivnx/browse/DRIVN-31/) · was `CFX-APP-csv-profile-T11`
 
 ## Outcome
 A user can list and open earlier runs, and can tell when results used earlier settings or may be out of date. Everything survives a restart.

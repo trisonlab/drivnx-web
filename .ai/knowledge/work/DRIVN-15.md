@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-first-slice-T05
+id: DRIVN-15
+legacy_id: CFX-APP-first-slice-T05
 title: "Connect a CSV and see its metadata"
 feature: CFX-APP-first-slice
 feature_revision: 9
 stories: [US-04, US-05, US-08]
 criteria: [AC-20, AC-21, AC-22, AC-23, AC-24, AC-25, AC-26, AC-49]
-blocked_by: [CFX-APP-first-slice-T04]
+blocked_by: [DRIVN-14]
 state: done
-external_key: null
+external_key: DRIVN-15
 status: CONFIRMED
 ---
 
 # Connect a CSV and see its metadata
+
+Plane: [DRIVN-15](https://app.plane.so/drivnx/browse/DRIVN-15/) · was `CFX-APP-first-slice-T05`
 
 ## Outcome
 The user pastes a path and sees the detection result, the file details and its columns. The file stays where it is, and no data row is saved. Start by proving detection against the synthetic files, because the assumed encodings are unconfirmed; if detection falls short, stop and raise a spec change.

@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-first-slice-T06
+id: DRIVN-16
+legacy_id: CFX-APP-first-slice-T06
 title: "Page through the rows"
 feature: CFX-APP-first-slice
 feature_revision: 9
 stories: [US-06]
 criteria: [AC-27, AC-28, AC-29, AC-30, AC-31]
-blocked_by: [CFX-APP-first-slice-T05]
+blocked_by: [DRIVN-15]
 state: done
-external_key: null
+external_key: DRIVN-16
 status: CONFIRMED
 ---
 
 # Page through the rows
+
+Plane: [DRIVN-16](https://app.plane.so/drivnx/browse/DRIVN-16/) · was `CFX-APP-first-slice-T06`
 
 ## Outcome
 The user moves through a CSV with next and previous. Cells display as plain text, long cells are cut and marked, and nothing is left behind.

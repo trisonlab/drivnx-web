@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-first-slice-T04
+id: DRIVN-14
+legacy_id: CFX-APP-first-slice-T04
 title: "Set up a workspace in the app shell"
 feature: CFX-APP-first-slice
 feature_revision: 9
 stories: [US-01, US-03, US-07]
 criteria: [AC-01, AC-14, AC-15, AC-16, AC-32, AC-33, AC-34]
-blocked_by: [CFX-APP-first-slice-T02, CFX-APP-first-slice-T03]
+blocked_by: [DRIVN-12, DRIVN-13]
 state: done
-external_key: null
+external_key: DRIVN-14
 status: CONFIRMED
 ---
 
 # Set up a workspace in the app shell
+
+Plane: [DRIVN-14](https://app.plane.so/drivnx/browse/DRIVN-14/) · was `CFX-APP-first-slice-T04`
 
 ## Outcome
 On first launch the user sees where the workspace is stored, names it and picks an AI mode, then lands in the three-panel shell with the privacy indicator. Anything not built is visibly marked. Reopening skips setup.

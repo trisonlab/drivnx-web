@@ -1,5 +1,6 @@
 ---
-id: CFX-APP-csv-profile-T02
+id: DRIVN-22
+legacy_id: CFX-APP-csv-profile-T02
 title: "Correct how a file is read"
 feature: CFX-APP-csv-profile
 feature_revision: 4
@@ -7,11 +8,13 @@ stories: [US-01]
 criteria: [AC-01, AC-02, AC-03, AC-05]
 blocked_by: []
 state: done
-external_key: null
+external_key: DRIVN-22
 status: CONFIRMED
 ---
 
 # Correct how a file is read
+
+Plane: [DRIVN-22](https://app.plane.so/drivnx/browse/DRIVN-22/) · was `CFX-APP-csv-profile-T02`
 
 ## Outcome
 A user can change a CSV's header setting, delimiter, encoding and lines to skip, and sees the columns and preview follow. The corrected settings survive a restart and reconnecting the same path.

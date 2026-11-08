@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-first-slice-T09
+id: DRIVN-19
+legacy_id: CFX-APP-first-slice-T09
 title: "Contract rules"
 feature: CFX-APP-first-slice
 feature_revision: 9
 stories: [US-08]
 criteria: [AC-45, AC-46, AC-47]
-blocked_by: [CFX-APP-first-slice-T07]
+blocked_by: [DRIVN-17]
 state: done
-external_key: null
+external_key: DRIVN-19
 status: CONFIRMED
 ---
 
 # Contract rules
+
+Plane: [DRIVN-19](https://app.plane.so/drivnx/browse/DRIVN-19/) · was `CFX-APP-first-slice-T09`
 
 ## Outcome
 Rules can exist as candidates, and only Defined rules are part of the contract. Promotion, demotion, deletion, one rule per slot and contract versions follow ADR 0003. ODCS export stays in M7.

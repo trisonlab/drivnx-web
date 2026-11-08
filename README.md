@@ -79,28 +79,34 @@ uv tool install dist/drivnx_data-*.whl
 
 ## Tracing work by ID
 
-Specs, tickets and criteria have permanent IDs, such as `CFX-APP-first-slice`, `CFX-APP-first-slice-T01` and
-`CFX-APP-first-slice/AC-07`. **An ID never changes, even if the product is renamed.** Tests name the criteria they prove.
+Tickets are tracked in Plane, project DRIVN (<https://app.plane.so/drivnx/>), and a ticket's ID is its Plane key, such
+as `DRIVN-13`. The ticket file is `.ai/knowledge/work/DRIVN-13.md`; the repo stays the source of truth and Plane
+mirrors it. Specs and criteria keep their permanent IDs, such as `CFX-APP-first-slice` (Plane `DRIVN-8`) and
+`CFX-APP-first-slice/AC-07`, because tests name the criteria they prove. Tickets cut before Plane also keep their old
+ID in `legacy_id` (`DRIVN-13` was `CFX-APP-first-slice-T03`).
 
 A ticket commit's title is `<ticket-id>: <description>`. Every commit that belongs to a spec ends with its IDs, listing
 each criterion in full and never as a range:
 
 ```text
-CFX-APP-first-slice-T03: Open workspaces safely
+DRIVN-13: Open workspaces safely
 
-Spec: CFX-APP-first-slice
-Ticket: CFX-APP-first-slice-T03
+Spec: CFX-APP-first-slice (DRIVN-8)
+Ticket: DRIVN-13 (CFX-APP-first-slice-T03)
 Criteria: AC-02, AC-03, AC-04
 ```
 
-To trace: `git log --grep="CFX-APP-first-slice-T03"` finds a ticket's commits, `git blame` leads from a line to its commit
-and ticket, and `ai-skills knowledge graph CFX-APP-first-slice/AC-07` shows a criterion's ticket and tests.
+New tickets write `Ticket: DRIVN-N` alone. To trace: `git log --grep="DRIVN-13"` finds a ticket's commits, `git blame`
+leads from a line to its commit and ticket, and `ai-skills knowledge graph CFX-APP-first-slice/AC-07` shows a
+criterion's ticket and tests. Commit titles before 2026-11-08 were rewritten from the old IDs; the `Ticket:` line keeps
+both.
 
 ## Branches
 
-Each ticket gets its own branch with the ticket ID in its name, created before its first change. While the ticket it
-depends on is unmerged, branch from that ticket's branch; otherwise branch from `main`. `/tdd` and `/delivery` stop and
-ask if the current branch isn't the ticket's.
+Each ticket gets its own branch named `feat/<plane-key-lowercase>-<short-title>`, e.g. `feat/drivn-31-earlier-runs`,
+created before its first change. While the ticket it depends on is unmerged, branch from that ticket's branch;
+otherwise branch from `main`. `/tdd` and `/delivery` stop and ask if the current branch isn't the ticket's. Merged
+branches are deleted.
 
 ## AI skills
 

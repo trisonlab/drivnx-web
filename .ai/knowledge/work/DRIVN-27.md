@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-csv-profile-T07
+id: DRIVN-27
+legacy_id: CFX-APP-csv-profile-T07
 title: "Runs that can't go ahead"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-01, US-02]
 criteria: [AC-06, AC-11, AC-12]
-blocked_by: [CFX-APP-csv-profile-T04]
+blocked_by: [DRIVN-24]
 state: done
-external_key: null
+external_key: DRIVN-27
 status: CONFIRMED
 ---
 
 # Runs that can't go ahead
+
+Plane: [DRIVN-27](https://app.plane.so/drivnx/browse/DRIVN-27/) · was `CFX-APP-csv-profile-T07`
 
 ## Outcome
 A file that's gone, unreadable or changed, or a correction attempted during a run, gives a clear message and never leaves misleading results.

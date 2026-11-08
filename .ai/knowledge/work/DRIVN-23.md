@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-csv-profile-T03
+id: DRIVN-23
+legacy_id: CFX-APP-csv-profile-T03
 title: "Replace earlier column names"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-01]
 criteria: [AC-04]
-blocked_by: [CFX-APP-csv-profile-T02]
+blocked_by: [DRIVN-22]
 state: done
-external_key: null
+external_key: DRIVN-23
 status: CONFIRMED
 ---
 
 # Replace earlier column names
+
+Plane: [DRIVN-23](https://app.plane.so/drivnx/browse/DRIVN-23/) · was `CFX-APP-csv-profile-T03`
 
 ## Outcome
 After a correction that changes the column names, the earlier names are gone from the saved data, so a row wrongly used as column names doesn't stay in the workspace.

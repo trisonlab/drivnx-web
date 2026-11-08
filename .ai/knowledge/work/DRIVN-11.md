@@ -1,5 +1,6 @@
 ---
-id: CFX-APP-first-slice-T01
+id: DRIVN-11
+legacy_id: CFX-APP-first-slice-T01
 title: "Installable runtime serves a page"
 feature: CFX-APP-first-slice
 feature_revision: 9
@@ -7,11 +8,13 @@ stories: [US-01, US-02, US-09]
 criteria: [AC-05, AC-07, AC-50]
 blocked_by: []
 state: done
-external_key: null
+external_key: DRIVN-11
 status: CONFIRMED
 ---
 
 # Installable runtime serves a page
+
+Plane: [DRIVN-11](https://app.plane.so/drivnx/browse/DRIVN-11/) · was `CFX-APP-first-slice-T01`
 
 ## Outcome
 The `drivnx` command installs from locked dependencies, listens only on `127.0.0.1`, and shows a placeholder page from the UI bundle. This is the thin path everything else builds on: one wheel holding the API, the packages and the built UI.

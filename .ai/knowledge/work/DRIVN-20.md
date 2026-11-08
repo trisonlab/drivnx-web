@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-first-slice-T10
+id: DRIVN-20
+legacy_id: CFX-APP-first-slice-T10
 title: "Full journey and project checks"
 feature: CFX-APP-first-slice
 feature_revision: 9
 stories: [US-09]
 criteria: [AC-51, AC-53, AC-54]
-blocked_by: [CFX-APP-first-slice-T06, CFX-APP-first-slice-T08, CFX-APP-first-slice-T09]
+blocked_by: [DRIVN-16, DRIVN-18, DRIVN-19]
 state: done
-external_key: null
+external_key: DRIVN-20
 status: CONFIRMED
 ---
 
 # Full journey and project checks
+
+Plane: [DRIVN-20](https://app.plane.so/drivnx/browse/DRIVN-20/) · was `CFX-APP-first-slice-T10`
 
 ## Outcome
 The whole journey passes against the installed wheel, the CI configuration exists, every check also runs locally, and the performance and accessibility targets are measured.

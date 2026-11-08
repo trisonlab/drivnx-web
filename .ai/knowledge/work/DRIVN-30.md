@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-csv-profile-T10
+id: DRIVN-30
+legacy_id: CFX-APP-csv-profile-T10
 title: "Values on request"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-05, US-06]
 criteria: [AC-29, AC-30, AC-31, AC-32, AC-34]
-blocked_by: [CFX-APP-csv-profile-T06, CFX-APP-csv-profile-T09]
+blocked_by: [DRIVN-26, DRIVN-29]
 state: done
-external_key: null
+external_key: DRIVN-30
 status: CONFIRMED
 ---
 
 # Values on request
+
+Plane: [DRIVN-30](https://app.plane.so/drivnx/browse/DRIVN-30/) · was `CFX-APP-csv-profile-T10`
 
 ## Outcome
 A user can ask to see a column's real values and statistics, computed fresh and never saved, with an extra confirmation for columns flagged as possibly sensitive.

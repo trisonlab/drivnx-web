@@ -1,17 +1,20 @@
 ---
-id: CFX-APP-first-slice-T03
+id: DRIVN-13
+legacy_id: CFX-APP-first-slice-T03
 title: "Workspace opens safely"
 feature: CFX-APP-first-slice
 feature_revision: 9
 stories: [US-01, US-03, US-08]
 criteria: [AC-02, AC-03, AC-04, AC-17, AC-18, AC-19, AC-44]
-blocked_by: [CFX-APP-first-slice-T01]
+blocked_by: [DRIVN-11]
 state: done
-external_key: null
+external_key: DRIVN-13
 status: CONFIRMED
 ---
 
 # Workspace opens safely
+
+Plane: [DRIVN-13](https://app.plane.so/drivnx/browse/DRIVN-13/) · was `CFX-APP-first-slice-T03`
 
 ## Outcome
 DrivnX decides whether it may use a directory before touching it, holds an OS lock, sets owner-only permissions, and opens SQLite with the settings in ADR 0002. Migrations back up first and can't lose referencing rows.

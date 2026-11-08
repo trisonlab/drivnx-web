@@ -1,5 +1,6 @@
 ---
-id: CFX-APP-csv-profile-T01
+id: DRIVN-21
+legacy_id: CFX-APP-csv-profile-T01
 title: "Measure and record the rule"
 feature: CFX-APP-csv-profile
 feature_revision: 4
@@ -7,11 +8,13 @@ stories: [US-08]
 criteria: [AC-42]
 blocked_by: []
 state: done
-external_key: null
+external_key: DRIVN-21
 status: CONFIRMED
 ---
 
 # Measure and record the rule
+
+Plane: [DRIVN-21](https://app.plane.so/drivnx/browse/DRIVN-21/) · was `CFX-APP-csv-profile-T01`
 
 ## Outcome
 The all-text read and the duplicate-row check are timed on a 1 GB CSV, so the targets are confirmed or a spec change is raised before any profiling is built. The R3 rule and the profile-caching decision are written down where the threat register and the direction doc expect them.

@@ -59,3 +59,21 @@ Agent roles (instructions in `.ai/agents/<name>.md`; delegate to a subagent if y
 - `knowledge-curator`: Keeps the project's knowledge base in .ai/knowledge/ accurate after code, schema, API or requirement changes. Use after a significant change is merged, when `ai...
 - `reviewer`: Independent code reviewer. Use after a change is implemented and before it is delivered, to check it against the requirements and acceptance criteria, find corr...
 <!-- ai-skills:end -->
+
+## Plane (this repo's notes, outside the managed block)
+
+Tickets are mirrored in Plane: workspace `drivnx`, project DRIVN (<https://app.plane.so/drivnx/>). The files in
+`.ai/knowledge/` stay the source of truth.
+
+- A ticket's ID is its Plane key: `.ai/knowledge/work/DRIVN-31.md` has `id: DRIVN-31` and `external_key: DRIVN-31`.
+  Older tickets keep their pre-Plane ID in `legacy_id` (e.g. `CFX-APP-csv-profile-T11`); search for both.
+- Features and criteria keep their CFX IDs (`CFX-APP-csv-profile`, `CFX-APP-csv-profile/AC-35`); the feature file's
+  `external_key` holds its Plane item (`DRIVN-9`). Tests keep naming criteria by the CFX feature ID.
+- Branch `feat/drivn-31-<short-title>`; commit title `DRIVN-31: <description>`; trailers `Spec: <feature ID>`,
+  `Ticket: DRIVN-31`, `Criteria: …`.
+- When the Plane MCP server is connected: cutting a ticket creates its Plane item first (child of the feature's item,
+  label `drivnx-web`, `external_source: drivnx-repo`, `external_id` = the ticket ID) and names the file after the key
+  it gets. When a ticket's `state` changes, move the Plane item to match: `ready` → Todo, being built → In Progress,
+  `done` → Done, `blocked` → Backlog. Add the PR link to the item when the PR opens. If the MCP server isn't
+  connected, say the Plane update is NOT RUN; don't skip it silently.
+- Ask before deleting Plane items or changing anything outside project DRIVN.
