@@ -1,7 +1,7 @@
 ---
 id: DRIVN-21
 legacy_id: CFX-APP-csv-profile-T01
-title: "Measure and record the rule"
+title: "Measure profile queries and record the R3 rule"
 feature: CFX-APP-csv-profile
 feature_revision: 4
 stories: [US-08]
@@ -12,7 +12,7 @@ external_key: DRIVN-21
 status: CONFIRMED
 ---
 
-# Measure and record the rule
+# Measure profile queries and record the R3 rule
 
 Plane: [DRIVN-21](https://app.plane.so/drivnx/browse/DRIVN-21/) · was `CFX-APP-csv-profile-T01`
 

@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-08T14:14:30+00:00'
+updated_at: '2026-11-08T15:13:21+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 3ed3f976e9a1b5a34eb96c5016d7d30c5d41ff6f2aabf340ba26c7c196d0fb3f
@@ -15,7 +15,7 @@ sources:
   .ai/knowledge/work/DRIVN-18.md: b4dd318d4bcbc13210c6a08fec275c119a7d634b7d397547f3a4823c48214774
   .ai/knowledge/work/DRIVN-19.md: 415aa5dc8dcb3138a7472664e0274e05563ab1540e8bac28eeb3adafc23a3274
   .ai/knowledge/work/DRIVN-20.md: c2ae0969378ae23dd2c67ec4990e57fad024eb47e152a28576fbdf3cfc2869e9
-  .ai/knowledge/work/DRIVN-21.md: 6f555a8409d17febb35e31b3b854fec859481612cf2ba86ba87924c3e75a7537
+  .ai/knowledge/work/DRIVN-21.md: ff54fbfd3667323e8a67091baa2f48bfce5aae7016edbc618adedd5439c65cb9
   .ai/knowledge/work/DRIVN-22.md: 05f674fa15a9a559cb08417088ed6cba21e2dec56eac32e6707b0d939c54a3f4
   .ai/knowledge/work/DRIVN-23.md: 61c79789e69b5eb5e47d449549a1575708936e30559ec3b589bf68b952fa0cc9
   .ai/knowledge/work/DRIVN-24.md: 715136705bda588216e6090d90a5ebcff134d297dc1075405b5b313cbe735763
@@ -1350,7 +1350,7 @@ nodes:
   kind: ticket
   evidence:
   - .ai/knowledge/work/DRIVN-21.md
-  title: Measure and record the rule
+  title: Measure profile queries and record the R3 rule
   state: done
   external_key: DRIVN-21
 - id: ticket:DRIVN-22
