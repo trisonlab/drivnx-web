@@ -161,7 +161,12 @@ export type Metric = {
   precision: "exact" | "approximate";
 };
 
-export type ProfileRunDetail = ProfileRun & { metrics: Metric[] };
+export type ProfileRunDetail = ProfileRun & {
+  metrics: Metric[];
+  // Whether the file's size or modified time differs from the run's now (AC-37), or `null` when
+  // the file can't be looked at.
+  file_changed: boolean | null;
+};
 
 const PROFILE_RUNS_PATH = "/api/profile-runs";
 

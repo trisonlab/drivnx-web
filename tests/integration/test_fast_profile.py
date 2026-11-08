@@ -137,7 +137,7 @@ def test_runs_are_listed_newest_first_and_show_one_in_progress(
 def test_a_run_made_before_a_correction_no_longer_uses_the_current_settings(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # Until T11 labels them, the Profile tab shows only runs on the current settings.
+    # CFX-APP-csv-profile/AC-36: the Profile tab labels these, and shows them only when opened.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n2,Bob\n3,Cid\n4,Dee\n", encoding="utf-8", newline="")
     source = connect(client, path)

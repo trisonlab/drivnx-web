@@ -91,10 +91,10 @@ function FindingItem({ finding }: { finding: Finding }) {
   );
 }
 
-export function Findings({ source }: { source: Source | undefined }) {
+export function Findings({ source, openedRunId }: { source: Source | undefined; openedRunId: string | null }) {
   const headingId = useId();
   const runs = useProfileRuns();
-  const run = source && shownRun(runs.data, source);
+  const run = source && shownRun(runs.data, source, openedRunId);
   const findings = useQuery({
     queryKey: ["findings", run?.id],
     queryFn: () => getFindings(run?.id ?? ""),
@@ -107,6 +107,10 @@ export function Findings({ source }: { source: Source | undefined }) {
       {source && runs.isSuccess && !run && <p>Profile this file to see what it finds.</p>}
       {(runs.isError || findings.isError) && (
         <p role="alert">DrivnX couldn't load the findings. Start DrivnX again.</p>
+      )}
+      {/* AC-36 */}
+      {run && !run.current_settings && (
+        <p>These findings are from a profile that used earlier settings, so they aren't current.</p>
       )}
       {findings.data?.length === 0 && <p>This profile found nothing to point out.</p>}
       {findings.data?.map((finding) => (

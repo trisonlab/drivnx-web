@@ -13,6 +13,7 @@ from artifacts.profiles import (
     list_profile_runs,
     read_findings,
     read_observations,
+    read_profile_run,
 )
 from artifacts.provenance import now
 from artifacts.sources import StoredSource, find_source, read_dataset, read_field_names
@@ -88,6 +89,9 @@ class MetricResponse(BaseModel):
 
 class ProfileRunDetail(ProfileRunResponse):
     metrics: list[MetricResponse]
+    # Whether the file's size or modified time differs from the run's now (AC-37), or `None` when
+    # the file can't be looked at.
+    file_changed: bool | None
 
 
 class FrequentResponse(BaseModel):
@@ -149,6 +153,16 @@ def _response(run: ListedProfileRun) -> ProfileRunResponse:
         current_settings=run.current_settings,
         failure=failure_of(run.id) if run.status == "failed" else None,
     )
+
+
+def _file_changed(source: StoredSource | None, scope: dict) -> bool | None:
+    if source is None:
+        return None
+    try:
+        stat = source.path.stat()
+    except OSError:
+        return None
+    return (stat.st_size, modified_at(stat)) != (scope["size_bytes"], scope["modified_at"])
 
 
 def columns_now(
@@ -240,8 +254,10 @@ def profile_runs_router(workspace: Workspace) -> APIRouter:
             else []
         )
         names = read_field_names(workspace.engine, run.dataset_id)
+        scope = read_profile_run(workspace.engine, run.id).scope
         return ProfileRunDetail(
             **_response(run).model_dump(),
+            file_changed=_file_changed(find_source(workspace.engine, run.source_id), scope),
             metrics=[
                 MetricResponse(
                     column=names[observation.field_id]

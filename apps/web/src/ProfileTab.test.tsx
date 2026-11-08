@@ -89,8 +89,10 @@ let onStart: () => Response;
 let onCancel: (url: string) => Response;
 let extraMetrics: [string, unknown][];
 let onValues: (url: string) => Response;
+let fileChanged: boolean | null;
 
 beforeEach(() => {
+  fileChanged = false;
   extraMetrics = [];
   onValues = () => Response.json(cityValues);
   runs = [];
@@ -135,7 +137,7 @@ beforeEach(() => {
     }
     if (url.startsWith("/api/profile-runs/")) {
       const found = runs.find((candidate) => url.endsWith(candidate.id));
-      return Response.json({ ...found, metrics: metrics(scope) });
+      return Response.json({ ...found, metrics: metrics(scope), file_changed: fileChanged });
     }
     if (url.endsWith("/settings")) {
       runs = runs.map((candidate) => ({ ...candidate, current_settings: false }));
@@ -310,7 +312,7 @@ test("every metric shows its precision, and the results show their run", async (
 });
 
 test("a run on earlier settings isn't shown as the current results", async () => {
-  // Until T11 labels them. Nothing says these came from a file read another way.
+  // CFX-APP-csv-profile/AC-36
   runs = [run({ current_settings: false })];
   renderApp();
 
@@ -321,7 +323,7 @@ test("a run on earlier settings isn't shown as the current results", async () =>
 });
 
 test("saving a correction stops showing the earlier results", async () => {
-  // Until T11 labels them. The list has to be read again for that to show.
+  // CFX-APP-csv-profile/AC-36: the list has to be read again for that to show.
   runs = [run()];
   renderApp();
   const panel = await profilePanel();
@@ -331,6 +333,134 @@ test("saving a correction stops showing the earlier results", async () => {
   await userEvent.click(await screen.findByRole("button", { name: "Save settings" }));
 
   await waitFor(() => expect(within(panel).queryByRole("table")).not.toBeInTheDocument());
+});
+
+async function runsList() {
+  return within(await profilePanel()).findByRole("list", { name: "Runs of this file" });
+}
+
+test("every run of this file is listed with its mode, status and time", async () => {
+  // CFX-APP-csv-profile/AC-35
+  runs = [
+    run({ id: "run-3", status: "failed", started_at: "2024-03-07T09:00:00+00:00" }),
+    run({ id: "run-2", mode: "full", started_at: "2024-03-06T09:00:00+00:00" }),
+    run({ id: "run-1", started_at: "2024-03-05T09:00:00+00:00" }),
+    run({ id: "run-9", source_id: "another" }),
+  ];
+  renderApp();
+
+  const items = within(await runsList()).getAllByRole("listitem");
+
+  expect(items).toHaveLength(3);
+  expect(items[0]).toHaveTextContent(/Fast profile.*Failed/);
+  expect(items[0]).toHaveTextContent(new Date("2024-03-07T09:00:00+00:00").toLocaleString());
+  expect(items[1]).toHaveTextContent(/Full profile.*Completed/);
+  expect(items[1]).toHaveTextContent(new Date("2024-03-06T09:00:00+00:00").toLocaleString());
+  expect(items[2]).toHaveTextContent(/Fast profile.*Completed/);
+});
+
+test("the newest completed run with the current settings is shown, and any completed one opens", async () => {
+  // CFX-APP-csv-profile/AC-35
+  runs = [run({ id: "run-3", status: "failed" }), run({ id: "run-2", mode: "full" }), run({ id: "run-1" })];
+  findingsOf = "run-1";
+  findings = [finding("single_value", [{ column: "city", metric: "distinct_count", value: 1 }])];
+  renderApp();
+  const panel = await profilePanel();
+  await within(panel).findByText(/Run run-2, finished/);
+  const items = within(await runsList()).getAllByRole("listitem");
+  expect(items[1]).toHaveTextContent("Shown");
+  expect(within(items[0]).queryByRole("button")).not.toBeInTheDocument();
+  expect(within(await findingsPanel()).queryByRole("article")).not.toBeInTheDocument();
+
+  await userEvent.click(within(items[2]).getByRole("button", { name: /Open/ }));
+
+  expect(await within(panel).findByText(/Run run-1, finished/)).toBeInTheDocument();
+  expect(panel).not.toHaveTextContent("Run run-2");
+  // The findings panel follows, so a finding's evidence link goes to the run it came from.
+  expect(await within(await findingsPanel()).findByRole("article")).toHaveTextContent("single_value");
+});
+
+test("starting a profile goes back to showing the newest results", async () => {
+  // CFX-APP-csv-profile/AC-35
+  runs = [run({ id: "run-2" }), run({ id: "run-1" })];
+  onStart = () => {
+    runs = [run({ id: "run-3" }), ...runs];
+    return Response.json(runs[0], { status: 202 });
+  };
+  renderApp();
+  const panel = await profilePanel();
+  const items = within(await runsList()).getAllByRole("listitem");
+  await userEvent.click(within(items[1]).getByRole("button", { name: /Open/ }));
+  await within(panel).findByText(/Run run-1, finished/);
+
+  await userEvent.click(await startButton());
+
+  expect(await within(panel).findByText(/Run run-3, finished/)).toBeInTheDocument();
+});
+
+test("a run on earlier settings is labelled, and once opened says its findings aren't current", async () => {
+  // CFX-APP-csv-profile/AC-36
+  runs = [run({ current_settings: false })];
+  findings = [finding("single_value", [{ column: "city", metric: "distinct_count", value: 1 }])];
+  renderApp();
+  const panel = await profilePanel();
+  const [item] = within(await runsList()).getAllByRole("listitem");
+  expect(item).toHaveTextContent("Used earlier settings");
+  expect(within(await findingsPanel()).queryByRole("article")).not.toBeInTheDocument();
+
+  await userEvent.click(within(item).getByRole("button", { name: /Open/ }));
+
+  expect(await within(panel).findByText(/Run run-1, finished/)).toBeInTheDocument();
+  expect(panel).toHaveTextContent("This profile used earlier settings, so its findings aren't current.");
+  const findingsShown = await findingsPanel();
+  await within(findingsShown).findByRole("article");
+  expect(findingsShown).toHaveTextContent("These findings are from a profile that used earlier settings, so they aren't current.");
+});
+
+test("results from a file that changed since its run may be out of date", async () => {
+  // CFX-APP-csv-profile/AC-37
+  runs = [run()];
+  fileChanged = true;
+  renderApp();
+
+  expect(
+    await within(await profilePanel()).findByText(
+      "This file has changed since this profile ran, so these results may be out of date.",
+    ),
+  ).toBeInTheDocument();
+});
+
+test.each([false, null])("results from a file that hasn't changed, or can't be looked at, say nothing (%s)", async (changed) => {
+  // CFX-APP-csv-profile/AC-37
+  runs = [run()];
+  fileChanged = changed;
+  renderApp();
+  const panel = await profilePanel();
+
+  await within(panel).findByRole("table");
+
+  expect(panel).not.toHaveTextContent("may be out of date");
+});
+
+test("a run that was in progress when DrivnX stopped says so, and earlier results stay", async () => {
+  // CFX-APP-csv-profile/AC-38
+  runs = [run({ id: "run-2", status: "interrupted" }), run()];
+  renderApp();
+  const panel = await profilePanel();
+
+  expect(await within(panel).findByText("This profile was interrupted when DrivnX stopped.")).toBeInTheDocument();
+  expect(await within(panel).findByRole("table")).toBeInTheDocument();
+  expect(panel).toHaveTextContent("The results below are from the run before.");
+});
+
+test("a source whose only run was interrupted says so in the tab", async () => {
+  // CFX-APP-csv-profile/AC-38: from T04, the tab was empty while the header said "Interrupted".
+  runs = [run({ status: "interrupted" })];
+  renderApp();
+  const panel = await profilePanel();
+
+  expect(await within(panel).findByText("This profile was interrupted when DrivnX stopped.")).toBeInTheDocument();
+  expect(panel).not.toHaveTextContent("from the run before");
 });
 
 test("a run that failed says so, and earlier results stay", async () => {

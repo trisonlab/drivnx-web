@@ -19,6 +19,8 @@ const PRIVACY_STATE: Record<AiMode, string> = {
 export function Shell({ workspace }: { workspace: Workspace }) {
   const sources = useQuery({ queryKey: SOURCES_QUERY, queryFn: getSources });
   const [chosenId, setChosenId] = useState<string | null>(null);
+  // The run the user opened in the Profile tab (AC-35), which the findings panel follows.
+  const [openedRunId, setOpenedRunId] = useState<string | null>(null);
   const chosen = sources.data?.find((source) => source.id === chosenId) ?? sources.data?.[0];
   const runs = useProfileRuns();
   const profileTabId = useId();
@@ -41,7 +43,10 @@ export function Shell({ workspace }: { workspace: Workspace }) {
         sources={sources.data}
         loadFailed={sources.isError}
         chosenId={chosen?.id ?? null}
-        onChoose={setChosenId}
+        onChoose={(sourceId) => {
+          setChosenId(sourceId);
+          setOpenedRunId(null);
+        }}
       />
       <main className="shell-centre">
         <div role="tablist" aria-label="Understanding Workspace">
@@ -66,7 +71,7 @@ export function Shell({ workspace }: { workspace: Workspace }) {
         </div>
         <div role="tabpanel" id={profilePanelId} aria-labelledby={profileTabId}>
           {chosen ? (
-            <ProfileTab key={chosen.id} source={chosen} />
+            <ProfileTab key={chosen.id} source={chosen} openedRunId={openedRunId} onOpenRun={setOpenedRunId} />
           ) : (
             <p className="empty-note">Connect a CSV file to see what is in it.</p>
           )}
@@ -84,7 +89,7 @@ export function Shell({ workspace }: { workspace: Workspace }) {
       </main>
       <aside className="shell-review" aria-label="Intelligence & Review">
         <h2>Intelligence &amp; Review</h2>
-        <Findings source={chosen} />
+        <Findings source={chosen} openedRunId={openedRunId} />
         <ul className="unavailable-sections">
           {["AI suggestions", "Evidence", "Provenance", "Review actions"].map((section) => (
             <li key={section}>

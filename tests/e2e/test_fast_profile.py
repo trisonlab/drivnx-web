@@ -1,4 +1,4 @@
-"""A fast profile in a real browser, against the installed wheel, CFX-APP-csv-profile AC-07, AC-15, AC-16, AC-17."""
+"""A fast profile in a real browser, against the installed wheel, CFX-APP-csv-profile AC-07, AC-15, AC-16, AC-17, AC-36."""
 
 from pathlib import Path
 
@@ -79,7 +79,7 @@ def test_a_file_over_100000_rows_is_labelled_as_its_first_rows(
 
 
 def test_a_correction_stops_showing_results_read_the_earlier_way(app: Page) -> None:
-    # Until T11 labels them. CFX-APP-csv-profile/AC-36 finishes this.
+    # CFX-APP-csv-profile/AC-36
     panel = run_a_fast_profile(app, CSV_DIR / "comma_utf8.csv")
     details = details_of(app, "comma_utf8.csv")
 
@@ -91,3 +91,13 @@ def test_a_correction_stops_showing_results_read_the_earlier_way(app: Page) -> N
     expect(
         panel.get_by_text("No profile has been run with these settings yet.")
     ).to_be_visible()
+    earlier = panel.get_by_role("list", name="Runs of this file").get_by_role("listitem")
+    expect(earlier).to_have_count(1)
+    expect(earlier).to_contain_text("Used earlier settings")
+
+    earlier.get_by_role("button", name="Open").click()
+
+    expect(panel.get_by_role("table")).to_be_visible()
+    expect(panel).to_contain_text(
+        "This profile used earlier settings, so its findings aren't current."
+    )

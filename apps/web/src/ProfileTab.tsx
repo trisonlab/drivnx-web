@@ -36,6 +36,10 @@ const STATUS_LABELS: Record<Exclude<ProfileRun["status"], "running">, string> = 
   failed: "Failed",
   interrupted: "Interrupted",
 };
+const MODE_LABELS: Record<ProfileRun["mode"], string> = {
+  fast: "Fast profile",
+  full: "Full profile",
+};
 
 export function useProfileRuns() {
   return useQuery({
@@ -50,9 +54,21 @@ function runsWithCurrentSettings(runs: ProfileRun[] | undefined, source: Source)
   return runs?.filter((run) => run.source_id === source.id && run.current_settings) ?? [];
 }
 
-/** The run whose results are shown: the newest completed one with the current settings. */
-export function shownRun(runs: ProfileRun[] | undefined, source: Source): ProfileRun | undefined {
+function newestCompleted(runs: ProfileRun[] | undefined, source: Source): ProfileRun | undefined {
   return runsWithCurrentSettings(runs, source).find((run) => run.status === "completed");
+}
+
+/** The run whose results are shown: the one the user opened, or else the newest completed one with
+ * the current settings (AC-35). The findings panel shows the same one. */
+export function shownRun(
+  runs: ProfileRun[] | undefined,
+  source: Source,
+  openedId: string | null,
+): ProfileRun | undefined {
+  const opened = runs?.find(
+    (run) => run.id === openedId && run.source_id === source.id && run.status === "completed",
+  );
+  return opened ?? newestCompleted(runs, source);
 }
 
 /** One run at a time across the workspace, so a run in progress is named wherever the user is. */
@@ -334,6 +350,49 @@ function SensitiveConfirmation({ onShow, onDecline }: { onShow: () => void; onDe
   );
 }
 
+/** AC-35: every run of this file, newest first. A completed one that isn't shown can be opened. */
+function RunsList({
+  runs,
+  shown,
+  onOpen,
+}: {
+  runs: ProfileRun[];
+  shown: ProfileRun | undefined;
+  onOpen: (runId: string) => void;
+}) {
+  const headingId = useId();
+  return (
+    <section aria-labelledby={headingId}>
+      <h3 id={headingId}>Runs of this file</h3>
+      <ol className="runs-list" aria-labelledby={headingId}>
+        {runs.map((run) => {
+          const started = new Date(run.started_at).toLocaleString();
+          return (
+            <li key={run.id}>
+              {MODE_LABELS[run.mode]}, {run.status === "running" ? "Running" : STATUS_LABELS[run.status]}, started{" "}
+              {started}
+              {/* AC-36 */}
+              {!run.current_settings && " · Used earlier settings"}
+              {run.id === shown?.id ? (
+                " · Shown"
+              ) : (
+                run.status === "completed" && (
+                  <>
+                    {" "}
+                    <button type="button" aria-label={`Open the ${MODE_LABELS[run.mode].toLowerCase()} started ${started}`} onClick={() => onOpen(run.id)}>
+                      Open
+                    </button>
+                  </>
+                )
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
 function Results({ run }: { run: ProfileRun }) {
   const results = useQuery({ queryKey: ["profile-run", run.id], queryFn: () => getProfileRun(run.id) });
   // The same query the findings panel makes, so the server's refusal is rarely what asks.
@@ -380,6 +439,12 @@ function Results({ run }: { run: ProfileRun }) {
       )}
       {typeof skippedLines === "number" && <p>{skippedLinesNote(skippedLines)}</p>}
       {typeof extraColumns === "number" && <p>{extraColumnsNote(extraColumns)}</p>}
+      {/* AC-36 */}
+      {!run.current_settings && <p>This profile used earlier settings, so its findings aren't current.</p>}
+      {/* AC-37: `null` when the file can't be looked at, which the source already says. */}
+      {results.data.file_changed && (
+        <p>This file has changed since this profile ran, so these results may be out of date.</p>
+      )}
       <div className="table-scroll">
         <table className="column-table">
           <caption>
@@ -443,12 +508,22 @@ function Results({ run }: { run: ProfileRun }) {
   );
 }
 
-export function ProfileTab({ source }: { source: Source }) {
+export function ProfileTab({
+  source,
+  openedRunId,
+  onOpenRun,
+}: {
+  source: Source;
+  openedRunId: string | null;
+  onOpenRun: (runId: string | null) => void;
+}) {
   const headingId = useId();
   const queryClient = useQueryClient();
   const runs = useProfileRuns();
   const start = useMutation({
     mutationFn: (mode: ProfileRun["mode"]) => startProfile(source.id, mode),
+    // The new run's results are what the user asked for, once it completes.
+    onSuccess: () => onOpenRun(null),
     // Also after a refusal, which can come from a run this page hasn't heard of.
     onSettled: () => queryClient.invalidateQueries({ queryKey: PROFILE_RUNS_QUERY }),
   });
@@ -466,7 +541,10 @@ export function ProfileTab({ source }: { source: Source }) {
     }
   }, [anyRunning, forgetRefusal]);
   const mine = runsWithCurrentSettings(runs.data, source);
-  const completed = shownRun(runs.data, source);
+  const ofThisFile = runs.data?.filter((run) => run.source_id === source.id) ?? [];
+  const completed = shownRun(runs.data, source, openedRunId);
+  const showingTheNewest = completed !== undefined && completed.id === newestCompleted(runs.data, source)?.id;
+  const didNotComplete = mine[0] && ["failed", "cancelled", "interrupted"].includes(mine[0].status);
 
   return (
     <section className="profile-tab" aria-labelledby={headingId}>
@@ -502,14 +580,15 @@ export function ProfileTab({ source }: { source: Source }) {
         </p>
       )}
       {mine[0]?.status === "cancelled" && <p>This profile was cancelled.</p>}
-      {(mine[0]?.status === "failed" || mine[0]?.status === "cancelled") && completed && (
-        <p>The results below are from the run before.</p>
-      )}
+      {/* AC-38: startup marks a run that was in progress. */}
+      {mine[0]?.status === "interrupted" && <p>This profile was interrupted when DrivnX stopped.</p>}
+      {didNotComplete && showingTheNewest && <p>The results below are from the run before.</p>}
       {completed ? (
         <Results key={completed.id} run={completed} />
       ) : (
         runs.isSuccess && mine.length === 0 && <p>No profile has been run with these settings yet.</p>
       )}
+      {ofThisFile.length > 0 && <RunsList runs={ofThisFile} shown={completed} onOpen={onOpenRun} />}
     </section>
   );
 }
