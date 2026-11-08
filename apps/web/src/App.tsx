@@ -8,7 +8,7 @@ const WORKSPACE_QUERY = ["workspace"];
 function Message({ text }: { text: string }) {
   return (
     <main className="message">
-      <h1>Conflux</h1>
+      <h1>DrivnX</h1>
       <p role="alert">{text}</p>
     </main>
   );
@@ -22,7 +22,7 @@ function WorkspaceApp() {
     return <main className="message" aria-busy="true" />;
   }
   if (workspace.isError) {
-    return <Message text="Conflux couldn't load this workspace. Start Conflux again." />;
+    return <Message text="DrivnX couldn't load this workspace. Start DrivnX again." />;
   }
   if (!workspace.data.setup_complete) {
     return (
@@ -38,7 +38,7 @@ function WorkspaceApp() {
 export function App({ signedIn }: { signedIn: boolean }) {
   if (!signedIn) {
     return (
-      <Message text="This browser isn't signed in. Start Conflux again and use the new link it opens or prints." />
+      <Message text="This browser isn't signed in. Start DrivnX again and use the new link it opens or prints." />
     );
   }
   return <WorkspaceApp />;

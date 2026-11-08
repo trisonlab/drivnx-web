@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Browser, Page, expect
 
-from ..conftest import REPO_ROOT, StartConflux, posix_only
+from ..conftest import REPO_ROOT, StartDrivnX, posix_only
 
 CSV_DIR = REPO_ROOT / "testdata" / "csv"
 
@@ -29,8 +29,8 @@ def details_of(page: Page, name: str):
 
 
 @pytest.fixture
-def app(start_conflux: StartConflux, page: Page) -> Page:
-    open_set_up_app(page, start_conflux("--no-browser").wait_for_launch().url)
+def app(start_drivnx: StartDrivnX, page: Page) -> Page:
+    open_set_up_app(page, start_drivnx("--no-browser").wait_for_launch().url)
     return page
 
 
@@ -132,14 +132,14 @@ def test_a_bad_path_shows_a_specific_error(app: Page, path: str, message: str) -
 
 
 def test_sources_survive_a_restart_and_a_moved_file_is_marked(
-    start_conflux: StartConflux, browser: Browser, tmp_path: Path
+    start_drivnx: StartDrivnX, browser: Browser, tmp_path: Path
 ) -> None:
     # CFX-APP-first-slice/AC-15 and CFX-APP-first-slice/AC-23
     workspace = tmp_path / "workspace"
     data = tmp_path / "data.csv"
     shutil.copy(CSV_DIR / "comma_utf8.csv", data)
     before = data.read_bytes()
-    first = start_conflux("--no-browser", workspace=workspace)
+    first = start_drivnx("--no-browser", workspace=workspace)
     context = browser.new_context()
     page = context.new_page()
     open_set_up_app(page, first.wait_for_launch().url)
@@ -150,7 +150,7 @@ def test_sources_survive_a_restart_and_a_moved_file_is_marked(
     first.process.wait(timeout=10)
     assert data.read_bytes() == before
 
-    second = start_conflux("--no-browser", workspace=workspace)
+    second = start_drivnx("--no-browser", workspace=workspace)
     context = browser.new_context()
     page = context.new_page()
     page.goto(second.wait_for_launch().url)
@@ -162,7 +162,7 @@ def test_sources_survive_a_restart_and_a_moved_file_is_marked(
     second.process.wait(timeout=10)
     data.rename(tmp_path / "moved.csv")
 
-    third = start_conflux("--no-browser", workspace=workspace)
+    third = start_drivnx("--no-browser", workspace=workspace)
     context = browser.new_context()
     page = context.new_page()
     page.goto(third.wait_for_launch().url)
@@ -177,7 +177,7 @@ def test_sources_survive_a_restart_and_a_moved_file_is_marked(
 
 
 def test_connecting_reports_no_console_errors_or_outside_requests(
-    start_conflux: StartConflux, page: Page
+    start_drivnx: StartDrivnX, page: Page
 ) -> None:
     # CFX-APP-first-slice/AC-16 still holds now that a source is read.
     requests: list[str] = []
@@ -190,7 +190,7 @@ def test_connecting_reports_no_console_errors_or_outside_requests(
             problems.append(message.text) if message.type == "error" else None
         ),
     )
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
     open_set_up_app(page, launch.url)
 
     connect(page, CSV_DIR / "comma_utf8.csv")

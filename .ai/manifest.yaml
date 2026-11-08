@@ -1,6 +1,6 @@
 schema: ai-skill-os/manifest/v1
 project:
-  name: conflux-web
+  name: drivnx-web
 mode: portable
 adapters:
 - agents
@@ -97,7 +97,7 @@ hooks:
 commands: {}
 requirements:
   paths:
-  - ../docs/Conflux_Phase1_Development_Direction.md
+  - ../docs/DrivnX_Phase1_Development_Direction.md
 checks:
   'on':
   - pre-delivery

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { App } from "./App";
 
 const workspace = {
-  location: "/home/me/Conflux/default",
+  location: "/home/me/DrivnX/default",
   name: "Sales",
   ai_mode: "off",
   setup_complete: true,
@@ -173,7 +173,7 @@ test("a cut cell is visibly marked and others are not", async () => {
 test("a file that can't be read gives the reason, and the user can go back", async () => {
   // CFX-APP-first-slice/AC-31
   const user = userEvent.setup();
-  const reason = "Conflux can't find this file. It may have moved or been deleted.";
+  const reason = "DrivnX can't find this file. It may have moved or been deleted.";
   const preview = await openPreview();
   await within(preview).findByText("name1");
   onRows = (_id, offset) =>
@@ -190,7 +190,7 @@ test("a file that can't be read gives the reason, and the user can go back", asy
   expect(within(preview).queryByRole("alert")).not.toBeInTheDocument();
 });
 
-test("any other failure says to start Conflux again, without raw errors", async () => {
+test("any other failure says to start DrivnX again, without raw errors", async () => {
   // CFX-APP-first-slice/AC-31
   onRows = () => {
     throw new TypeError("Failed to fetch");
@@ -199,7 +199,7 @@ test("any other failure says to start Conflux again, without raw errors", async 
   const preview = await openPreview();
 
   const alert = await within(preview).findByRole("alert");
-  expect(alert).toHaveTextContent("Start Conflux again");
+  expect(alert).toHaveTextContent("Start DrivnX again");
   expect(alert).not.toHaveTextContent("Failed to fetch");
 });
 
@@ -350,7 +350,7 @@ test("the first page says it's loading", async () => {
 test("after an error the user can try again, without leaving the page", async () => {
   // CFX-APP-first-slice/AC-31: found reviewing T06, a restored file needed a reload to show.
   const user = userEvent.setup();
-  const reason = "Conflux can't find this file. It may have moved or been deleted.";
+  const reason = "DrivnX can't find this file. It may have moved or been deleted.";
   onRows = () => Response.json({ detail: reason }, { status: 409 });
   const preview = await openPreview();
   await within(preview).findByRole("alert");

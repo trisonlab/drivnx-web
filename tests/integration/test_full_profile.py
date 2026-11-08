@@ -22,7 +22,7 @@ from local_api.app import create_app
 from local_api.session import LaunchSession
 from sqlalchemy import text
 
-from ..conftest import CLIENT_ORIGIN, CLIENT_PORT, StartConflux, posix_only
+from ..conftest import CLIENT_ORIGIN, CLIENT_PORT, StartDrivnX, posix_only
 from .test_fast_profile import (
     WAIT_FOR_A_RUN_SECONDS,
     connect,
@@ -284,7 +284,7 @@ def test_shutting_down_stops_a_run_and_leaves_it_to_be_marked_interrupted(
     tmp_path: Path, workspace_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # From T04: a job still holding DuckDB at exit made its binding print warnings. A run that stops
-    # because Conflux did isn't one the user cancelled, so the next start marks it `interrupted`.
+    # because DrivnX did isn't one the user cancelled, so the next start marks it `interrupted`.
     ui_dir = tmp_path / "ui"
     ui_dir.mkdir()
     (ui_dir / "index.html").write_text("<html></html>")
@@ -329,12 +329,12 @@ def test_shutting_down_stops_a_run_and_leaves_it_to_be_marked_interrupted(
 
 
 @posix_only
-def test_stopping_conflux_during_a_run_exits_cleanly(
-    start_conflux: StartConflux, tmp_path: Path
+def test_stopping_drivnx_during_a_run_exits_cleanly(
+    start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
     # From T04: Ctrl+C during a run exited, but DuckDB's binding printed "leaked" warnings, as the
     # job still held its connection.
-    process = start_conflux("--no-browser")
+    process = start_drivnx("--no-browser")
     client = sign_in(process.wait_for_launch())
     path = large_csv(tmp_path / "large.csv", rows=20_000_000)
     source = client.post("/api/sources", json={"path": str(path)}).json()
@@ -369,7 +369,7 @@ def test_a_cancelled_run_that_cant_record_its_end_still_stops_interrupting(
         return measure_rows(*args, **kwargs)
 
     def busy_finish(*_args, **_kwargs):
-        raise WorkspaceBusy("Conflux is busy writing to this workspace. Try again.")
+        raise WorkspaceBusy("DrivnX is busy writing to this workspace. Try again.")
 
     monkeypatch.setattr(profile_jobs, "measure_rows", measure_after_cancel)
     monkeypatch.setattr(profile_jobs, "finish_profile_run", busy_finish)

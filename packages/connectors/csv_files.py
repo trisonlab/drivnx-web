@@ -31,7 +31,7 @@ NOT_TEXT = "This file isn't text, so it can't be read as a CSV."
 NOT_CSV = "This file can't be read as a CSV."
 ROW_NOT_READABLE = "A row in this file can't be read, so this page can't be shown."
 NOT_REGULAR_FILE = "This path is not a regular file, so it can't be read as a CSV."
-SETTINGS_NOT_READABLE = "Conflux can't read this file with these settings. Your previous settings are still in use."
+SETTINGS_NOT_READABLE = "DrivnX can't read this file with these settings. Your previous settings are still in use."
 # DuckDB treats # as a comment if it fits the sample, which removes rows from the file's table. It
 # can only be turned off, so a real comment line is shown as a row.
 SNIFF = """

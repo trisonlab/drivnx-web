@@ -6,15 +6,15 @@ from urllib.parse import urlsplit
 
 from playwright.sync_api import Page, expect
 
-from ..conftest import StartConflux, posix_only
+from ..conftest import StartDrivnX, posix_only
 from .test_connect_csv import connect, details_of
-from .test_first_launch import finish_setup, run_conflux_and_catch_the_browser
+from .test_first_launch import finish_setup, run_drivnx_and_catch_the_browser
 from .test_preview import preview_of
 
 
 @posix_only
 def test_the_journey_through_the_installed_command_on_one_origin(
-    start_conflux: StartConflux, page: Page, tmp_path: Path
+    start_drivnx: StartDrivnX, page: Page, tmp_path: Path
 ) -> None:
     # CFX-APP-first-slice/AC-51, through CFX-APP-first-slice/AC-01, CFX-APP-first-slice/AC-14,
     # CFX-APP-first-slice/AC-20, CFX-APP-first-slice/AC-24 and CFX-APP-first-slice/AC-27.
@@ -25,12 +25,12 @@ def test_the_journey_through_the_installed_command_on_one_origin(
         "id,name\n" + "".join(f"{row},name{row}\n" for row in range(1, 121))
     )
     file_before = (people.read_bytes(), people.stat().st_mtime_ns)
-    default = tmp_path / "home" / "Conflux" / "default"
+    default = tmp_path / "home" / "DrivnX" / "default"
     requested: list[str] = []
     page.on("request", lambda request: requested.append(request.url))
 
     # AC-01: the workspace is created, and the app loads signed in with the code gone.
-    url = run_conflux_and_catch_the_browser(start_conflux, tmp_path, cwd=elsewhere)
+    url = run_drivnx_and_catch_the_browser(start_drivnx, tmp_path, cwd=elsewhere)
     page.goto(url)
     expect(page.get_by_role("textbox", name="Workspace name")).to_be_visible()
     assert "launch" not in page.url

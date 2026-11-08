@@ -23,7 +23,7 @@ class WorkspaceError(Exception):
 
 
 def create_owner_only_file(path: Path) -> None:
-    """SQLite would create the file using the umask, usually 0644, so Conflux creates it first."""
+    """SQLite would create the file using the umask, usually 0644, so DrivnX creates it first."""
     os.close(os.open(path, os.O_CREAT | os.O_WRONLY, OWNER_ONLY_FILE))
 
 
@@ -46,7 +46,7 @@ def read_revision(database: Path) -> str | None:
             connection.close()
     except sqlite3.DatabaseError as error:
         raise WorkspaceError(
-            f"{database} isn't a Conflux workspace: {error}."
+            f"{database} isn't a DrivnX workspace: {error}."
         ) from None
 
 
@@ -118,8 +118,8 @@ def migrate(database: Path, migrations_dir: Path) -> None:
             script.get_revision(current)
         except CommandError:
             raise WorkspaceError(
-                f"{database.parent} was last used by a newer version of Conflux. "
-                "Update Conflux to open it."
+                f"{database.parent} was last used by a newer version of DrivnX. "
+                "Update DrivnX to open it."
             ) from None
     if current == script.get_current_head():
         return

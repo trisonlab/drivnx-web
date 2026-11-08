@@ -1,10 +1,10 @@
-# conflux-web
+# drivnx-web
 
-The Conflux Phase 1 product: a local Python runtime with a browser UI that connects unfamiliar data and turns it into
+The DrivnX Phase 1 product: a local Python runtime with a browser UI that connects unfamiliar data and turns it into
 evidence-backed, human-reviewed understanding (Data Profile → Data Dictionary → Data Contract).
 
-- **Source of truth:** [../docs/Conflux_Phase1_Development_Direction.md](../docs/Conflux_Phase1_Development_Direction.md)
-  (approved); open findings in [../docs/Conflux_Phase1_Review_Notes.md](../docs/Conflux_Phase1_Review_Notes.md)
+- **Source of truth:** [../docs/DrivnX_Phase1_Development_Direction.md](../docs/DrivnX_Phase1_Development_Direction.md)
+  (approved); open findings in [../docs/DrivnX_Phase1_Review_Notes.md](../docs/DrivnX_Phase1_Review_Notes.md)
 - **Status:** first vertical slice in progress (`.ai/knowledge/requirements/CFX-APP-first-slice.md`): the runtime, its session protection,
   workspace setup, the app shell, connecting a CSV, paging through its rows, the trust-state core, profile run history rules and contract rules exist.
 - **Stack (§4):** Python 3.12, FastAPI, Pydantic v2, DuckDB, SQLite · React + TypeScript + Vite, TanStack, Radix/shadcn ·
@@ -28,7 +28,7 @@ Run the UI with hot reload, in two terminals:
 
 ```bash
 pnpm --dir apps/web dev                                             # Vite on 127.0.0.1:5173; proxies /api to port 8787 (API_PORT)
-uv run conflux --port 8787 --no-browser --dev-origin http://127.0.0.1:5173   # prints a link to open in the browser
+uv run drivnx --port 8787 --no-browser --dev-origin http://127.0.0.1:5173   # prints a link to open in the browser
 ```
 
 ## Checks
@@ -68,13 +68,13 @@ pnpm --dir apps/web audit
 
 ## Building a release
 
-This builds the UI from this checkout and pins what running Conflux needs to `uv.lock`. It fails if the UI doesn't build
+This builds the UI from this checkout and pins what running DrivnX needs to `uv.lock`. It fails if the UI doesn't build
 or a lockfile has fallen behind. Install from the wheel: installing from this folder ignores the pins, as `uv` then reads
 the ranges in `pyproject.toml`:
 
 ```bash
 uv build --wheel
-uv tool install dist/conflux_data-*.whl
+uv tool install dist/drivnx_data-*.whl
 ```
 
 ## Tracing work by ID
@@ -104,5 +104,5 @@ ask if the current branch isn't the ticket's.
 
 ## AI skills
 
-Set up with `../ai-skills/conflux-skills.sh` (the shared Conflux baseline plus this repo's stack skills); the list is in
+Set up with `../ai-skills/drivnx-skills.sh` (the shared DrivnX baseline plus this repo's stack skills); the list is in
 `.ai/manifest.yaml`.

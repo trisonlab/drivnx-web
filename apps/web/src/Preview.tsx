@@ -7,7 +7,7 @@ const PAGE_ROWS = 50;
 function failureMessage(error: Error): string {
   return error instanceof FileUnreadableError
     ? error.message
-    : "Conflux couldn't load these rows. Start Conflux again.";
+    : "DrivnX couldn't load these rows. Start DrivnX again.";
 }
 
 function skippedLinesNote(lines: number): string {

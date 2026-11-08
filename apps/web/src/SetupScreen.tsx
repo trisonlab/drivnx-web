@@ -69,8 +69,8 @@ export function SetupScreen({ location, onSaved }: Props) {
         {save.isError && (
           <p role="alert">
             {save.error instanceof InvalidInputError
-              ? "Conflux couldn't save this. Check the workspace name and try again."
-              : "Conflux couldn't save this. Start Conflux again."}
+              ? "DrivnX couldn't save this. Check the workspace name and try again."
+              : "DrivnX couldn't save this. Start DrivnX again."}
           </p>
         )}
         <button type="submit" disabled={save.isPending}>

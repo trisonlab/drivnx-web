@@ -19,7 +19,7 @@ from artifacts.schema import (
 from artifacts.store import BUSY_TIMEOUT_MILLISECONDS, use_explicit_transactions
 
 DATABASE_NAME = "workspace.db"
-LOCK_NAME = ".conflux.lock"
+LOCK_NAME = ".drivnx.lock"
 DUCKDB_TEMP_NAME = "duckdb-tmp"
 LOCK_HELD_ERRORS = {errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK, errno.EDEADLK}
 OWNER_ONLY_DIRECTORY = 0o700
@@ -53,7 +53,7 @@ class Workspace:
 
 
 def default_workspace_directory() -> Path:
-    return Path.home() / "Conflux" / "default"
+    return Path.home() / "DrivnX" / "default"
 
 
 def sync_folder_in(directory: Path) -> str | None:
@@ -78,14 +78,14 @@ def _prepare_directory(directory: Path) -> None:
         return
     if contents and contents != {LOCK_NAME}:
         raise WorkspaceError(
-            f"{directory} has other files in it and isn't a Conflux workspace. "
+            f"{directory} has other files in it and isn't a DrivnX workspace. "
             "Choose a new or empty directory, such as a subdirectory of it."
         )
     directory.mkdir(parents=True, exist_ok=True, mode=OWNER_ONLY_DIRECTORY)
 
 
 def _tighten_permissions(directory: Path) -> None:
-    """Make Conflux's own files owner-only. A copied workspace can arrive with looser permissions."""
+    """Make DrivnX's own files owner-only. A copied workspace can arrive with looser permissions."""
     directory.chmod(OWNER_ONLY_DIRECTORY)
     for path in [directory / LOCK_NAME, *directory.glob(f"{DATABASE_NAME}*")]:
         path.chmod(OWNER_ONLY_FILE)
@@ -108,7 +108,7 @@ def _hold_lock(path: Path) -> int:
         if error.errno not in LOCK_HELD_ERRORS:
             raise
         raise WorkspaceError(
-            f"{path.parent} is already open in another Conflux. "
+            f"{path.parent} is already open in another DrivnX. "
             "Use that one, or stop it and start again."
         ) from None
     return descriptor

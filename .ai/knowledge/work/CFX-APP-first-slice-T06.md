@@ -41,7 +41,7 @@ Tests naming each criterion, including script text in a cell, a file changed bet
 
 - **Reading each page:** comment detection is off, because it removed rows starting with `#`. The parallel reader is off, because it could invent a row and shift the rest. If the sample shows no quotes, the standard double quote is tried first, so a quoted value further on is still read as one. Cells are cut in the SQL, so huge ones never reach Python.
 - **Mixed line endings:** the lax read is only used when no other sniff can read the file, and the limit it leaves is in AC-27. `test_mixed_line_endings_and_a_late_extra_field_lose_that_field` pins it. A short row late in such a file gives a clear error.
-- **Known limit, the last moment:** a file that becomes a FIFO after Conflux's own checks could still block inside DuckDB's own open, which Conflux can't guard.
+- **Known limit, the last moment:** a file that becomes a FIFO after DrivnX's own checks could still block inside DuckDB's own open, which DrivnX can't guard.
 
 ## Measured
 1 GB synthetic file, freshly written to tmpfs, so these are not cold-disk figures. Connect takes 2.06 s for UTF-8 and 1.80 s for Latin-1, against a budget of 5 s. The first page takes 0.14 s and 0.30 s, against a budget of 2 s. Later UTF-8 pages: 3.42 s at row 10 million, and 6.98 s at row 22 million, near the end, with memory peaking at about 1.1 GB. Measured 2026-11-03.

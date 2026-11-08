@@ -17,7 +17,7 @@ status: CONFIRMED
 On first launch the user sees where the workspace is stored, names it and picks an AI mode, then lands in the three-panel shell with the privacy indicator. Anything not built is visibly marked. Reopening skips setup.
 
 ## Acceptance checklist
-- [x] AC-01 (US-01): Given Conflux is installed and `~/Conflux/default` doesn't exist, when the user runs `conflux`, then that workspace is created, a browser opens on `http://127.0.0.1:<port>/`, the app loads signed in, and the launch code is gone from the address bar.
+- [x] AC-01 (US-01): Given DrivnX is installed and `~/DrivnX/default` doesn't exist, when the user runs `drivnx`, then that workspace is created, a browser opens on `http://127.0.0.1:<port>/`, the app loads signed in, and the launch code is gone from the address bar.
 - [x] AC-14 (US-03): Given a newly created workspace, when the app first loads, then it shows the workspace's location and states that no credentials are stored in this slice, and asks for a name and an AI mode (off, external or local), with off selected.
 - [x] AC-15 (US-03): Given setup is complete, when the runtime is restarted on the same directory, then the workspace's name, AI mode and sources are as they were, and setup isn't shown again.
 - [x] AC-16 (US-03): Given any AI mode is selected, then no AI request is made, because AI arrives in M8.

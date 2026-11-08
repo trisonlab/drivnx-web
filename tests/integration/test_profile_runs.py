@@ -37,7 +37,7 @@ from domain.trust import Actor
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
-from ..conftest import StartConflux
+from ..conftest import StartDrivnX
 
 RUN_THEN_WAIT_TO_BE_KILLED = """
 import sys, time
@@ -101,7 +101,7 @@ def stored_run(directory: Path, run: str) -> ProfileRun:
 
 
 def test_a_run_left_running_is_marked_interrupted_at_the_next_start(
-    start_conflux: StartConflux, tmp_path: Path
+    start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
     # CFX-APP-first-slice/AC-43, through the real command: this is what "the next runtime" means.
     directory = tmp_path / "workspace"
@@ -109,10 +109,10 @@ def test_a_run_left_running_is_marked_interrupted_at_the_next_start(
     run = start_profile_run(workspace.engine, scope={}, mode="full")
     workspace.close()
 
-    conflux = start_conflux("--no-browser", workspace=directory)
-    conflux.wait_for_url()
-    conflux.process.terminate()
-    conflux.process.wait(timeout=10)
+    drivnx = start_drivnx("--no-browser", workspace=directory)
+    drivnx.wait_for_url()
+    drivnx.process.terminate()
+    drivnx.process.wait(timeout=10)
 
     stored = stored_run(directory, run)
     assert stored.status == "interrupted"
@@ -120,7 +120,7 @@ def test_a_run_left_running_is_marked_interrupted_at_the_next_start(
 
 
 def test_a_run_in_a_killed_process_is_marked_interrupted_too(
-    start_conflux: StartConflux, tmp_path: Path
+    start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
     # CFX-APP-first-slice/AC-43: a crash runs no cleanup, and the OS releases its lock (ADR 0001).
     directory = tmp_path / "workspace"
@@ -140,16 +140,16 @@ def test_a_run_in_a_killed_process_is_marked_interrupted_too(
     writer.kill()
     writer.wait(timeout=10)
 
-    conflux = start_conflux("--no-browser", workspace=directory)
-    conflux.wait_for_url()
-    conflux.process.terminate()
-    conflux.process.wait(timeout=10)
+    drivnx = start_drivnx("--no-browser", workspace=directory)
+    drivnx.wait_for_url()
+    drivnx.process.terminate()
+    drivnx.process.wait(timeout=10)
 
     assert stored_run(directory, run).status == "interrupted"
 
 
-def test_a_writer_outside_conflux_gives_a_clear_message_at_startup(
-    start_conflux: StartConflux, tmp_path: Path
+def test_a_writer_outside_drivnx_gives_a_clear_message_at_startup(
+    start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
     # Marking runs writes to the database, so startup can now run out of time. Takes the full 5 s.
     directory = tmp_path / "workspace"
@@ -157,20 +157,20 @@ def test_a_writer_outside_conflux_gives_a_clear_message_at_startup(
     other = sqlite3.connect(directory / "workspace.db")
     other.execute("BEGIN IMMEDIATE")
     try:
-        conflux = start_conflux("--no-browser", workspace=directory)
-        exit_code = conflux.process.wait(timeout=30)
+        drivnx = start_drivnx("--no-browser", workspace=directory)
+        exit_code = drivnx.process.wait(timeout=30)
     finally:
         other.rollback()
         other.close()
 
-    output = conflux.all_output()
+    output = drivnx.all_output()
     assert exit_code != 0
     assert "busy" in output
     assert "Traceback" not in output
 
 
 def test_a_database_error_at_startup_gives_a_clear_message(
-    start_conflux: StartConflux, tmp_path: Path
+    start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
     # Found verifying T08: only "busy" had a clear message here, and anything else a stack trace.
     directory = tmp_path / "workspace"
@@ -187,10 +187,10 @@ def test_a_database_error_at_startup_gives_a_clear_message(
         )
     workspace.close()
 
-    conflux = start_conflux("--no-browser", workspace=directory)
-    exit_code = conflux.process.wait(timeout=30)
+    drivnx = start_drivnx("--no-browser", workspace=directory)
+    exit_code = drivnx.process.wait(timeout=30)
 
-    output = conflux.all_output()
+    output = drivnx.all_output()
     assert exit_code != 0
     assert "Traceback" not in output
     assert "Can't finish opening this workspace" in output

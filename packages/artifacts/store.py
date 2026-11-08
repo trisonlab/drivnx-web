@@ -13,8 +13,8 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.exc import TimeoutError as NoConnectionFree
 
 BUSY_TIMEOUT_MILLISECONDS = 5000
-_WRITE = "conflux_write"
-_BUSY = "Conflux is busy writing to this workspace. Try again."
+_WRITE = "drivnx_write"
+_BUSY = "DrivnX is busy writing to this workspace. Try again."
 
 
 class WorkspaceBusy(Exception):

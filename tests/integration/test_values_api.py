@@ -138,7 +138,7 @@ def test_a_file_that_has_gone_gives_a_clear_message_and_the_saved_metrics_still_
 
     assert response.status_code == 409
     assert response.json() == {
-        "detail": "Conflux can't find this file. It may have moved or been deleted."
+        "detail": "DrivnX can't find this file. It may have moved or been deleted."
     }
     assert client.get(f"/api/profile-runs/{run['id']}").json()["metrics"]
 
@@ -158,7 +158,7 @@ def test_a_file_that_cant_be_read_gives_a_clear_message(
         path.chmod(0o600)
 
     assert response.status_code == 409
-    assert response.json()["detail"] == "Conflux doesn't have permission to read this file."
+    assert response.json()["detail"] == "DrivnX doesn't have permission to read this file."
 
 
 def test_a_file_whose_columns_changed_points_to_its_settings(
@@ -256,7 +256,7 @@ def test_values_while_a_profile_is_running_are_refused(
     assert response.json()["detail"] == BUSY
 
 
-BUSY = "Conflux is already reading a file. Wait for it to finish, then try again."
+BUSY = "DrivnX is already reading a file. Wait for it to finish, then try again."
 
 
 def test_values_while_other_values_are_being_worked_out_are_refused(

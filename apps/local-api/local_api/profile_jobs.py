@@ -29,24 +29,24 @@ from profiling.on_request import ColumnValues, values_for
 
 ROWS_TABLE = "loaded_rows"
 VALUES_TABLE = "rows_asked_for"
-JOB_THREAD_NAME = "conflux-profile-job"
-INTERRUPTING_THREAD_NAME = "conflux-profile-stop"
+JOB_THREAD_NAME = "drivnx-profile-job"
+INTERRUPTING_THREAD_NAME = "drivnx-profile-stop"
 # How long shutting down waits for jobs to stop, which an interrupt does within moments.
 SHUTDOWN_WAIT_SECONDS = 5
 # The queries measured peak at about 3 GB here (ADR 0004). DuckDB's default of 80% of the machine's
 # memory could slow the user's other programs.
 PROFILE_MEMORY_LIMIT = "4GB"
 COLUMNS_CHANGED = "The file's columns no longer match the saved ones."
-FILE_GONE = "Conflux can't find this file. It may have moved or been deleted."
+FILE_GONE = "DrivnX can't find this file. It may have moved or been deleted."
 FILE_CHANGED = "The file changed while it was being profiled. Profile it again."
-NO_PERMISSION = "Conflux doesn't have permission to read this file."
-COULDNT_READ = "Conflux couldn't read this file."
-COULDNT_PROFILE = "Conflux couldn't profile this file."
-OUT_OF_MEMORY = "Conflux ran out of memory profiling this file."
+NO_PERMISSION = "DrivnX doesn't have permission to read this file."
+COULDNT_READ = "DrivnX couldn't read this file."
+COULDNT_PROFILE = "DrivnX couldn't profile this file."
+OUT_OF_MEMORY = "DrivnX ran out of memory profiling this file."
 ROW_NOT_READABLE = (
     "A row in this file can't be read, so it can't be profiled without leaving that row out."
 )
-# Why each run failed since Conflux started, written for the user. Never DuckDB's text, which can
+# Why each run failed since DrivnX started, written for the user. Never DuckDB's text, which can
 # quote a row.
 _failures: dict[str, str] = {}
 # An interrupt between two queries is lost, so a cancel repeats it this often until the job ends.
@@ -57,7 +57,7 @@ INTERRUPT_EVERY_SECONDS = 0.05
 class _Job:
     stop: threading.Event = dataclasses.field(default_factory=threading.Event)
     ended: threading.Event = dataclasses.field(default_factory=threading.Event)
-    # Stopped because Conflux is shutting down, so the run is left for the next start to mark
+    # Stopped because DrivnX is shutting down, so the run is left for the next start to mark
     # `interrupted`, as the user didn't cancel it.
     leaving: bool = False
     thread: threading.Thread | None = None
@@ -202,7 +202,7 @@ def _why_it_failed(error: Exception, path: Path, started_on: os.stat_result) -> 
 
 
 def failure_of(run_id: str) -> str | None:
-    """Why a run failed, if it failed since Conflux started."""
+    """Why a run failed, if it failed since DrivnX started."""
     return _failures.get(run_id)
 
 
@@ -216,7 +216,7 @@ def _run_profile(
     dataset: StoredDataset,
     started_on: os.stat_result,
 ) -> None:
-    # In `finally`, so even a mistake in Conflux can't leave a run refusing every later one.
+    # In `finally`, so even a mistake in DrivnX can't leave a run refusing every later one.
     status = "failed"
     findings: list[NewFinding] = []
     try:

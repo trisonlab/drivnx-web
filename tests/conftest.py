@@ -101,7 +101,7 @@ def history_changes() -> Iterator[list[str]]:
     # engine. SQLite says what each update or delete touches, also from a trigger or through the
     # engine's driver connection. Not watched: a REPLACE in a trigger or through that driver
     # connection, `ALTER TABLE`, and a separate `sqlite3.connect`, such as a separately started
-    # `conflux`. Production has no route writing these tables yet.
+    # `drivnx`. Production has no route writing these tables yet.
     found: list[str] = []
 
     def authorize(action, table, column, _database, _trigger) -> int:
@@ -167,8 +167,8 @@ def run(
 
 
 @pytest.fixture(scope="session")
-def conflux_executable(tmp_path_factory: pytest.TempPathFactory) -> str:
-    """The `conflux` command from a wheel built and installed the way a user gets it."""
+def drivnx_executable(tmp_path_factory: pytest.TempPathFactory) -> str:
+    """The `drivnx` command from a wheel built and installed the way a user gets it."""
     work = tmp_path_factory.mktemp("installed")
     run("uv", "build", "--wheel", "--out-dir", work / "wheel")
     wheel = next((work / "wheel").glob("*.whl"))
@@ -183,15 +183,15 @@ def conflux_executable(tmp_path_factory: pytest.TempPathFactory) -> str:
         wheel,
         env={"UV_TOOL_DIR": str(work / "tools"), "UV_TOOL_BIN_DIR": str(commands)},
     )
-    executable = shutil.which("conflux", path=str(commands))
-    assert executable, "the wheel did not install a conflux command"
+    executable = shutil.which("drivnx", path=str(commands))
+    assert executable, "the wheel did not install a drivnx command"
     return executable
 
 
 @pytest.fixture(scope="session")
-def installed_environment(conflux_executable: str) -> Path:
-    """The Python environment holding the installed `conflux`."""
-    return Path(conflux_executable).parents[1] / "tools" / "conflux-data"
+def installed_environment(drivnx_executable: str) -> Path:
+    """The Python environment holding the installed `drivnx`."""
+    return Path(drivnx_executable).parents[1] / "tools" / "drivnx-data"
 
 
 @pytest.fixture
@@ -222,7 +222,7 @@ class Launch:
 
 
 @dataclass
-class RunningConflux:
+class RunningDrivnX:
     process: subprocess.Popen[str]
     output: "Queue[str]"
     read_so_far: list[str] = field(default_factory=list)
@@ -239,7 +239,7 @@ class RunningConflux:
                 )
             if line == "":
                 pytest.fail(
-                    f"conflux exited with {self.process.wait()} and no URL; output: {lines}"
+                    f"drivnx exited with {self.process.wait()} and no URL; output: {lines}"
                 )
             lines.append(line)
             if match := URL.search(line):
@@ -262,13 +262,13 @@ class RunningConflux:
             self.read_so_far.append(line)
 
 
-StartConflux = Callable[..., "RunningConflux"]
+StartDrivnX = Callable[..., "RunningDrivnX"]
 _NEW_WORKSPACE = object()
 
 
 @pytest.fixture
-def start_conflux(conflux_executable: str, tmp_path: Path) -> Iterator[StartConflux]:
-    """Start `conflux` with the given arguments, and stop it when the test ends."""
+def start_drivnx(drivnx_executable: str, tmp_path: Path) -> Iterator[StartDrivnX]:
+    """Start `drivnx` with the given arguments, and stop it when the test ends."""
     running: list[subprocess.Popen[str]] = []
 
     def start(
@@ -278,13 +278,13 @@ def start_conflux(conflux_executable: str, tmp_path: Path) -> Iterator[StartConf
         umask: int = -1,
         workspace: Path | None | object = _NEW_WORKSPACE,
         cwd: Path | None = None,
-    ) -> RunningConflux:
+    ) -> RunningDrivnX:
         # Without these, Python's webbrowser module would try the real browsers on this desktop.
         hidden = {"BROWSER", "DISPLAY", "WAYLAND_DISPLAY", "TERM"}
         process_env = {
             name: value for name, value in os.environ.items() if name not in hidden
         }
-        # Conflux creates its default workspace under the home directory: never the real one here.
+        # DrivnX creates its default workspace under the home directory: never the real one here.
         process_env["HOME"] = process_env["USERPROFILE"] = str(tmp_path / "home")
         process_env.update(env or {})
         if browser is not None:
@@ -297,7 +297,7 @@ def start_conflux(conflux_executable: str, tmp_path: Path) -> Iterator[StartConf
         else:
             arguments = [*args, str(workspace)]
         process = subprocess.Popen(
-            [conflux_executable, *arguments],
+            [drivnx_executable, *arguments],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -315,7 +315,7 @@ def start_conflux(conflux_executable: str, tmp_path: Path) -> Iterator[StartConf
             output.put("")
 
         Thread(target=pump, daemon=True).start()
-        return RunningConflux(process, output)
+        return RunningDrivnX(process, output)
 
     yield start
     for process in running:

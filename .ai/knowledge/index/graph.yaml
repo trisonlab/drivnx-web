@@ -1,96 +1,96 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-07T23:54:58+00:00'
+updated_at: '2026-11-08T00:11:30+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
-  .ai/knowledge/requirements/CFX-APP-csv-profile.md: 3357810a944ba8177c989810d0c82f923deda407a0b8033ad574a99d83fd2096
-  .ai/knowledge/requirements/CFX-APP-first-slice.md: f630dcda1ae6b8a12777a0410f37648f23d09d4c12cdd6cd92433d8a463ffd85
+  .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4d798e0995bf5701c0f836f80a960de9d96d550082f73a188355c00723954503
+  .ai/knowledge/requirements/CFX-APP-first-slice.md: ca4bc32beb786a8866fbe46ca86e21d08daf505a9dd52f75ee90a886bc05b0b1
   .ai/knowledge/work/CFX-APP-csv-profile-T01.md: 7e869e8ff8d2e57c196ddc9b2113473ac97068813ce4f1f60774f66353efd386
   .ai/knowledge/work/CFX-APP-csv-profile-T02.md: 8b86be88ee55bfddd7954b0413769ff824ce69aff6e4d3ba12dc19b6bb8dab1e
-  .ai/knowledge/work/CFX-APP-csv-profile-T03.md: 9d4504f938e61e4b5601576460d93ccd2aa7d7ce2155d2675c604ec8f0e889c7
-  .ai/knowledge/work/CFX-APP-csv-profile-T04.md: ac6c9e34fe29f3c3614af85d4b010e7ae046cf89d47c3805ae27a13ec0bcec06
+  .ai/knowledge/work/CFX-APP-csv-profile-T03.md: 731b1b56db525c19811162d8b72165a9bcb5e473dc6ad21b1eaad3a0b3e2f1e1
+  .ai/knowledge/work/CFX-APP-csv-profile-T04.md: 6914ecd70fce15ea7d199324ffd52a456416527022e4ddc94440ab5aefae921e
   .ai/knowledge/work/CFX-APP-csv-profile-T05.md: 15969b68ac42f884025de579676001769682733ff9bd770f021fc55500f98e86
-  .ai/knowledge/work/CFX-APP-csv-profile-T06.md: b4bbb2041caf403ef00abc60963d948a13ce701923f16cca725296f47a2c1b9b
-  .ai/knowledge/work/CFX-APP-csv-profile-T07.md: ea0a19ed528eff4c89b8d43a71ffd12644c0a166cc3029151b00179a1efc74ab
+  .ai/knowledge/work/CFX-APP-csv-profile-T06.md: a7cecf12818043cf63b9e19cb2ad6026e8b961ac4e7e65fd300c32cee9c730b6
+  .ai/knowledge/work/CFX-APP-csv-profile-T07.md: a4292e954b92497014d44d354360b0b581828108eb3de84f0b8038bcf28078da
   .ai/knowledge/work/CFX-APP-csv-profile-T08.md: c50b648c29f4702f2bdb6db6db195400f1367f41c910b0dbcbb59454ecc00ab7
   .ai/knowledge/work/CFX-APP-csv-profile-T09.md: 9ff83890575ee83fe36d58d7e285f7fa3c016bcdc4b06b73d0ee0096b391e322
-  .ai/knowledge/work/CFX-APP-csv-profile-T10.md: 4ea358ca02819d03f7b3fd7ff75a63cba9a67a4d65ce201571694c3fd812949b
+  .ai/knowledge/work/CFX-APP-csv-profile-T10.md: c66f586647c0ac2ed04691a81a6306f85f9e29ef9177f83731952e2712f31e2b
   .ai/knowledge/work/CFX-APP-csv-profile-T11.md: c3a707d4fc0dcd6e6c017dfeeadcda746f4603107a7ec91364c9876a42c7c230
   .ai/knowledge/work/CFX-APP-csv-profile-T12.md: af3a3d929e6fc773a20547db41127b19224ffde6acfe7a0ba4bfb6bc40f729e2
-  .ai/knowledge/work/CFX-APP-first-slice-T01.md: 2ee04dcfa5f5acbbe061cb1a2cbf6769044428aa13123fca867540a65e0c5f9c
+  .ai/knowledge/work/CFX-APP-first-slice-T01.md: b962819dc27a33b8c5b9d4a2903955e73077cfde49d2d075d2e40523927268c5
   .ai/knowledge/work/CFX-APP-first-slice-T02.md: 10883e0f3b03e48bf71dfa6a826250f134bff036b27de62bddae30d4f273a01f
-  .ai/knowledge/work/CFX-APP-first-slice-T03.md: 7594acc05bcb5181f5bdbfe7344705f1163be895288d5dd1465554018fc079ac
-  .ai/knowledge/work/CFX-APP-first-slice-T04.md: ae119a70c5625d65a1534eb7cdc5cb18c67d7e835cdc6aa6e7baf8839810e51a
+  .ai/knowledge/work/CFX-APP-first-slice-T03.md: 4ff95f784b3d54a76a0c7d61792905378cd024e1fa361aa618689607f2a3b462
+  .ai/knowledge/work/CFX-APP-first-slice-T04.md: 8889b97d42e63c1d55f1a71b39ea7ca53de1a76d5083356137b33a22711bac66
   .ai/knowledge/work/CFX-APP-first-slice-T05.md: 9281a7292d6c5aaf745ccef44b052b0633d9089ebfa2ece8583d45a513211879
-  .ai/knowledge/work/CFX-APP-first-slice-T06.md: cc34045ddca96665742131157b217ffad46d012f2c65dd881d90bf36c32e3f8f
+  .ai/knowledge/work/CFX-APP-first-slice-T06.md: 219ff97479d6b322011ef32a0da2de69682c78704d0780fd5d45df4225a54084
   .ai/knowledge/work/CFX-APP-first-slice-T07.md: f007d5eae63b2415e3cd34a71431e887be80992bc593ffc935f321ac78115902
-  .ai/knowledge/work/CFX-APP-first-slice-T08.md: 4387057aad65ab13a4354f95b1c3ac4e318790021c540aff3928852c2eff347a
+  .ai/knowledge/work/CFX-APP-first-slice-T08.md: 08e51339605b6d5a4d77e76d0904f8ae7f79b66700f2bff0e58ce98082eb4414
   .ai/knowledge/work/CFX-APP-first-slice-T09.md: 383f95526f852e787e27671f9f8c696f537a048b149fbc8dca5a41c351091cd2
-  .ai/knowledge/work/CFX-APP-first-slice-T10.md: 51908dc3f4c256bb5424f947cb8b624f8bea8749bab207b48a80475c218adaaf
+  .ai/knowledge/work/CFX-APP-first-slice-T10.md: dda9460451ba29c031a0cde933be97eba42e20986ce760fca6515da1e38be523
   .github/workflows/ci.yml: ac5080294ae367239347e84a59eea9552b914673a4c769f7baf42cc52467fd9f
-  apps/local-api/local_api/app.py: 82baa765f0e11c652d6d8c6c263f74798eaf0855470aa182987d821b6e751255
-  apps/local-api/local_api/binding.py: 2611a2c17106768394fe6322ea524d43e29e3771c50eed1b84c92781dbebfd39
-  apps/local-api/local_api/cli.py: de2e38fe34b8cc23bf7942847ef989c2d9a10d7c3d7743a28279759823324604
+  apps/local-api/local_api/app.py: 030458dedbe9837471aee1f496d1c2efbbc098d55df80e6d9a7769361bc8f294
+  apps/local-api/local_api/binding.py: 8c76ea6d3c19e6a0675913f0219a36bb2d9a28db55f177d50e5b288eda052d84
+  apps/local-api/local_api/cli.py: 318728dede8634bb41f0a7cbe4f288daf601e157d221aa3a0a7037dce15961a9
   apps/local-api/local_api/findings_api.py: b8457388ca7df1413e7685aa3e434b6d81ab8d17be4ad09e322654ed5c233853
   apps/local-api/local_api/guard.py: 0a065df935b5753303ddb14b6475b30cedae87d4f5d096d556509ae42288a9ae
-  apps/local-api/local_api/profile_jobs.py: 5fe00f1c252c46febd23f7820c147c4ee487c3d720c710880b4465e62ed9c71c
-  apps/local-api/local_api/profile_runs_api.py: 7e758decc1cd321658ada814ab644240bbd023d20e919c9c55719fcfbfabda39
-  apps/local-api/local_api/session.py: 7ac051aeb59c75ca0c8e7326964ac611ab8b682fc49b1fb37c8dc177f2c1c4f4
-  apps/local-api/local_api/sources_api.py: 928906677d48f0da89980ca4619224e0ca00c261edbba0da025288ebe7a518a7
+  apps/local-api/local_api/profile_jobs.py: c66e810cc91e3b991ea5eb40ac18e514e16eb9649324dd9833a574c9f57289d6
+  apps/local-api/local_api/profile_runs_api.py: c0d8de3933e962e77bcfaa7973c5e069e537b47ed062414963b5b2a1b8789745
+  apps/local-api/local_api/session.py: 0f2f5f32a475a78c7a3a5bfbf65b2018e14cb0f07df458c5ee2e79ebd4c3bd3e
+  apps/local-api/local_api/sources_api.py: d59bef4fa4bd2ae2225298f2f6b3dd4afe35dfd5122a6d90be62e43fd8fa6d23
   apps/web/package.json: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
   apps/web/pnpm-lock.yaml: c9140539e3622a70d6a0d272593b22dc12a51e3ea75a816bfd33f52a89a2708b
-  apps/web/src/App.test.tsx: 599ceec11f15281d07df9540e53a51fdb073c81b452de32ff29b968ee6a52785
-  apps/web/src/App.tsx: b96d3baf0f040fa4bd0ae9862181160a51637118108057153acdf437382b6689
-  apps/web/src/DataExplorer.tsx: 46957aa004142a6c5ca4955fda5b1dc70bce7acfb4ced523e129f2934d35292e
-  apps/web/src/Findings.tsx: 3c4ea56e6b8cff3518880df1526a26edb9618b8578a433ea1f2e12ed0434b3b9
-  apps/web/src/Preview.test.tsx: 5d9eaa75943a69a77ba6d14c1ae66d02985434a2508b15bd6b0324a4e29044a5
-  apps/web/src/Preview.tsx: b9471c2f9b229aa603ff664870bc6ca243ff4bd6ee0b6dd00c125617802582f2
-  apps/web/src/ProfileTab.test.tsx: 7970194deda88e137813c4c10f64fb697cec05f14fff51ef91544b8874e0083d
-  apps/web/src/ProfileTab.tsx: 51598bd44ebcade166be48af78b3ff0cf7a769967290a90928d74d4a0bd0fcf8
-  apps/web/src/SetupScreen.tsx: 31e7316e6b5602e338a3646da2a27b8b2b2873bfb148aafd9db9a72478ef4794
+  apps/web/src/App.test.tsx: 38a25dd11a7530de354f05a7b4814e3fac4926cf61be9a174a3594029bca752d
+  apps/web/src/App.tsx: f1e501cbc1ac8153cc4436e05d80f706dc4187d82d0aee358c03a3ced8b923a8
+  apps/web/src/DataExplorer.tsx: 7b5058fc1376fb874da00a2a81946f096fe0c992f1271842d791c8fba8d7919c
+  apps/web/src/Findings.tsx: afe0c02c3c215bdb00f2bff68e2bd068c0dadbdc436447d66ae6b32e4efce7db
+  apps/web/src/Preview.test.tsx: a14bc6c5e6440210ad45e3df29fe41fc1c19b553cb93d26083f35aa5a0593de3
+  apps/web/src/Preview.tsx: bd0a3ffad006554757c63b63706c2ae0982a87e7c2bf1af6b4b36611c2f3f62b
+  apps/web/src/ProfileTab.test.tsx: 613abb79e2d38edbde54e3df8db23b676dca21e27d3c8d590fa0edca2a582ab1
+  apps/web/src/ProfileTab.tsx: 6ecf02b04cc2872deacfde8cd4f8c0a0dd2848caee9be240a076e14a6ab3f70f
+  apps/web/src/SetupScreen.tsx: 2a9504d56277d388b0db5e0b7d29a68de334f4206e49900754bcd312a6070a1a
   apps/web/src/Shell.tsx: 28a44bf6731282de8b813358dee4e986134cd2adb49289b8831601dcb1f825d7
-  apps/web/src/SourceDetails.tsx: 4dce343e7cbdac39faea2413ca25d2f82d1dc634800240d499df4d5c44ba3015
-  apps/web/src/SourceSettings.test.tsx: e2ee371f3c33c12006fbc9d0d475dfe7ed9b9722950013ff2377c9f7c2dd40d7
-  apps/web/src/SourceSettings.tsx: 338349b47f8719cba625a628555bcdb54a67e138765cb805206ab082aa683fb3
-  apps/web/src/Sources.test.tsx: 643936a86e15baadf771846e6b07549572a235e86e2a51a350c747c76320782c
-  apps/web/src/api.ts: c1d49972b6bc93a451e361cfe21254a1cfdd2279296cb5cff470af456b7a86a4
+  apps/web/src/SourceDetails.tsx: 08a679e18f41e52505b0f343e91503a390ebfe30a6a416e87373f2d1da8d3d0d
+  apps/web/src/SourceSettings.test.tsx: 6438d466db7bc8650f842fe72fa4a9fe95a0cc5dc006849cdfdd2130d4e6ba16
+  apps/web/src/SourceSettings.tsx: 695586d12062388a475897e1f8c87f143a3b879eff9ba0a9a45f7f8e10bbaa0d
+  apps/web/src/Sources.test.tsx: 02416d25025671aa5f75bef9e6c91878a610126ef329374288c1becac25ece26
+  apps/web/src/api.ts: 819a9752e254de6d5f104c328eb050edbef0631fd35f442d47e1ee898d440982
   apps/web/src/main.tsx: a092eb0be7e15855ffc2d8cd35c780c063e9686c2d96689d54ff3ae14deabe4c
   apps/web/src/session.test.ts: 1cfe4e0e785dafef6c141859de01b29725ba49e609b0a9d7651d2976aaa3a3a6
   apps/web/src/session.ts: 606b8ed83032ca43d62da07c2b90c3cdb5e761467e3cf1b4d907b0a96950aab4
   apps/web/src/sourceFormat.ts: 089d6d12912f71f90adc55c819869eb3ae6024e83ed2ca4eef41b816041ce15c
   apps/web/src/styles.css: d218aa3d63970d3fd828e81b8480b66ff07923d319fb019dbb9aa5069c07b7e4
   apps/web/tsconfig.json: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
-  hatch_build.py: 3a04470f04cbbc9eb8318259732bdd97fa9e42016c682c996962adf0e14db012
+  hatch_build.py: 7c7fc379aa148a8f87d5b6a3d34f30668ec23daa0710d268067665318216fdf0
   packages/artifacts/migrations/versions/0005_source_settings.py: f9dbf1baf732afb3cc794b4b1a86dead9f4b86e3f32793c607b284ff5450df87
   packages/artifacts/migrations/versions/0006_finding_kind.py: 808a3346f80723d10c461213eb58356ae1fc92635ed108ae0de61cdebb7c97e4
   packages/artifacts/profiles.py: 530461762ee7927f687943e809be104c665ce7f8182bc2407074aeb5c1085df8
   packages/artifacts/provenance.py: 006c59372b073c3aa223564142dd6f604a8667d07f5c00f427b9087cadb52be2
   packages/artifacts/review.py: f959e1fbf57048bc3ee35a8c0d501eb18cfdd92186325e132f3f1a4a72cdbeaa
-  packages/artifacts/schema.py: 3e58fcd02a4877cf892c71b0026c39e0fb8bb9674f6c4bc38ada13c71d37c92a
+  packages/artifacts/schema.py: 713e5b4a63502f907fa3ae6ff42ca3831660ec8d9f5834b157b88431e0bd58c6
   packages/artifacts/settings.py: f485bc3a90b6ba403d2377b93adc64737afefd8f837458e1b9b45a3cb4596289
   packages/artifacts/sources.py: 09ac9bf6be780f73b19bc1ad897d44a3dfb17633e8f525c540a2e0164154971e
-  packages/artifacts/store.py: c8027ed76aca60e569313aabb96e96f5f783d56d192499819f5bf238986244a4
-  packages/artifacts/workspace.py: 2d49466258379045e2479099aad91365669b1cfde0405319d6033e26e0840f39
+  packages/artifacts/store.py: 342da5f8686ec2f8672e296a7c51b803e9617a5e25b9e413d87028715a65c352
+  packages/artifacts/workspace.py: 3db425c6790ab7ef48cffa94280cc04a6c41d0f742802a2fd1506263a77b2981
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
   packages/profiling/findings.py: 60e9053ec8d2a80e29cfacb8fcf8f48b66ec22347e9d9a113b03ddda06bb51ee
   packages/profiling/first_rows.py: 441bd02f3fefc647d666b7b7327588df3583d41bdf6e79f02efaacfd421c24ae
   packages/profiling/on_request.py: b764cb6fae044d6334d29dcd9259f6aea07ebae0170fb6a9e5c8c3f1aa59c6cb
   packages/profiling/sensitive.py: d0afb67b6b9c983d59cba82ce543bad90c283ef1d957d8ee19845e0ec573f550
-  pyproject.toml: 971fbecf685a9b732c31c8b9250e6e2aec3283e397b4b6830aafc154db3b6296
+  pyproject.toml: b55797f5f695c8c2caaf7072b90dd5df66f109970ab2273172fe69ab8269ecbe
   testdata/generate_csv.py: 1efaee1071657759b0fc2d4b941aa442869dd30091144663bb4fc2be74738c91
-  tests/conftest.py: a5fa0441acf01d505b64424f2fa6973e20a5f5b03b0f0f54ebca1eae7157275b
-  tests/e2e/test_accessibility.py: 70789b6cb303f7f891607d1c1a3b3f79d083de65d17c80e19ad3808a5ca3423c
-  tests/e2e/test_browser_security.py: d5a6f6a9444d47f11190efe42e4f67fb653987fe05e93cd64ed170d4cb9b089d
-  tests/e2e/test_connect_csv.py: c7936c9f8f23d7bbec0953d82938991a64c940f61e02dd00bffb5cc98bab7904
-  tests/e2e/test_fast_profile.py: 45e99e0b086d85b5a106c2d6f116627e4d75372e3a2195bead1139d37db8805d
-  tests/e2e/test_findings.py: d4f253603867f24f50f43905f59dfa33aef5fd967710d9afb75e6a81401288a1
-  tests/e2e/test_first_launch.py: 0bc180551e37ee4b84bbe65dafab3b1f81e272b2126a3ad97d49f0f564ac03ee
-  tests/e2e/test_full_journey.py: acf05e870676877d9952dd6f1d44d2157833bb8d6ab709ebc7e74d79f2638762
-  tests/e2e/test_full_profile.py: 37df266499371190aa030e25a6b8db3f7302600911c1d8d3d574db8d7aa9b84c
-  tests/e2e/test_preview.py: 125b482d2ce433c417310a79a867cb3c9500a5fc08ea5b39a0cfead48ddea7e0
-  tests/e2e/test_source_settings.py: 67289d003885e5b0da80516294f24a99a251a91d1c4fc8fca9603de267c8a235
-  tests/e2e/test_values.py: 032d6540c2ca6a421d55774bc926924ec6b361a330a20839cc1d9884f594cc1d
+  tests/conftest.py: 4356282e4b5709640dce76e5123abc600d34b7ea18cb229a943e022bb6421de8
+  tests/e2e/test_accessibility.py: c26d016f1b926f2a4fae911cf8199ddae2169b6bedaccdbac42252d322d7dacf
+  tests/e2e/test_browser_security.py: 40921bd8aa1f8522bcb659e4f0f8a2088b6683918c87dc3cc541226fb7e0f699
+  tests/e2e/test_connect_csv.py: 327595240e843702cc93160abe12fe8f5bf4ea46150e7c0ee6ac9df1551cf1e4
+  tests/e2e/test_fast_profile.py: c09c71feff698a41015fe458be3198f8cfef2f187841d1b3acf023ab83bec092
+  tests/e2e/test_findings.py: 9ddabc6fe2dd38a949452b4d3468f0772c40bf7a84f3edf7be4c7747e3dfc164
+  tests/e2e/test_first_launch.py: 62874bf6e14714d3274759fd8988c572558d8195443e9575701cf8002fe3736a
+  tests/e2e/test_full_journey.py: fd3f3ce62c7f6bcab9ccbdea7f6f855848071ebbe1d283326001a149aa45073c
+  tests/e2e/test_full_profile.py: 9b333f8b035a89fcccd4c55d0a6fa4bf0e432dfb29baf14517a7dc2e653520c1
+  tests/e2e/test_preview.py: b0deaf39353677be0b48631b4caadb5fb5ff470836eab667aed05a284ada17e6
+  tests/e2e/test_source_settings.py: 40b61f2af153357b309e47229358626fd673783579a9e7372d035173f25bb816
+  tests/e2e/test_values.py: e7655bd3789f7fc56964edc76cb76f7e9407ff468ca2556d046eab72fa5bfa0c
   tests/golden/test_metrics.py: a27d17ff3300a920fac8806c8e2b166ccb6434eeb299c7526903453c8abc15be
   tests/integration/test_artifact_store.py: 039ab464d137fcb1d8793cc751e0241a2e93a8cac66c4b54df91007520f1b356
   tests/integration/test_binding.py: 79eeb61ddbb635cafec5bbf4a570033e5c418aa09dc2adde55afb539a85bd0e7
@@ -98,30 +98,30 @@ sources:
   tests/integration/test_contract_rules.py: 3edf1eedc82e20f764f542126fb4e5d37f2029e6b87f42f6dc973d7c9644b0ec
   tests/integration/test_csv_detection.py: e29fbb7f02e194f223831f35f0161b408f260e3e5dc878529d2b0003e4ce5e84
   tests/integration/test_domain_entities.py: 6cb0f793dd39676a2162c779ca8722482c63ce4c09498a079262a85900ead3fb
-  tests/integration/test_fast_profile.py: 8d999ef8c36abb2148800c99c221265192bc079246e77d1191aeaeac39f8a828
+  tests/integration/test_fast_profile.py: bde50c0a891fcf1cd59f0e14a9ad728619f67aa1432e896564d8cbef8882b045
   tests/integration/test_finding_rules.py: 7787025fbd878895511827db96aa3f802aff9b50f8f676b527ba01c8303aa551
   tests/integration/test_findings_api.py: 6e7c46db97094eca0ed09a7fb78647e11c2e7f71a5a04d44f39dfce218156b03
   tests/integration/test_first_rows.py: 6ca527768da1909fc37fd0d351ba1f7697f12d5285bbcedfe42ab7f3475e3ca1
-  tests/integration/test_full_profile.py: 63bbe8dfb77fa4eeb531c3a5e59948b7b757bcad2209da4b9dc15a70ed245c72
-  tests/integration/test_launch.py: b2a2fffd3078dd6b58e1878ef0537265289e83368ffbd78762de59635679b510
+  tests/integration/test_full_profile.py: d02c90d536edf78d63834758752e39fc4d6e3443128cc47915c4c54ea28fd6ab
+  tests/integration/test_launch.py: 46b1159a0d5d6c899e1424e4760a9770a8a026bb6075d99f756e23f6812e5c68
   tests/integration/test_lockfiles.py: d04c655bbf0d73a55efca921996aaed96a943010384addf630418228a82fd4d2
   tests/integration/test_masked_patterns.py: aa2d0c69e59b42a0c0508cb912f80009100cac6eb7f3e1c4d9603f216ff164cf
   tests/integration/test_preview_api.py: 2c80362b86e11b8e44c8fd7e2dda578b52691c4b28af29b5fb069ff7dae87657
-  tests/integration/test_profile_runs.py: 72fe7666742ecf421ded8bf41c04f77d1178d89bb532d8c1498a7c3f8d628dad
+  tests/integration/test_profile_runs.py: f63c29b378c08d20fae1366fb6a368667a66fc100389aeac2d8b62c87736a6b3
   tests/integration/test_replacing_column_names.py: 617826d9612906f81ab62e732b7a985c27e43e1bf26c82bdbae68438b088b352
   tests/integration/test_review.py: eabed4d9160537c3adc5872af0ff3009e3886c7fb0db0da7ec8371e63c6797a1
-  tests/integration/test_session.py: b03d87683952cc3248b95e3ac48925907fcecdfd08114fbfbe8875131fd1e2bb
+  tests/integration/test_session.py: b26ea3f3dd433beb114a344b2ce423a9c36d46837cddba3b65e82a1020ffd3a0
   tests/integration/test_source_settings.py: cdc96c96f0ef866f359935afaec5da51a5392f23488f6a7f78e4600c5e622efd
-  tests/integration/test_sources_api.py: c48d5bbb72915a97b126111faf184eaee64338c94c7d05f1fc9e96febb199d05
+  tests/integration/test_sources_api.py: 8230fd0fd2d637263fe43e5d073983e0e940da45a95901a4a0ec356899524e50
   tests/integration/test_testdata.py: ef664b8506a4fa1b23d91f0f9a0bf0b165e8c2153744407c8148298b20f443af
   tests/integration/test_trust_rules.py: 3c47d9ea2299799ec9f4ccd0c57360e2b704ecdaf775b2f5879dd3c78bc8fa60
-  tests/integration/test_values_api.py: b2e93d808fc987855149be3add9f33a649949934a96499550b0475a3b132a743
+  tests/integration/test_values_api.py: fd049011cdb70b4c55b603da7ca4cde17d936c6c79514969e9ceddb8af98c8d4
   tests/integration/test_values_on_request.py: 5e38f4daca55de08849d5bb2ae8bff9ff231f5e1e9c79ca45f6a0f1f978a0510
-  tests/integration/test_wheel.py: e4ae13a647fc6a151ce7434d66dd710c90df2337e6a86c927ce2b4d91ddb6344
-  tests/integration/test_workspace.py: b2e2f9224d77a2042e9886a52fdf4572fddde425cbbbf86dce32d30aff143314
+  tests/integration/test_wheel.py: d9c1fb28516e4512b996f2d7e8d08a606b5a7083399f049a5908e102ef3a27d0
+  tests/integration/test_workspace.py: 4fa3eb675720cf1e20b93eaa86fec3187bfc5d1b448dc1254f051b7964f19515
   tests/integration/test_workspace_api.py: d0c3649cc06576c653bec3ec78b89fd157af1392e3f7a7221624b7d15f3e4755
-  tests/integration/test_workspace_store.py: e3911914cfe534201febd8eb361a85a9564415ebf3be2c362dffbcdbcf942cbf
-  uv.lock: 4942e5e0af88130f4f436054c9ef054233bc96b076c013d98906ac63c0b2b7a3
+  tests/integration/test_workspace_store.py: 16a3a722176eff1ed1a82a2d3b4cc2290300365e7cf1fcdf2ccb714d1db00f9e
+  uv.lock: f3a1c2c8c36dd95f16bd9f3c50b5fb8f963dbe29eaf332acdd0d5e2e3086143a
 nodes:
 - id: criterion:CFX-APP-csv-profile/AC-01
   kind: criterion
@@ -387,21 +387,21 @@ nodes:
   kind: criterion
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
-  text: 'Given Conflux is installed and `~/Conflux/default` doesn''t exist, when the user runs `conflux`,
-    then that workspace is created, a browser opens on `http://127.0.0.1:<port>/`, the app loads signed
-    in, '
+  text: Given DrivnX is installed and `~/DrivnX/default` doesn't exist, when the user runs `drivnx`, then
+    that workspace is created, a browser opens on `http://127.0.0.1:<port>/`, the app loads signed in,
+    and
 - id: criterion:CFX-APP-first-slice/AC-02
   kind: criterion
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
-  text: Given any directory that is new, empty, holds only `.conflux.lock`, or is already a workspace,
-    when the user runs `conflux <dir>`, then Conflux opens it as that workspace.
+  text: Given any directory that is new, empty, holds only `.drivnx.lock`, or is already a workspace,
+    when the user runs `drivnx <dir>`, then DrivnX opens it as that workspace.
 - id: criterion:CFX-APP-first-slice/AC-03
   kind: criterion
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
-  text: Given a non-empty directory that isn't a workspace, when the user runs `conflux <dir>`, then Conflux
-    exits with a message suggesting a subdirectory, adds no file, and leaves the directory's permission
+  text: 'Given a non-empty directory that isn''t a workspace, when the user runs `drivnx <dir>`, then
+    DrivnX exits with a message suggesting a subdirectory, adds no file, and leaves the directory''s permissions '
 - id: criterion:CFX-APP-first-slice/AC-04
   kind: criterion
   evidence:
@@ -413,9 +413,9 @@ nodes:
   kind: criterion
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
-  text: 'Given `--no-browser`, or a browser that fails to open, when Conflux starts, then it prints the
+  text: Given `--no-browser`, or a browser that fails to open, when DrivnX starts, then it prints the
     launch URL to the terminal. Given `--port N`, then it listens on that port, and otherwise the OS picks
-    a '
+    a f
 - id: criterion:CFX-APP-first-slice/AC-06
   kind: criterion
   evidence:
@@ -491,7 +491,7 @@ nodes:
   kind: criterion
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
-  text: Given a workspace path under a known sync folder, when Conflux opens it, then it warns the user.
+  text: Given a workspace path under a known sync folder, when DrivnX opens it, then it warns the user.
 - id: criterion:CFX-APP-first-slice/AC-19
   kind: criterion
   evidence:
@@ -697,7 +697,7 @@ nodes:
   kind: criterion
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
-  text: Given a built wheel, when it is installed with `uv tool install`, then the `conflux` command serves
+  text: Given a built wheel, when it is installed with `uv tool install`, then the `drivnx` command serves
     the bundled UI and API from one origin, and AC-01 passes against it.
 - id: criterion:CFX-APP-first-slice/AC-52
   kind: criterion
@@ -778,7 +778,7 @@ nodes:
   - .ai/knowledge/requirements/CFX-APP-csv-profile.md
   title: 'Profile a CSV: correct how it''s read, profile it, and see findings with evidence'
   lifecycle: approved
-  owner: conflux-web
+  owner: drivnx-web
   reference: false
 - id: feature:CFX-APP-first-slice
   kind: feature
@@ -786,7 +786,7 @@ nodes:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
   title: 'First vertical slice: runtime to CSV preview, on the M1 domain model'
   lifecycle: approved
-  owner: conflux-web
+  owner: drivnx-web
   reference: false
 - id: module:.github/workflows/ci.yml
   kind: module
@@ -1176,7 +1176,7 @@ nodes:
   kind: story
   evidence:
   - .ai/knowledge/requirements/CFX-APP-csv-profile.md
-  title: See real values when I ask, without Conflux saving them
+  title: See real values when I ask, without DrivnX saving them
 - id: story:CFX-APP-csv-profile/US-07
   kind: story
   evidence:
@@ -1191,7 +1191,7 @@ nodes:
   kind: story
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
-  title: Start Conflux with one command and land in the app in my browser
+  title: Start DrivnX with one command and land in the app in my browser
 - id: story:CFX-APP-first-slice/US-02
   kind: story
   evidence:
@@ -1211,7 +1211,7 @@ nodes:
   kind: story
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
-  title: See what Conflux found in the file without it reading every row
+  title: See what DrivnX found in the file without it reading every row
 - id: story:CFX-APP-first-slice/US-06
   kind: story
   evidence:

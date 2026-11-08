@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { App } from "./App";
 
-const LOCATION = "/home/me/Conflux/default";
+const LOCATION = "/home/me/DrivnX/default";
 const fetchMock = vi.fn();
 
 type Workspace = {
@@ -59,7 +59,7 @@ afterEach(() => {
 test("tells a signed-out user how to get back in, and asks the server nothing", () => {
   renderApp(false);
 
-  expect(screen.getByRole("alert")).toHaveTextContent(/start conflux again/i);
+  expect(screen.getByRole("alert")).toHaveTextContent(/start drivnx again/i);
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
@@ -154,7 +154,7 @@ test.each([
   await user.click(screen.getByRole("button", { name: "Create workspace" }));
 
   const alert = await screen.findByRole("alert");
-  expect(alert).toHaveTextContent(/start conflux again/i);
+  expect(alert).toHaveTextContent(/start drivnx again/i);
   expect(alert).not.toHaveTextContent(/workspace name/i);
 });
 
@@ -172,7 +172,7 @@ test("when the runtime has stopped, it doesn't blame the name", async () => {
   await user.click(screen.getByRole("button", { name: "Create workspace" }));
 
   const alert = await screen.findByRole("alert");
-  expect(alert).toHaveTextContent(/start conflux again/i);
+  expect(alert).toHaveTextContent(/start drivnx again/i);
   expect(alert).not.toHaveTextContent(/workspace name/i);
 });
 

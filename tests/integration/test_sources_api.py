@@ -93,7 +93,7 @@ def test_connecting_leaves_the_file_alone_and_copies_nothing(
     assert customers.stat().st_mtime_ns == modified
     stored = {entry.name for entry in workspace_dir.rglob("*") if entry.is_file()}
     assert stored <= {
-        ".conflux.lock",
+        ".drivnx.lock",
         "workspace.db",
         "workspace.db-wal",
         "workspace.db-shm",

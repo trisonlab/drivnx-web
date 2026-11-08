@@ -7,9 +7,9 @@ export const SOURCES_QUERY = ["sources"];
 
 function failureMessage(error: Error): string {
   if (error instanceof RefusedPathError) {
-    return error.reason ?? "Conflux couldn't use this path. Check the path and try again.";
+    return error.reason ?? "DrivnX couldn't use this path. Check the path and try again.";
   }
-  return "Conflux couldn't connect this file. Start Conflux again.";
+  return "DrivnX couldn't connect this file. Start DrivnX again.";
 }
 
 type Props = {
@@ -55,7 +55,7 @@ export function DataExplorer({ sources, loadFailed, chosenId, onChoose }: Props)
           Connect
         </button>
       </form>
-      {loadFailed && <p role="alert">Conflux couldn't load your sources. Start Conflux again.</p>}
+      {loadFailed && <p role="alert">DrivnX couldn't load your sources. Start DrivnX again.</p>}
       {sources?.length === 0 && <p className="unavailable">No sources yet.</p>}
       <ul className="source-tree">
         {sources?.map((source) => (

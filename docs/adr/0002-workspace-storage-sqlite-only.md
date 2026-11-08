@@ -32,29 +32,29 @@ What matters for this decision:
 
 **1. One SQLite database per workspace holds all workspace state.** That covers workspace settings, sources (a
 connection reference only), datasets and fields, profile runs and their observations, findings, dictionary entries
-and their revisions, contracts and rules, and provenance events. Conflux writes no artifact files of its own.
+and their revisions, contracts and rules, and provenance events. DrivnX writes no artifact files of its own.
 
 ```text
 <workspace>/                    directory mode 0700
-  .conflux.lock                 ADR 0001: one runtime per workspace
+  .drivnx.lock                 ADR 0001: one runtime per workspace
   workspace.db                  file mode 0600 (SQLite gives -wal/-shm the same mode)
   workspace.db.bak-<schema-rev> pre-migration backups, mode 0600 (point 6)
   duckdb-tmp/                   DuckDB spill files; throwaway, emptied at startup (point 7)
 ```
 
-- **Permissions are set by Conflux, not left to the umask.** SQLite creates a new database file using the process
+- **Permissions are set by DrivnX, not left to the umask.** SQLite creates a new database file using the process
   umask (usually 0644), so the runtime creates `workspace.db` itself with mode 0600 before SQLite opens it. Backup
-  files are created with mode 0600 before they are written. Every open also sets the directory to 0700 and Conflux's own
+  files are created with mode 0600 before they are written. Every open also sets the directory to 0700 and DrivnX's own
   files to 0600, because a copied workspace can arrive with looser permissions. Other files in the directory are left alone.
-- **Conflux only uses a directory that is new, empty or already a workspace.** `conflux ~/Documents` must not chmod
+- **DrivnX only uses a directory that is new, empty or already a workspace.** `drivnx ~/Documents` must not chmod
   the user's Documents folder to 0700 or scatter files into it. A non-empty directory without `workspace.db` is
   refused with a message suggesting a subdirectory. This check runs before the lock file is created (ADR 0001). A
-  directory holding only `.conflux.lock` counts as empty, so a crash on first launch doesn't block the next one.
+  directory holding only `.drivnx.lock` counts as empty, so a crash on first launch doesn't block the next one.
 - **Windows:** no ACL code in Phase 1. Owner-only access relies on the workspace being under the user's profile,
   which is the default location. The threat register says so.
 
 **2. Files appear only when the user exports.** The Export service writes to a location the user picks. Exported
-files are copies made at that moment, not something Conflux keeps in sync. Conflux never reads them back as state.
+files are copies made at that moment, not something DrivnX keeps in sync. DrivnX never reads them back as state.
 Importing them is out of scope for Phase 1.
 
 **3. Transactions follow domain operations.** Each artifact-service operation (accept, edit, promote, demote, reject,
@@ -197,7 +197,7 @@ observations recompute-only.
   - A non-empty directory that isn't a workspace is refused, gets no lock file, and its permissions are left alone.
   - A workspace with a recovery journal left by a crash opens, with its committed data intact.
   - A workspace copied in with loose permissions is tightened when it opens.
-  - A directory holding only `.conflux.lock` is accepted as new.
+  - A directory holding only `.drivnx.lock` is accepted as new.
   - Opening a database whose schema is newer than the code is refused.
   - No credential-shaped values end up in `workspace.db`.
 - **Revisit when:** users need to share or version-control a workspace itself rather than its exports, or spike 1

@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page, expect
 
-from ..conftest import REPO_ROOT, StartConflux
+from ..conftest import REPO_ROOT, StartDrivnX
 from .test_connect_csv import connect, details_of, open_set_up_app
 from .test_preview import preview_of
 
@@ -30,8 +30,8 @@ def violations(page: Page) -> list[str]:
 
 
 @pytest.fixture
-def launch_url(start_conflux: StartConflux) -> str:
-    return start_conflux("--no-browser").wait_for_launch().url
+def launch_url(start_drivnx: StartDrivnX) -> str:
+    return start_drivnx("--no-browser").wait_for_launch().url
 
 
 def test_the_setup_screen(page: Page, launch_url: str) -> None:

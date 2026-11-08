@@ -3,7 +3,7 @@ id: CFX-APP-csv-profile
 kind: feature
 title: "Profile a CSV: correct how it's read, profile it, and see findings with evidence"
 summary: "Correct CSV detection, run a fast or full deterministic profile, read labelled metrics in the Profile tab, and see findings backed by evidence, with only aggregates saved."
-owner: conflux-web
+owner: drivnx-web
 lifecycle: approved
 revision: 4
 approved_revision: 4
@@ -16,9 +16,9 @@ status: CONFIRMED
 # Profile a CSV: correct how it's read, profile it, and see findings with evidence
 
 ## Problem
-A user can connect a CSV and page through it, but Conflux doesn't yet tell them anything about their data. This slice delivers M3 for CSV files, so a user gets the first real evidence and findings. Detection can be wrong and observations can't be edited, so the slice also lets users correct how a file is read, which stops wrong evidence being saved.
+A user can connect a CSV and page through it, but DrivnX doesn't yet tell them anything about their data. This slice delivers M3 for CSV files, so a user gets the first real evidence and findings. Detection can be wrong and observations can't be edited, so the slice also lets users correct how a file is read, which stops wrong evidence being saved.
 
-Source of truth: `../docs/Conflux_Phase1_Development_Direction.md` (Sections 3, 5, 7, 8 and 10), ADRs 0001, 0002 and 0003 in `docs/adr/`, and the first slice's spec `CFX-APP-first-slice`.
+Source of truth: `../docs/DrivnX_Phase1_Development_Direction.md` (Sections 3, 5, 7, 8 and 10), ADRs 0001, 0002 and 0003 in `docs/adr/`, and the first slice's spec `CFX-APP-first-slice`.
 
 ## Scope
 In:
@@ -52,7 +52,7 @@ In:
 ### US-03 — Read each metric and know exactly what it was measured on
 ### US-04 — See findings and check the evidence behind each one
 ### US-05 — See which fields may be sensitive, without believing the list is complete
-### US-06 — See real values when I ask, without Conflux saving them
+### US-06 — See real values when I ask, without DrivnX saving them
 ### US-07 — Go back to earlier runs and know when results are out of date
 ### US-08 — As a developer, prove the metrics, the storage rule and the targets
 

@@ -106,7 +106,7 @@ export function Findings({ source }: { source: Source | undefined }) {
       {/* Only once the runs are known, and with a file to profile, as the centre covers having none. */}
       {source && runs.isSuccess && !run && <p>Profile this file to see what it finds.</p>}
       {(runs.isError || findings.isError) && (
-        <p role="alert">Conflux couldn't load the findings. Start Conflux again.</p>
+        <p role="alert">DrivnX couldn't load the findings. Start DrivnX again.</p>
       )}
       {findings.data?.length === 0 && <p>This profile found nothing to point out.</p>}
       {findings.data?.map((finding) => (

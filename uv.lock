@@ -75,7 +75,7 @@ wheels = [
 ]
 
 [[package]]
-name = "conflux-data"
+name = "drivnx-data"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [

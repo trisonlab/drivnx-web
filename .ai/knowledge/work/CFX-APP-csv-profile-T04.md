@@ -42,7 +42,7 @@ Tests naming each criterion, and a run on files above and below 100,000 rows.
 - **Run values:** `mode="fast"`, `sample_size=100000`, `strategy="first_rows"`. Observation scope is `sample` or `full`, and precision is `exact`.
 - **The job:** sets `memory_limit = '4GB'`, saves at most 1,000 observations per transaction, and ends as `completed` or `failed`. If the file's columns no longer match the saved ones, it fails and saves no metrics. It never logs or saves an exception's text, as DuckDB's errors quote rows.
 - **The screen:** Profile is always selected, with its panel above the source details and preview, and the other tabs stay marked as not available. The Fast profile button stays enabled, so a refused run shows its message. Only a run on the current dataset is shown, so a correction can't leave old results on screen unlabelled before T11.
-- **Busy workspace:** a `WorkspaceBusy` handler in `app.py` returns 503 with the "Conflux is busy" message. The existing screens' display of it doesn't change.
+- **Busy workspace:** a `WorkspaceBusy` handler in `app.py` returns 503 with the "DrivnX is busy" message. The existing screens' display of it doesn't change.
 - **Build order:** read and measure, then store and run, then the screen, then the whole journey against the installed wheel and one manual run on a 1 GB file.
 - **To prove first (not yet shown):** DuckDB accepts parameters in `CREATE TEMP TABLE … AS`, and spills a temp table to `duckdb-tmp`.
 - **Accepted limits:** if saving a run's final status itself fails, the run stays `running` and blocks new runs until a restart marks it `interrupted`. A file with a chosen skip that the preview reads through its path for uneven lines ends as `failed`, which T05 should fix.
@@ -50,7 +50,7 @@ Tests naming each criterion, and a run on files above and below 100,000 rows.
 ## What building it showed
 - **Both points to prove hold.** DuckDB accepts parameters in `CREATE TEMP TABLE … AS`. A temp table spills to `duckdb-tmp`: seen at a 100 MB limit, while at 30 MB DuckDB can't run the read at all.
 - **Saved columns are matched as the first columns, not all of them.** When connecting, `extra_field_in_a_row.csv` saves 3 columns, but reading it with padding gives 4, as the preview shows. The saved columns are measured, and the surplus one gets no metric as it has no field to point at.
-- **A run's ending is in `finally`, and only expected errors are caught.** Expected failures drop their text, as DuckDB's can quote a row. A mistake in Conflux still ends the run as `failed`, and its traceback stays visible.
+- **A run's ending is in `finally`, and only expected errors are caught.** Expected failures drop their text, as DuckDB's can quote a row. A mistake in DrivnX still ends the run as `failed`, and its traceback stays visible.
 - **Indicative only:** on a 1 GB, 26,120,000-row, 5-column UTF-8 file, two runs each took 0.15 s from starting to ending, with a peak of 232 MB. This was on a RAM disk with only two metrics, so it says nothing about the 5 s target. T12 measures that.
 - **A real browser found what mocks couldn't.** A refusal stayed on screen after the run ended, and a tab that was refused never learned of the run. Both are fixed and held by tests. The same one-off probe, with a slow 400-column file and two tabs, now shows them right.
 - **Known limits of those fixes:**
@@ -61,7 +61,7 @@ Tests naming each criterion, and a run on files above and below 100,000 rows.
 An independent review and the author's own checks found these, all fixed and held by tests unless noted.
 - **A column called `rowid` stopped every run.** Columns are now used by position, through aliases in the query, so a name from the file never reaches the SQL. The review's suggested `LIMIT` subquery was measured and rejected: at a 100 MB limit it ran out of memory where this doesn't, and it was about 7 times slower.
 - **With no header, a wider row renumbers the generated names** once there are more than 10 columns, so only a file with a header has its names checked. Too few columns still fails, because DuckDB refuses the aliases.
-- **Only `CsvError`, `duckdb.Error`, `OSError` and `WorkspaceBusy` are caught.** A `ValueError` or SQLAlchemy error is a mistake in Conflux, so it ends the run as `failed` and stays visible. Neither holds row text: SQLAlchemy hides parameters here.
+- **Only `CsvError`, `duckdb.Error`, `OSError` and `WorkspaceBusy` are caught.** A `ValueError` or SQLAlchemy error is a mistake in DrivnX, so it ends the run as `failed` and stays visible. Neither holds row text: SQLAlchemy hides parameters here.
 - **The tab says when a run is on another file,** as AC-09 asks of both the header and the tab.
 - **Decided by the user:** a row wider than the table inside the first rows fails the run rather than being cut or skipped, as in the preview, because leaving it out would make the counts and "whole file" quietly wrong. A row just after 100,000 can do the same, as DuckDB parses in chunks. T07 gives this a clear message.
 - **Accepted limit:** a column named `rowid` after the saved ones fails the run. T07 refuses that kind of changed file. T05 removed this limit, as `load_rows` now names every column by position.

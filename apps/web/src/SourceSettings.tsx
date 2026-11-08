@@ -18,7 +18,7 @@ function linesToSkip(text: string): number | null {
 function failureMessage(error: Error): string {
   return error instanceof FileUnreadableError
     ? error.message
-    : "Conflux couldn't save these settings. Start Conflux again.";
+    : "DrivnX couldn't save these settings. Start DrivnX again.";
 }
 
 export function SourceSettings({ source }: { source: Source }) {
@@ -128,7 +128,7 @@ export function SourceSettings({ source }: { source: Source }) {
           {save.isSuccess && <p role="status">Settings saved. The columns and preview now use them.</p>}
         </form>
       ) : (
-        <p>These settings can't be changed until Conflux can find this file.</p>
+        <p>These settings can't be changed until DrivnX can find this file.</p>
       )}
     </details>
   );

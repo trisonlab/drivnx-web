@@ -10,7 +10,7 @@ from collections.abc import Iterator
 import pytest
 from playwright.sync_api import Browser, BrowserContext, Page, expect
 
-from ..conftest import Launch, StartConflux
+from ..conftest import Launch, StartDrivnX
 
 FETCH = """async ([url, options]) => {
   try {
@@ -42,8 +42,8 @@ def other_local_site() -> Iterator[str]:
 
 
 @pytest.fixture
-def launch(start_conflux: StartConflux) -> Launch:
-    return start_conflux("--no-browser").wait_for_launch()
+def launch(start_drivnx: StartDrivnX) -> Launch:
+    return start_drivnx("--no-browser").wait_for_launch()
 
 
 @pytest.fixture
@@ -66,7 +66,7 @@ def test_the_code_leaves_the_address_bar_and_the_token_is_out_of_reach(
 
     assert "launch" not in page.url
     cookies = [
-        c for c in page.context.cookies() if c["name"].startswith("conflux_session_")
+        c for c in page.context.cookies() if c["name"].startswith("drivnx_session_")
     ]
     assert len(cookies) == 1
     assert cookies[0]["httpOnly"] is True
@@ -95,7 +95,7 @@ def test_a_second_browser_with_a_used_code_is_refused_and_told_what_to_do(
 
     page.goto(launch.url)
 
-    expect(page.get_by_role("alert")).to_contain_text("Start Conflux again")
+    expect(page.get_by_role("alert")).to_contain_text("Start DrivnX again")
     other.close()
 
 

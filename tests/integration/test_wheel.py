@@ -27,8 +27,8 @@ def test_the_command_comes_from_uv_tool_install(installed_environment: Path) -> 
         check=True,
     )
 
-    assert "conflux-data" in listing.stdout
-    assert "- conflux" in listing.stdout
+    assert "drivnx-data" in listing.stdout
+    assert "- drivnx" in listing.stdout
 
 
 @pytest.fixture(scope="module")
@@ -130,11 +130,11 @@ def _normal(name: str) -> str:
 
 
 def _locked_for_running() -> dict[str, str]:
-    """What `uv.lock` says running Conflux needs, walked from the project without the dev group."""
+    """What `uv.lock` says running DrivnX needs, walked from the project without the dev group."""
     lock = tomllib.loads((REPO_ROOT / "uv.lock").read_text())
     packages = {package["name"]: package for package in lock["package"]}
     found: dict[str, str] = {}
-    waiting = [dep["name"] for dep in packages["conflux-data"]["dependencies"]]
+    waiting = [dep["name"] for dep in packages["drivnx-data"]["dependencies"]]
     while waiting:
         name = waiting.pop()
         if name not in found:
@@ -143,7 +143,7 @@ def _locked_for_running() -> dict[str, str]:
     return found
 
 
-def test_the_wheel_pins_what_running_conflux_needs_to_the_lockfile(
+def test_the_wheel_pins_what_running_drivnx_needs_to_the_lockfile(
     built_wheel: Path,
 ) -> None:
     # Section 7 of the direction doc: pinned dependencies, and the T01 review's open choice.
@@ -186,7 +186,7 @@ def test_the_installed_versions_are_the_tested_ones(
     )
     installed = dict(line.split() for line in listing.stdout.splitlines())
     installed = {_normal(name): version for name, version in installed.items()}
-    del installed["conflux-data"]
+    del installed["drivnx-data"]
 
     assert installed == {
         _normal(name): version for name, version in _locked_for_running().items()

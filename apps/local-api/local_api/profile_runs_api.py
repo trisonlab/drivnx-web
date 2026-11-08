@@ -46,13 +46,13 @@ COLUMNS_NO_LONGER_MATCH = (
     "This file's columns no longer match the saved ones. "
     "Open this source's settings and save them to read the columns again."
 )
-FILE_GONE = "Conflux can't find this file. It may have moved or been deleted."
+FILE_GONE = "DrivnX can't find this file. It may have moved or been deleted."
 NOT_COMPLETED = "This profile hasn't completed, so it has no values to show."
 EARLIER_SETTINGS = "This profile used earlier settings. Profile the file again to see its values."
 POSSIBLY_SENSITIVE = (
     "This column may hold personal data. Confirm that you want to see its values."
 )
-BUSY = "Conflux is already reading a file. Wait for it to finish, then try again."
+BUSY = "DrivnX is already reading a file. Wait for it to finish, then try again."
 
 
 class ProfileRunRequest(BaseModel):
@@ -68,7 +68,7 @@ class ProfileRunResponse(BaseModel):
     started_at: str
     ended_at: str | None
     current_settings: bool
-    # Why it failed, when Conflux knows. Not kept across a restart.
+    # Why it failed, when DrivnX knows. Not kept across a restart.
     failure: str | None
 
 
@@ -133,9 +133,9 @@ def _reading() -> Iterator[None]:
     except CsvError as error:
         raise cannot_read(str(error)) from None
     except PermissionError:
-        raise cannot_read("Conflux doesn't have permission to read this file.") from None
+        raise cannot_read("DrivnX doesn't have permission to read this file.") from None
     except (OSError, duckdb.Error):
-        raise cannot_read("Conflux couldn't read this file.") from None
+        raise cannot_read("DrivnX couldn't read this file.") from None
 
 
 def _response(run: ListedProfileRun) -> ProfileRunResponse:

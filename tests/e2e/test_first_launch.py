@@ -6,15 +6,15 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Browser, Page, expect
 
-from ..conftest import StartConflux, posix_only
+from ..conftest import StartDrivnX, posix_only
 
 
 def test_a_new_workspace_shows_where_it_is_and_asks_for_a_name_and_ai_mode(
-    start_conflux: StartConflux, page: Page, tmp_path: Path
+    start_drivnx: StartDrivnX, page: Page, tmp_path: Path
 ) -> None:
     # CFX-APP-first-slice/AC-14
     workspace = tmp_path / "my workspace"
-    launch = start_conflux("--no-browser", workspace=workspace).wait_for_launch()
+    launch = start_drivnx("--no-browser", workspace=workspace).wait_for_launch()
 
     page.goto(launch.url)
 
@@ -33,10 +33,10 @@ def finish_setup(page: Page, name: str, mode: str = "Off") -> None:
     expect(page.get_by_role("heading", name=name)).to_be_visible()
 
 
-def run_conflux_and_catch_the_browser(
-    start_conflux: StartConflux, tmp_path: Path, cwd: Path | None = None
+def run_drivnx_and_catch_the_browser(
+    start_drivnx: StartDrivnX, tmp_path: Path, cwd: Path | None = None
 ) -> str:
-    """Run `conflux` with no argument, and return the URL it asked a browser to open."""
+    """Run `drivnx` with no argument, and return the URL it asked a browser to open."""
     opened = tmp_path / "opened"
     browser = tmp_path / "browser"
     browser.write_text(
@@ -44,7 +44,7 @@ def run_conflux_and_catch_the_browser(
     )
     browser.chmod(0o755)
 
-    start_conflux(workspace=None, browser=f"{browser} %s", cwd=cwd)
+    start_drivnx(workspace=None, browser=f"{browser} %s", cwd=cwd)
     deadline = time.monotonic() + 15
     while not opened.exists() and time.monotonic() < deadline:
         time.sleep(0.05)
@@ -52,14 +52,14 @@ def run_conflux_and_catch_the_browser(
 
 
 @posix_only
-def test_conflux_with_no_argument_opens_the_browser_signed_in_on_the_default_workspace(
-    start_conflux: StartConflux, page: Page, tmp_path: Path
+def test_drivnx_with_no_argument_opens_the_browser_signed_in_on_the_default_workspace(
+    start_drivnx: StartDrivnX, page: Page, tmp_path: Path
 ) -> None:
     # CFX-APP-first-slice/AC-01
-    default = tmp_path / "home" / "Conflux" / "default"
+    default = tmp_path / "home" / "DrivnX" / "default"
     assert not default.exists()
 
-    url = run_conflux_and_catch_the_browser(start_conflux, tmp_path)
+    url = run_drivnx_and_catch_the_browser(start_drivnx, tmp_path)
     assert url.startswith("http://127.0.0.1:")
 
     page.goto(url)
@@ -79,7 +79,7 @@ def test_conflux_with_no_argument_opens_the_browser_signed_in_on_the_default_wor
     ],
 )
 def test_setup_opens_the_app_and_a_restart_keeps_it(
-    start_conflux: StartConflux,
+    start_drivnx: StartDrivnX,
     browser: Browser,
     tmp_path: Path,
     mode: str,
@@ -87,7 +87,7 @@ def test_setup_opens_the_app_and_a_restart_keeps_it(
 ) -> None:
     # CFX-APP-first-slice/AC-15 and CFX-APP-first-slice/AC-34
     workspace = tmp_path / "workspace"
-    first = start_conflux("--no-browser", workspace=workspace)
+    first = start_drivnx("--no-browser", workspace=workspace)
     context = browser.new_context()
     page = context.new_page()
     page.goto(first.wait_for_launch().url)
@@ -97,7 +97,7 @@ def test_setup_opens_the_app_and_a_restart_keeps_it(
     first.process.terminate()
     first.process.wait(timeout=10)
 
-    second = start_conflux("--no-browser", workspace=workspace)
+    second = start_drivnx("--no-browser", workspace=workspace)
     context = browser.new_context()
     page = context.new_page()
     page.goto(second.wait_for_launch().url)
@@ -110,10 +110,10 @@ def test_setup_opens_the_app_and_a_restart_keeps_it(
 
 
 def test_the_app_layout_shows_and_marks_what_is_not_built(
-    start_conflux: StartConflux, page: Page
+    start_drivnx: StartDrivnX, page: Page
 ) -> None:
     # CFX-APP-first-slice/AC-32 and CFX-APP-first-slice/AC-33
-    page.goto(start_conflux("--no-browser").wait_for_launch().url)
+    page.goto(start_drivnx("--no-browser").wait_for_launch().url)
     finish_setup(page, "Sales")
 
     expect(page.get_by_role("navigation", name="Data Explorer")).to_be_visible()
@@ -132,8 +132,8 @@ def test_the_app_layout_shows_and_marks_what_is_not_built(
 
 
 @pytest.mark.parametrize("mode", ["Off", "External", "Local"])
-def test_the_browser_only_talks_to_conflux_and_reports_no_errors(
-    start_conflux: StartConflux, page: Page, mode: str
+def test_the_browser_only_talks_to_drivnx_and_reports_no_errors(
+    start_drivnx: StartDrivnX, page: Page, mode: str
 ) -> None:
     # CFX-APP-first-slice/AC-16: no AI request in any mode, and no console errors, including the favicon.
     requests: list[str] = []
@@ -146,7 +146,7 @@ def test_the_browser_only_talks_to_conflux_and_reports_no_errors(
             problems.append(message.text) if message.type == "error" else None
         ),
     )
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
 
     page.goto(launch.url)
     finish_setup(page, "Quiet", mode)
@@ -160,16 +160,16 @@ def test_the_browser_only_talks_to_conflux_and_reports_no_errors(
 
 
 def test_saving_after_the_runtime_stopped_says_to_start_it_again(
-    start_conflux: StartConflux, page: Page
+    start_drivnx: StartDrivnX, page: Page
 ) -> None:
     # Found in the T04 review: this blamed the workspace name, and retrying could never work.
-    conflux = start_conflux("--no-browser")
-    page.goto(conflux.wait_for_launch().url)
+    drivnx = start_drivnx("--no-browser")
+    page.goto(drivnx.wait_for_launch().url)
     page.get_by_role("textbox", name="Workspace name").fill("A good name")
-    conflux.process.terminate()
-    conflux.process.wait(timeout=10)
+    drivnx.process.terminate()
+    drivnx.process.wait(timeout=10)
 
     page.get_by_role("button", name="Create workspace").click()
 
-    expect(page.get_by_role("alert")).to_contain_text("Start Conflux again")
+    expect(page.get_by_role("alert")).to_contain_text("Start DrivnX again")
     expect(page.get_by_role("alert")).not_to_contain_text("workspace name")

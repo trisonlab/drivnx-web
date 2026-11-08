@@ -12,7 +12,7 @@ def bind_listener(host: str = LOOPBACK_ADDRESS, port: int = 0) -> socket.socket:
     """Return a listening socket on the loopback address. Port 0 lets the OS pick a free port."""
     if host != LOOPBACK_ADDRESS:
         raise NonLoopbackBindError(
-            f"Conflux only binds to {LOOPBACK_ADDRESS}, not {host!r}"
+            f"DrivnX only binds to {LOOPBACK_ADDRESS}, not {host!r}"
         )
     listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:

@@ -2,8 +2,8 @@
 id: CFX-APP-first-slice
 kind: feature
 title: "First vertical slice: runtime to CSV preview, on the M1 domain model"
-summary: "Start Conflux, set up a workspace in the browser, connect a CSV and see its metadata and a paginated preview, built on the full M1 domain model."
-owner: conflux-web
+summary: "Start DrivnX, set up a workspace in the browser, connect a CSV and see its metadata and a paginated preview, built on the full M1 domain model."
+owner: drivnx-web
 lifecycle: approved
 revision: 9
 approved_revision: 9
@@ -16,11 +16,11 @@ status: CONFIRMED
 # First vertical slice: runtime to CSV preview, on the M1 domain model
 
 ## Problem
-Nothing has been built yet. Before profiling depth is added, Conflux has to prove three things end to end: the local
+Nothing has been built yet. Before profiling depth is added, DrivnX has to prove three things end to end: the local
 runtime and browser model, the security baseline, and the domain model (Section 12 of the direction doc). This slice
 covers M1 and the start of M2.
 
-Source of truth: `../docs/Conflux_Phase1_Development_Direction.md`, plus ADRs 0001, 0002 and 0003 in `docs/adr/`.
+Source of truth: `../docs/DrivnX_Phase1_Development_Direction.md`, plus ADRs 0001, 0002 and 0003 in `docs/adr/`.
 
 ## Scope
 In:
@@ -45,11 +45,11 @@ The review, dictionary and contract parts of the domain model have tests but no 
 - ASSUMPTION: the built screens meet WCAG 2.2 AA.
 
 ## User Stories
-### US-01 — Start Conflux with one command and land in the app in my browser
+### US-01 — Start DrivnX with one command and land in the app in my browser
 ### US-02 — Know that other web pages and programs on my machine can't use my session through the browser
 ### US-03 — Set up a workspace, and find it again as I left it
 ### US-04 — Connect a CSV by giving its path
-### US-05 — See what Conflux found in the file without it reading every row
+### US-05 — See what DrivnX found in the file without it reading every row
 ### US-06 — Page through the file's rows without any of them being saved
 ### US-07 — See the app's layout and my privacy state, and tell what isn't built yet
 ### US-08 — Trust that review state and its history can't be corrupted or silently changed
@@ -61,8 +61,8 @@ Decided with the user in chat, 2026-11-01 ("go with your recommendations"):
 - **Choosing a CSV:** the user types or pastes the full path. A file browser comes later in M2, because a browser's own file picker doesn't reveal a file's real path.
 - **CSV depth:** detect and show the result. Correcting detection and column types comes later in M2.
 - **Metadata scan:** file name, size, modified date, columns and detected types are saved. Preview rows are never saved. No row count until profiling (M3).
-- **Encodings, decided 2026-11-02:** DuckDB doesn't detect encodings, so Conflux does, by reading the file once. It refuses Windows-1252 outright and reads big-endian UTF-16 as garbage, so those two are decoded in Python and limited to 100 MB. Reviewing T05 on 2026-11-03 found that DuckDB also refuses characters above U+FFFF in little-endian UTF-16, so Conflux checks those files in full and decodes the ones that have them in the same way. The `encodings` extension was rejected: 276 MB per platform, and no big-endian UTF-16. A temporary converted file was rejected because it copies source data (Section 5).
-- **Headers that can't be told from data, decided 2026-11-03:** a first row that doesn't fit the column types looks like a header, and commas in the text look like a delimiter whether or not the file has a header. No rule separates these files from ones with a real header or a title line, so Conflux asks DuckDB twice, strictly and leniently, and accepts that one row may become the column names or the delimiter may be wrong (AC-22, AC-26). The screen says a row from the file was used. Correcting either comes later in M2.
+- **Encodings, decided 2026-11-02:** DuckDB doesn't detect encodings, so DrivnX does, by reading the file once. It refuses Windows-1252 outright and reads big-endian UTF-16 as garbage, so those two are decoded in Python and limited to 100 MB. Reviewing T05 on 2026-11-03 found that DuckDB also refuses characters above U+FFFF in little-endian UTF-16, so DrivnX checks those files in full and decodes the ones that have them in the same way. The `encodings` extension was rejected: 276 MB per platform, and no big-endian UTF-16. A temporary converted file was rejected because it copies source data (Section 5).
+- **Headers that can't be told from data, decided 2026-11-03:** a first row that doesn't fit the column types looks like a header, and commas in the text look like a delimiter whether or not the file has a header. No rule separates these files from ones with a real header or a title line, so DrivnX asks DuckDB twice, strictly and leniently, and accepts that one row may become the column names or the delimiter may be wrong (AC-22, AC-26). The screen says a row from the file was used. Correcting either comes later in M2.
 - **Lines skipped above the table, decided 2026-11-03:** DuckDB skips leading lines that don't match the rest of the file. That is what makes a title line work, but it can't tell a title line from real rows that have fewer fields. The preview keeps skipping, so a file with a title line keeps the right columns, and says how many lines aren't shown (AC-27). Those lines can't be reached until detection can be corrected later in M2.
 - **Quotes first seen late in a file, decided 2026-11-03:** DuckDB decides how a file is quoted from a sample of its start, so a first quoted value after that sample is misread. If the sample shows no quotes, the preview reads the file with the standard double quote and falls back to what was detected. Sniffing the whole file was rejected: 20.84 s for 1 GB, against a 5 s budget. This leaves one limit, for malformed files only (AC-27).
 - **Mixed line endings, decided 2026-11-03:** only DuckDB's lax mode reads a file whose sample mixes line endings, and it drops an extra field past the sample without saying so. Refusing these files was rejected, because valid files then can't connect. The limit is accepted (AC-27), and the lax read is only used when no other sniff can read the file.
@@ -73,18 +73,18 @@ Decided with the user in chat, 2026-11-01 ("go with your recommendations"):
 - **CI:** the configuration is written now. It stays NOT RUN until the repo has a remote, and the same checks run locally.
 
 Decided earlier, and binding here:
-- ADR 0001: `conflux [WORKSPACE_DIR] [--port N] [--no-browser]`, distribution `conflux-data`, one workspace per runtime, `~/Conflux/default` by default, launch code and `HttpOnly` cookie handshake.
+- ADR 0001: `drivnx [WORKSPACE_DIR] [--port N] [--no-browser]`, distribution `drivnx-data`, one workspace per runtime, `~/DrivnX/default` by default, launch code and `HttpOnly` cookie handshake.
 - ADR 0002: SQLite only, one transaction per domain operation, append-only history, DuckDB spill files inside the workspace.
-- ADR 0003: Conflux-native rules. A ContractRule can be Inferred, Confirmed or Defined, and only Defined rules are part of the contract. `Contract` has no `state`. ODCS export is M7.
+- ADR 0003: DrivnX-native rules. A ContractRule can be Inferred, Confirmed or Defined, and only Defined rules are part of the contract. `Contract` has no `state`. ODCS export is M7.
 
 API for this slice, using the Section 12 outline as amended: `/api/session`, `/api/workspace`, `/api/sources`.
 
 ## Acceptance Criteria
-- AC-01 (US-01): Given Conflux is installed and `~/Conflux/default` doesn't exist, when the user runs `conflux`, then that workspace is created, a browser opens on `http://127.0.0.1:<port>/`, the app loads signed in, and the launch code is gone from the address bar.
-- AC-02 (US-01): Given any directory that is new, empty, holds only `.conflux.lock`, or is already a workspace, when the user runs `conflux <dir>`, then Conflux opens it as that workspace.
-- AC-03 (US-01): Given a non-empty directory that isn't a workspace, when the user runs `conflux <dir>`, then Conflux exits with a message suggesting a subdirectory, adds no file, and leaves the directory's permissions unchanged.
+- AC-01 (US-01): Given DrivnX is installed and `~/DrivnX/default` doesn't exist, when the user runs `drivnx`, then that workspace is created, a browser opens on `http://127.0.0.1:<port>/`, the app loads signed in, and the launch code is gone from the address bar.
+- AC-02 (US-01): Given any directory that is new, empty, holds only `.drivnx.lock`, or is already a workspace, when the user runs `drivnx <dir>`, then DrivnX opens it as that workspace.
+- AC-03 (US-01): Given a non-empty directory that isn't a workspace, when the user runs `drivnx <dir>`, then DrivnX exits with a message suggesting a subdirectory, adds no file, and leaves the directory's permissions unchanged.
 - AC-04 (US-01): Given a runtime has a workspace open, when a second runtime starts on it, then the second exits with a clear message. Given the first was killed with `SIGKILL`, when a new runtime starts, then it opens the workspace normally.
-- AC-05 (US-01): Given `--no-browser`, or a browser that fails to open, when Conflux starts, then it prints the launch URL to the terminal. Given `--port N`, then it listens on that port, and otherwise the OS picks a free port.
+- AC-05 (US-01): Given `--no-browser`, or a browser that fails to open, when DrivnX starts, then it prints the launch URL to the terminal. Given `--port N`, then it listens on that port, and otherwise the OS picks a free port.
 - AC-06 (US-01): Given the runtime is running, when the user presses Ctrl+C, then it stops, and the previous session no longer works after a restart.
 - AC-07 (US-02): Given any bind address other than a loopback address, when the runtime tries to start on it, then it refuses.
 - AC-08 (US-02): Given a call to any `/api/*` route except `/api/session` without a valid session cookie, then the response is 401.
@@ -97,7 +97,7 @@ API for this slice, using the Section 12 outline as amended: `/api/session`, `/a
 - AC-15 (US-03): Given setup is complete, when the runtime is restarted on the same directory, then the workspace's name, AI mode and sources are as they were, and setup isn't shown again.
 - AC-16 (US-03): Given any AI mode is selected, then no AI request is made, because AI arrives in M8.
 - AC-17 (US-03): Given a new workspace on Linux or macOS, then the directory has mode 0700 and `workspace.db` has mode 0600.
-- AC-18 (US-03): Given a workspace path under a known sync folder, when Conflux opens it, then it warns the user.
+- AC-18 (US-03): Given a workspace path under a known sync folder, when DrivnX opens it, then it warns the user.
 - AC-19 (US-03): Given a workspace whose schema is older than the code, when it is opened, then a backup with mode 0600 is made and it migrates. Given a schema newer than the code, then opening is refused and the file is unchanged.
 - AC-20 (US-04): Given the path of a readable CSV, when the user connects it, then it appears as a source, and the file's contents and modified time are unchanged and no copy of it exists in the workspace.
 - AC-21 (US-04): Given a path that doesn't exist, is a directory, can't be read, isn't parseable as CSV, is UTF-16 without a BOM, is a Windows-1252 or big-endian UTF-16 file over 100 MB, or is a little-endian UTF-16 file over 100 MB with characters above U+FFFF such as emoji, when the user connects it, then a specific error says which, and no source is added. The over-limit error says to save the file as UTF-8.
@@ -130,7 +130,7 @@ API for this slice, using the Section 12 outline as amended: `/api/session`, `/a
 - AC-48 (US-08): Given any completed test run of this slice, then a scan of `workspace.db` finds no credential-shaped value.
 - AC-49 (US-08): Given a DuckDB job, then it creates nothing in the current directory, its `temp_directory` is `<workspace>/duckdb-tmp/`, and leftovers there are removed at the next start.
 - AC-50 (US-09): Given a clean checkout, when dependencies are installed from the committed `uv` and `pnpm` lockfiles with frozen settings, then installation succeeds without changing a lockfile.
-- AC-51 (US-09): Given a built wheel, when it is installed with `uv tool install`, then the `conflux` command serves the bundled UI and API from one origin, and AC-01 passes against it.
+- AC-51 (US-09): Given a built wheel, when it is installed with `uv tool install`, then the `drivnx` command serves the bundled UI and API from one origin, and AC-01 passes against it.
 - AC-52 (US-09): Given the Vite dev server, then the browser uses the same cookie flow through its proxy, and the dev origin is allowed only with the dev flag.
 - AC-53 (US-09): Given the repo, then CI configuration runs pytest, Vitest, Playwright, secret scanning and dependency vulnerability checks. Each of those also runs locally with a documented command.
 - AC-54 (US-09): Given `testdata/`, then every file is synthetic and generated by a committed script or documented as hand-written.
@@ -150,7 +150,7 @@ API for this slice, using the Section 12 outline as amended: `/api/session`, `/a
 
 ## Dependencies
 - ADRs 0001, 0002 and 0003 (all Accepted).
-- Decision still needed before publishing, not before building: reserving `conflux-data` on PyPI.
+- Decision still needed before publishing, not before building: reserving `drivnx-data` on PyPI.
 - A remote for this repo, needed only to run CI. The user has parked this for now.
 
 ## Out of Scope

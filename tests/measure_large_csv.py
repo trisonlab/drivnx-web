@@ -66,18 +66,18 @@ def measure_file(browser, path: Path, workspace: Path, encoding: str) -> dict:
     started = time.monotonic()
     rows = write_csv(path, encoding)
     generated = time.monotonic() - started
-    conflux = subprocess.Popen(
-        ["conflux", "--no-browser", str(workspace)],
+    drivnx = subprocess.Popen(
+        ["drivnx", "--no-browser", str(workspace)],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
     )
     try:
-        for line in conflux.stdout:
+        for line in drivnx.stdout:
             if found := re.search(r"http://127\.0\.0\.1:\d+/#launch=\S+", line):
                 break
         else:
-            raise RuntimeError("conflux exited without printing a link.")
+            raise RuntimeError("drivnx exited without printing a link.")
         context = browser.new_context()
         page = context.new_page()
         page.goto(found.group(0))
@@ -105,8 +105,8 @@ def measure_file(browser, path: Path, workspace: Path, encoding: str) -> dict:
             later.append(round(time.monotonic() - started, 3))
         context.close()
     finally:
-        conflux.terminate()
-        conflux.wait(timeout=30)
+        drivnx.terminate()
+        drivnx.wait(timeout=30)
     return {
         "encoding": encoding,
         "bytes": path.stat().st_size,

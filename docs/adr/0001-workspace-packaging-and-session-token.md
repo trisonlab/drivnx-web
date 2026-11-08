@@ -23,20 +23,20 @@ Constraints we already have:
 
 ## Decision
 
-**1. Packaging: one Python package, distributed as `conflux-data`, with a `conflux` console command.** `apps/local-api`
+**1. Packaging: one Python package, distributed as `drivnx-data`, with a `drivnx` console command.** `apps/local-api`
 is built with the production `apps/web` bundle included as package data. Users install it with
-`uv tool install conflux-data`, which can also fetch Python 3.12. `pipx install conflux-data` works too, but by default
+`uv tool install drivnx-data`, which can also fetch Python 3.12. `pipx install drivnx-data` works too, but by default
 needs Python 3.12 to be present already.
 
-- **Never `uv tool install conflux`.** That name on PyPI belongs to an unrelated Conflux network SDK, so install docs
+- **Never `uv tool install drivnx`.** That name on PyPI belongs to an unrelated DrivnX network SDK, so install docs
   must always use the distribution name.
-- `conflux-data` was free on PyPI on 2026-11-01 but isn't reserved. Publishing or reserving it is a separate step.
+- `drivnx-data` was free on PyPI on 2026-11-01 but isn't reserved. Publishing or reserving it is a separate step.
 
 ```text
-conflux [WORKSPACE_DIR] [--port N] [--no-browser] [--log-level LEVEL]
+drivnx [WORKSPACE_DIR] [--port N] [--no-browser] [--log-level LEVEL]
 ```
 
-**One runtime serves exactly one workspace, chosen at launch.** With no argument, `WORKSPACE_DIR` is `~/Conflux/default`.
+**One runtime serves exactly one workspace, chosen at launch.** With no argument, `WORKSPACE_DIR` is `~/DrivnX/default`.
 The default sits directly under the home directory, not under Documents, which Windows often redirects to OneDrive (ADR
 0002 point 5). Opening a different workspace means restarting with a different directory. On first launch the UI shows
 where the workspace is stored, then asks for its name and AI mode. So the API is `/api/workspace` (the current
@@ -44,8 +44,8 @@ workspace), not `/api/workspaces`, and the runtime needs no server-side folder b
 
 **2. Startup sequence**
 
-1. Resolve the workspace directory and check that Conflux may use it (ADR 0002 point 1). Only then create
-   `.conflux.lock` and take an **OS-held exclusive lock** on it. The OS releases that lock when the process dies, even
+1. Resolve the workspace directory and check that DrivnX may use it (ADR 0002 point 1). Only then create
+   `.drivnx.lock` and take an **OS-held exclusive lock** on it. The OS releases that lock when the process dies, even
    on a crash, so the file's existence means nothing and it stays on disk. If a second runtime opens the same workspace,
    it exits with a clear message instead of sharing SQLite. Then open the workspace (create or migrate the database,
    mark interrupted runs, ADR 0002).
@@ -64,10 +64,10 @@ workspace), not `/api/workspaces`, and the runtime needs no server-side folder b
 1. The UI reads the launch code from the URL fragment. Browsers don't send the fragment to the server, so it stays
    out of request logs. The UI removes it right away with `history.replaceState`.
 2. The UI sends `POST /api/session {code}`. If the code is valid and unused, the server burns it and responds with
-   `Set-Cookie: conflux_session_<port>=<token>; HttpOnly; SameSite=Strict; Path=/api`.
+   `Set-Cookie: drivnx_session_<port>=<token>; HttpOnly; SameSite=Strict; Path=/api`.
 3. The browser sends that cookie on every `/api/*` call. JavaScript can't read the token, and it never appears in a
    URL or in browser storage. `GET /api/session` reports only whether the cookie is valid, so a page opened without a
-   code can tell the user to start Conflux again.
+   code can tell the user to start DrivnX again.
 4. Middleware on every `/api/*` route, **including `/api/session`**, checks Host is exactly `127.0.0.1:<port>` (blocks
    DNS rebinding), then Origin is exactly `http://127.0.0.1:<port>` whenever the header is present and always on
    state-changing methods. Every route except `/api/session` then checks the token cookie (compared in constant time).
@@ -81,7 +81,7 @@ another port could frame the signed-in UI and trick the user into clicking it.
 `127.0.0.1` port as the same site. A page served by another local process on `127.0.0.1:<other>` therefore gets
 past `SameSite`. The exact Origin check is what stops it on state-changing requests and on any request that carries
 Origin. A simple cross-origin GET may not carry it, but the browser won't let that page read the response, which is why
-GET routes must have no side effects. The port in the cookie name keeps two Conflux runtimes from overwriting each
+GET routes must have no side effects. The port in the cookie name keeps two DrivnX runtimes from overwriting each
 other's cookie.
 
 **4. Development:** the Vite dev server proxies `/api` to the runtime, so the browser still sees one origin and the
@@ -103,12 +103,12 @@ the launch link point at Vite, and means the runtime doesn't serve the UI bundle
 
 ## Consequences
 
-- **Easier:** a single artifact to build, test and run in CI and Playwright (start `conflux --no-browser
+- **Easier:** a single artifact to build, test and run in CI and Playwright (start `drivnx --no-browser
   --port …`, then take the URL from stdout). The first slice needs no packaging infrastructure.
 - **Harder or accepted:**
   - Users need `uv` or `pipx` and a terminal. That's acceptable for Phase 1's technical users, and moderated
     sessions will check whether it's acceptable at all (§11 assumption).
-  - The launch code is single-use. Opening Conflux in a second browser means restarting the runtime. New tabs in the
+  - The launch code is single-use. Opening DrivnX in a second browser means restarting the runtime. New tabs in the
     same browser are fine because the cookie is shared.
   - The runtime stops when its terminal closes. An idle shutdown or a "Stop" button waits until someone needs it.
   - Switching workspaces means restarting. Running two workspaces at once means two runtimes on two ports.

@@ -131,7 +131,7 @@ export async function saveSourceSettings(sourceId: string, settings: SourceSetti
   });
   if (response.status === 409 || response.status === 422 || response.status === 503) {
     const { detail } = await response.json();
-    throw new FileUnreadableError(typeof detail === "string" ? detail : "Conflux couldn't save these settings.");
+    throw new FileUnreadableError(typeof detail === "string" ? detail : "DrivnX couldn't save these settings.");
   }
   if (!response.ok) {
     throw new Error(`The server answered ${response.status}`);
@@ -147,7 +147,7 @@ export type ProfileRun = {
   started_at: string;
   ended_at: string | null;
   current_settings: boolean;
-  // Why it failed, when Conflux knows. Not kept across a restart.
+  // Why it failed, when DrivnX knows. Not kept across a restart.
   failure: string | null;
 };
 

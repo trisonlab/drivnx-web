@@ -12,7 +12,7 @@ export function SourceDetails({ source }: { source: Source }) {
       <p className="scope-label">Metadata</p>
       {!source.available && (
         <p role="status">
-          Conflux can't find this file. It may have moved or been deleted. What is shown here is from
+          DrivnX can't find this file. It may have moved or been deleted. What is shown here is from
           when it was connected.
         </p>
       )}

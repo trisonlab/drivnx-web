@@ -61,13 +61,13 @@ def _open_browser_or_print_url(url: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="conflux")
+    parser = argparse.ArgumentParser(prog="drivnx")
     parser.add_argument(
         "workspace",
         nargs="?",
         type=Path,
         metavar="WORKSPACE_DIR",
-        help="the workspace to open (default: ~/Conflux/default)",
+        help="the workspace to open (default: ~/DrivnX/default)",
     )
     parser.add_argument(
         "--log-level",
@@ -130,7 +130,7 @@ def main() -> None:
 
     ui_origin = args.dev_origin or f"http://{LOOPBACK_ADDRESS}:{port}"
     url = f"{ui_origin}/#launch={session.launch_code}"
-    print("Conflux is running. Press Ctrl+C to stop.", flush=True)
+    print("DrivnX is running. Press Ctrl+C to stop.", flush=True)
     if args.no_browser or not _browser_can_run_the_app():
         _print_url(url)
     else:

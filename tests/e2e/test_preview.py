@@ -6,13 +6,13 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Browser, Page, expect
 
-from ..conftest import REPO_ROOT, StartConflux
+from ..conftest import REPO_ROOT, StartDrivnX
 from .test_connect_csv import connect, open_set_up_app
 
 
 @pytest.fixture
-def app(start_conflux: StartConflux, page: Page) -> Page:
-    open_set_up_app(page, start_conflux("--no-browser").wait_for_launch().url)
+def app(start_drivnx: StartDrivnX, page: Page) -> Page:
+    open_set_up_app(page, start_drivnx("--no-browser").wait_for_launch().url)
     return page
 
 
@@ -154,7 +154,7 @@ def test_a_press_while_a_slow_page_loads_keeps_the_label_true(
 
 
 def test_row_values_never_reach_the_browser_disk_cache(
-    browser: Browser, start_conflux: StartConflux, people: Path, tmp_path: Path
+    browser: Browser, start_drivnx: StartDrivnX, people: Path, tmp_path: Path
 ) -> None:
     # CFX-APP-first-slice/AC-30: found verifying T06. The UI bundle is the control, because finding
     # no row values proves nothing unless the cache did store something.
@@ -163,7 +163,7 @@ def test_row_values_never_reach_the_browser_disk_cache(
         profile, executable_path=shutil.which("chromium"), args=["--no-sandbox"]
     )
     page = context.new_page()
-    open_set_up_app(page, start_conflux("--no-browser").wait_for_launch().url)
+    open_set_up_app(page, start_drivnx("--no-browser").wait_for_launch().url)
     connect(page, people)
     expect(preview_of(page).get_by_text("Rows 1 to 50")).to_be_visible()
     preview_of(page).get_by_role("button", name="Next").click()

@@ -16,17 +16,17 @@ from fastapi.testclient import TestClient
 from local_api.app import create_app
 from local_api.session import LAUNCH_CODE_LIFETIME_SECONDS, LaunchSession
 
-from ..conftest import REPO_ROOT, Launch, StartConflux, posix_only
+from ..conftest import REPO_ROOT, Launch, StartDrivnX, posix_only
 
 
 @pytest.mark.parametrize(
     "path", ["/api", "/api/", "/api/workspace", "/api/session/extra"]
 )
 def test_api_without_a_session_cookie_is_refused(
-    start_conflux: StartConflux, path: str
+    start_drivnx: StartDrivnX, path: str
 ) -> None:
     # CFX-APP-first-slice/AC-08
-    origin = start_conflux("--no-browser").wait_for_launch().origin
+    origin = start_drivnx("--no-browser").wait_for_launch().origin
 
     assert httpx.get(origin + path).status_code == 401
 
@@ -37,17 +37,17 @@ def sign_in(launch: Launch) -> httpx.Client:
     return client
 
 
-def test_launch_code_signs_in(start_conflux: StartConflux) -> None:
+def test_launch_code_signs_in(start_drivnx: StartDrivnX) -> None:
     # CFX-APP-first-slice/AC-08: a valid cookie gets past the check, to a 404 for an unknown route.
-    client = sign_in(start_conflux("--no-browser").wait_for_launch())
+    client = sign_in(start_drivnx("--no-browser").wait_for_launch())
 
     assert client.get("/api/no-such-route").status_code == 404
 
 
-def test_a_wrong_session_cookie_is_refused(start_conflux: StartConflux) -> None:
+def test_a_wrong_session_cookie_is_refused(start_drivnx: StartDrivnX) -> None:
     # CFX-APP-first-slice/AC-08
-    launch = start_conflux("--no-browser").wait_for_launch()
-    cookie_name = f"conflux_session_{launch.port}"
+    launch = start_drivnx("--no-browser").wait_for_launch()
+    cookie_name = f"drivnx_session_{launch.port}"
 
     response = httpx.get(
         launch.origin + "/api/workspace", cookies={cookie_name: "wrong"}
@@ -56,9 +56,9 @@ def test_a_wrong_session_cookie_is_refused(start_conflux: StartConflux) -> None:
     assert response.status_code == 401
 
 
-def test_a_launch_code_works_only_once(start_conflux: StartConflux) -> None:
+def test_a_launch_code_works_only_once(start_drivnx: StartDrivnX) -> None:
     # CFX-APP-first-slice/AC-10
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
     sign_in(launch)
 
     second = httpx.post(
@@ -72,10 +72,10 @@ def test_a_launch_code_works_only_once(start_conflux: StartConflux) -> None:
 
 
 def test_a_wrong_launch_code_is_refused_and_the_right_one_still_works(
-    start_conflux: StartConflux,
+    start_drivnx: StartDrivnX,
 ) -> None:
     # CFX-APP-first-slice/AC-10: guessing can't burn the real code and lock the user out.
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
 
     wrong = httpx.post(
         launch.origin + "/api/session",
@@ -92,10 +92,10 @@ def test_a_wrong_launch_code_is_refused_and_the_right_one_still_works(
     "host", ["evil.example", "localhost:{port}", "127.0.0.1", "127.0.0.1:1"]
 )
 def test_a_wrong_host_is_refused(
-    start_conflux: StartConflux, path: str, host: str
+    start_drivnx: StartDrivnX, path: str, host: str
 ) -> None:
     # CFX-APP-first-slice/AC-09, including /api/session
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
 
     response = httpx.get(
         launch.origin + path, headers={"Host": host.format(port=launch.port)}
@@ -117,10 +117,10 @@ def test_a_wrong_host_is_refused(
     ],
 )
 def test_a_wrong_origin_is_refused(
-    start_conflux: StartConflux, path: str, origin: str
+    start_drivnx: StartDrivnX, path: str, origin: str
 ) -> None:
     # CFX-APP-first-slice/AC-09, including /api/session and a page on another local port
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
     wrong = origin.format(port=launch.port)
 
     get = httpx.get(launch.origin + path, headers={"Origin": wrong})
@@ -135,10 +135,10 @@ def test_a_wrong_origin_is_refused(
 
 @pytest.mark.parametrize("method", ["POST", "PUT", "PATCH", "DELETE"])
 def test_a_state_changing_request_without_origin_is_refused(
-    start_conflux: StartConflux, method: str
+    start_drivnx: StartDrivnX, method: str
 ) -> None:
     # CFX-APP-first-slice/AC-09
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
 
     response = httpx.request(
         method, launch.origin + "/api/session", json={"code": launch.code}
@@ -148,9 +148,9 @@ def test_a_state_changing_request_without_origin_is_refused(
     sign_in(launch)
 
 
-def test_a_signed_in_get_without_origin_is_allowed(start_conflux: StartConflux) -> None:
+def test_a_signed_in_get_without_origin_is_allowed(start_drivnx: StartDrivnX) -> None:
     # CFX-APP-first-slice/AC-09: browsers don't send Origin on same-origin GET requests.
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
     client = sign_in(launch)
     del client.headers["Origin"]
 
@@ -208,10 +208,10 @@ def test_a_launch_code_expires_after_two_minutes(
 
 
 def test_the_session_cookie_has_the_required_attributes(
-    start_conflux: StartConflux,
+    start_drivnx: StartDrivnX,
 ) -> None:
     # CFX-APP-first-slice/AC-11
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
 
     response = httpx.post(
         launch.origin + "/api/session",
@@ -221,7 +221,7 @@ def test_the_session_cookie_has_the_required_attributes(
 
     parts = [part.strip() for part in response.headers["set-cookie"].split(";")]
     name, _, token = parts[0].partition("=")
-    assert name == f"conflux_session_{launch.port}"
+    assert name == f"drivnx_session_{launch.port}"
     assert {part.lower() for part in parts[1:]} >= {
         "httponly",
         "samesite=strict",
@@ -332,9 +332,9 @@ def test_the_session_token_and_launch_code_never_reach_the_workspace(
 
 
 @posix_only
-def test_stopping_ends_the_session(start_conflux: StartConflux, free_port: int) -> None:
+def test_stopping_ends_the_session(start_drivnx: StartDrivnX, free_port: int) -> None:
     # CFX-APP-first-slice/AC-06
-    first = start_conflux("--no-browser", "--port", str(free_port))
+    first = start_drivnx("--no-browser", "--port", str(free_port))
     client = sign_in(first.wait_for_launch())
     assert client.get("/api/session").json() == {"authenticated": True}
 
@@ -342,7 +342,7 @@ def test_stopping_ends_the_session(start_conflux: StartConflux, free_port: int) 
     assert first.process.wait(timeout=10) == 0
     assert "Traceback" not in first.all_output()
 
-    second = start_conflux("--no-browser", "--port", str(free_port)).wait_for_launch()
+    second = start_drivnx("--no-browser", "--port", str(free_port)).wait_for_launch()
     assert second.port == free_port
     assert client.get("/api/session").json() == {"authenticated": False}
     assert client.get("/api/workspace").status_code == 401
@@ -350,7 +350,7 @@ def test_stopping_ends_the_session(start_conflux: StartConflux, free_port: int) 
 
 @posix_only
 def test_logs_contain_no_token_or_launch_code(
-    start_conflux: StartConflux, free_port: int, tmp_path: Path
+    start_drivnx: StartDrivnX, free_port: int, tmp_path: Path
 ) -> None:
     # CFX-APP-first-slice/AC-12: the code goes to a browser here, so printing it isn't what is tested.
     # The unreadable row is there because DuckDB's error message quotes the row.
@@ -358,7 +358,7 @@ def test_logs_contain_no_token_or_launch_code(
     browser = tmp_path / "browser"
     browser.write_text(f'#!/bin/sh\nprintf %s "$1" > "{opened}"\n')
     browser.chmod(0o755)
-    conflux = start_conflux(
+    drivnx = start_drivnx(
         "--port", str(free_port), "--log-level", "trace", browser=f"{browser} %s"
     )
     origin = f"http://127.0.0.1:{free_port}"
@@ -396,9 +396,9 @@ def test_logs_contain_no_token_or_launch_code(
         assert unreadable.status_code == 409
     httpx.post(origin + "/api/session", json={"code": code}, headers={"Origin": origin})
 
-    conflux.process.terminate()
-    conflux.process.wait(timeout=10)
-    output = conflux.all_output()
+    drivnx.process.terminate()
+    drivnx.process.wait(timeout=10)
+    output = drivnx.all_output()
     assert "/api/session" in output, "trace logging produced no request lines"
     assert code not in output
     assert token not in output
@@ -411,10 +411,10 @@ VITE_ORIGIN = "http://127.0.0.1:5173"
 
 
 def test_the_dev_origin_is_refused_without_the_dev_flag(
-    start_conflux: StartConflux,
+    start_drivnx: StartDrivnX,
 ) -> None:
     # CFX-APP-first-slice/AC-52
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
 
     response = httpx.get(
         launch.origin + "/api/session", headers={"Origin": VITE_ORIGIN}
@@ -424,14 +424,14 @@ def test_the_dev_origin_is_refused_without_the_dev_flag(
 
 
 def test_the_dev_flag_allows_only_that_origin_and_links_to_it(
-    start_conflux: StartConflux, free_port: int
+    start_drivnx: StartDrivnX, free_port: int
 ) -> None:
     # CFX-APP-first-slice/AC-52
-    conflux = start_conflux(
+    drivnx = start_drivnx(
         "--no-browser", "--port", str(free_port), "--dev-origin", VITE_ORIGIN
     )
 
-    url = conflux.wait_for_url().group(0)
+    url = drivnx.wait_for_url().group(0)
 
     origin = f"http://127.0.0.1:{free_port}"
     assert url.startswith(VITE_ORIGIN + "/#launch=")
@@ -445,23 +445,23 @@ def test_the_dev_flag_allows_only_that_origin_and_links_to_it(
     "origin", ["http://evil.example:5173", "https://127.0.0.1:5173", "127.0.0.1:5173"]
 )
 def test_the_dev_flag_refuses_anything_but_a_loopback_origin(
-    start_conflux: StartConflux, origin: str
+    start_drivnx: StartDrivnX, origin: str
 ) -> None:
     # CFX-APP-first-slice/AC-52
-    conflux = start_conflux("--no-browser", f"--dev-origin={origin}")
+    drivnx = start_drivnx("--no-browser", f"--dev-origin={origin}")
 
-    assert conflux.process.wait(timeout=10) == 2
-    assert "--dev-origin" in conflux.all_output()
+    assert drivnx.process.wait(timeout=10) == 2
+    assert "--dev-origin" in drivnx.all_output()
 
 
 @posix_only
 def test_sign_in_works_through_the_vite_proxy(
-    start_conflux: StartConflux, free_port: int, unused_port: int
+    start_drivnx: StartDrivnX, free_port: int, unused_port: int
 ) -> None:
     # CFX-APP-first-slice/AC-52: the real dev server, so a Host check it breaks would show here.
     vite_origin = f"http://127.0.0.1:{unused_port}"
     code = (
-        start_conflux(
+        start_drivnx(
             "--no-browser", "--port", str(free_port), "--dev-origin", vite_origin
         )
         .wait_for_launch()
@@ -496,10 +496,10 @@ def test_sign_in_works_through_the_vite_proxy(
 
 
 def test_an_unencodable_launch_code_is_refused_without_a_crash(
-    start_conflux: StartConflux,
+    start_drivnx: StartDrivnX,
 ) -> None:
     # CFX-APP-first-slice/AC-10: found in the T02 review; it returned 500 and logged a traceback.
-    launch = start_conflux("--no-browser").wait_for_launch()
+    launch = start_drivnx("--no-browser").wait_for_launch()
 
     response = httpx.post(
         launch.origin + "/api/session",
@@ -515,11 +515,11 @@ def test_an_unencodable_launch_code_is_refused_without_a_crash(
     "path", ["/", "/assets/missing.js", "/api/session", "/api/workspace"]
 )
 def test_every_response_refuses_framing_and_outside_content(
-    start_conflux: StartConflux, path: str
+    start_drivnx: StartDrivnX, path: str
 ) -> None:
     # Found in the T02 review: another local page could frame the signed-in UI, and other local
     # ports count as the same site, so SameSite doesn't help.
-    origin = start_conflux("--no-browser").wait_for_launch().origin
+    origin = start_drivnx("--no-browser").wait_for_launch().origin
 
     headers = httpx.get(origin + path).headers
 
@@ -530,9 +530,9 @@ def test_every_response_refuses_framing_and_outside_content(
 
 
 def test_a_host_refusal_also_carries_the_security_headers(
-    start_conflux: StartConflux,
+    start_drivnx: StartDrivnX,
 ) -> None:
-    origin = start_conflux("--no-browser").wait_for_launch().origin
+    origin = start_drivnx("--no-browser").wait_for_launch().origin
 
     response = httpx.get(origin + "/api/session", headers={"Host": "evil.example"})
 

@@ -1,6 +1,6 @@
 """What makes `uv build --wheel` the one build command for a release.
 
-Every wheel gets the UI built from this checkout, and pins what running Conflux needs to `uv.lock`
+Every wheel gets the UI built from this checkout, and pins what running DrivnX needs to `uv.lock`
 (Section 7 of the direction doc), so installing the wheel gets the versions that were tested.
 Installing from this folder doesn't: uv then reads the ranges in `pyproject.toml`, not these pins.
 """

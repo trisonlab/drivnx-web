@@ -1,5 +1,5 @@
 [project]
-name = "conflux-data"
+name = "drivnx-data"
 version = "0.0.0"
 description = "Local runtime and browser UI that turn unfamiliar data into evidence-backed understanding."
 readme = "README.md"
@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-conflux = "local_api.cli:main"
+drivnx = "local_api.cli:main"
 
 [build-system]
 requires = ["hatchling==1.33.0"]

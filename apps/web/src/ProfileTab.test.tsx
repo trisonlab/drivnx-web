@@ -7,7 +7,7 @@ import { App } from "./App";
 const POLLED_WITHIN = { timeout: 3000 };
 
 const workspace = {
-  location: "/home/me/Conflux/default",
+  location: "/home/me/DrivnX/default",
   name: "Sales",
   ai_mode: "off",
   setup_complete: true,
@@ -364,13 +364,13 @@ test("a cancelled run says so, and its results don't appear as current", async (
 
 test("a failed run says why, in the server's words", async () => {
   // CFX-APP-csv-profile/AC-11
-  runs = [run({ status: "failed", failure: "Conflux can't find this file. It may have moved or been deleted." })];
+  runs = [run({ status: "failed", failure: "DrivnX can't find this file. It may have moved or been deleted." })];
   renderApp();
 
   const panel = await profilePanel();
 
   expect(await within(panel).findByRole("alert")).toHaveTextContent(
-    "This profile couldn't finish. Conflux can't find this file. It may have moved or been deleted.",
+    "This profile couldn't finish. DrivnX can't find this file. It may have moved or been deleted.",
   );
   expect(panel).not.toHaveTextContent("from the run before");
 });
@@ -1036,7 +1036,7 @@ test("values that can't be worked out say why, and the saved metrics still show"
   runs = [run()];
   onValues = () =>
     Response.json(
-      { detail: "Conflux can't find this file. It may have moved or been deleted." },
+      { detail: "DrivnX can't find this file. It may have moved or been deleted." },
       { status: 409 },
     );
   renderApp();
@@ -1045,7 +1045,7 @@ test("values that can't be worked out say why, and the saved metrics still show"
 
   const shown = await valuesSection();
   expect(await within(shown).findByRole("alert")).toHaveTextContent(
-    "Conflux can't find this file. It may have moved or been deleted.",
+    "DrivnX can't find this file. It may have moved or been deleted.",
   );
   expect(within(await rowFor("city")).getByText("12 (0.01%)")).toBeInTheDocument();
 });

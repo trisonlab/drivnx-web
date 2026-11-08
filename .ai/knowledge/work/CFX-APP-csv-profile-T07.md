@@ -70,8 +70,8 @@ Known limits from planning:
 
 ## From reviewing T07
 - **A correction could slip in while a run started.** The start read the source's settings, then the file, and only then the dataset, so a correction saved in between gave a completed run, shown as current, that read with the old settings and counted a header as a row. The start now reads the dataset first, so a correction after either read replaces it and the start is refused. A test saves the correction while the start reads the file's columns.
-- **The busy message didn't reach the screen.** Saving settings answered 503 with "Conflux is busy… Try again.", but the form said "Start Conflux again". It now shows the server's words, as starting a run already did.
-- **Known limit, older than T07 (INFERRED from reading the code, not reproduced):** if the workspace is busy past the timeout just as a job records its end, the run stays `running` until Conflux restarts, and every later start is refused until then. The job records its end in `finally`, so only that write can fail this way.
+- **The busy message didn't reach the screen.** Saving settings answered 503 with "DrivnX is busy… Try again.", but the form said "Start DrivnX again". It now shows the server's words, as starting a run already did.
+- **Known limit, older than T07 (INFERRED from reading the code, not reproduced):** if the workspace is busy past the timeout just as a job records its end, the run stays `running` until DrivnX restarts, and every later start is refused until then. The job records its end in `finally`, so only that write can fail this way.
 
 ## Verification
 Verified 2026-11-07 on the uncommitted branch `feat/cfx-app-csv-profile-t07-runs-that-cant-go-ahead`, after the review's fixes.

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { App } from "./App";
 
 const workspace = {
-  location: "/home/me/Conflux/default",
+  location: "/home/me/DrivnX/default",
   name: "Sales",
   ai_mode: "off",
   setup_complete: true,
@@ -186,13 +186,13 @@ test("a validation error without a message gets a general one", async () => {
 test.each([
   ["the session has ended", 401],
   ["the server failed", 500],
-])("when %s, it says to start Conflux again", async (_case, status) => {
+])("when %s, it says to start DrivnX again", async (_case, status) => {
   onConnect = () => Response.json({ detail: "no" }, { status });
   renderApp();
 
   await connect("/data/x.csv");
 
-  expect(await screen.findByRole("alert")).toHaveTextContent(/start conflux again/i);
+  expect(await screen.findByRole("alert")).toHaveTextContent(/start drivnx again/i);
 });
 
 test("a file that has moved is marked unavailable and the app keeps working", async () => {

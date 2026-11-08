@@ -444,8 +444,8 @@ def test_a_failed_run_keeps_the_errors_text_to_itself(
 
     wait_for_jobs_to_end()
     assert ended["status"] == "failed"
-    # CFX-APP-csv-profile/AC-11: a reason of Conflux's own, not DuckDB's.
-    assert ended["failure"] == "Conflux couldn't profile this file."
+    # CFX-APP-csv-profile/AC-11: a reason of DrivnX's own, not DuckDB's.
+    assert ended["failure"] == "DrivnX couldn't profile this file."
     # Python would print an error that escapes the thread, with the row in its text.
     assert escaped_errors == []
     captured = capfd.readouterr()
@@ -459,7 +459,7 @@ def test_a_run_that_meets_a_busy_workspace_says_so(
 ) -> None:
     # CFX-APP-csv-profile/AC-11: the file is fine, so the message mustn't blame it.
     def busy_save(*_args) -> None:
-        raise WorkspaceBusy("Conflux is busy writing to this workspace. Try again.")
+        raise WorkspaceBusy("DrivnX is busy writing to this workspace. Try again.")
 
     monkeypatch.setattr(profile_jobs, "add_observations", busy_save)
     path = tmp_path / "people.csv"
@@ -468,7 +468,7 @@ def test_a_run_that_meets_a_busy_workspace_says_so(
     run = finished(client, start(client, connect(client, path)))
 
     assert run["status"] == "failed"
-    assert run["failure"] == "Conflux is busy writing to this workspace. Try again."
+    assert run["failure"] == "DrivnX is busy writing to this workspace. Try again."
 
 
 def test_a_run_that_runs_out_of_memory_says_so(
@@ -483,7 +483,7 @@ def test_a_run_that_runs_out_of_memory_says_so(
     run = finished(client, start(client, source))
 
     assert run["status"] == "failed"
-    assert run["failure"] == "Conflux ran out of memory profiling this file."
+    assert run["failure"] == "DrivnX ran out of memory profiling this file."
 
 
 def test_a_row_that_cant_be_read_fails_the_run_and_says_so(
@@ -558,7 +558,7 @@ def wait_for_jobs_to_end() -> None:
 @pytest.mark.parametrize(
     "mistake",
     [
-        KeyError("a mistake in Conflux"),
+        KeyError("a mistake in DrivnX"),
         ValueError("This profile run isn't running."),
         ProgrammingError("SELECT nothing", {}, Exception("no such table")),
     ],
@@ -571,7 +571,7 @@ def test_a_mistake_in_a_job_ends_the_run_and_stays_visible(
     escaped_errors: list[BaseException | None],
     mistake: Exception,
 ) -> None:
-    # Left `running`, it would refuse every later run until Conflux restarts.
+    # Left `running`, it would refuse every later run until DrivnX restarts.
     def buggy_measure(*_args, **_kwargs):
         raise mistake
 
@@ -732,7 +732,7 @@ def test_a_file_removed_during_a_run_fails_and_says_so(
     run = finished(client, start(client, source))
 
     assert run["status"] == "failed"
-    assert run["failure"] == "Conflux can't find this file. It may have moved or been deleted."
+    assert run["failure"] == "DrivnX can't find this file. It may have moved or been deleted."
     assert run["metrics"] == []
 
 
@@ -772,7 +772,7 @@ def test_a_file_that_becomes_unreadable_during_a_run_fails_and_says_so(
         path.chmod(0o600)
 
     assert run["status"] == "failed"
-    assert run["failure"] == "Conflux doesn't have permission to read this file."
+    assert run["failure"] == "DrivnX doesn't have permission to read this file."
 
 
 def test_a_file_replaced_by_a_pipe_during_a_run_still_ends_the_run(
@@ -812,7 +812,7 @@ def test_a_file_that_cant_be_looked_at_during_a_run_still_says_why(
     run = finished(client, start(client, source))
 
     assert run["status"] == "failed"
-    assert run["failure"] == "Conflux couldn't read this file."
+    assert run["failure"] == "DrivnX couldn't read this file."
 
 
 @pytest.mark.skipif(os.geteuid() == 0, reason="root can read any file")
@@ -833,7 +833,7 @@ def test_a_file_that_cant_be_read_is_refused_before_a_run_starts(
         path.chmod(0o600)
 
     assert response.status_code == 409
-    assert response.json()["detail"] == "Conflux doesn't have permission to read this file."
+    assert response.json()["detail"] == "DrivnX doesn't have permission to read this file."
     assert client.get("/api/profile-runs").json() == []
 
 
@@ -878,7 +878,7 @@ def test_every_file_can_be_profiled_after_saving_its_settings(
 def test_a_busy_workspace_says_so(
     client: TestClient, workspace_dir: Path, tmp_path: Path
 ) -> None:
-    # T03's review: this was a bare 500, with "Conflux is busy" never reaching the user.
+    # T03's review: this was a bare 500, with "DrivnX is busy" never reaching the user.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
     source = connect(client, path)
@@ -970,7 +970,7 @@ def test_a_file_with_no_header_that_lost_columns_fails(
 
     assert finished(client, run)["status"] == "failed"
     wait_for_jobs_to_end()
-    # Expected, so it's handled here and doesn't look like a mistake in Conflux.
+    # Expected, so it's handled here and doesn't look like a mistake in DrivnX.
     assert escaped_errors == []
 
 

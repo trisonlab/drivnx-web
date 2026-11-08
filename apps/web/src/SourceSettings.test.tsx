@@ -195,7 +195,7 @@ test("settings the file can't be read with are refused with the server's words",
   // CFX-APP-csv-profile/AC-03
   onSave = () =>
     Response.json(
-      { detail: "Conflux can't read this file with these settings. Your previous settings are still in use." },
+      { detail: "DrivnX can't read this file with these settings. Your previous settings are still in use." },
       { status: 422 },
     );
   showSettings();
@@ -212,24 +212,24 @@ test("settings the file can't be read with are refused with the server's words",
 test("a file that has gone says so when saving", async () => {
   // CFX-APP-csv-profile/AC-03
   onSave = () =>
-    Response.json({ detail: "Conflux can't find this file. It may have moved or been deleted." }, { status: 409 });
+    Response.json({ detail: "DrivnX can't find this file. It may have moved or been deleted." }, { status: 409 });
   showSettings();
   await open();
 
   await userEvent.click(screen.getByRole("button", { name: "Save settings" }));
 
-  expect(await screen.findByRole("alert")).toHaveTextContent("Conflux can't find this file");
+  expect(await screen.findByRole("alert")).toHaveTextContent("DrivnX can't find this file");
 });
 
 test("a busy workspace says so when saving, so the user tries again", async () => {
-  // Found reviewing T07: the server says it's busy, and "Start Conflux again" was the wrong advice.
-  onSave = () => Response.json({ detail: "Conflux is busy writing to this workspace. Try again." }, { status: 503 });
+  // Found reviewing T07: the server says it's busy, and "Start DrivnX again" was the wrong advice.
+  onSave = () => Response.json({ detail: "DrivnX is busy writing to this workspace. Try again." }, { status: 503 });
   showSettings();
   await open();
 
   await userEvent.click(screen.getByRole("button", { name: "Save settings" }));
 
-  expect(await screen.findByRole("alert")).toHaveTextContent("Conflux is busy writing to this workspace. Try again.");
+  expect(await screen.findByRole("alert")).toHaveTextContent("DrivnX is busy writing to this workspace. Try again.");
 });
 
 test.each(["", "1001", "2.5"])("%j isn't accepted as lines to skip", async (typed) => {
@@ -254,7 +254,7 @@ test("settings can't be changed while the file can't be found", async () => {
   showSettings({ ...report, available: false });
   await open();
 
-  expect(screen.getByText(/can't be changed until Conflux can find this file/)).toBeInTheDocument();
+  expect(screen.getByText(/can't be changed until DrivnX can find this file/)).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Save settings" })).not.toBeInTheDocument();
 });
 

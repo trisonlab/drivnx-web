@@ -1,4 +1,4 @@
-# 0003 — Contract internal schema: Conflux-native rules, ODCS 3.2.0 as an export format
+# 0003 — Contract internal schema: DrivnX-native rules, ODCS 3.2.0 as an export format
 
 - **Status:** Accepted 2026-11-01
 - **Date:** 2026-11-01
@@ -10,7 +10,7 @@
 ## Context
 
 A Data Contract holds a dataset's purpose and limitations, plus rules of seven types: required, type, unique,
-accepted values, range, identifier and relationship (§3, §12). The question is whether Conflux stores contracts in its
+accepted values, range, identifier and relationship (§3, §12). The question is whether DrivnX stores contracts in its
 own shape and exports ODCS, or stores ODCS documents directly.
 
 What matters for this decision:
@@ -28,7 +28,7 @@ What matters for this decision:
 
 ## Decision
 
-**1. Contracts are stored in a Conflux-native shape. ODCS exists only in exported files.** Nothing in the workspace is
+**1. Contracts are stored in a DrivnX-native shape. ODCS exists only in exported files.** Nothing in the workspace is
 an ODCS document, and exports are never read back (ADR 0002).
 
 **2. A rule is a row with a type, its target fields and typed parameters.** This is the shape, not final DDL:
@@ -81,7 +81,7 @@ range rule means a user can set a range without also having to define a type rul
 
 **5. Export is a pure function from one contract version to one ODCS v3.2.0 document, in YAML or JSON.**
 
-| Conflux | ODCS |
+| DrivnX | ODCS |
 |---|---|
 | Contract id, version | `id`, `version` (the version number as a string, with no semantic-version meaning) |
 | Purpose, limitations | `description.purpose`, `description.limitations` |
@@ -100,19 +100,19 @@ The export rules:
 - **Only rules in the contract (point 3) are exported, and only they make an expectation.** A property appears only if it
   has at least one rule, or is a relationship target (below). `logicalType` appears only from a type or range rule.
   Observed types and Inferred suggestions never go in, so an export can't present them as Defined.
-- **`status` is left out.** It means lifecycle in ODCS (`draft`, `active`) and Phase 1 has no such lifecycle. Conflux's
+- **`status` is left out.** It means lifecycle in ODCS (`draft`, `active`) and Phase 1 has no such lifecycle. DrivnX's
   trust state is a different idea.
 - **Relationships always use fully qualified, id-based references, at schema level.** Shorthand (`customers.id`) fails
   validation on a column name with a space, and silently misreads a column name containing a dot. CSV headers can
   contain both.
 - **A relationship's target dataset is included in the same document as a marked stub:** a `schema[]` object with only
-  ids and names for the target fields, plus the custom property `confluxReferenceOnly: true`. ODCS's other option,
+  ids and names for the target fields, plus the custom property `drivnxReferenceOnly: true`. ODCS's other option,
   referencing another file, only accepts `.yaml`/`.yml` targets, so it fails for a JSON export and would require the
   target dataset to have its own contract. A consumer that ignores the marker may read the stub as being part of the
   contract, which the **Consequences** section accepts.
-- **Provenance goes in `customProperties` with `vendor: conflux`.** The definition of done requires exports to be
+- **Provenance goes in `customProperties` with `vendor: drivnx`.** The definition of done requires exports to be
   traceable to their evidence and author (§2), and ODCS has no field for this. Property-level rules are listed in
-  `confluxRules` on the property. Schema-level rules carry theirs in `confluxRule` on their own quality or relationship
+  `drivnxRules` on the property. Schema-level rules carry theirs in `drivnxRule` on their own quality or relationship
   entry. Each record holds the rule id, rule type, revision, author, reviewer, timestamp and evidence references.
 - **Provenance exports point at evidence; they don't copy it.** Previous values and AI prompt context are left out, as
   they may contain values taken from source data.
@@ -126,7 +126,7 @@ the exporter and re-running its tests, with no database migration.
 
 | Option | Why not |
 |---|---|
-| Store ODCS documents as the internal model | A document has no place for per-rule revisions, tombstones, state or provenance. Conflux would have to diff whole documents to work out which rule changed, or hide all of that in `customProperties`. It also ties the database to the standard's changes, and works against §9's "small subset". |
+| Store ODCS documents as the internal model | A document has no place for per-rule revisions, tombstones, state or provenance. DrivnX would have to diff whole documents to work out which rule changed, or hide all of that in `customProperties`. It also ties the database to the standard's changes, and works against §9's "small subset". |
 | Native tables that copy ODCS field names and nesting | Looks cheaper to export, but ties the schema to ODCS 3.2.0 and still needs a rule entity on top. The mapping table above is short enough that this saves very little. |
 | Express every rule as an ODCS `quality` entry | Every rule would then have an `id` and `customProperties`, but ODCS's metric library has no range metric, so range would need `sql` or `custom`. It also implies executable checks with thresholds, and Phase 1 has no validation. |
 | Use the `open-data-contract-standard` PyPI models (3.2.0) in the exporter | Not needed for a small subset: a dict plus a schema test proves the same thing without another runtime dependency. Reconsider if the subset grows much. Not evaluated beyond its package metadata. |
@@ -141,9 +141,9 @@ the exporter and re-running its tests, with no database migration.
   - Adding a rule type is additive.
 - **Harder or accepted:**
   - The exporter's mapping has to be kept and tested.
-  - Export loses information: ODCS consumers see the expectations, and Conflux's trust detail only as custom properties.
-  - No round trip. A contract edited outside Conflux can't come back in Phase 1.
-  - A consumer can't tell a stub from a real schema object unless it reads `confluxReferenceOnly`.
+  - Export loses information: ODCS consumers see the expectations, and DrivnX's trust detail only as custom properties.
+  - No round trip. A contract edited outside DrivnX can't come back in Phase 1.
+  - A consumer can't tell a stub from a real schema object unless it reads `drivnxReferenceOnly`.
   - `identifier` maps to ODCS `primaryKey`, which is narrower than "this identifies a customer": a business identifier
     needn't be the table's primary key. It's the closest ODCS field, and the rule's `ruleType` in provenance keeps the
     original meaning. An identifier rule doesn't add `required` or `unique`. Those stay separate rules (§3).

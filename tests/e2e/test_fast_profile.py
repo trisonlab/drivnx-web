@@ -5,15 +5,15 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page, expect
 
-from ..conftest import REPO_ROOT, StartConflux
+from ..conftest import REPO_ROOT, StartDrivnX
 from .test_connect_csv import connect, details_of, open_set_up_app
 
 CSV_DIR = REPO_ROOT / "testdata" / "csv"
 
 
 @pytest.fixture
-def app(start_conflux: StartConflux, page: Page) -> Page:
-    open_set_up_app(page, start_conflux("--no-browser").wait_for_launch().url)
+def app(start_drivnx: StartDrivnX, page: Page) -> Page:
+    open_set_up_app(page, start_drivnx("--no-browser").wait_for_launch().url)
     return page
 
 

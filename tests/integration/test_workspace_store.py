@@ -20,7 +20,7 @@ from artifacts.workspace import (
     open_workspace,
 )
 
-from ..conftest import StartConflux, posix_only
+from ..conftest import StartDrivnX, posix_only
 
 CREATE_FAMILY = """
 op.execute("CREATE TABLE parent (id INTEGER PRIMARY KEY, name TEXT)")
@@ -188,10 +188,10 @@ def test_only_the_last_three_backups_are_kept(
 
 
 def test_a_newer_schema_is_refused_and_the_file_is_unchanged(
-    start_conflux: StartConflux, workspace_dir: Path
+    start_drivnx: StartDrivnX, workspace_dir: Path
 ) -> None:
     # CFX-APP-first-slice/AC-19, through the real command and its own migrations.
-    first = start_conflux("--no-browser", workspace=workspace_dir)
+    first = start_drivnx("--no-browser", workspace=workspace_dir)
     first.wait_for_launch()
     first.process.terminate()
     first.process.wait(timeout=10)
@@ -203,11 +203,11 @@ def test_a_newer_schema_is_refused_and_the_file_is_unchanged(
     connection.close()
     before = fingerprint(database)
 
-    second = start_conflux("--no-browser", workspace=workspace_dir)
+    second = start_drivnx("--no-browser", workspace=workspace_dir)
 
     assert second.process.wait(timeout=10) == 1
     output = second.all_output()
-    assert "newer version of Conflux" in output
+    assert "newer version of DrivnX" in output
     assert "Traceback" not in output
     assert fingerprint(database) == before
     assert backups(workspace_dir) == []
@@ -286,7 +286,7 @@ def test_a_file_that_is_not_a_database_is_refused_and_unchanged(
     database = workspace_dir / "workspace.db"
     database.write_bytes(contents)
 
-    with pytest.raises(WorkspaceError, match="isn't a Conflux workspace"):
+    with pytest.raises(WorkspaceError, match="isn't a DrivnX workspace"):
         open_workspace(workspace_dir)
 
     assert database.read_bytes() == contents
@@ -304,7 +304,7 @@ def test_someone_elses_database_with_the_same_name_is_refused_and_unchanged(
     connection.close()
     before = fingerprint(database)
 
-    with pytest.raises(WorkspaceError, match="isn't a Conflux workspace"):
+    with pytest.raises(WorkspaceError, match="isn't a DrivnX workspace"):
         open_workspace(workspace_dir)
 
     assert fingerprint(database) == before
@@ -435,7 +435,7 @@ def test_opening_tightens_loose_permissions(workspace_dir: Path) -> None:
     backup.write_bytes(b"")
     stale_wal = workspace_dir / "workspace.db-wal"
     stale_wal.write_bytes(b"")
-    lock = workspace_dir / ".conflux.lock"
+    lock = workspace_dir / ".drivnx.lock"
     notes = workspace_dir / "notes.txt"
     notes.write_text("the user's own file")
     notes.chmod(0o644)
@@ -449,7 +449,7 @@ def test_opening_tightens_loose_permissions(workspace_dir: Path) -> None:
     assert mode(database) == 0o600
     assert mode(backup) == 0o600
     assert mode(lock) == 0o600
-    # Conflux only touches its own files.
+    # DrivnX only touches its own files.
     assert mode(notes) == 0o644
 
 

@@ -71,7 +71,7 @@ def create_app(
     """Build the app. In development Vite serves the UI, so `ui_dir` is None."""
     if ui_dir is not None and not (ui_dir / "index.html").is_file():
         raise MissingUiBundleError(
-            f"The UI bundle is missing from {ui_dir}. Reinstall Conflux."
+            f"The UI bundle is missing from {ui_dir}. Reinstall DrivnX."
         )
     # The generated API docs are off: they load scripts from a CDN, and nothing may leave the machine.
     @asynccontextmanager

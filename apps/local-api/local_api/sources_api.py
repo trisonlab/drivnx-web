@@ -165,7 +165,7 @@ def _readable_file(text: str) -> Path:
         expanded = Path(text).expanduser()
     except RuntimeError:
         raise _refuse(
-            "Conflux couldn't work out your home directory. Enter the full path."
+            "DrivnX couldn't work out your home directory. Enter the full path."
         ) from None
     if not expanded.is_absolute():
         raise _refuse("Enter the full path to the file, not a relative one.")
@@ -189,10 +189,10 @@ def _readable_file(text: str) -> Path:
             "Rename the file or folder and connect it again."
         ) from None
     except PermissionError:
-        raise _refuse("Conflux doesn't have permission to read this file.") from None
+        raise _refuse("DrivnX doesn't have permission to read this file.") from None
     except (OSError, RuntimeError):
         # Python 3.12's resolve() raises RuntimeError on a symlink loop.
-        raise _refuse("Conflux couldn't read this path.") from None
+        raise _refuse("DrivnX couldn't read this path.") from None
     return path
 
 
@@ -216,7 +216,7 @@ def sources_router(workspace: Workspace) -> APIRouter:
         except CsvError as error:
             raise _refuse(str(error)) from None
         except OSError:
-            raise _refuse("Conflux couldn't read this file.") from None
+            raise _refuse("DrivnX couldn't read this file.") from None
         source = StoredSource(
             id=uuid.uuid4().hex,
             path=path,
@@ -247,7 +247,7 @@ def sources_router(workspace: Workspace) -> APIRouter:
             raise HTTPException(status_code=404, detail="There's no such source.")
         if not is_available(source.path):
             raise cannot_read(
-                "Conflux can't find this file. It may have moved or been deleted."
+                "DrivnX can't find this file. It may have moved or been deleted."
             )
         try:
             columns = read_columns(
@@ -263,10 +263,10 @@ def sources_router(workspace: Workspace) -> APIRouter:
             raise _refuse(str(error)) from None
         except PermissionError:
             raise cannot_read(
-                "Conflux doesn't have permission to read this file."
+                "DrivnX doesn't have permission to read this file."
             ) from None
         except OSError:
-            raise cannot_read("Conflux couldn't read this file.") from None
+            raise cannot_read("DrivnX couldn't read this file.") from None
         corrected = replace(
             source,
             delimiter=body.delimiter,
@@ -299,7 +299,7 @@ def sources_router(workspace: Workspace) -> APIRouter:
             raise HTTPException(status_code=404, detail="There's no such source.")
         if not is_available(source.path):
             raise cannot_read(
-                "Conflux can't find this file. It may have moved or been deleted."
+                "DrivnX can't find this file. It may have moved or been deleted."
             )
         # One row more than the page shows whether there is a next page, without counting rows.
         try:
@@ -317,10 +317,10 @@ def sources_router(workspace: Workspace) -> APIRouter:
             raise cannot_read(str(error)) from None
         except PermissionError:
             raise cannot_read(
-                "Conflux doesn't have permission to read this file."
+                "DrivnX doesn't have permission to read this file."
             ) from None
         except OSError:
-            raise cannot_read("Conflux couldn't read this file.") from None
+            raise cannot_read("DrivnX couldn't read this file.") from None
         return PageResponse(
             columns=[shown_cell(name) for name in page.columns],
             rows=[[shown_cell(value) for value in row] for row in page.rows[:limit]],

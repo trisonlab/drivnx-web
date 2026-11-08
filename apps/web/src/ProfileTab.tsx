@@ -77,7 +77,7 @@ export function profileStatus(
 }
 
 function startFailure(error: Error): string {
-  return error instanceof RunRefusedError ? error.message : "Conflux couldn't start this profile. Start Conflux again.";
+  return error instanceof RunRefusedError ? error.message : "DrivnX couldn't start this profile. Start DrivnX again.";
 }
 
 function shown(value: Metric["value"] | undefined): string {
@@ -185,7 +185,7 @@ function skippedLinesNote(lines: number): string {
     : `${lines} lines above the table were left out, as in the preview.`;
 }
 
-const VALUES_FAILED = "Conflux couldn't work out these values. Start Conflux again.";
+const VALUES_FAILED = "DrivnX couldn't work out these values. Start DrivnX again.";
 
 /** A column's values, worked out from the file when asked for. They're forgotten once closed, as
  * nothing keeps them (ADR 0004). */
@@ -351,7 +351,7 @@ function Results({ run }: { run: ProfileRun }) {
     setConfirming(flagged.has(column) ? column : null);
   };
   if (results.isError) {
-    return <p role="alert">Conflux couldn't load these results. Start Conflux again.</p>;
+    return <p role="alert">DrivnX couldn't load these results. Start DrivnX again.</p>;
   }
   if (!results.data) {
     return null;
