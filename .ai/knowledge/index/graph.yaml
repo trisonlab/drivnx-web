@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-08T15:13:21+00:00'
+updated_at: '2026-11-08T15:56:11+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 3ed3f976e9a1b5a34eb96c5016d7d30c5d41ff6f2aabf340ba26c7c196d0fb3f
@@ -98,7 +98,7 @@ sources:
   tests/integration/test_contract_rules.py: 3edf1eedc82e20f764f542126fb4e5d37f2029e6b87f42f6dc973d7c9644b0ec
   tests/integration/test_csv_detection.py: e29fbb7f02e194f223831f35f0161b408f260e3e5dc878529d2b0003e4ce5e84
   tests/integration/test_domain_entities.py: 6cb0f793dd39676a2162c779ca8722482c63ce4c09498a079262a85900ead3fb
-  tests/integration/test_fast_profile.py: bde50c0a891fcf1cd59f0e14a9ad728619f67aa1432e896564d8cbef8882b045
+  tests/integration/test_fast_profile.py: 66656a57b30b78aacb90201dedad8705aca39e9a30c1ab1c98d494c822fa050f
   tests/integration/test_finding_rules.py: 7787025fbd878895511827db96aa3f802aff9b50f8f676b527ba01c8303aa551
   tests/integration/test_findings_api.py: 6e7c46db97094eca0ed09a7fb78647e11c2e7f71a5a04d44f39dfce218156b03
   tests/integration/test_first_rows.py: 6ca527768da1909fc37fd0d351ba1f7697f12d5285bbcedfe42ab7f3475e3ca1
@@ -3705,90 +3705,96 @@ edges:
   - tests/integration/test_domain_entities.py:147
   - tests/integration/test_domain_entities.py:178
 - from: module:tests/integration/test_fast_profile.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_fast_profile.py:20
+- from: module:tests/integration/test_fast_profile.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-06
   status: CONFIRMED
   evidence:
-  - tests/integration/test_fast_profile.py:173
-  - tests/integration/test_fast_profile.py:196
-  - tests/integration/test_fast_profile.py:227
-  - tests/integration/test_fast_profile.py:259
+  - tests/integration/test_fast_profile.py:175
+  - tests/integration/test_fast_profile.py:198
+  - tests/integration/test_fast_profile.py:229
+  - tests/integration/test_fast_profile.py:261
 - from: module:tests/integration/test_fast_profile.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-07
   status: CONFIRMED
   evidence:
   - tests/integration/test_fast_profile.py:1
-  - tests/integration/test_fast_profile.py:73
-  - tests/integration/test_fast_profile.py:846
-  - tests/integration/test_fast_profile.py:921
-  - tests/integration/test_fast_profile.py:937
-  - tests/integration/test_fast_profile.py:962
+  - tests/integration/test_fast_profile.py:75
+  - tests/integration/test_fast_profile.py:852
+  - tests/integration/test_fast_profile.py:927
+  - tests/integration/test_fast_profile.py:943
+  - tests/integration/test_fast_profile.py:968
 - from: module:tests/integration/test_fast_profile.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-09
   status: CONFIRMED
   evidence:
-  - tests/integration/test_fast_profile.py:92
-  - tests/integration/test_fast_profile.py:115
-  - tests/integration/test_fast_profile.py:333
-  - tests/integration/test_fast_profile.py:592
+  - tests/integration/test_fast_profile.py:94
+  - tests/integration/test_fast_profile.py:117
+  - tests/integration/test_fast_profile.py:335
+  - tests/integration/test_fast_profile.py:594
 - from: module:tests/integration/test_fast_profile.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-11
   status: CONFIRMED
   evidence:
-  - tests/integration/test_fast_profile.py:447
-  - tests/integration/test_fast_profile.py:460
-  - tests/integration/test_fast_profile.py:477
-  - tests/integration/test_fast_profile.py:492
-  - tests/integration/test_fast_profile.py:510
-  - tests/integration/test_fast_profile.py:685
-  - tests/integration/test_fast_profile.py:726
-  - tests/integration/test_fast_profile.py:742
-  - tests/integration/test_fast_profile.py:763
-  - tests/integration/test_fast_profile.py:781
-  - tests/integration/test_fast_profile.py:801
-  - tests/integration/test_fast_profile.py:822
+  - tests/integration/test_fast_profile.py:449
+  - tests/integration/test_fast_profile.py:462
+  - tests/integration/test_fast_profile.py:479
+  - tests/integration/test_fast_profile.py:494
+  - tests/integration/test_fast_profile.py:512
+  - tests/integration/test_fast_profile.py:687
+  - tests/integration/test_fast_profile.py:728
+  - tests/integration/test_fast_profile.py:744
+  - tests/integration/test_fast_profile.py:766
+  - tests/integration/test_fast_profile.py:785
+  - tests/integration/test_fast_profile.py:806
+  - tests/integration/test_fast_profile.py:828
 - from: module:tests/integration/test_fast_profile.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-12
   status: CONFIRMED
   evidence:
-  - tests/integration/test_fast_profile.py:391
-  - tests/integration/test_fast_profile.py:411
-  - tests/integration/test_fast_profile.py:862
+  - tests/integration/test_fast_profile.py:393
+  - tests/integration/test_fast_profile.py:413
+  - tests/integration/test_fast_profile.py:868
 - from: module:tests/integration/test_fast_profile.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-13
   status: CONFIRMED
   evidence:
-  - tests/integration/test_fast_profile.py:630
+  - tests/integration/test_fast_profile.py:632
 - from: module:tests/integration/test_fast_profile.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-14
   status: CONFIRMED
   evidence:
-  - tests/integration/test_fast_profile.py:1011
-  - tests/integration/test_fast_profile.py:1031
-  - tests/integration/test_fast_profile.py:1050
-  - tests/integration/test_fast_profile.py:1071
-  - tests/integration/test_fast_profile.py:1116
-  - tests/integration/test_fast_profile.py:1131
-  - tests/integration/test_fast_profile.py:1193
-  - tests/integration/test_fast_profile.py:1229
-  - tests/integration/test_fast_profile.py:1253
-  - tests/integration/test_fast_profile.py:1268
-  - tests/integration/test_fast_profile.py:1335
-  - tests/integration/test_fast_profile.py:1356
-  - tests/integration/test_fast_profile.py:1368
+  - tests/integration/test_fast_profile.py:1017
+  - tests/integration/test_fast_profile.py:1037
+  - tests/integration/test_fast_profile.py:1056
+  - tests/integration/test_fast_profile.py:1077
+  - tests/integration/test_fast_profile.py:1122
+  - tests/integration/test_fast_profile.py:1137
+  - tests/integration/test_fast_profile.py:1199
+  - tests/integration/test_fast_profile.py:1235
+  - tests/integration/test_fast_profile.py:1259
+  - tests/integration/test_fast_profile.py:1274
+  - tests/integration/test_fast_profile.py:1341
+  - tests/integration/test_fast_profile.py:1362
+  - tests/integration/test_fast_profile.py:1374
 - from: module:tests/integration/test_fast_profile.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-15
   status: CONFIRMED
   evidence:
-  - tests/integration/test_fast_profile.py:289
-  - tests/integration/test_fast_profile.py:306
+  - tests/integration/test_fast_profile.py:291
+  - tests/integration/test_fast_profile.py:308
 - from: module:tests/integration/test_finding_rules.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-21
