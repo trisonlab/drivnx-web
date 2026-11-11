@@ -7,7 +7,7 @@ feature_revision: 4
 stories: [US-07]
 criteria: [AC-35, AC-36, AC-37, AC-38]
 blocked_by: [DRIVN-28]
-state: ready
+state: done
 external_key: DRIVN-31
 status: CONFIRMED
 ---
