@@ -67,6 +67,11 @@ criterion is listed in full, never as a range. The format and how to trace a lin
 **Pull requests.** Open them against `main` on `trisonlab/drivnx-web`. CI (`.github/workflows/ci.yml`) runs the tests,
 the secret scan and both dependency audits, and must pass before merging.
 
+**PR descriptions.** The Pumble GitHub app posts each description to `#pr-web` when the PR is opened, edited or merged,
+and Pumble shows it as raw text: headings, tables, backticks and `[text](url)` links all appear as typed. Write a
+short paragraph and plain `- ` bullets, with no markdown beyond that; paste bare links. Put long detail in the commits
+or a PR comment, which aren't posted. Every edit reposts the whole description, so edit only when it matters.
+
 ## 4. Using the AI skills
 
 The skills are committed in this repo, so you get them by cloning; there's nothing to install for them.
