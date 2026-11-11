@@ -48,7 +48,9 @@ workspace), not `/api/workspaces`, and the runtime needs no server-side folder b
    `.drivnx.lock` and take an **OS-held exclusive lock** on it. The OS releases that lock when the process dies, even
    on a crash, so the file's existence means nothing and it stays on disk. If a second runtime opens the same workspace,
    it exits with a clear message instead of sharing SQLite. Then open the workspace (create or migrate the database,
-   mark interrupted runs, ADR 0002).
+   mark interrupted runs, ADR 0002). On Windows the OS frees a dead process's lock a moment later, not at once, so
+   there DrivnX retries for up to 3 seconds before giving that message, and a clean close unlocks before closing the
+   file (added 2026-11-10, DRIVN-43).
 2. Bind Uvicorn to `127.0.0.1`. By default the OS picks a free port; `--port` sets one. Binding to anything other
    than a loopback address is refused.
 3. Generate in memory, with `secrets.token_urlsafe`, a **session token** (it lasts as long as the process) and a

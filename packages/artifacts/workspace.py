@@ -2,6 +2,7 @@ import errno
 import os
 import shutil
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,8 @@ DUCKDB_TEMP_NAME = "duckdb-tmp"
 LOCK_HELD_ERRORS = {errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK, errno.EDEADLK}
 OWNER_ONLY_DIRECTORY = 0o700
 OWNER_ONLY_FILE = 0o600
+# Windows frees a lock left by a closed handle or a dead process a moment later, not at once (ADR 0001).
+WINDOWS_LOCK_WAIT_SECONDS = 3.0
 MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 SYNC_FOLDER_NAMES = {
     "dropbox",
@@ -49,7 +52,7 @@ class Workspace:
 
     def close(self) -> None:
         self.engine.dispose()
-        os.close(self._lock_descriptor)
+        _release_lock(self._lock_descriptor)
 
 
 def default_workspace_directory() -> Path:
@@ -96,9 +99,7 @@ def _hold_lock(path: Path) -> int:
     descriptor = os.open(path, os.O_CREAT | os.O_RDWR, OWNER_ONLY_FILE)
     try:
         if sys.platform == "win32":
-            import msvcrt
-
-            msvcrt.locking(descriptor, msvcrt.LK_NBLCK, 1)
+            _lock_on_windows(descriptor)
         else:
             import fcntl
 
@@ -112,6 +113,32 @@ def _hold_lock(path: Path) -> int:
             "Use that one, or stop it and start again."
         ) from None
     return descriptor
+
+
+def _lock_on_windows(descriptor: int) -> None:
+    """Lock the first byte, retrying briefly: a DrivnX that just stopped may still hold it."""
+    import msvcrt
+
+    deadline = time.monotonic() + WINDOWS_LOCK_WAIT_SECONDS
+    while True:
+        try:
+            os.lseek(descriptor, 0, os.SEEK_SET)
+            msvcrt.locking(descriptor, msvcrt.LK_NBLCK, 1)
+            return
+        except OSError as error:
+            if error.errno not in LOCK_HELD_ERRORS or time.monotonic() >= deadline:
+                raise
+            time.sleep(0.1)
+
+
+def _release_lock(descriptor: int) -> None:
+    """Unlock before closing: on Windows, closing a handle that still holds a lock frees it late."""
+    if sys.platform == "win32":
+        import msvcrt
+
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        msvcrt.locking(descriptor, msvcrt.LK_UNLCK, 1)
+    os.close(descriptor)
 
 
 def _connect_to(database: Path) -> Engine:
@@ -166,5 +193,5 @@ def open_workspace(directory: Path, migrations_dir: Path = MIGRATIONS_DIR) -> Wo
     try:
         return Workspace(directory, _open_database(directory, migrations_dir), lock)
     except WorkspaceError:
-        os.close(lock)
+        _release_lock(lock)
         raise

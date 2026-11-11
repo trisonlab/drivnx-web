@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-10T15:11:09+00:00'
+updated_at: '2026-11-11T15:35:24+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -70,7 +70,7 @@ sources:
   packages/artifacts/settings.py: f485bc3a90b6ba403d2377b93adc64737afefd8f837458e1b9b45a3cb4596289
   packages/artifacts/sources.py: 09ac9bf6be780f73b19bc1ad897d44a3dfb17633e8f525c540a2e0164154971e
   packages/artifacts/store.py: 342da5f8686ec2f8672e296a7c51b803e9617a5e25b9e413d87028715a65c352
-  packages/artifacts/workspace.py: 3db425c6790ab7ef48cffa94280cc04a6c41d0f742802a2fd1506263a77b2981
+  packages/artifacts/workspace.py: 5eb2e1c2ea6fcc8a9d8bbec8b9c5245b5a12038714d6d32321c71b7d6d2513a0
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
   packages/profiling/findings.py: 60e9053ec8d2a80e29cfacb8fcf8f48b66ec22347e9d9a113b03ddda06bb51ee
@@ -2989,13 +2989,13 @@ edges:
   to: module:packages/artifacts/schema.py
   status: CONFIRMED
   evidence:
-  - packages/artifacts/workspace.py:13
+  - packages/artifacts/workspace.py:14
 - from: module:packages/artifacts/workspace.py
   rel: imports
   to: module:packages/artifacts/store.py
   status: CONFIRMED
   evidence:
-  - packages/artifacts/workspace.py:19
+  - packages/artifacts/workspace.py:20
 - from: module:packages/profiling/findings.py
   rel: imports
   to: module:packages/profiling/sensitive.py

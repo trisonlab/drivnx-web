@@ -4,7 +4,7 @@ status: CONFIRMED
 generated_by: ai-skills knowledge discover
 evidence:
 - path: docs/adr/0001-workspace-packaging-and-session-token.md
-  sha256: 88ea93b7ae4b61172815d731874fa49d8db5df2e7c0e7b84ed4df9f88f4af6b8
+  sha256: c7aefa50fb13bd077a656403b33297704d19b0f350ccdecf82f1c7b4156289a6
 - path: docs/adr/0002-workspace-storage-sqlite-only.md
   sha256: 37710fce239923920c0c99664c13b07c646286cd0a6d9f60be5c62b4660e5283
 - path: docs/adr/0003-contract-schema-native-with-odcs-export.md
