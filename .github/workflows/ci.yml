@@ -32,6 +32,9 @@ jobs:
           node-version: "22"
       - run: uv sync --frozen
       - run: pnpm --dir apps/web install --frozen-lockfile
+      # Playwright's --with-deps runs apt-get; retry downloads so a short Ubuntu mirror outage doesn't fail the job.
+      - if: runner.os == 'Linux'
+        run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-retries
       - run: uv run --frozen playwright install --with-deps chromium
       - run: uv run --frozen pytest tests/integration tests/golden
       - run: uv run --frozen pytest tests/e2e
