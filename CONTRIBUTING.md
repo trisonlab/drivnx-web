@@ -167,6 +167,24 @@ you need it.** It adds:
 
 Without the CLI, the skills read the ticket and requirement files directly.
 
+### When the knowledge index conflicts
+
+`.ai/knowledge/index/facts.yaml` and `.ai/knowledge/index/graph.yaml` are generated from the repo's files by
+`ai-skills knowledge update`. Two branches that both change them conflict there, even when their code doesn't. Never
+resolve those files by hand: rebuild them.
+
+1. Bring your branch up to date by merging `main` into it (`git merge origin/main`). A merge needs only a normal
+   push; a rebase of a pushed branch needs a force-push.
+2. For the two index files, take `main`'s version:
+   `git checkout --theirs .ai/knowledge/index/facts.yaml .ai/knowledge/index/graph.yaml`.
+3. **With the CLI:** run `ai-skills knowledge update`, then `ai-skills knowledge check`. Run them in a clone that sits
+   next to `drivnx-docs` (the usual `DrivnX/` layout): the index points at `../drivnx-docs/docs/`, and from anywhere
+   else the requirement facts come out STALE or with absolute paths. The rebuilt `facts.yaml` should differ from
+   `main`'s by little more than its `updated_at` line; if it doesn't, check the layout before committing.
+4. **Without the CLI:** keep `main`'s version from step 2 and say in the PR that the index needs a rebuild. CI doesn't
+   check the index, so nothing fails; someone with the CLI rebuilds it after the merge.
+5. `git add` the two files, finish the merge and push.
+
 ### Changing the skill set
 
 - Don't edit files in `.claude/skills/` or `.agents/skills/`: they're pinned in `.ai/lock.yaml`, and updates
