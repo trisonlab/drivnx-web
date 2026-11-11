@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-11T15:35:24+00:00'
+updated_at: '2026-11-11T16:28:11+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -25,7 +25,7 @@ sources:
   .ai/knowledge/work/DRIVN-28.md: 8227f9426848b00e37752966c877ca58ea55ca11946e36ee43fa3eb39fd1777d
   .ai/knowledge/work/DRIVN-29.md: bf522f187c29412dc7ff3a3fb3217a9dc23e25c2c0881e99493209c6657c6133
   .ai/knowledge/work/DRIVN-30.md: 1fdd387ae5b738995394e87c4d5cfdd4cf885f563d23049195af7ccb74526f36
-  .ai/knowledge/work/DRIVN-31.md: c7b65932e51ac99731bf21ed14eb0446ae00f60e1008eb1c55d44e932ba83d7b
+  .ai/knowledge/work/DRIVN-31.md: d028db74241d15f5b816a0657aa1f7f12f2e59eea1caacfb972d8b11735a6a53
   .ai/knowledge/work/DRIVN-32.md: b644e71752f2f464563d1ecb7e65deddb20d024a8113ac9e0a19ec677f2884b0
   .github/workflows/ci.yml: ac5080294ae367239347e84a59eea9552b914673a4c769f7baf42cc52467fd9f
   apps/local-api/local_api/app.py: 030458dedbe9837471aee1f496d1c2efbbc098d55df80e6d9a7769361bc8f294
@@ -1426,7 +1426,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-31.md
   title: Earlier runs
-  state: ready
+  state: done
   external_key: DRIVN-31
 - id: ticket:DRIVN-32
   kind: ticket
