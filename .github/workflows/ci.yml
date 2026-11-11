@@ -32,9 +32,11 @@ jobs:
           node-version: "22"
       - run: uv sync --frozen
       - run: pnpm --dir apps/web install --frozen-lockfile
-      # Playwright's --with-deps runs apt-get; retry downloads so a short Ubuntu mirror outage doesn't fail the job.
-      - if: runner.os == 'Linux'
-        run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-retries
+      # Playwright's --with-deps runs apt-get on Linux; retry downloads so a short Ubuntu mirror outage doesn't fail
+      # the job. The step runs everywhere and acts on Linux only: a step condition isn't allowed here (tests/integration/test_ci.py).
+      - run: |
+          [ "$RUNNER_OS" != Linux ] || echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-retries
+        shell: bash
       - run: uv run --frozen playwright install --with-deps chromium
       - run: uv run --frozen pytest tests/integration tests/golden
       - run: uv run --frozen pytest tests/e2e

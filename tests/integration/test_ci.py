@@ -49,6 +49,21 @@ def test_no_step_can_fail_without_failing_the_run() -> None:
     assert "if:" not in workflow
 
 
+APT_RETRIES = (
+    "[ \"$RUNNER_OS\" != Linux ] || echo 'Acquire::Retries \"5\";' | sudo tee /etc/apt/apt.conf.d/80-retries"
+)
+
+
+def test_only_the_apt_retries_depend_on_the_platform() -> None:
+    # CFX-APP-first-slice/AC-53: a platform test in a step's shell could skip a check the way `if:` would. The one
+    # allowed sets up apt on Linux and runs no check.
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert "runner.os" not in workflow
+    assert workflow.count("RUNNER_OS") == 1
+    assert f"run: |\n          {APT_RETRIES}\n        shell: bash\n" in workflow
+
+
 def test_ci_runs_on_every_pull_request_and_on_main() -> None:
     assert (
         "\non:\n  pull_request:\n  push:\n    branches: [main]\n"
