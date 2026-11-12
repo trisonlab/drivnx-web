@@ -3,11 +3,11 @@ id: DRIVN-32
 legacy_id: CFX-APP-csv-profile-T12
 title: "Full journey and checks"
 feature: CFX-APP-csv-profile
-feature_revision: 4
+feature_revision: 5
 stories: [US-06, US-08]
 criteria: [AC-33, AC-40, AC-41]
 blocked_by: [DRIVN-23, DRIVN-27, DRIVN-30, DRIVN-31]
-state: blocked
+state: ready
 external_key: DRIVN-32
 status: CONFIRMED
 ---
@@ -25,4 +25,4 @@ The whole journey passes against the installed wheel, a scan for planted values 
 - [ ] AC-41 (US-08): Given the installed wheel, then the journey of connecting a CSV, correcting it, running a fast profile, running a full profile and opening a finding's evidence passes in Playwright from one origin, with an automated accessibility check on the new screens in each state.
 
 ## Expected evidence
-Playwright against the wheel, a raw scan of `workspace.db` and its WAL file, logs at their most detailed, measured figures for the 1 GB CSV, and an automated accessibility check. CI, macOS and Windows reported as NOT RUN until they can run.
+Playwright against the wheel, a raw scan of `workspace.db` and its WAL file, logs at their most detailed, measured figures for the 1 GB CSV, and an automated accessibility check. The CI run on Ubuntu, macOS and Windows for the pull request.

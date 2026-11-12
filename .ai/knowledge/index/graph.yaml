@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-11T16:28:11+00:00'
+updated_at: '2026-11-12T12:45:27+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -26,8 +26,8 @@ sources:
   .ai/knowledge/work/DRIVN-29.md: bf522f187c29412dc7ff3a3fb3217a9dc23e25c2c0881e99493209c6657c6133
   .ai/knowledge/work/DRIVN-30.md: 1fdd387ae5b738995394e87c4d5cfdd4cf885f563d23049195af7ccb74526f36
   .ai/knowledge/work/DRIVN-31.md: d028db74241d15f5b816a0657aa1f7f12f2e59eea1caacfb972d8b11735a6a53
-  .ai/knowledge/work/DRIVN-32.md: b644e71752f2f464563d1ecb7e65deddb20d024a8113ac9e0a19ec677f2884b0
-  .github/workflows/ci.yml: ac5080294ae367239347e84a59eea9552b914673a4c769f7baf42cc52467fd9f
+  .ai/knowledge/work/DRIVN-32.md: e5b78c8be29c21f2e42aed2633bba084e8174e89b7675ce0a1f760e387fd23fe
+  .github/workflows/ci.yml: 2712b1d48393d1fd57dd74f8c856e9f531c888a8deca45050661cde5de8df92a
   apps/local-api/local_api/app.py: 030458dedbe9837471aee1f496d1c2efbbc098d55df80e6d9a7769361bc8f294
   apps/local-api/local_api/binding.py: 8c76ea6d3c19e6a0675913f0219a36bb2d9a28db55f177d50e5b288eda052d84
   apps/local-api/local_api/cli.py: 318728dede8634bb41f0a7cbe4f288daf601e157d221aa3a0a7037dce15961a9
@@ -94,7 +94,7 @@ sources:
   tests/golden/test_metrics.py: a27d17ff3300a920fac8806c8e2b166ccb6434eeb299c7526903453c8abc15be
   tests/integration/test_artifact_store.py: 039ab464d137fcb1d8793cc751e0241a2e93a8cac66c4b54df91007520f1b356
   tests/integration/test_binding.py: 79eeb61ddbb635cafec5bbf4a570033e5c418aa09dc2adde55afb539a85bd0e7
-  tests/integration/test_ci.py: e87aef2d5f5bc8d9e5d785a9cdee22c7bd57e4f09ae7f3e06e0c7765ef312215
+  tests/integration/test_ci.py: 366b400252093cec0bab62852d61bd98037113e251cbe7560c64077bb096ea2f
   tests/integration/test_contract_rules.py: 3edf1eedc82e20f764f542126fb4e5d37f2029e6b87f42f6dc973d7c9644b0ec
   tests/integration/test_csv_detection.py: 068d198f0d58b279b66fc36d7dc260089b1c9a520525eb0511f1abd8e3660ddb
   tests/integration/test_domain_entities.py: 6cb0f793dd39676a2162c779ca8722482c63ce4c09498a079262a85900ead3fb
@@ -1433,7 +1433,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-32.md
   title: Full journey and checks
-  state: blocked
+  state: ready
   external_key: DRIVN-32
 edges:
 - from: criterion:CFX-APP-csv-profile/AC-01
@@ -3585,7 +3585,7 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-50
   status: CONFIRMED
   evidence:
-  - tests/integration/test_ci.py:85
+  - tests/integration/test_ci.py:100
 - from: module:tests/integration/test_ci.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-53
@@ -3594,7 +3594,8 @@ edges:
   - tests/integration/test_ci.py:1
   - tests/integration/test_ci.py:30
   - tests/integration/test_ci.py:45
-  - tests/integration/test_ci.py:85
+  - tests/integration/test_ci.py:58
+  - tests/integration/test_ci.py:100
 - from: module:tests/integration/test_contract_rules.py
   rel: imports
   to: module:tests/conftest.py
