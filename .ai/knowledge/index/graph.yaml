@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-12T12:45:27+00:00'
+updated_at: '2026-11-12T16:10:26+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -26,7 +26,7 @@ sources:
   .ai/knowledge/work/DRIVN-29.md: bf522f187c29412dc7ff3a3fb3217a9dc23e25c2c0881e99493209c6657c6133
   .ai/knowledge/work/DRIVN-30.md: 1fdd387ae5b738995394e87c4d5cfdd4cf885f563d23049195af7ccb74526f36
   .ai/knowledge/work/DRIVN-31.md: d028db74241d15f5b816a0657aa1f7f12f2e59eea1caacfb972d8b11735a6a53
-  .ai/knowledge/work/DRIVN-32.md: e5b78c8be29c21f2e42aed2633bba084e8174e89b7675ce0a1f760e387fd23fe
+  .ai/knowledge/work/DRIVN-32.md: f4f09d26c06b3ed6bf99f7e2ab1ff5ae4def713fd8e6b26c9ee86ec0719d995f
   .github/workflows/ci.yml: 2712b1d48393d1fd57dd74f8c856e9f531c888a8deca45050661cde5de8df92a
   apps/local-api/local_api/app.py: 030458dedbe9837471aee1f496d1c2efbbc098d55df80e6d9a7769361bc8f294
   apps/local-api/local_api/binding.py: 8c76ea6d3c19e6a0675913f0219a36bb2d9a28db55f177d50e5b288eda052d84
@@ -80,7 +80,7 @@ sources:
   pyproject.toml: b55797f5f695c8c2caaf7072b90dd5df66f109970ab2273172fe69ab8269ecbe
   testdata/generate_csv.py: 1efaee1071657759b0fc2d4b941aa442869dd30091144663bb4fc2be74738c91
   tests/conftest.py: bee722dcc59d4b6d49e6940542e8dd30257c87810fae23b176c518fb1e6c21d7
-  tests/e2e/test_accessibility.py: 474cea3db33637709b80ef6271e04024ee48728ff300dea38315443613d23180
+  tests/e2e/test_accessibility.py: 8f41a3afbc8cbae8b867920bcd0df2cb1f50793d16a96687e779df812524c71d
   tests/e2e/test_browser_security.py: 40921bd8aa1f8522bcb659e4f0f8a2088b6683918c87dc3cc541226fb7e0f699
   tests/e2e/test_connect_csv.py: 86c9356d9ffe11c5d23edaa9fbc970dbfc7a324900e6762b8b2ff2e58d07fc4c
   tests/e2e/test_fast_profile.py: 9cbb00b5b9de657de31bd804da4ae7b090e60198e31d54d8559cfac5e85d4ae5
@@ -89,6 +89,7 @@ sources:
   tests/e2e/test_full_journey.py: 575bab4e132dc3599afc7aba3d0aa9f6f36b9b93b37e5d3733d047e2a5530bfc
   tests/e2e/test_full_profile.py: 9b333f8b035a89fcccd4c55d0a6fa4bf0e432dfb29baf14517a7dc2e653520c1
   tests/e2e/test_preview.py: b3ed711aafcc06b6758a86fdb27a152d51d78c7d6f9d39a84192583ed02ea2c1
+  tests/e2e/test_profile_journey.py: e26888e465fde831f073f236feab708de2fd7e2d61025dab3341f81183f3afcc
   tests/e2e/test_source_settings.py: 40b61f2af153357b309e47229358626fd673783579a9e7372d035173f25bb816
   tests/e2e/test_values.py: 533333876f6a49b4e819392fd17e5647c4790c1308a49462a02e89e8b44aced7
   tests/golden/test_metrics.py: a27d17ff3300a920fac8806c8e2b166ccb6434eeb299c7526903453c8abc15be
@@ -122,6 +123,7 @@ sources:
   tests/integration/test_workspace.py: f0c83ee031b64ec48b4cec19ad50284a65e1fb93338365072d577ed66a8bff38
   tests/integration/test_workspace_api.py: 4a5bd4c68743d8c06efd68aed847b1dd62db88e274afd6bce0affa322257670c
   tests/integration/test_workspace_store.py: e0897385bf4fc5b492e29eef3328928938ebc78216335bf15b0a231f526013b9
+  tests/measure_large_csv.py: 7ecd66f5deda7846c590a5cac114023d4c70e5c4dfa7d23bd18575f819a39842
   uv.lock: f3a1c2c8c36dd95f16bd9f3c50b5fb8f963dbe29eaf332acdd0d5e2e3086143a
 nodes:
 - id: criterion:CFX-APP-csv-profile/AC-01
@@ -1017,6 +1019,10 @@ nodes:
   kind: module
   evidence:
   - tests/e2e/test_preview.py:1
+- id: module:tests/e2e/test_profile_journey.py
+  kind: module
+  evidence:
+  - tests/e2e/test_profile_journey.py:1
 - id: module:tests/e2e/test_source_settings.py
   kind: module
   evidence:
@@ -1149,6 +1155,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_workspace_store.py:1
+- id: module:tests/measure_large_csv.py
+  kind: module
+  evidence:
+  - tests/measure_large_csv.py:1
 - id: project
   kind: project
   evidence: []
@@ -1433,7 +1443,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-32.md
   title: Full journey and checks
-  state: ready
+  state: done
   external_key: DRIVN-32
 edges:
 - from: criterion:CFX-APP-csv-profile/AC-01
@@ -3043,13 +3053,30 @@ edges:
   to: module:tests/e2e/test_connect_csv.py
   status: CONFIRMED
   evidence:
-  - tests/e2e/test_accessibility.py:12
+  - tests/e2e/test_accessibility.py:13
 - from: module:tests/e2e/test_accessibility.py
   rel: imports
   to: module:tests/e2e/test_preview.py
   status: CONFIRMED
   evidence:
-  - tests/e2e/test_accessibility.py:13
+  - tests/e2e/test_accessibility.py:14
+- from: module:tests/e2e/test_accessibility.py
+  rel: imports
+  to: module:tests/integration/test_full_profile.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_accessibility.py:12
+- from: module:tests/e2e/test_accessibility.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-41
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_accessibility.py:166
+  - tests/e2e/test_accessibility.py:174
+  - tests/e2e/test_accessibility.py:192
+  - tests/e2e/test_accessibility.py:206
+  - tests/e2e/test_accessibility.py:233
+  - tests/e2e/test_accessibility.py:251
 - from: module:tests/e2e/test_browser_security.py
   rel: imports
   to: module:tests/conftest.py
@@ -3461,6 +3488,39 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/e2e/test_preview.py:116
+- from: module:tests/e2e/test_profile_journey.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_journey.py:11
+- from: module:tests/e2e/test_profile_journey.py
+  rel: imports
+  to: module:tests/e2e/test_accessibility.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_journey.py:12
+- from: module:tests/e2e/test_profile_journey.py
+  rel: imports
+  to: module:tests/e2e/test_connect_csv.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_journey.py:13
+- from: module:tests/e2e/test_profile_journey.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-33
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_journey.py:1
+  - tests/e2e/test_profile_journey.py:184
+  - tests/e2e/test_profile_journey.py:219
+- from: module:tests/e2e/test_profile_journey.py
+  rel: verifies
+  to: criterion:CFX-APP-csv-profile/AC-41
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_journey.py:116
+  - tests/e2e/test_profile_journey.py:232
 - from: module:tests/e2e/test_source_settings.py
   rel: imports
   to: module:tests/conftest.py
