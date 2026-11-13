@@ -7,7 +7,7 @@ feature_revision: 2
 stories: [US-01, US-03]
 criteria: [AC-01, AC-02, AC-03, AC-05, AC-07, AC-14]
 blocked_by: [DRIVN-46]
-state: blocked
+state: ready
 external_key: DRIVN-47
 status: CONFIRMED
 ---
@@ -31,4 +31,4 @@ A user adds a PostgreSQL connection in the Data Explorer, tests it, sees the ser
 API and Playwright tests against the fixture for each field, each failure message within the connect timeout, and a restart. A write through DrivnX's connection refused by the server.
 
 ## Blocked by
-DRIVN-46
+DRIVN-46, done (PR #18).

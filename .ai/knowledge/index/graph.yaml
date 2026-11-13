@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-13T13:08:26+00:00'
+updated_at: '2026-11-13T14:32:19+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -29,7 +29,7 @@ sources:
   .ai/knowledge/work/DRIVN-31.md: d028db74241d15f5b816a0657aa1f7f12f2e59eea1caacfb972d8b11735a6a53
   .ai/knowledge/work/DRIVN-32.md: f4f09d26c06b3ed6bf99f7e2ab1ff5ae4def713fd8e6b26c9ee86ec0719d995f
   .ai/knowledge/work/DRIVN-46.md: b4f7e57bf2416d0d677c65061eca0d860f5647e8e5b4fdf1d3025e1ef481f4ee
-  .ai/knowledge/work/DRIVN-47.md: 080a918077b1aeb8d31fb8b663356036a95e9ca227bed7768f0d3ded4cfc6662
+  .ai/knowledge/work/DRIVN-47.md: 6e5ff2d20dbf95b0da576250460ba9c81868e4991a27a6760f1562211cbd1812
   .ai/knowledge/work/DRIVN-48.md: 2d62a8a9a2f30eff68c0649651c1feb329b23dc47da6d5e63f7b5972fb028db2
   .ai/knowledge/work/DRIVN-49.md: 6db72c0eeede243b2a7bafa1cf936668f911520f94fcc68fd36ed4edd1053a92
   .ai/knowledge/work/DRIVN-50.md: bac215bbfee2e6335e1d49acb27a6f1c352b514fdbb7e3dda4b1409ed591c3fb
@@ -1798,7 +1798,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-47.md
   title: Add a connection
-  state: blocked
+  state: ready
   external_key: DRIVN-47
 - id: ticket:DRIVN-48
   kind: ticket
