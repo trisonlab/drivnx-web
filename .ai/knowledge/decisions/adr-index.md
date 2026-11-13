@@ -13,6 +13,8 @@ evidence:
   sha256: 12322e4c09166082db9f7d0aaf9f2778771e08f1f3d831f9d0349ef795516980
 - path: docs/adr/0005-postgres-sampling.md
   sha256: adb06a3e3e83e0021c8fc0a63117e726441e3d2eeaea5e54d2dcc4634c8dda88
+- path: docs/adr/0006-postgres-extension-in-the-wheel.md
+  sha256: 2b73d2f292cb2c5359f3ff221d65d03f211a1b0225e8ec630173c2e1de2ca863
 ---
 # Architecture decisions
 
@@ -25,3 +27,4 @@ Index of the project's ADRs. Status comes from each file; the ADR text is the au
 | 0003 — Contract internal schema: DrivnX-native rules, ODCS 3.2.0 as an export format | unknown | `docs/adr/0003-contract-schema-native-with-odcs-export.md` |
 | 0004 — What a profile saves: aggregates only, with values computed on request and no cache | unknown | `docs/adr/0004-profile-values-and-caching.md` |
 | 0005 — How a profile reads a PostgreSQL table: page samples with a seed, one connection, DrivnX's own time limit | unknown | `docs/adr/0005-postgres-sampling.md` |
+| 0006 — DuckDB's PostgreSQL extension ships in the wheel, and one script starts PostgreSQL for tests | unknown | `docs/adr/0006-postgres-extension-in-the-wheel.md` |

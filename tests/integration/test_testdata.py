@@ -59,11 +59,17 @@ def test_git_leaves_the_csvs_line_endings_alone() -> None:
 
 
 def test_nothing_else_is_in_testdata() -> None:
-    # CFX-APP-first-slice/AC-54: nothing is hand-written today, so anything new has to say so here.
+    # CFX-APP-first-slice/AC-54: anything hand-written has to say so here. The PostgreSQL fixture
+    # is (CFX-APP-postgres/AC-34): fixture.sql is the committed script that builds its database,
+    # and every value in it is invented.
     outside_the_csvs = {
         name
         for name in _files_in(TESTDATA)
         if not name.startswith(("csv/", "golden/"))
     }
 
-    assert outside_the_csvs == {"generate_csv.py"}
+    assert outside_the_csvs == {
+        "generate_csv.py",
+        "postgres/compose.yaml",
+        "postgres/fixture.sql",
+    }

@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-13T01:51:07+00:00'
+updated_at: '2026-11-13T06:33:48+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -12,7 +12,7 @@ facts:
 - id: ci:github-actions
   status: CONFIRMED
   evidence: .github/workflows/ci.yml
-  sha256: 2712b1d48393d1fd57dd74f8c856e9f531c888a8deca45050661cde5de8df92a
+  sha256: 9f8319efa25c8cb3151f4df567b61c4c32af1d66b22909a8f683a4a3a71b2cd7
   source: detector
 - id: cloud:aws
   status: INFERRED
@@ -32,18 +32,22 @@ facts:
   note: mentioned with a negation; confirm with the client whether it is in scope
   sha256: eeeb66937f4b18fd05956a9f0eae99ab2854a0a407cd7b3357ebf849a8e1d471
 - id: database:postgres
-  status: INFERRED
-  source: requirements
-  evidence: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md
-  line: 52
-  detail: 'mentioned: | **First database connector** | PostgreSQL, read-only, using the same DuckDB-based
-    analysis path as local files (CSV, X'
-  sha256: eeeb66937f4b18fd05956a9f0eae99ab2854a0a407cd7b3357ebf849a8e1d471
+  status: CONFIRMED
+  evidence: pyproject.toml
+  detail: dependency 'postgresql'
+  sha256: 4cab202868dd780f60d658ef1d45deba565b2b26d8aa80164442e559e0cc7e63
+  source: detector
+  planned_in: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md:52
+- id: database:sql
+  status: CONFIRMED
+  evidence: testdata/postgres/fixture.sql
+  sha256: 6256754fc6813a02aaae183a28116d1ca07a0ccd3666bda3109d8035f2b41977
+  source: detector
 - id: framework:fastapi
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'fastapi'
-  sha256: b55797f5f695c8c2caaf7072b90dd5df66f109970ab2273172fe69ab8269ecbe
+  sha256: 4cab202868dd780f60d658ef1d45deba565b2b26d8aa80164442e559e0cc7e63
   source: detector
   planned_in: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md:155
 - id: framework:react
@@ -61,7 +65,7 @@ facts:
 - id: language:python
   status: CONFIRMED
   evidence: hatch_build.py
-  sha256: 7c7fc379aa148a8f87d5b6a3d34f30668ec23daa0710d268067665318216fdf0
+  sha256: c14da9b93d0e509993defcb1221d630d6872b22e7eee7daf0c07101e988e7c5b
   source: detector
   planned_in: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md:51
 - id: language:typescript
@@ -74,7 +78,7 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'sqlalchemy'
-  sha256: b55797f5f695c8c2caaf7072b90dd5df66f109970ab2273172fe69ab8269ecbe
+  sha256: 4cab202868dd780f60d658ef1d45deba565b2b26d8aa80164442e559e0cc7e63
   source: detector
 - id: pm:pnpm
   status: CONFIRMED
@@ -84,13 +88,13 @@ facts:
 - id: pm:uv
   status: CONFIRMED
   evidence: uv.lock
-  sha256: f3a1c2c8c36dd95f16bd9f3c50b5fb8f963dbe29eaf332acdd0d5e2e3086143a
+  sha256: d08ed707505114885c2007155ed7dd383464929473dfed35802cccd8ad9a029d
   source: detector
 - id: testing:pytest
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'pytest'
-  sha256: b55797f5f695c8c2caaf7072b90dd5df66f109970ab2273172fe69ab8269ecbe
+  sha256: 4cab202868dd780f60d658ef1d45deba565b2b26d8aa80164442e559e0cc7e63
   source: detector
 - id: testing:vitest
   status: CONFIRMED
@@ -99,12 +103,16 @@ facts:
   sha256: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
   source: detector
 - id: tool:docker
-  status: INFERRED
-  source: requirements
-  evidence: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md
-  line: 201
-  detail: 'mentioned: | Testing | pytest, Vitest, Playwright; Docker Compose PostgreSQL fixture |'
-  sha256: eeeb66937f4b18fd05956a9f0eae99ab2854a0a407cd7b3357ebf849a8e1d471
+  status: CONFIRMED
+  evidence: testdata/postgres/compose.yaml
+  sha256: 4939c40861e977ecab2953f38fbb4f780c95bc82fc24fe402412e36d7148b268
+  source: detector
+  planned_in: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md:201
+- id: tool:docker-compose
+  status: CONFIRMED
+  evidence: testdata/postgres/compose.yaml
+  sha256: 4939c40861e977ecab2953f38fbb4f780c95bc82fc24fe402412e36d7148b268
+  source: detector
 requirements:
 - path: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md
   sha256: eeeb66937f4b18fd05956a9f0eae99ab2854a0a407cd7b3357ebf849a8e1d471

@@ -41,6 +41,14 @@ pnpm --dir apps/web install --frozen-lockfile
 uv run --frozen playwright install --with-deps chromium    # only if there's no system Chromium
 ```
 
+Tests that read PostgreSQL need its fixture. Without it they skip, saying how to start it, and CI fails instead. It
+uses Docker Compose where Docker runs Linux containers, and otherwise starts a server from `PGBIN`, Homebrew's
+postgresql@17 (installed if missing) or a `pg_ctl` on the path. `stop` removes it:
+
+```bash
+uv run --frozen python tests/postgres_fixture.py start
+```
+
 pytest, then Playwright, then Vitest. The first two each build and install the wheel:
 
 ```bash

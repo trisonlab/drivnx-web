@@ -1,11 +1,12 @@
 """Spike 2 of CFX-APP-postgres: how a fast profile should sample a large PostgreSQL table (ADR 0005).
 
-`uv run --frozen python tests/measure_postgres_sample.py <extension dir> [host] [port]` against a
-throwaway server whose `spike` user may create the `spike` database (the defaults are 127.0.0.1 and
-54329). The extension directory receives DuckDB's postgres extension, downloaded once, outside
-DrivnX, which never downloads one. `psql` must be on the path. It builds a 10-million-row table
-once (about 790 MB, 30 s) and updates 1,000 of its rows. Not a test: pytest doesn't collect this,
-as the figures depend on the machine.
+`uv run --frozen python tests/measure_postgres_sample.py <extension dir> [host] [port] [user]`
+against a throwaway server whose user may create the `spike` database (the defaults are 127.0.0.1,
+54329 and `spike`; a password comes from `PGPASSWORD`). Against the PostgreSQL fixture, that's its
+superuser `postgres`. The extension directory receives DuckDB's postgres extension, downloaded
+once, outside DrivnX, which never downloads one. `psql` must be on the path. It builds a
+10-million-row table once (about 790 MB, 30 s) and updates 1,000 of its rows. Not a test: pytest
+doesn't collect this, as the figures depend on the machine.
 
 The first 30% of the table's rows have other cities than the rest, so a sample that only sees part
 of the table shows a different table. It times each way of sampling, whether a sample repeats and
@@ -78,7 +79,8 @@ def main() -> None:
     extensions = sys.argv[1]
     host = sys.argv[2] if len(sys.argv) > 2 else "127.0.0.1"
     port = sys.argv[3] if len(sys.argv) > 3 else "54329"
-    server = ["psql", "-h", host, "-p", port, "-U", "spike", "-v", "ON_ERROR_STOP=1", "-Atq"]
+    user = sys.argv[4] if len(sys.argv) > 4 else "spike"
+    server = ["psql", "-h", host, "-p", port, "-U", user, "-v", "ON_ERROR_STOP=1", "-Atq"]
 
     def psql(sql: str, database: str = "spike") -> str:
         return subprocess.run(
@@ -93,7 +95,7 @@ def main() -> None:
     install = duckdb.connect(config={"extension_directory": extensions})
     install.execute("INSTALL postgres")
     install.close()
-    dsn = f"host={host} port={port} dbname=spike user=spike application_name=DrivnX"
+    dsn = f"host={host} port={port} dbname=spike user={user} application_name=DrivnX"
     read_only = "-c default_transaction_read_only=on"
 
     def connect(options: str = read_only) -> duckdb.DuckDBPyConnection:

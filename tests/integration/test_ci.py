@@ -9,7 +9,9 @@ from ..conftest import REPO_ROOT
 
 WORKFLOW = REPO_ROOT / ".github/workflows/ci.yml"
 README = REPO_ROOT / "README.md"
+POSTGRES_FIXTURE = "uv run --frozen python tests/postgres_fixture.py start"
 CHECKS = {
+    "PostgreSQL fixture": POSTGRES_FIXTURE,
     "pytest": "uv run --frozen pytest tests/integration tests/golden",
     "Playwright": "uv run --frozen pytest tests/e2e",
     "Vitest": "pnpm --dir apps/web test",
@@ -62,6 +64,17 @@ def test_only_the_apt_retries_depend_on_the_platform() -> None:
     assert "runner.os" not in workflow
     assert workflow.count("RUNNER_OS") == 1
     assert f"run: |\n          {APT_RETRIES}\n        shell: bash\n" in workflow
+
+
+def test_the_postgres_fixture_starts_before_the_tests_and_ci_requires_it() -> None:
+    # CFX-APP-postgres/AC-34: without a server the PostgreSQL tests would skip, and CI must fail
+    # instead. Its platform setup lives in that one script, so the rules above still hold.
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    tests = workflow[workflow.index("\n  tests:\n") : workflow.index("\n  scans:\n")]
+
+    assert '\n    env:\n      DRIVNX_REQUIRE_POSTGRES: "1"\n' in tests
+    assert f"run: {POSTGRES_FIXTURE}\n" in tests
+    assert tests.index(POSTGRES_FIXTURE) < tests.index(CHECKS["pytest"])
 
 
 def test_ci_runs_on_every_pull_request_and_on_main() -> None:

@@ -13,6 +13,9 @@ jobs:
   tests:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
+    # So a PostgreSQL fixture that didn't start fails the run, rather than skipping its tests.
+    env:
+      DRIVNX_REQUIRE_POSTGRES: "1"
     strategy:
       fail-fast: false
       matrix:
@@ -38,6 +41,9 @@ jobs:
           [ "$RUNNER_OS" != Linux ] || echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-retries
         shell: bash
       - run: uv run --frozen playwright install --with-deps chromium
+      # Compose on Linux, the runner's own PostgreSQL on Windows, Homebrew's on macOS: the platform
+      # is handled inside the script, as no step here may test it (tests/integration/test_ci.py).
+      - run: uv run --frozen python tests/postgres_fixture.py start
       - run: uv run --frozen pytest tests/integration tests/golden
       - run: uv run --frozen pytest tests/e2e
       - run: pnpm --dir apps/web test

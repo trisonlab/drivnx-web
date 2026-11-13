@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-13T01:51:08+00:00'
+updated_at: '2026-11-13T06:33:49+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -28,7 +28,7 @@ sources:
   .ai/knowledge/work/DRIVN-30.md: 1fdd387ae5b738995394e87c4d5cfdd4cf885f563d23049195af7ccb74526f36
   .ai/knowledge/work/DRIVN-31.md: d028db74241d15f5b816a0657aa1f7f12f2e59eea1caacfb972d8b11735a6a53
   .ai/knowledge/work/DRIVN-32.md: f4f09d26c06b3ed6bf99f7e2ab1ff5ae4def713fd8e6b26c9ee86ec0719d995f
-  .ai/knowledge/work/DRIVN-46.md: 417e6280c07438972b5a09ae173c15c3d056bc8e2e7ba6d895cba9177d78fcd0
+  .ai/knowledge/work/DRIVN-46.md: 66b1921726e2c680aef1d20f4bf074b9defc401198e2042400199e0c592611cd
   .ai/knowledge/work/DRIVN-47.md: 080a918077b1aeb8d31fb8b663356036a95e9ca227bed7768f0d3ded4cfc6662
   .ai/knowledge/work/DRIVN-48.md: 2d62a8a9a2f30eff68c0649651c1feb329b23dc47da6d5e63f7b5972fb028db2
   .ai/knowledge/work/DRIVN-49.md: 6db72c0eeede243b2a7bafa1cf936668f911520f94fcc68fd36ed4edd1053a92
@@ -41,7 +41,7 @@ sources:
   .ai/knowledge/work/DRIVN-56.md: 8c3a122ed78b74e037b4d6511b38776ccc052530152528c5398577996349669b
   .ai/knowledge/work/DRIVN-57.md: d4da2cd0e294616413b87dfc69a96975b79e3bf29138a1bc45cacead0983da50
   .ai/knowledge/work/DRIVN-58.md: 53417ee83809f5f70fb1473e05be1a6975d786866f05244923ea74ca4b875a12
-  .github/workflows/ci.yml: 2712b1d48393d1fd57dd74f8c856e9f531c888a8deca45050661cde5de8df92a
+  .github/workflows/ci.yml: 9f8319efa25c8cb3151f4df567b61c4c32af1d66b22909a8f683a4a3a71b2cd7
   apps/local-api/local_api/app.py: 030458dedbe9837471aee1f496d1c2efbbc098d55df80e6d9a7769361bc8f294
   apps/local-api/local_api/binding.py: 8c76ea6d3c19e6a0675913f0219a36bb2d9a28db55f177d50e5b288eda052d84
   apps/local-api/local_api/cli.py: 318728dede8634bb41f0a7cbe4f288daf601e157d221aa3a0a7037dce15961a9
@@ -74,7 +74,7 @@ sources:
   apps/web/src/sourceFormat.ts: 089d6d12912f71f90adc55c819869eb3ae6024e83ed2ca4eef41b816041ce15c
   apps/web/src/styles.css: d218aa3d63970d3fd828e81b8480b66ff07923d319fb019dbb9aa5069c07b7e4
   apps/web/tsconfig.json: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
-  hatch_build.py: 7c7fc379aa148a8f87d5b6a3d34f30668ec23daa0710d268067665318216fdf0
+  hatch_build.py: c14da9b93d0e509993defcb1221d630d6872b22e7eee7daf0c07101e988e7c5b
   packages/artifacts/migrations/versions/0005_source_settings.py: f9dbf1baf732afb3cc794b4b1a86dead9f4b86e3f32793c607b284ff5450df87
   packages/artifacts/migrations/versions/0006_finding_kind.py: 808a3346f80723d10c461213eb58356ae1fc92635ed108ae0de61cdebb7c97e4
   packages/artifacts/profiles.py: 530461762ee7927f687943e809be104c665ce7f8182bc2407074aeb5c1085df8
@@ -91,9 +91,11 @@ sources:
   packages/profiling/first_rows.py: 441bd02f3fefc647d666b7b7327588df3583d41bdf6e79f02efaacfd421c24ae
   packages/profiling/on_request.py: b764cb6fae044d6334d29dcd9259f6aea07ebae0170fb6a9e5c8c3f1aa59c6cb
   packages/profiling/sensitive.py: d0afb67b6b9c983d59cba82ce543bad90c283ef1d957d8ee19845e0ec573f550
-  pyproject.toml: b55797f5f695c8c2caaf7072b90dd5df66f109970ab2273172fe69ab8269ecbe
+  pyproject.toml: 4cab202868dd780f60d658ef1d45deba565b2b26d8aa80164442e559e0cc7e63
   testdata/generate_csv.py: 1efaee1071657759b0fc2d4b941aa442869dd30091144663bb4fc2be74738c91
-  tests/conftest.py: bee722dcc59d4b6d49e6940542e8dd30257c87810fae23b176c518fb1e6c21d7
+  testdata/postgres/compose.yaml: 4939c40861e977ecab2953f38fbb4f780c95bc82fc24fe402412e36d7148b268
+  testdata/postgres/fixture.sql: 6256754fc6813a02aaae183a28116d1ca07a0ccd3666bda3109d8035f2b41977
+  tests/conftest.py: 83889f5314b59f58453780455a3d22d9182f0164da07329637d66359d60bb7a9
   tests/e2e/test_accessibility.py: 8f41a3afbc8cbae8b867920bcd0df2cb1f50793d16a96687e779df812524c71d
   tests/e2e/test_browser_security.py: 40921bd8aa1f8522bcb659e4f0f8a2088b6683918c87dc3cc541226fb7e0f699
   tests/e2e/test_connect_csv.py: 86c9356d9ffe11c5d23edaa9fbc970dbfc7a324900e6762b8b2ff2e58d07fc4c
@@ -109,7 +111,7 @@ sources:
   tests/golden/test_metrics.py: a27d17ff3300a920fac8806c8e2b166ccb6434eeb299c7526903453c8abc15be
   tests/integration/test_artifact_store.py: 039ab464d137fcb1d8793cc751e0241a2e93a8cac66c4b54df91007520f1b356
   tests/integration/test_binding.py: 79eeb61ddbb635cafec5bbf4a570033e5c418aa09dc2adde55afb539a85bd0e7
-  tests/integration/test_ci.py: 366b400252093cec0bab62852d61bd98037113e251cbe7560c64077bb096ea2f
+  tests/integration/test_ci.py: 5268642a540a291168000e6cf7980d0a7c6aa5f898be0cf40b292e59c1f3b7be
   tests/integration/test_contract_rules.py: 3edf1eedc82e20f764f542126fb4e5d37f2029e6b87f42f6dc973d7c9644b0ec
   tests/integration/test_csv_detection.py: 068d198f0d58b279b66fc36d7dc260089b1c9a520525eb0511f1abd8e3660ddb
   tests/integration/test_domain_entities.py: 6cb0f793dd39676a2162c779ca8722482c63ce4c09498a079262a85900ead3fb
@@ -122,6 +124,9 @@ sources:
   tests/integration/test_launch.py: ef1f5de72f0e6e7a594ccc8dca3a132df1b0e46054800b3b94a9cbf6f0139fb2
   tests/integration/test_lockfiles.py: 57e05370d8f93e07a508026075bb853c510e1bee69564f9e4c575538ac7b9257
   tests/integration/test_masked_patterns.py: aa2d0c69e59b42a0c0508cb912f80009100cac6eb7f3e1c4d9603f216ff164cf
+  tests/integration/test_postgres_extension.py: 694e52700e6c97dceecde1d0a3b64a9d975ee39a58a52d02bb4e630b1d53cd0f
+  tests/integration/test_postgres_extension_build.py: d4bc9552a15e1f405fc7d16f06b927da9ebb68862d9f88b9ef55e26fb886a447
+  tests/integration/test_postgres_fixture.py: 47bd80b31270d73f5599d9b30c5fb7a4766e3b3f3ffbc20ece7658ed118f04ea
   tests/integration/test_preview_api.py: d74949610184b6907c2f80dbe8bde248a19c23ae888674112176cda4f8ed377f
   tests/integration/test_profile_runs.py: f63c29b378c08d20fae1366fb6a368667a66fc100389aeac2d8b62c87736a6b3
   tests/integration/test_replacing_column_names.py: 21077f1a724e5cac275ae6f732b8b0433975f7b2fef7e0bf0e243ae3a799e61d
@@ -129,17 +134,18 @@ sources:
   tests/integration/test_session.py: 6c3f73d0030e41bd449cc668f2de0765799d28028de8aa347383984df9edf14d
   tests/integration/test_source_settings.py: 02f4a397a17956c1b87080786fabf936b7e8264cc4f19497dd31f2275a443702
   tests/integration/test_sources_api.py: 800608bdbd9b10ea088f5f6ca6341681a08024eb222426f16b4ae68080ee3218
-  tests/integration/test_testdata.py: ef664b8506a4fa1b23d91f0f9a0bf0b165e8c2153744407c8148298b20f443af
+  tests/integration/test_testdata.py: 587816c4d94674bac834d64a8d0aad44a95270efb56e26ecc40dff2d741ca3fc
   tests/integration/test_trust_rules.py: 3c47d9ea2299799ec9f4ccd0c57360e2b704ecdaf775b2f5879dd3c78bc8fa60
   tests/integration/test_values_api.py: 952195d3109c7e39332f03cc52508b467c26613a8fc16b84967d8df770020eac
   tests/integration/test_values_on_request.py: e5e7c683c328155064259ae39238f001d29bffdd4c9af7b04c4f96f3c5a2a03f
-  tests/integration/test_wheel.py: 97a7a63d6435a4927d646c24f8b32ed5387f39872436acc2c332e72281285520
+  tests/integration/test_wheel.py: ca7fab2e13ccdcb24290ba77c1e523d75dc7cd330c0b528f81010d6cfc2f744b
   tests/integration/test_workspace.py: f0c83ee031b64ec48b4cec19ad50284a65e1fb93338365072d577ed66a8bff38
   tests/integration/test_workspace_api.py: 4a5bd4c68743d8c06efd68aed847b1dd62db88e274afd6bce0affa322257670c
   tests/integration/test_workspace_store.py: e0897385bf4fc5b492e29eef3328928938ebc78216335bf15b0a231f526013b9
   tests/measure_large_csv.py: 7ecd66f5deda7846c590a5cac114023d4c70e5c4dfa7d23bd18575f819a39842
-  tests/measure_postgres_sample.py: acdd4fe8e02aa01b982c14843936b6af9da28f84ebfe44b4815ba6d10a68296d
-  uv.lock: f3a1c2c8c36dd95f16bd9f3c50b5fb8f963dbe29eaf332acdd0d5e2e3086143a
+  tests/measure_postgres_sample.py: 0faaba1d39350a0be659cc6235a9975c82c7dd6dc1d3ef25629c67d29f956c96
+  tests/postgres_fixture.py: 7eb7e67a8ff8bfc393dabc9de12b2f47858936ec09f686542ef5ec1a58a63a55
+  uv.lock: d08ed707505114885c2007155ed7dd383464929473dfed35802cccd8ad9a029d
 nodes:
 - id: criterion:CFX-APP-csv-profile/AC-01
   kind: criterion
@@ -1234,6 +1240,14 @@ nodes:
   kind: module
   evidence:
   - testdata/generate_csv.py:1
+- id: module:testdata/postgres/compose.yaml
+  kind: module
+  evidence:
+  - testdata/postgres/compose.yaml:1
+- id: module:testdata/postgres/fixture.sql
+  kind: module
+  evidence:
+  - testdata/postgres/fixture.sql:1
 - id: module:tests/conftest.py
   kind: module
   evidence:
@@ -1350,6 +1364,18 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_masked_patterns.py:1
+- id: module:tests/integration/test_postgres_extension.py
+  kind: module
+  evidence:
+  - tests/integration/test_postgres_extension.py:1
+- id: module:tests/integration/test_postgres_extension_build.py
+  kind: module
+  evidence:
+  - tests/integration/test_postgres_extension_build.py:1
+- id: module:tests/integration/test_postgres_fixture.py
+  kind: module
+  evidence:
+  - tests/integration/test_postgres_fixture.py:1
 - id: module:tests/integration/test_preview_api.py
   kind: module
   evidence:
@@ -1418,6 +1444,10 @@ nodes:
   kind: module
   evidence:
   - tests/measure_postgres_sample.py:1
+- id: module:tests/postgres_fixture.py
+  kind: module
+  evidence:
+  - tests/postgres_fixture.py:1
 - id: project
   kind: project
   evidence: []
@@ -1546,6 +1576,14 @@ nodes:
   kind: technology
   evidence:
   - .github/workflows/ci.yml
+- id: tech:database:postgres
+  kind: technology
+  evidence:
+  - pyproject.toml
+- id: tech:database:sql
+  kind: technology
+  evidence:
+  - testdata/postgres/fixture.sql
 - id: tech:framework:fastapi
   kind: technology
   evidence:
@@ -1586,6 +1624,14 @@ nodes:
   kind: technology
   evidence:
   - apps/web/package.json
+- id: tech:tool:docker
+  kind: technology
+  evidence:
+  - testdata/postgres/compose.yaml
+- id: tech:tool:docker-compose
+  kind: technology
+  evidence:
+  - testdata/postgres/compose.yaml
 - id: ticket:DRIVN-11
   kind: ticket
   evidence:
@@ -3686,18 +3732,36 @@ edges:
   status: CONFIRMED
   evidence:
   - testdata/generate_csv.py:3
+- from: module:testdata/postgres/compose.yaml
+  rel: implements
+  to: criterion:CFX-APP-postgres/AC-34
+  status: CONFIRMED
+  evidence:
+  - testdata/postgres/compose.yaml:1
+- from: module:testdata/postgres/fixture.sql
+  rel: implements
+  to: criterion:CFX-APP-postgres/AC-34
+  status: CONFIRMED
+  evidence:
+  - testdata/postgres/fixture.sql:1
+- from: module:tests/conftest.py
+  rel: imports
+  to: module:tests/postgres_fixture.py
+  status: CONFIRMED
+  evidence:
+  - tests/conftest.py:23
 - from: module:tests/conftest.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-42
   status: CONFIRMED
   evidence:
-  - tests/conftest.py:103
+  - tests/conftest.py:105
 - from: module:tests/conftest.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-48
   status: CONFIRMED
   evidence:
-  - tests/conftest.py:142
+  - tests/conftest.py:144
 - from: module:tests/e2e/test_accessibility.py
   rel: imports
   to: module:tests/conftest.py
@@ -4301,17 +4365,23 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-50
   status: CONFIRMED
   evidence:
-  - tests/integration/test_ci.py:100
+  - tests/integration/test_ci.py:113
 - from: module:tests/integration/test_ci.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-53
   status: CONFIRMED
   evidence:
   - tests/integration/test_ci.py:1
-  - tests/integration/test_ci.py:30
-  - tests/integration/test_ci.py:45
-  - tests/integration/test_ci.py:58
-  - tests/integration/test_ci.py:100
+  - tests/integration/test_ci.py:32
+  - tests/integration/test_ci.py:47
+  - tests/integration/test_ci.py:60
+  - tests/integration/test_ci.py:113
+- from: module:tests/integration/test_ci.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-34
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_ci.py:70
 - from: module:tests/integration/test_contract_rules.py
   rel: imports
   to: module:tests/conftest.py
@@ -4830,6 +4900,76 @@ edges:
   - tests/integration/test_masked_patterns.py:104
   - tests/integration/test_masked_patterns.py:116
   - tests/integration/test_masked_patterns.py:125
+- from: module:tests/integration/test_postgres_extension.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-07
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_extension.py:1
+  - tests/integration/test_postgres_extension.py:17
+  - tests/integration/test_postgres_extension.py:41
+  - tests/integration/test_postgres_extension.py:56
+  - tests/integration/test_postgres_extension.py:74
+  - tests/integration/test_postgres_extension.py:107
+  - tests/integration/test_postgres_extension.py:130
+- from: module:tests/integration/test_postgres_extension.py
+  rel: verifies
+  to: ticket:DRIVN-47
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_extension.py:75
+- from: module:tests/integration/test_postgres_extension_build.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_extension_build.py:13
+- from: module:tests/integration/test_postgres_extension_build.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-07
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_extension_build.py:1
+  - tests/integration/test_postgres_extension_build.py:29
+  - tests/integration/test_postgres_extension_build.py:41
+  - tests/integration/test_postgres_extension_build.py:54
+  - tests/integration/test_postgres_extension_build.py:64
+- from: module:tests/integration/test_postgres_extension_build.py
+  rel: verifies
+  to: ticket:DRIVN-46
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_extension_build.py:76
+- from: module:tests/integration/test_postgres_fixture.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_fixture.py:12
+- from: module:tests/integration/test_postgres_fixture.py
+  rel: imports
+  to: module:tests/postgres_fixture.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_fixture.py:11
+- from: module:tests/integration/test_postgres_fixture.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-34
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_fixture.py:1
+  - tests/integration/test_postgres_fixture.py:22
+  - tests/integration/test_postgres_fixture.py:28
+  - tests/integration/test_postgres_fixture.py:34
+  - tests/integration/test_postgres_fixture.py:46
+- from: module:tests/integration/test_postgres_fixture.py
+  rel: verifies
+  to: ticket:DRIVN-46
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_fixture.py:62
+  - tests/integration/test_postgres_fixture.py:82
+  - tests/integration/test_postgres_fixture.py:95
 - from: module:tests/integration/test_preview_api.py
   rel: imports
   to: module:tests/conftest.py
@@ -5324,6 +5464,12 @@ edges:
   - tests/integration/test_testdata.py:1
   - tests/integration/test_testdata.py:23
   - tests/integration/test_testdata.py:62
+- from: module:tests/integration/test_testdata.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-34
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_testdata.py:63
 - from: module:tests/integration/test_trust_rules.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-36
@@ -5423,27 +5569,34 @@ edges:
   to: module:tests/conftest.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_wheel.py:13
+  - tests/integration/test_wheel.py:14
 - from: module:tests/integration/test_wheel.py
   rel: imports
   to: module:tests/integration/test_lockfiles.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_wheel.py:14
+  - tests/integration/test_wheel.py:15
 - from: module:tests/integration/test_wheel.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-50
   status: CONFIRMED
   evidence:
-  - tests/integration/test_wheel.py:137
+  - tests/integration/test_wheel.py:150
 - from: module:tests/integration/test_wheel.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-51
   status: CONFIRMED
   evidence:
   - tests/integration/test_wheel.py:1
-  - tests/integration/test_wheel.py:21
-  - tests/integration/test_wheel.py:62
+  - tests/integration/test_wheel.py:22
+  - tests/integration/test_wheel.py:63
+- from: module:tests/integration/test_wheel.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-07
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_wheel.py:71
+  - tests/integration/test_wheel.py:160
 - from: module:tests/integration/test_workspace.py
   rel: imports
   to: module:tests/conftest.py
@@ -5561,12 +5714,30 @@ edges:
   evidence:
   - tests/integration/test_workspace_store.py:222
   - tests/integration/test_workspace_store.py:245
+- from: module:tests/postgres_fixture.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-34
+  status: CONFIRMED
+  evidence:
+  - tests/postgres_fixture.py:1
 - from: project
   rel: uses
   to: tech:ci:github-actions
   status: CONFIRMED
   evidence:
   - .github/workflows/ci.yml
+- from: project
+  rel: uses
+  to: tech:database:postgres
+  status: CONFIRMED
+  evidence:
+  - pyproject.toml
+- from: project
+  rel: uses
+  to: tech:database:sql
+  status: CONFIRMED
+  evidence:
+  - testdata/postgres/fixture.sql
 - from: project
   rel: uses
   to: tech:framework:fastapi
@@ -5627,6 +5798,18 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/package.json
+- from: project
+  rel: uses
+  to: tech:tool:docker
+  status: CONFIRMED
+  evidence:
+  - testdata/postgres/compose.yaml
+- from: project
+  rel: uses
+  to: tech:tool:docker-compose
+  status: CONFIRMED
+  evidence:
+  - testdata/postgres/compose.yaml
 - from: ticket:DRIVN-11
   rel: covers
   to: criterion:CFX-APP-first-slice/AC-05

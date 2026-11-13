@@ -1,0 +1,18 @@
+# The PostgreSQL fixture tests run against (CFX-APP-postgres AC-34, ADR 0006). Start it with
+# `uv run --frozen python tests/postgres_fixture.py start`, which also waits until it's ready.
+name: drivnx-postgres-fixture
+services:
+  postgres:
+    # PostgreSQL 18.7, pinned by digest: a tag can be moved to another image.
+    image: postgres:18.7@sha256:b9f6b8ff03b62f3cfd9d9ba3fe56226a9991c79d3fb46fd46536263bf02be553
+    environment:
+      POSTGRES_PASSWORD: fixture-superuser  # pragma: allowlist secret, ai-skills: allow
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - ./fixture.sql:/docker-entrypoint-initdb.d/fixture.sql:ro
+    healthcheck:
+      # Over TCP, which the image only opens once fixture.sql has run.
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "drivnx_fixture"]
+      interval: 1s
+      retries: 60

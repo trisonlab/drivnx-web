@@ -20,6 +20,8 @@ from local_api.session import LaunchSession
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
+from . import postgres_fixture
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 URL = re.compile(r"http://127\.0\.0\.1:(\d+)/\S*")
 START_TIMEOUT_SECONDS = 30
@@ -351,3 +353,25 @@ def client(tmp_path: Path, workspace_dir: Path) -> Iterator[TestClient]:
     client.post("/api/session", json={"code": session.launch_code})
     yield client
     workspace.close()
+
+
+def find_postgres(port: int, required: bool) -> None:
+    """Skip a test needing the PostgreSQL fixture when nothing listens, saying how to start it."""
+    try:
+        socket.create_connection((postgres_fixture.HOST, port), timeout=2).close()
+    except OSError:
+        missing = (
+            f"The PostgreSQL fixture isn't running on {postgres_fixture.HOST}:{port}."
+            f" Start it with `{postgres_fixture.START}`."
+        )
+        # In CI, so a server that failed to start can't turn the PostgreSQL tests into skips.
+        if required:
+            pytest.fail(missing)
+        pytest.skip(missing)
+
+
+@pytest.fixture
+def postgres_server() -> str:
+    """The PostgreSQL fixture's connection string, once something listens on its port."""
+    find_postgres(postgres_fixture.PORT, os.environ.get("DRIVNX_REQUIRE_POSTGRES") == "1")
+    return postgres_fixture.dsn()

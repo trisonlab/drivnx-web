@@ -8,6 +8,7 @@ import zipfile
 from email import message_from_bytes
 from pathlib import Path
 
+import duckdb
 import pytest
 
 from ..conftest import REPO_ROOT, run
@@ -62,6 +63,18 @@ def test_building_the_wheel_builds_the_ui_into_it(wheel_names: list[str]) -> Non
     # CFX-APP-first-slice/AC-51 and the T01 review: this used to succeed with no UI at all.
     assert f"{UI}/index.html" in wheel_names
     assert any(name.startswith(f"{UI}/assets/") for name in wheel_names)
+
+
+def test_the_wheel_carries_the_postgres_extension_for_each_tested_platform(
+    wheel_names: list[str],
+) -> None:
+    # CFX-APP-postgres/AC-07 (ADR 0006): one wheel for every platform, and DrivnX downloads none.
+    assert {
+        name for name in wheel_names if name.startswith("connectors/postgres_extension/")
+    } == {
+        f"connectors/postgres_extension/{platform}/postgres_scanner.duckdb_extension"
+        for platform in ("linux_amd64", "osx_arm64", "windows_amd64")
+    }
 
 
 def test_an_old_ui_bundle_doesnt_reach_the_wheel(wheel_names: list[str]) -> None:
@@ -139,6 +152,20 @@ def test_a_development_install_doesnt_build_the_ui(clean_checkout: Path) -> None
 
     assert not (clean_checkout / BUILT_UI).exists()
     assert not (clean_checkout / "apps/web/node_modules").exists()
+
+
+def test_a_development_install_fetches_this_machines_postgres_extension(
+    clean_checkout: Path,
+) -> None:
+    # CFX-APP-postgres/AC-07 (ADR 0006): tests and `uv run` load it from the source tree.
+    platform = duckdb.execute("PRAGMA platform").fetchone()[0]
+
+    run("uv", "sync", "--frozen", cwd=clean_checkout)
+
+    fetched = clean_checkout / "packages/connectors/postgres_extension"
+    assert [path.relative_to(fetched).as_posix() for path in fetched.rglob("*.*")] == [
+        f"{platform}/postgres_scanner.duckdb_extension"
+    ]
 
 
 def _normal(name: str) -> str:
