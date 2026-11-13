@@ -7,7 +7,7 @@ feature_revision: 2
 stories: [US-01, US-07]
 criteria: [AC-07, AC-34]
 blocked_by: []
-state: ready
+state: done
 external_key: DRIVN-46
 status: CONFIRMED
 ---
@@ -20,8 +20,8 @@ Plane: [DRIVN-46](https://app.plane.so/drivnx/browse/DRIVN-46/) · `CFX-APP-post
 The installed wheel attaches a PostgreSQL database read-only, loading DuckDB's PostgreSQL extension from inside the package with its signature checked and no download, against a Docker Compose fixture built from synthetic data. The spike's measurement runs against the fixture. This settles how CI runs PostgreSQL on macOS and Windows, where GitHub's runners can't run the Linux image.
 
 ## Acceptance checklist
-- [ ] AC-07 (US-01): Given the installed wheel on each tested platform, when DrivnX connects, then it loads the PostgreSQL extension from inside the package with DuckDB's signature check on, and DuckDB makes no request to any host other than the database server. Given another platform, then the screen says PostgreSQL isn't available on it.
-- [ ] AC-34 (US-07): Given `testdata/` and the fixture, then the fixture is a Docker Compose service with a pinned image, its database is built by a committed script from synthetic data only, and tests that need it say so when it isn't running.
+- [x] AC-07 (US-01): Given the installed wheel on each tested platform, when DrivnX connects, then it loads the PostgreSQL extension from inside the package with DuckDB's signature check on, and DuckDB makes no request to any host other than the database server. Given another platform, then the screen says PostgreSQL isn't available on it.
+- [x] AC-34 (US-07): Given `testdata/` and the fixture, then the fixture is a Docker Compose service with a pinned image, its database is built by a committed script from synthetic data only, and tests that need it say so when it isn't running.
 
 ## Expected evidence
 The installed wheel attaching the fixture with downloads off, on each tested platform, and the platform message elsewhere. The fixture's script and pinned image. `tests/measure_postgres_sample.py` run against the fixture. CI on Ubuntu, macOS and Windows, or NOT RUN with the reason where PostgreSQL can't run.
@@ -119,10 +119,10 @@ With the user's go-ahead, pytest's earlier temp folders (6.9 GB) and the stale f
 | Criterion | Evidence | Result |
 |---|---|---|
 | AC-07: the wheel carries the extension, pinned | `test_postgres_extension_build.py` (4) and `test_wheel.py`'s two extension tests: a hash or DuckDB version that doesn't match stops the build; a real build holds all three platforms; `uv sync` fetches this machine's | PASS |
-| AC-07: loaded from the package, signature checked, nothing downloaded | `test_postgres_extension.py`: loads with every way to download made to fail (a control `INSTALL` fails); a one-byte-changed copy is refused, and that test fails with `allow_unsigned_extensions` on; the installed wheel loads its own, and fails when built without it | PASS on Linux |
-| AC-07: when DrivnX connects, on each tested platform | `test_the_installed_wheel_reads_a_postgres_database_with_no_way_to_download`: the installed wheel attaches the fixture `READ_ONLY` and reads `fixture.sql`'s rows | PASS on Linux; macOS and Windows NOT RUN until CI |
+| AC-07: loaded from the package, signature checked, nothing downloaded | `test_postgres_extension.py`: loads with every way to download made to fail (a control `INSTALL` fails); a one-byte-changed copy is refused, and that test fails with `allow_unsigned_extensions` on; the installed wheel loads its own, and fails when built without it | PASS on Linux, macOS and Windows (CI) |
+| AC-07: when DrivnX connects, on each tested platform | `test_the_installed_wheel_reads_a_postgres_database_with_no_way_to_download`: the installed wheel attaches the fixture `READ_ONLY` and reads `fixture.sql`'s rows | PASS on Linux, macOS and Windows (CI) |
 | AC-07: another platform is told PostgreSQL isn't available | `test_a_machine_with_no_bundled_extension_is_told_so_by_platform` (`PostgresUnavailable`); the screen is DRIVN-47's | PASS (the API part) |
-| AC-34: a Compose service with a pinned image | `test_the_compose_fixture_pins_its_image_and_listens_on_loopback_only` | PASS; starting it NOT RUN here (no Compose installed), first run in Ubuntu CI |
+| AC-34: a Compose service with a pinned image | `test_the_compose_fixture_pins_its_image_and_listens_on_loopback_only` | PASS; started and healthy in Ubuntu CI (not here: no Compose installed) |
 | AC-34: built by a committed script from synthetic data | `test_the_fixture_holds_exactly_what_its_sql_built`; `test_testdata.py` names the hand-written files | PASS |
 | AC-34: tests say so when it isn't running | The skip and required-failure tests; with the fixture stopped, the 2 PostgreSQL tests skip naming the command | PASS |
 
@@ -137,8 +137,14 @@ Checks run:
 - pip-audit and pnpm audit: no known vulnerabilities. `.ai/hooks` pre-commit on every changed file: passed.
   `ai-skills knowledge check`: consistent.
 
-Not verified: the Compose, Homebrew and Windows fixture paths, and AC-07 on macOS and Windows, until CI runs them.
-No workflow linter was run (actionlint isn't installed). The ticket stays open until CI passes on all three systems.
+- CI on PR #18 (commit `c1b7f73`, run 43428652009), every job passed. The fixture started on each system by its own
+  path: Compose on Ubuntu (container healthy), Homebrew's `postgresql@17` 17.11 installed on macOS, and the runner's
+  PostgreSQL 17 from `PGBIN` on Windows. Integration and golden: Ubuntu 2244 passed, 6 skipped; macOS 2236 passed,
+  14 skipped; Windows 2178 passed, 72 skipped. Each is 22 more passed than `main`'s last run (43350932994) with the
+  same skips, so none of the new tests skipped. e2e: 72, 72, and 67 passed with 5 skipped on Windows, as on `main`.
+  Vitest 163 on each. Scans passed.
+
+Not verified: no workflow linter was run (actionlint isn't installed). The screen half of AC-07 is DRIVN-47's.
 
 ## Blocked by
 None - can start now.
