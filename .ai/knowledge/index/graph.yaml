@@ -1,10 +1,11 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-12T16:10:26+00:00'
+updated_at: '2026-11-13T01:51:08+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
   .ai/knowledge/requirements/CFX-APP-first-slice.md: 57191fba4728eb3af974d0ea973ae80880e2f76f6eefc8e4a9371e8ebe6692ef
+  .ai/knowledge/requirements/CFX-APP-postgres.md: 65c276fcccd1b77a38547a514b8401ca56164d23218714a1fe6841bb590b0563
   .ai/knowledge/work/DRIVN-11.md: f44a791c6d85100d42137c62ec7cc0dc7a92fac7b7fa57ca6e91e8d68c8e9341
   .ai/knowledge/work/DRIVN-12.md: 1b8b30c5425c8e76cf0e6aedfc47fabf3973bab253649ac0a1fdfa87abf9e811
   .ai/knowledge/work/DRIVN-13.md: 804ef8532f1f6937f42901d039bbe62f1ae54aafe76d9471a6a7a707116c40e9
@@ -27,6 +28,19 @@ sources:
   .ai/knowledge/work/DRIVN-30.md: 1fdd387ae5b738995394e87c4d5cfdd4cf885f563d23049195af7ccb74526f36
   .ai/knowledge/work/DRIVN-31.md: d028db74241d15f5b816a0657aa1f7f12f2e59eea1caacfb972d8b11735a6a53
   .ai/knowledge/work/DRIVN-32.md: f4f09d26c06b3ed6bf99f7e2ab1ff5ae4def713fd8e6b26c9ee86ec0719d995f
+  .ai/knowledge/work/DRIVN-46.md: 417e6280c07438972b5a09ae173c15c3d056bc8e2e7ba6d895cba9177d78fcd0
+  .ai/knowledge/work/DRIVN-47.md: 080a918077b1aeb8d31fb8b663356036a95e9ca227bed7768f0d3ded4cfc6662
+  .ai/knowledge/work/DRIVN-48.md: 2d62a8a9a2f30eff68c0649651c1feb329b23dc47da6d5e63f7b5972fb028db2
+  .ai/knowledge/work/DRIVN-49.md: 6db72c0eeede243b2a7bafa1cf936668f911520f94fcc68fd36ed4edd1053a92
+  .ai/knowledge/work/DRIVN-50.md: bac215bbfee2e6335e1d49acb27a6f1c352b514fdbb7e3dda4b1409ed591c3fb
+  .ai/knowledge/work/DRIVN-51.md: f9a144bf269b72e4e4c661f1f1e6b5cb6ba4c8f23c740ce1acd03e7ba9e81852
+  .ai/knowledge/work/DRIVN-52.md: b3ded2309456d6eb0ccf0217a0d09432b514408e80385df1d3c82bcdaf3c19da
+  .ai/knowledge/work/DRIVN-53.md: ae1b9853cc28cdb14189f31423b97a00ae6be59e688f3d105ce54d0788d7d8be
+  .ai/knowledge/work/DRIVN-54.md: afa6f011cc62fd3f8c7f869f155eb2e46eb5b9040118cafb261b51e5729b7689
+  .ai/knowledge/work/DRIVN-55.md: 2c66eb4352f58b3a4478fbf78c359cc5a60b91d3f70b45aaa05152e58b2562c0
+  .ai/knowledge/work/DRIVN-56.md: 8c3a122ed78b74e037b4d6511b38776ccc052530152528c5398577996349669b
+  .ai/knowledge/work/DRIVN-57.md: d4da2cd0e294616413b87dfc69a96975b79e3bf29138a1bc45cacead0983da50
+  .ai/knowledge/work/DRIVN-58.md: 53417ee83809f5f70fb1473e05be1a6975d786866f05244923ea74ca4b875a12
   .github/workflows/ci.yml: 2712b1d48393d1fd57dd74f8c856e9f531c888a8deca45050661cde5de8df92a
   apps/local-api/local_api/app.py: 030458dedbe9837471aee1f496d1c2efbbc098d55df80e6d9a7769361bc8f294
   apps/local-api/local_api/binding.py: 8c76ea6d3c19e6a0675913f0219a36bb2d9a28db55f177d50e5b288eda052d84
@@ -124,6 +138,7 @@ sources:
   tests/integration/test_workspace_api.py: 4a5bd4c68743d8c06efd68aed847b1dd62db88e274afd6bce0affa322257670c
   tests/integration/test_workspace_store.py: e0897385bf4fc5b492e29eef3328928938ebc78216335bf15b0a231f526013b9
   tests/measure_large_csv.py: 7ecd66f5deda7846c590a5cac114023d4c70e5c4dfa7d23bd18575f819a39842
+  tests/measure_postgres_sample.py: acdd4fe8e02aa01b982c14843936b6af9da28f84ebfe44b4815ba6d10a68296d
   uv.lock: f3a1c2c8c36dd95f16bd9f3c50b5fb8f963dbe29eaf332acdd0d5e2e3086143a
 nodes:
 - id: criterion:CFX-APP-csv-profile/AC-01
@@ -727,6 +742,238 @@ nodes:
   text: Given a field with a Confirmed dictionary entry, when a second entry for that field would become
     Confirmed, then it is rejected and nothing is written. Inferred candidates for the field are allowed,
     a
+- id: criterion:CFX-APP-postgres/AC-01
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given the Data Explorer, when the user adds a PostgreSQL connection, then they enter host, port
+    (5432 by default), database, user, password and TLS mode (`prefer` by default, `require`, or `verify-ful
+- id: criterion:CFX-APP-postgres/AC-02
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given details that work, when the user tests or saves the connection, then DrivnX connects within
+    the connect timeout and shows the server's version and whether the connection is encrypted, and a
+    save
+- id: criterion:CFX-APP-postgres/AC-03
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: 'Given a host that can''t be reached, refused credentials, a database that doesn''t exist, or
+    TLS that is required and fails, when the user tests or saves, then a specific message says which,
+    within the '
+- id: criterion:CFX-APP-postgres/AC-04
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given an OS credential store, when a connection is saved, then its password is stored there under
+    an entry naming DrivnX and the source, and DrivnX reads it from there after a restart.
+- id: criterion:CFX-APP-postgres/AC-05
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given no OS credential store, when a connection is saved, then the screen says the password is
+    kept only until DrivnX stops, and after a restart opening the source asks for it before anything is
+    read.
+- id: criterion:CFX-APP-postgres/AC-06
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a stored password that the server now refuses, when the source is opened, then the user
+    is asked for the password, and saving a new one replaces the stored one.
+- id: criterion:CFX-APP-postgres/AC-07
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given the installed wheel on each tested platform, when DrivnX connects, then it loads the PostgreSQL
+    extension from inside the package with DuckDB's signature check on, and DuckDB makes no request to
+- id: criterion:CFX-APP-postgres/AC-08
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a connected source, then DrivnX lists every schema the user can see, except the system and
+    temporary schemas, with its tables, partitioned tables (partitions hidden), views and materialized
+    view
+- id: criterion:CFX-APP-postgres/AC-09
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a listed object, when the user opens it, then its columns are shown with their PostgreSQL
+    type, normalised type and whether they allow nulls, and its declared primary key, unique constraints
+    and
+- id: criterion:CFX-APP-postgres/AC-10
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given an object the user can't `SELECT` from, then it's listed as "no read access" and can't be
+    chosen.
+- id: criterion:CFX-APP-postgres/AC-11
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given the list, when the user chooses whole schemas or single objects and saves, then the selection
+    stays after a restart, and only chosen objects can be previewed or profiled.
+- id: criterion:CFX-APP-postgres/AC-12
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: 'Given a chosen object, when its preview opens, then it shows 50 rows at a time with next and
+    previous, the rows aren''t saved, the response is `Cache-Control: no-store`, and cells follow AC-28
+    and AC-2'
+- id: criterion:CFX-APP-postgres/AC-13
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: 'Given an object dropped, or whose columns or types changed since discovery, when the user refreshes
+    the source, then the list and the columns show the database as it is now. When a run starts on such '
+- id: criterion:CFX-APP-postgres/AC-14
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given any connection DrivnX opens, then the session is read-only, and an attempt to write through
+    it is refused by the server.
+- id: criterion:CFX-APP-postgres/AC-15
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given the fixture's statement log, when the full journey runs, then DrivnX sent no statement that
+    writes or changes the schema, and every statement carries `application_name` `DrivnX`.
+- id: criterion:CFX-APP-postgres/AC-16
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a role with `INSERT`, `UPDATE`, `DELETE` or `TRUNCATE` on a chosen object, or a superuser,
+    when the user starts a profile, then the screen names the objects or the superuser role and why, and
+    th
+- id: criterion:CFX-APP-postgres/AC-17
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given chosen objects and no run in progress, then a second run is refused with a clear message,
+    and the header's profile status and the Profile tab show which object a running run is on.
+- id: criterion:CFX-APP-postgres/AC-18
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: 'Given chosen objects, when the user chooses Fast profile, then one run profiles each object:
+    a table, partitioned table or materialized view estimated above 100,000 rows from a page sample of
+    about 10'
+- id: criterion:CFX-APP-postgres/AC-19
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given chosen objects, when the user chooses Full profile, then every row of each object is read,
+    with exact results and each object's exact row count.
+- id: criterion:CFX-APP-postgres/AC-20
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a full profile and a per-table time limit, when an object's profile reaches the limit, then
+    its scan stops within 5 s, no query from DrivnX is left running on the server, the object shows "stopp
+- id: criterion:CFX-APP-postgres/AC-21
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: 'Given a run in progress, when the user cancels it, then it stops within the target under Non-functional,
+    no query from DrivnX is left running on the server, its status is `cancelled`, and none of its '
+- id: criterion:CFX-APP-postgres/AC-22
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a connection lost, a server restart or a privilege revoked during a run, then the run ends
+    `failed`, the message names the object and the reason, and its results don't appear as current.
+- id: criterion:CFX-APP-postgres/AC-23
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a profile job, then it creates nothing in the current directory, any spill files are inside
+    `<workspace>/duckdb-tmp/`, and DrivnX holds at most one connection to the server for it, on a full
+    pro
+- id: criterion:CFX-APP-postgres/AC-24
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: 'Given a completed run, then for each column the Profile tab shows the metrics in the Assumptions,
+    and each metric''s scope (about N rows sampled by page, the first rows returned, or the whole object), '
+- id: criterion:CFX-APP-postgres/AC-25
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given the synthetic fixture database, covering missing values, duplicates, dates and times with
+    time zones, Unicode, numeric and decimal, boolean, JSON, UUID, arrays, `bytea`, high cardinality,
+    a part
+- id: criterion:CFX-APP-postgres/AC-26
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a run that meets a finding's condition, then the CSV profile's findings appear (possible
+    identifier, significant missing values, single-value column, possibly sensitive field, and on a full
+    prof
+- id: criterion:CFX-APP-postgres/AC-27
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: 'Given columns matching the sensitive-field name rules or the email, phone or payment card patterns,
+    then each gets a possibly-sensitive finding, its values need the extra confirmation, and the screen '
+- id: criterion:CFX-APP-postgres/AC-28
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a column in a completed run, when the user asks for its values, then they're computed by
+    querying the database with that run's method and seed, labelled with that scope, the time computed,
+    and t
+- id: criterion:CFX-APP-postgres/AC-29
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a full journey with distinctive planted values in the fixture, including the preview and
+    values on request, then a scan of every file in the workspace, during the run and after DrivnX stops,
+    and
+- id: criterion:CFX-APP-postgres/AC-30
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a full journey with a distinctive planted password, then a scan of every file in the workspace,
+    of the logs at their most detailed, of browser storage and of every URL the browser requested find
+- id: criterion:CFX-APP-postgres/AC-31
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given several runs of a source, then the user can list them with mode, status, time and objects,
+    open any completed one, and the newest completed run is shown by default.
+- id: criterion:CFX-APP-postgres/AC-32
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given results, then they say they describe the object at the run's time. Given an object whose
+    columns or types differ from the run's, then the Profile tab says the results are out of date.
+- id: criterion:CFX-APP-postgres/AC-33
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given a restart, then completed runs, their metrics and findings are as they were, a run that
+    was in progress shows as `interrupted`, and no query DrivnX started is still running on the server.
+- id: criterion:CFX-APP-postgres/AC-34
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given `testdata/` and the fixture, then the fixture is a Docker Compose service with a pinned
+    image, its database is built by a committed script from synthetic data only, and tests that need it
+    say so
+- id: criterion:CFX-APP-postgres/AC-35
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given the installed wheel and the fixture, then the journey of adding a connection, confirming
+    the write warning, choosing objects, running a fast profile, running a full profile and opening a
+    finding
+- id: criterion:CFX-APP-postgres/AC-36
+  kind: criterion
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  text: Given the threat register and the ADRs, then the "Database or API key leaks" row records what's
+    built and tested, and ADRs record the sampling method from spike 2, the bundled extension and the
+    creden
 - id: endpoint:GET /api/findings
   kind: endpoint
   evidence:
@@ -788,6 +1035,14 @@ nodes:
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
   title: 'First vertical slice: runtime to CSV preview, on the M1 domain model'
+  lifecycle: approved
+  owner: drivnx-web
+  reference: false
+- id: feature:CFX-APP-postgres
+  kind: feature
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  title: Connect a PostgreSQL database read-only, choose its tables and profile them
   lifecycle: approved
   owner: drivnx-web
   reference: false
@@ -1159,6 +1414,10 @@ nodes:
   kind: module
   evidence:
   - tests/measure_large_csv.py:1
+- id: module:tests/measure_postgres_sample.py
+  kind: module
+  evidence:
+  - tests/measure_postgres_sample.py:1
 - id: project
   kind: project
   evidence: []
@@ -1247,6 +1506,42 @@ nodes:
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
   title: As a developer, install, build, test and check the project from locked dependencies
+- id: story:CFX-APP-postgres/US-01
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  title: Connect a database without its password being kept in the workspace
+- id: story:CFX-APP-postgres/US-02
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  title: See what's in the database and choose what to profile
+- id: story:CFX-APP-postgres/US-03
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  title: Know DrivnX can't change my database, and be warned when my account could
+- id: story:CFX-APP-postgres/US-04
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  title: Profile the chosen tables, fast or full, within limits I can stop
+- id: story:CFX-APP-postgres/US-05
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  title: Read each table's metrics, findings and values as I would a CSV's
+- id: story:CFX-APP-postgres/US-06
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  title: Go back to earlier runs and know what they describe
+- id: story:CFX-APP-postgres/US-07
+  kind: story
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+  title: As a developer, prove read-only, the secrets rule, the storage rule and the targets against a
+    real PostgreSQL
 - id: tech:ci:github-actions
   kind: technology
   evidence:
@@ -1445,6 +1740,97 @@ nodes:
   title: Full journey and checks
   state: done
   external_key: DRIVN-32
+- id: ticket:DRIVN-46
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-46.md
+  title: Fixture and bundled extension
+  state: ready
+  external_key: DRIVN-46
+- id: ticket:DRIVN-47
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-47.md
+  title: Add a connection
+  state: blocked
+  external_key: DRIVN-47
+- id: ticket:DRIVN-48
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-48.md
+  title: Password in the OS credential store
+  state: blocked
+  external_key: DRIVN-48
+- id: ticket:DRIVN-49
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-49.md
+  title: Discover and choose objects
+  state: blocked
+  external_key: DRIVN-49
+- id: ticket:DRIVN-50
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-50.md
+  title: Preview a chosen object
+  state: blocked
+  external_key: DRIVN-50
+- id: ticket:DRIVN-51
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-51.md
+  title: Fast profile of chosen objects, end to end
+  state: blocked
+  external_key: DRIVN-51
+- id: ticket:DRIVN-52
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-52.md
+  title: Confirm before profiling with an account that can write
+  state: blocked
+  external_key: DRIVN-52
+- id: ticket:DRIVN-53
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-53.md
+  title: Full profile, time limit and cancel
+  state: blocked
+  external_key: DRIVN-53
+- id: ticket:DRIVN-54
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-54.md
+  title: Every metric against the golden fixture
+  state: blocked
+  external_key: DRIVN-54
+- id: ticket:DRIVN-55
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-55.md
+  title: Findings and sensitive fields
+  state: blocked
+  external_key: DRIVN-55
+- id: ticket:DRIVN-56
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-56.md
+  title: Values on request
+  state: blocked
+  external_key: DRIVN-56
+- id: ticket:DRIVN-57
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-57.md
+  title: Earlier runs and restarts
+  state: blocked
+  external_key: DRIVN-57
+- id: ticket:DRIVN-58
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-58.md
+  title: Full journey and checks
+  state: blocked
+  external_key: DRIVN-58
 edges:
 - from: criterion:CFX-APP-csv-profile/AC-01
   rel: belongs_to
@@ -2028,6 +2414,222 @@ edges:
   status: CONFIRMED
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: criterion:CFX-APP-postgres/AC-01
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-02
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-03
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-04
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-05
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-06
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-07
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-08
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-09
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-10
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-11
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-12
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-13
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-14
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-15
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-16
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-17
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-18
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-19
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-20
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-21
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-22
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-23
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-24
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-25
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-26
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-27
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-28
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-29
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-30
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-31
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-32
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-33
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-34
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-35
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: criterion:CFX-APP-postgres/AC-36
+  rel: belongs_to
+  to: story:CFX-APP-postgres/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
 - from: feature:CFX-APP-csv-profile
   rel: has_story
   to: story:CFX-APP-csv-profile/US-01
@@ -2136,6 +2738,60 @@ edges:
   status: CONFIRMED
   evidence:
   - .ai/knowledge/requirements/CFX-APP-first-slice.md
+- from: feature:CFX-APP-postgres
+  rel: has_story
+  to: story:CFX-APP-postgres/US-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: feature:CFX-APP-postgres
+  rel: has_story
+  to: story:CFX-APP-postgres/US-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: feature:CFX-APP-postgres
+  rel: has_story
+  to: story:CFX-APP-postgres/US-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: feature:CFX-APP-postgres
+  rel: has_story
+  to: story:CFX-APP-postgres/US-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: feature:CFX-APP-postgres
+  rel: has_story
+  to: story:CFX-APP-postgres/US-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: feature:CFX-APP-postgres
+  rel: has_story
+  to: story:CFX-APP-postgres/US-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: feature:CFX-APP-postgres
+  rel: has_story
+  to: story:CFX-APP-postgres/US-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: feature:CFX-APP-postgres
+  rel: relates_to
+  to: feature:CFX-APP-csv-profile
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
+- from: feature:CFX-APP-postgres
+  rel: relates_to
+  to: feature:CFX-APP-first-slice
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/requirements/CFX-APP-postgres.md
 - from: module:.github/workflows/ci.yml
   rel: implements
   to: criterion:CFX-APP-first-slice/AC-53
@@ -5721,3 +6377,339 @@ edges:
   status: CONFIRMED
   evidence:
   - .ai/knowledge/work/DRIVN-32.md
+- from: ticket:DRIVN-46
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-46.md
+- from: ticket:DRIVN-46
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-34
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-46.md
+- from: ticket:DRIVN-47
+  rel: blocked_by
+  to: ticket:DRIVN-46
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-47.md
+- from: ticket:DRIVN-47
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-47.md
+- from: ticket:DRIVN-47
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-47.md
+- from: ticket:DRIVN-47
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-47.md
+- from: ticket:DRIVN-47
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-47.md
+- from: ticket:DRIVN-47
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-47.md
+- from: ticket:DRIVN-47
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-14
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-47.md
+- from: ticket:DRIVN-48
+  rel: blocked_by
+  to: ticket:DRIVN-47
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-48.md
+- from: ticket:DRIVN-48
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-48.md
+- from: ticket:DRIVN-48
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-48.md
+- from: ticket:DRIVN-48
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-30
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-48.md
+- from: ticket:DRIVN-49
+  rel: blocked_by
+  to: ticket:DRIVN-47
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-49.md
+- from: ticket:DRIVN-49
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-49.md
+- from: ticket:DRIVN-49
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-49.md
+- from: ticket:DRIVN-49
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-10
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-49.md
+- from: ticket:DRIVN-49
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-11
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-49.md
+- from: ticket:DRIVN-49
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-13
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-49.md
+- from: ticket:DRIVN-50
+  rel: blocked_by
+  to: ticket:DRIVN-49
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-50.md
+- from: ticket:DRIVN-50
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-12
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-50.md
+- from: ticket:DRIVN-51
+  rel: blocked_by
+  to: ticket:DRIVN-49
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-51.md
+- from: ticket:DRIVN-51
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-13
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-51.md
+- from: ticket:DRIVN-51
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-17
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-51.md
+- from: ticket:DRIVN-51
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-18
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-51.md
+- from: ticket:DRIVN-51
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-23
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-51.md
+- from: ticket:DRIVN-51
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-24
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-51.md
+- from: ticket:DRIVN-52
+  rel: blocked_by
+  to: ticket:DRIVN-51
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-52.md
+- from: ticket:DRIVN-52
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-16
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-52.md
+- from: ticket:DRIVN-53
+  rel: blocked_by
+  to: ticket:DRIVN-51
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-53.md
+- from: ticket:DRIVN-53
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-19
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-53.md
+- from: ticket:DRIVN-53
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-20
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-53.md
+- from: ticket:DRIVN-53
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-21
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-53.md
+- from: ticket:DRIVN-53
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-22
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-53.md
+- from: ticket:DRIVN-54
+  rel: blocked_by
+  to: ticket:DRIVN-51
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-54.md
+- from: ticket:DRIVN-54
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-25
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-54.md
+- from: ticket:DRIVN-55
+  rel: blocked_by
+  to: ticket:DRIVN-53
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-55.md
+- from: ticket:DRIVN-55
+  rel: blocked_by
+  to: ticket:DRIVN-54
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-55.md
+- from: ticket:DRIVN-55
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-26
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-55.md
+- from: ticket:DRIVN-55
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-27
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-55.md
+- from: ticket:DRIVN-56
+  rel: blocked_by
+  to: ticket:DRIVN-53
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-56.md
+- from: ticket:DRIVN-56
+  rel: blocked_by
+  to: ticket:DRIVN-55
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-56.md
+- from: ticket:DRIVN-56
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-28
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-56.md
+- from: ticket:DRIVN-57
+  rel: blocked_by
+  to: ticket:DRIVN-53
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-57.md
+- from: ticket:DRIVN-57
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-31
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-57.md
+- from: ticket:DRIVN-57
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-32
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-57.md
+- from: ticket:DRIVN-57
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-33
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-57.md
+- from: ticket:DRIVN-58
+  rel: blocked_by
+  to: ticket:DRIVN-48
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-58.md
+- from: ticket:DRIVN-58
+  rel: blocked_by
+  to: ticket:DRIVN-50
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-58.md
+- from: ticket:DRIVN-58
+  rel: blocked_by
+  to: ticket:DRIVN-52
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-58.md
+- from: ticket:DRIVN-58
+  rel: blocked_by
+  to: ticket:DRIVN-56
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-58.md
+- from: ticket:DRIVN-58
+  rel: blocked_by
+  to: ticket:DRIVN-57
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-58.md
+- from: ticket:DRIVN-58
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-15
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-58.md
+- from: ticket:DRIVN-58
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-29
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-58.md
+- from: ticket:DRIVN-58
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-35
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-58.md
+- from: ticket:DRIVN-58
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-36
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-58.md
