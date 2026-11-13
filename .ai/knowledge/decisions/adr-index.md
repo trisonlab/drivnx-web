@@ -11,6 +11,8 @@ evidence:
   sha256: 7e66661935fb8164735a40415271532c2b582a649019ce6877815c47bca0954e
 - path: docs/adr/0004-profile-values-and-caching.md
   sha256: 12322e4c09166082db9f7d0aaf9f2778771e08f1f3d831f9d0349ef795516980
+- path: docs/adr/0005-postgres-sampling.md
+  sha256: adb06a3e3e83e0021c8fc0a63117e726441e3d2eeaea5e54d2dcc4634c8dda88
 ---
 # Architecture decisions
 
@@ -22,3 +24,4 @@ Index of the project's ADRs. Status comes from each file; the ADR text is the au
 | 0002 — Workspace storage: SQLite only; files exist only as explicit exports | unknown | `docs/adr/0002-workspace-storage-sqlite-only.md` |
 | 0003 — Contract internal schema: DrivnX-native rules, ODCS 3.2.0 as an export format | unknown | `docs/adr/0003-contract-schema-native-with-odcs-export.md` |
 | 0004 — What a profile saves: aggregates only, with values computed on request and no cache | unknown | `docs/adr/0004-profile-values-and-caching.md` |
+| 0005 — How a profile reads a PostgreSQL table: page samples with a seed, one connection, DrivnX's own time limit | unknown | `docs/adr/0005-postgres-sampling.md` |
