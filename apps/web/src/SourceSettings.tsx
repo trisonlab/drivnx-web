@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useId, useState } from "react";
-import { FileUnreadableError, getRows, type Source, saveSourceSettings } from "./api";
+import { FileUnreadableError, getRows, type CsvSource, saveSourceSettings } from "./api";
 import { SOURCES_QUERY } from "./DataExplorer";
 import { PROFILE_RUNS_QUERY } from "./ProfileTab";
 import { delimiterName } from "./sourceFormat";
@@ -21,7 +21,7 @@ function failureMessage(error: Error): string {
     : "DrivnX couldn't save these settings. Start DrivnX again.";
 }
 
-export function SourceSettings({ source }: { source: Source }) {
+export function SourceSettings({ source }: { source: CsvSource }) {
   const id = useId();
   const queryClient = useQueryClient();
   // Only what the user has changed, so everything else follows the source after a save.

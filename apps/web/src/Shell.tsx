@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import { type AiMode, getSources, type Workspace } from "./api";
 import { DataExplorer, SOURCES_QUERY } from "./DataExplorer";
 import { Findings } from "./Findings";
+import { PostgresDetails } from "./PostgresDetails";
 import { Preview } from "./Preview";
 import { ProfileTab, profileStatus, useProfileRuns } from "./ProfileTab";
 import { SourceDetails } from "./SourceDetails";
@@ -25,6 +26,7 @@ export function Shell({ workspace }: { workspace: Workspace }) {
   const runs = useProfileRuns();
   const profileTabId = useId();
   const profilePanelId = useId();
+  const previewHeadingId = useId();
 
   return (
     <div className="shell">
@@ -70,13 +72,27 @@ export function Shell({ workspace }: { workspace: Workspace }) {
           )}
         </div>
         <div role="tabpanel" id={profilePanelId} aria-labelledby={profileTabId}>
-          {chosen ? (
+          {chosen?.kind === "postgres" ? (
+            <p>
+              Profiling a database <span className="unavailable">{NOT_AVAILABLE}</span>
+            </p>
+          ) : chosen ? (
             <ProfileTab key={chosen.id} source={chosen} openedRunId={openedRunId} onOpenRun={setOpenedRunId} />
           ) : (
             <p className="empty-note">Connect a CSV file to see what is in it.</p>
           )}
         </div>
-        {chosen && (
+        {chosen?.kind === "postgres" && (
+          <>
+            <PostgresDetails source={chosen} />
+            {/* Previewing a database comes with choosing its tables (DRIVN-49, DRIVN-50). */}
+            <section className="preview" aria-labelledby={previewHeadingId}>
+              <h3 id={previewHeadingId}>Preview</h3>
+              <p className="unavailable">{NOT_AVAILABLE}</p>
+            </section>
+          </>
+        )}
+        {chosen && chosen.kind !== "postgres" && (
           <>
             <SourceDetails source={chosen} />
             <Preview
@@ -89,7 +105,8 @@ export function Shell({ workspace }: { workspace: Workspace }) {
       </main>
       <aside className="shell-review" aria-label="Intelligence & Review">
         <h2>Intelligence &amp; Review</h2>
-        <Findings source={chosen} openedRunId={openedRunId} />
+        {/* A database has no profile to find anything in yet. */}
+        <Findings source={chosen?.kind === "postgres" ? undefined : chosen} openedRunId={openedRunId} />
         <ul className="unavailable-sections">
           {["AI suggestions", "Evidence", "Provenance", "Review actions"].map((section) => (
             <li key={section}>

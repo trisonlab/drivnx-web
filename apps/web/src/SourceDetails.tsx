@@ -1,9 +1,9 @@
 import { useId } from "react";
-import type { Source } from "./api";
+import type { CsvSource } from "./api";
 import { SourceSettings } from "./SourceSettings";
 import { delimiterName, fileSize } from "./sourceFormat";
 
-export function SourceDetails({ source }: { source: Source }) {
+export function SourceDetails({ source }: { source: CsvSource }) {
   const headingId = useId();
 
   return (

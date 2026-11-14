@@ -33,11 +33,42 @@ class StoredSource:
     corrected: bool = False
 
 
+@dataclass(frozen=True)
+class StoredPostgresSource:
+    """A PostgreSQL connection as saved: everything but the password, which is a secret."""
+
+    id: str
+    host: str
+    port: int
+    database: str
+    user: str
+    tls_mode: str
+    ca_path: str | None
+    kind: str = "postgres"
+
+
 _SELECT_SOURCES = """
     SELECT id, path, delimiter, encoding, has_header, size_bytes, modified_at, kind, skip_lines,
-           corrected
+           corrected, host, port, database_name, user_name, tls_mode, ca_path
     FROM source
 """
+
+
+def _postgres(row) -> StoredPostgresSource:
+    return StoredPostgresSource(
+        id=row.id,
+        host=row.host,
+        port=row.port,
+        database=row.database_name,
+        user=row.user_name,
+        tls_mode=row.tls_mode,
+        ca_path=row.ca_path,
+    )
+
+
+def _stored(connection: Connection, row) -> StoredSource | StoredPostgresSource:
+    # A database's datasets are the objects the user chooses, which come later (DRIVN-49).
+    return _postgres(row) if row.kind == "postgres" else _with_fields(connection, row)
 
 
 def _with_fields(connection: Connection, row) -> StoredSource:
@@ -67,10 +98,10 @@ def _with_fields(connection: Connection, row) -> StoredSource:
     )
 
 
-def list_sources(engine: Engine) -> list[StoredSource]:
+def list_sources(engine: Engine) -> list[StoredSource | StoredPostgresSource]:
     with engine.connect() as connection:
         rows = connection.execute(text(f"{_SELECT_SOURCES} ORDER BY rowid")).all()
-        return [_with_fields(connection, row) for row in rows]
+        return [_stored(connection, row) for row in rows]
 
 
 def find_source_by_path(engine: Engine, path: Path) -> StoredSource | None:
@@ -81,12 +112,58 @@ def find_source_by_path(engine: Engine, path: Path) -> StoredSource | None:
         return _with_fields(connection, row) if row else None
 
 
-def find_source(engine: Engine, source_id: str) -> StoredSource | None:
+def find_source(
+    engine: Engine, source_id: str
+) -> StoredSource | StoredPostgresSource | None:
     with engine.connect() as connection:
         row = connection.execute(
             text(f"{_SELECT_SOURCES} WHERE id = :id"), {"id": source_id}
         ).first()
-        return _with_fields(connection, row) if row else None
+        return _stored(connection, row) if row else None
+
+
+def find_source_by_connection(
+    engine: Engine, host: str, port: int, database: str, user: str
+) -> StoredPostgresSource | None:
+    with engine.connect() as connection:
+        row = connection.execute(
+            text(
+                f"""
+                {_SELECT_SOURCES}
+                WHERE host = :host AND port = :port AND database_name = :database
+                    AND user_name = :user
+                """
+            ),
+            {"host": host, "port": port, "database": database, "user": user},
+        ).first()
+        return _postgres(row) if row else None
+
+
+def add_postgres_source(engine: Engine, source: StoredPostgresSource) -> bool:
+    """Save a connection without its password. Returns False if it is already saved."""
+    with write_transaction(engine) as connection:
+        return bool(
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO source
+                        (id, kind, host, port, database_name, user_name, tls_mode, ca_path)
+                    VALUES
+                        (:id, 'postgres', :host, :port, :database, :user, :tls_mode, :ca_path)
+                    ON CONFLICT (host, port, database_name, user_name) DO NOTHING
+                    """
+                ),
+                {
+                    "id": source.id,
+                    "host": source.host,
+                    "port": source.port,
+                    "database": source.database,
+                    "user": source.user,
+                    "tls_mode": source.tls_mode,
+                    "ca_path": source.ca_path,
+                },
+            ).rowcount
+        )
 
 
 @dataclass(frozen=True)

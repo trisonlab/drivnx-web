@@ -9,8 +9,30 @@ services:
       POSTGRES_PASSWORD: fixture-superuser  # pragma: allowlist secret, ai-skills: allow
     ports:
       - "127.0.0.1:54329:5432"
+    # The server's key has to belong to the server's account, and the mounted one doesn't, so it's
+    # copied first. `$$@` is the command below.
+    entrypoint:
+      - sh
+      - -c
+      - >-
+        install -o postgres -g postgres -m 0600 /tls/server.crt /tls/server.key /var/lib/postgresql/
+        && exec docker-entrypoint.sh "$$@"
+      - sh
+    command:
+      - postgres
+      - -c
+      - ssl=on
+      - -c
+      - ssl_cert_file=/var/lib/postgresql/server.crt
+      - -c
+      - ssl_key_file=/var/lib/postgresql/server.key
+      - -c
+      - hba_file=/fixture/pg_hba.conf
     volumes:
       - ./fixture.sql:/docker-entrypoint-initdb.d/fixture.sql:ro
+      - ./pg_hba.conf:/fixture/pg_hba.conf:ro
+      # The certificates tests/postgres_fixture.py makes at start.
+      - ${DRIVNX_POSTGRES_TLS:?start the fixture with tests/postgres_fixture.py}:/tls:ro
     healthcheck:
       # Over TCP, which the image only opens once fixture.sql has run.
       test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "drivnx_fixture"]

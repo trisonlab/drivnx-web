@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 import { connectSource, RefusedPathError, type Source } from "./api";
+import { PostgresForm } from "./PostgresForm";
 import { cleanPastedPath } from "./sourceFormat";
 
 export const SOURCES_QUERY = ["sources"];
@@ -22,6 +23,7 @@ type Props = {
 export function DataExplorer({ sources, loadFailed, chosenId, onChoose }: Props) {
   const queryClient = useQueryClient();
   const [path, setPath] = useState("");
+  const [addingDatabase, setAddingDatabase] = useState(false);
   const connect = useMutation({
     mutationFn: connectSource,
     onSuccess: async (source) => {
@@ -55,6 +57,18 @@ export function DataExplorer({ sources, loadFailed, chosenId, onChoose }: Props)
           Connect
         </button>
       </form>
+      <button type="button" aria-expanded={addingDatabase} onClick={() => setAddingDatabase(!addingDatabase)}>
+        Add a PostgreSQL database
+      </button>
+      {addingDatabase && (
+        <PostgresForm
+          onSaved={async (source) => {
+            setAddingDatabase(false);
+            await queryClient.invalidateQueries({ queryKey: SOURCES_QUERY });
+            onChoose(source.id);
+          }}
+        />
+      )}
       {loadFailed && <p role="alert">DrivnX couldn't load your sources. Start DrivnX again.</p>}
       {sources?.length === 0 && <p className="unavailable">No sources yet.</p>}
       <ul className="source-tree">
@@ -68,12 +82,16 @@ export function DataExplorer({ sources, loadFailed, chosenId, onChoose }: Props)
             >
               {source.name}
             </button>
-            {!source.available && <p className="unavailable">Unavailable</p>}
-            <ul className="column-list">
-              {source.columns.map((column) => (
-                <li key={column.name}>{column.name}</li>
-              ))}
-            </ul>
+            {source.kind !== "postgres" && (
+              <>
+                {!source.available && <p className="unavailable">Unavailable</p>}
+                <ul className="column-list">
+                  {source.columns.map((column) => (
+                    <li key={column.name}>{column.name}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </li>
         ))}
       </ul>

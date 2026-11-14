@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-13T14:32:18+00:00'
+updated_at: '2026-11-14T06:04:00+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -41,7 +41,7 @@ facts:
 - id: database:sql
   status: CONFIRMED
   evidence: testdata/postgres/fixture.sql
-  sha256: 6256754fc6813a02aaae183a28116d1ca07a0ccd3666bda3109d8035f2b41977
+  sha256: 5e4beab467a00824c7ddcacdae6cd8cf75d4d427a0373061a7924daaff0039d1
   source: detector
 - id: framework:fastapi
   status: CONFIRMED
@@ -105,13 +105,13 @@ facts:
 - id: tool:docker
   status: CONFIRMED
   evidence: testdata/postgres/compose.yaml
-  sha256: 4939c40861e977ecab2953f38fbb4f780c95bc82fc24fe402412e36d7148b268
+  sha256: 5fd10c92c88abb01b713c9693d293369fed1d440a3ce7545e1935445755c1d82
   source: detector
   planned_in: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md:201
 - id: tool:docker-compose
   status: CONFIRMED
   evidence: testdata/postgres/compose.yaml
-  sha256: 4939c40861e977ecab2953f38fbb4f780c95bc82fc24fe402412e36d7148b268
+  sha256: 5fd10c92c88abb01b713c9693d293369fed1d440a3ce7545e1935445755c1d82
   source: detector
 requirements:
 - path: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md

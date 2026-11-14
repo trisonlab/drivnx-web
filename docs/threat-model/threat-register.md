@@ -1,15 +1,16 @@
 # Threat register — Phase 1
 
 The one-page register required by the direction doc (§7, §12). **Only the first row has code and tests in full; the
-input limits row and R3 are built and tested for CSV only, and the other mitigations are still planned.** Update a row
-when its test ships. The product claims in §7 stay off-limits until then.
+input limits row and R3 are built and tested for CSV only, the two PostgreSQL rows in part, and the other mitigations
+are still planned.** Update a row when its test ships. The product claims in §7 stay off-limits until then.
 
 ## Threats
 
 | Threat | Mitigation | Decided in | Status |
 |---|---|---|---|
 | Malicious web page calls the local API | Loopback binding; exact Host and Origin checks; per-launch token in an `HttpOnly` cookie; GET routes have no side effects; a Content-Security-Policy stops other pages framing the UI | §7, ADR 0001 | Implemented and tested (T02). First spike 6 pass 2026-11-01, Chromium only |
-| Database or API key leaks | OS credential store; masking; never in SQLite, URLs, browser storage, logs or exports | §7 | Planned |
+| Database or API key leaks | OS credential store; masking; never in SQLite, URLs, browser storage, logs or exports | §7, ADR 0007 | Partly implemented for PostgreSQL passwords (DRIVN-47): kept only in memory and a temporary DuckDB secret, never in the connection string or DuckDB's errors; tests scan `workspace.db`, its WAL and the logs at trace level for a planted right and wrong password. Planned: the OS credential store and the scan of browser storage and exports (DRIVN-48, AC-30) |
+| DrivnX changes a connected database | Read-only sessions; no writes; bounded queries; cancellation | §7, ADR 0007 | Read-only sessions implemented and tested (DRIVN-47, `CFX-APP-postgres` AC-14): DuckDB attaches read-only and the server starts every transaction read-only, and a write through either alone is refused by the server. Bounded queries and cancellation planned with profiling (ADR 0005) |
 | Sensitive data sent to AI unintentionally | AI off by default; context preview; explicit approval; audit record | §6, §7 | Planned (M8) |
 | Workspace copied or stolen | Owner-only permissions; no credentials in the workspace; raw data not copied by default | §7, ADR 0002 | Planned; see R3 and R4 |
 | Huge or malformed input exhausts resources | Sampling; size warnings; limits; cancellation | §5, §7 | Implemented and tested for CSV (`CFX-APP-csv-profile`): a fast profile reads only the first 100,000 rows, a full profile runs only on request and cancels within 5 s (AC-10), and a file over 100 MB in an encoding that must be decoded in memory is refused (AC-03). No size warnings yet, and the number of columns isn't capped. Planned for XLSX and Parquet (M2) and PostgreSQL (M4) |

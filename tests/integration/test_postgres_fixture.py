@@ -4,6 +4,7 @@ import re
 from datetime import date
 from pathlib import Path
 
+import duckdb
 import pytest
 from connectors.csv_files import duckdb_connection
 from connectors.postgres import load_postgres
@@ -56,6 +57,39 @@ def test_the_fixture_holds_exactly_what_its_sql_built(
     ]
 
 
+def encrypted(dsn: str, tmp_path: Path) -> bool:
+    """Whether the server says the connection DuckDB made with `dsn` is encrypted."""
+    with duckdb_connection(tmp_path) as connection:
+        load_postgres(connection)
+        quoted = dsn.replace("'", "''")
+        connection.execute(f"ATTACH '{quoted}' AS fixture (TYPE postgres, READ_ONLY)")
+        return connection.execute(
+            "SELECT * FROM postgres_query('fixture',"
+            " 'SELECT ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid()')"
+        ).fetchone()[0]
+
+
+def test_the_fixture_encrypts_a_connection_its_own_ca_verifies(
+    postgres_server: str, tmp_path: Path
+) -> None:
+    # CFX-APP-postgres/AC-02 (DRIVN-47): "encrypted" and verify-full need a server with TLS.
+    ca = postgres_fixture.CA_CERTIFICATE.as_posix()
+
+    assert encrypted(f"{postgres_server} sslmode=verify-full sslrootcert='{ca}'", tmp_path)
+
+
+def test_the_fixture_signs_in_its_plain_account_only_without_tls(
+    postgres_server: str, tmp_path: Path
+) -> None:
+    # CFX-APP-postgres/AC-02 and AC-03 (DRIVN-47): with it, "prefer" falls back to a connection
+    # that isn't encrypted, and TLS required is refused.
+    plain = postgres_fixture.dsn(postgres_fixture.PLAIN_USER, postgres_fixture.PLAIN_PASSWORD)
+
+    assert encrypted(f"{plain} sslmode=prefer", tmp_path) is False
+    with pytest.raises(duckdb.IOException, match="SSL"):
+        encrypted(f"{plain} sslmode=require", tmp_path)
+
+
 def test_a_folder_left_by_a_start_that_died_is_removed_and_started_again(
     tmp_path: Path, free_port: int, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -65,6 +99,8 @@ def test_a_folder_left_by_a_start_that_died_is_removed_and_started_again(
     started: list[bool] = []
     monkeypatch.setattr(postgres_fixture, "OWN_SERVER", stale)
     monkeypatch.setattr(postgres_fixture, "PORT", free_port)
+    # Not the running fixture's certificates, which the server would no longer match.
+    monkeypatch.setattr(postgres_fixture, "TLS", tmp_path / "tls")
     # Docker and the PostgreSQL install are outside DrivnX: as on GitHub's macOS runner.
     monkeypatch.setattr(postgres_fixture, "_compose_runs_linux", lambda: False)
     monkeypatch.setattr(

@@ -16,7 +16,13 @@ from artifacts.profiles import (
     read_profile_run,
 )
 from artifacts.provenance import now
-from artifacts.sources import StoredSource, find_source, read_dataset, read_field_names
+from artifacts.sources import (
+    StoredPostgresSource,
+    StoredSource,
+    find_source,
+    read_dataset,
+    read_field_names,
+)
 from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, read_page, sniffed_columns
 from fastapi import APIRouter, HTTPException
@@ -41,6 +47,10 @@ from local_api.sources_api import (
 )
 
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
+# Profiling a database comes with choosing its tables (DRIVN-49 and DRIVN-51).
+NO_DATABASE_PROFILE_YET = (
+    "Profiling a database comes with choosing its tables, which isn't available yet."
+)
 ALREADY_FINISHED = "This profile has already finished."
 SETTINGS_CHANGED = "This file's settings changed just now. Start the profile again."
 COLUMNS_NO_LONGER_MATCH = (
@@ -203,6 +213,8 @@ def profile_runs_router(workspace: Workspace) -> APIRouter:
     @router.post("", status_code=202)
     def start_run(body: ProfileRunRequest) -> ProfileRunResponse:
         no_such_source = HTTPException(status_code=404, detail="There's no such source.")
+        if isinstance(find_source(workspace.engine, body.source_id), StoredPostgresSource):
+            raise HTTPException(status_code=409, detail=NO_DATABASE_PROFILE_YET)
         try:
             # Before the settings, so a correction saved after either replaces this dataset, and
             # the start is refused instead of reading with settings that aren't this dataset's.

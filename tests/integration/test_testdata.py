@@ -61,7 +61,7 @@ def test_git_leaves_the_csvs_line_endings_alone() -> None:
 def test_nothing_else_is_in_testdata() -> None:
     # CFX-APP-first-slice/AC-54: anything hand-written has to say so here. The PostgreSQL fixture
     # is (CFX-APP-postgres/AC-34): fixture.sql is the committed script that builds its database,
-    # and every value in it is invented.
+    # and every value in it is invented; pg_hba.conf is its sign-in rules.
     outside_the_csvs = {
         name
         for name in _files_in(TESTDATA)
@@ -72,4 +72,5 @@ def test_nothing_else_is_in_testdata() -> None:
         "generate_csv.py",
         "postgres/compose.yaml",
         "postgres/fixture.sql",
+        "postgres/pg_hba.conf",
     }

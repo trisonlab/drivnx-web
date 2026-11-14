@@ -41,8 +41,9 @@ export type Column = {
   normalised_type: string;
 };
 
-export type Source = {
+export type CsvSource = {
   id: string;
+  kind: "csv";
   name: string;
   path: string;
   delimiter: string;
@@ -54,6 +55,33 @@ export type Source = {
   available: boolean;
   columns: Column[];
 };
+
+export type TlsMode = "prefer" | "require" | "verify-full";
+
+// How long a password is kept, which the screen tells the user (CFX-APP-postgres AC-05).
+export const UNTIL_STOP = "until_stop";
+
+export type PostgresSource = {
+  id: string;
+  kind: "postgres";
+  // The database's name.
+  name: string;
+  host: string;
+  port: number;
+  database: string;
+  user: string;
+  tls_mode: TlsMode;
+  ca_path: string | null;
+  // Until there's an OS credential store (DRIVN-48), a password lasts until DrivnX stops.
+  password_kept: typeof UNTIL_STOP;
+  // After a restart, until the user gives the password again.
+  password_needed: boolean;
+  // What the server said, once connected since DrivnX started.
+  server_version: string | null;
+  encrypted: boolean | null;
+};
+
+export type Source = CsvSource | PostgresSource;
 
 const SOURCES_PATH = "/api/sources";
 
@@ -75,7 +103,7 @@ export class RefusedPathError extends Error {
   }
 }
 
-export async function connectSource(path: string): Promise<Source> {
+export async function connectSource(path: string): Promise<CsvSource> {
   const response = await fetch(SOURCES_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -89,6 +117,84 @@ export async function connectSource(path: string): Promise<Source> {
     throw new Error(`The server answered ${response.status}`);
   }
   return response.json();
+}
+
+/** Each detail of a PostgreSQL connection, never a connection string (CFX-APP-postgres AC-01). */
+export type ConnectionChoice = {
+  host: string;
+  port: number;
+  database: string;
+  user: string;
+  password: string;
+  tls_mode: TlsMode;
+  // Only with verify-full.
+  ca_path?: string;
+};
+
+export type ServerFacts = { server_version: string; encrypted: boolean };
+
+/** DrivnX couldn't connect, and the message says why in words written for the user. */
+export class ConnectionRefusedError extends Error {}
+
+const FIELD_LABELS: Record<string, string> = {
+  "body.host": "Host",
+  "body.port": "Port",
+  "body.database": "Database",
+  "body.user": "User",
+  "body.password": "Password", // pragma: allowlist secret, ai-skills: allow (a field's label)
+  "body.tls_mode": "TLS mode",
+  "body.ca_path": "CA certificate file",
+};
+
+/** The server's reason, or the fields its validation refused, named as the form names them. */
+function refusal(detail: string | { field: string }[]): string {
+  if (typeof detail === "string") {
+    return detail;
+  }
+  const labels = [...new Set(detail.map(({ field }) => FIELD_LABELS[field]).filter(Boolean))];
+  return labels.length > 0
+    ? `Check these fields: ${labels.join(", ")}.`
+    : "DrivnX couldn't use these details. Check them and try again.";
+}
+
+async function connectedFrom<T>(response: Response): Promise<T> {
+  // 409: the connection is saved already with other settings, which can't be changed yet.
+  if (response.status === 422 || response.status === 409) {
+    const { detail } = await response.json();
+    throw new ConnectionRefusedError(refusal(detail));
+  }
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function testConnection(choice: ConnectionChoice): Promise<ServerFacts> {
+  const response = await fetch(`${SOURCES_PATH}/postgres/test`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(choice),
+  });
+  return connectedFrom(response);
+}
+
+export async function saveConnection(choice: ConnectionChoice): Promise<PostgresSource> {
+  const response = await fetch(`${SOURCES_PATH}/postgres`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(choice),
+  });
+  return connectedFrom(response);
+}
+
+/** After a restart: the server must take the password before DrivnX keeps it. */
+export async function givePassword(sourceId: string, password: string): Promise<PostgresSource> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  return connectedFrom(response);
 }
 
 export type Cell = { value: string | null; cut: boolean };
@@ -123,7 +229,7 @@ export type SourceSettingsChoice = {
   skip_lines: number | null;
 };
 
-export async function saveSourceSettings(sourceId: string, settings: SourceSettingsChoice): Promise<Source> {
+export async function saveSourceSettings(sourceId: string, settings: SourceSettingsChoice): Promise<CsvSource> {
   const response = await fetch(`${SOURCES_PATH}/${sourceId}/settings`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },

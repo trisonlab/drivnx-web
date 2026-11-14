@@ -14,7 +14,9 @@ evidence:
 - path: docs/adr/0005-postgres-sampling.md
   sha256: adb06a3e3e83e0021c8fc0a63117e726441e3d2eeaea5e54d2dcc4634c8dda88
 - path: docs/adr/0006-postgres-extension-in-the-wheel.md
-  sha256: 2b73d2f292cb2c5359f3ff221d65d03f211a1b0225e8ec630173c2e1de2ca863
+  sha256: 86662d0b293d67401493b0e41990665e64b609596d0533bd23d1a74b06bbab7b
+- path: docs/adr/0007-postgres-password-and-connection.md
+  sha256: 42718f21827289099afb04707938960474afb2b22bc9b2362b9532bcaf9a4ce4
 ---
 # Architecture decisions
 
@@ -28,3 +30,4 @@ Index of the project's ADRs. Status comes from each file; the ADR text is the au
 | 0004 — What a profile saves: aggregates only, with values computed on request and no cache | unknown | `docs/adr/0004-profile-values-and-caching.md` |
 | 0005 — How a profile reads a PostgreSQL table: page samples with a seed, one connection, DrivnX's own time limit | unknown | `docs/adr/0005-postgres-sampling.md` |
 | 0006 — DuckDB's PostgreSQL extension ships in the wheel, and one script starts PostgreSQL for tests | unknown | `docs/adr/0006-postgres-extension-in-the-wheel.md` |
+| 0007 — A PostgreSQL password lives only in memory and a temporary DuckDB secret, and every session is read-only | unknown | `docs/adr/0007-postgres-password-and-connection.md` |

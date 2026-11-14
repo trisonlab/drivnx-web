@@ -37,7 +37,10 @@ Compose and runs Linux containers, it's `testdata/postgres/compose.yaml`: Postgr
 `127.0.0.1:54329`. Elsewhere it starts a server of its own in the temporary folder, from `PGBIN` (set on GitHub's Windows
 runner, PostgreSQL 17), else Homebrew's `postgresql@17`, installed if missing, else a `pg_ctl` on the path. Both load the
 hand-written, synthetic `testdata/postgres/fixture.sql` and use password sign-in over TCP only. This script is the one place
-setup depends on the platform; the workflow still has none.
+setup depends on the platform; the workflow still has none. Since DRIVN-47 both serve TLS, with a throwaway CA and server
+certificate that `start` makes with `openssl`, and read one committed `testdata/postgres/pg_hba.conf`, which refuses the
+`drivnx_plain` account over TLS, so an unencrypted connection and TLS that is required and fails can be tested
+too.
 
 **5. CI requires the fixture.** The test job sets `DRIVNX_REQUIRE_POSTGRES=1`, so a test needing PostgreSQL fails rather than
 skips when the server didn't start. Locally, it skips and names the command to run.
@@ -82,5 +85,6 @@ skips when the server didn't start. Locally, it skips and names the command to r
 - Tests run on two PostgreSQL versions: 18.7 through Compose on Linux, and 17 from the runner or Homebrew on macOS and Windows.
   Only these are claimed as tested.
 - A developer needs Docker with Compose, or a PostgreSQL install, to run the PostgreSQL tests; without one they skip.
+  They also need `openssl` on the path, for the fixture's certificates (DRIVN-47).
 - The fixture's passwords are test values for a server on loopback only. Each line carries the markers both secret scanners
   document (`pragma: allowlist secret`, `ai-skills: allow`).

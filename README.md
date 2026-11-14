@@ -43,7 +43,8 @@ uv run --frozen playwright install --with-deps chromium    # only if there's no 
 
 Tests that read PostgreSQL need its fixture. Without it they skip, saying how to start it, and CI fails instead. It
 uses Docker Compose where Docker runs Linux containers, and otherwise starts a server from `PGBIN`, Homebrew's
-postgresql@17 (installed if missing) or a `pg_ctl` on the path. `stop` removes it:
+postgresql@17 (installed if missing) or a `pg_ctl` on the path. Either way it serves TLS with a throwaway certificate
+that `start` makes with `openssl`, which must be on the path. `stop` removes it:
 
 ```bash
 uv run --frozen python tests/postgres_fixture.py start

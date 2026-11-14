@@ -16,6 +16,7 @@ from pydantic import AfterValidator, BaseModel, StringConstraints
 from local_api.binding import LOOPBACK_ADDRESS
 from local_api.findings_api import findings_router
 from local_api.guard import SESSION_PATH, RequestGuard, SecurityHeaders
+from local_api.postgres_api import KeptPasswords, postgres_router
 from local_api.profile_jobs import stop_jobs
 from local_api.profile_runs_api import profile_runs_router
 from local_api.session import LaunchSession
@@ -141,7 +142,10 @@ def create_app(
         return workspace_response(settings)
 
     app.state.workspace = workspace
-    app.include_router(sources_router(workspace))
+    # Passwords last as long as this app, which is until DrivnX stops (CFX-APP-postgres AC-05).
+    kept = KeptPasswords()
+    app.include_router(sources_router(workspace, kept))
+    app.include_router(postgres_router(workspace, kept))
     app.include_router(profile_runs_router(workspace))
     app.include_router(findings_router(workspace))
 

@@ -3,12 +3,13 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { App } from "./App";
-import type { Source } from "./api";
+import type { CsvSource } from "./api";
 import { Preview } from "./Preview";
 import { SourceSettings } from "./SourceSettings";
 
-const report: Source = {
+const report: CsvSource = {
   id: "s1",
+  kind: "csv",
   name: "report.csv",
   path: "/data/report.csv",
   delimiter: ",",
@@ -51,7 +52,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function showSettings(source: Source = report) {
+function showSettings(source: CsvSource = report) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
