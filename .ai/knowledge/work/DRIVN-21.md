@@ -3,7 +3,7 @@ id: DRIVN-21
 legacy_id: CFX-APP-csv-profile-T01
 title: "Measure profile queries and record the R3 rule"
 feature: CFX-APP-csv-profile
-feature_revision: 4
+feature_revision: 5
 stories: [US-08]
 criteria: [AC-42]
 blocked_by: []

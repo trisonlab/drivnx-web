@@ -3,7 +3,7 @@ id: DRIVN-12
 legacy_id: CFX-APP-first-slice-T02
 title: "Session protection"
 feature: CFX-APP-first-slice
-feature_revision: 9
+feature_revision: 10
 stories: [US-01, US-02, US-09]
 criteria: [AC-06, AC-08, AC-09, AC-10, AC-11, AC-12, AC-13, AC-52]
 blocked_by: [DRIVN-11]

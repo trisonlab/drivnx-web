@@ -3,7 +3,7 @@ id: DRIVN-19
 legacy_id: CFX-APP-first-slice-T09
 title: "Contract rules"
 feature: CFX-APP-first-slice
-feature_revision: 9
+feature_revision: 10
 stories: [US-08]
 criteria: [AC-45, AC-46, AC-47]
 blocked_by: [DRIVN-17]

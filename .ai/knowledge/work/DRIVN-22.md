@@ -3,7 +3,7 @@ id: DRIVN-22
 legacy_id: CFX-APP-csv-profile-T02
 title: "Correct how a file is read"
 feature: CFX-APP-csv-profile
-feature_revision: 4
+feature_revision: 5
 stories: [US-01]
 criteria: [AC-01, AC-02, AC-03, AC-05]
 blocked_by: []
