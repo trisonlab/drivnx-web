@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-14T06:04:01+00:00'
+updated_at: '2026-11-14T07:25:21+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -29,7 +29,7 @@ sources:
   .ai/knowledge/work/DRIVN-31.md: d028db74241d15f5b816a0657aa1f7f12f2e59eea1caacfb972d8b11735a6a53
   .ai/knowledge/work/DRIVN-32.md: f4f09d26c06b3ed6bf99f7e2ab1ff5ae4def713fd8e6b26c9ee86ec0719d995f
   .ai/knowledge/work/DRIVN-46.md: b4f7e57bf2416d0d677c65061eca0d860f5647e8e5b4fdf1d3025e1ef481f4ee
-  .ai/knowledge/work/DRIVN-47.md: 320e412a8fc48bc2a2e7ce559564edee0d1359c95852180f4932a60e4787d06b
+  .ai/knowledge/work/DRIVN-47.md: f859e9a8406a7a944fc4bb7a864faf87f41be6359035e2d151afb89c8a8a1d08
   .ai/knowledge/work/DRIVN-48.md: 2d62a8a9a2f30eff68c0649651c1feb329b23dc47da6d5e63f7b5972fb028db2
   .ai/knowledge/work/DRIVN-49.md: 6db72c0eeede243b2a7bafa1cf936668f911520f94fcc68fd36ed4edd1053a92
   .ai/knowledge/work/DRIVN-50.md: bac215bbfee2e6335e1d49acb27a6f1c352b514fdbb7e3dda4b1409ed591c3fb
@@ -137,7 +137,7 @@ sources:
   tests/integration/test_postgres_extension_build.py: d4bc9552a15e1f405fc7d16f06b927da9ebb68862d9f88b9ef55e26fb886a447
   tests/integration/test_postgres_fixture.py: 72faf18bfcc5d7d8b89d98eb4b05539dd6b309bbbc71359f3a42b3f8a157f04b
   tests/integration/test_postgres_sources.py: 7595e0f316b7d85e6fe2dc27b04fcbdfd0d3e461b279c639a2f640a305a89f48
-  tests/integration/test_postgres_sources_api.py: 85ca76ee34269ca0f53276b678579acc5cada9b41e408a743bf81a2bc2cfeb45
+  tests/integration/test_postgres_sources_api.py: aa1fdb60902a46df8f0ff6c00ff5d281e8ffbb9c7211372a7861bb69d4b608f4
   tests/integration/test_preview_api.py: d74949610184b6907c2f80dbe8bde248a19c23ae888674112176cda4f8ed377f
   tests/integration/test_profile_runs.py: f63c29b378c08d20fae1366fb6a368667a66fc100389aeac2d8b62c87736a6b3
   tests/integration/test_replacing_column_names.py: 21077f1a724e5cac275ae6f732b8b0433975f7b2fef7e0bf0e243ae3a799e61d
@@ -1865,7 +1865,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-47.md
   title: Add a connection
-  state: ready
+  state: done
   external_key: DRIVN-47
 - id: ticket:DRIVN-48
   kind: ticket
@@ -5420,9 +5420,9 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_sources_api.py:1
-  - tests/integration/test_postgres_sources_api.py:133
-  - tests/integration/test_postgres_sources_api.py:158
-  - tests/integration/test_postgres_sources_api.py:173
+  - tests/integration/test_postgres_sources_api.py:137
+  - tests/integration/test_postgres_sources_api.py:162
+  - tests/integration/test_postgres_sources_api.py:177
 - from: module:tests/integration/test_postgres_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-02
@@ -5431,27 +5431,27 @@ edges:
   - tests/integration/test_postgres_sources_api.py:29
   - tests/integration/test_postgres_sources_api.py:41
   - tests/integration/test_postgres_sources_api.py:66
-  - tests/integration/test_postgres_sources_api.py:201
-  - tests/integration/test_postgres_sources_api.py:238
+  - tests/integration/test_postgres_sources_api.py:205
+  - tests/integration/test_postgres_sources_api.py:242
 - from: module:tests/integration/test_postgres_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-03
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_sources_api.py:121
+  - tests/integration/test_postgres_sources_api.py:125
 - from: module:tests/integration/test_postgres_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-05
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_sources_api.py:252
-  - tests/integration/test_postgres_sources_api.py:274
+  - tests/integration/test_postgres_sources_api.py:256
+  - tests/integration/test_postgres_sources_api.py:278
 - from: module:tests/integration/test_postgres_sources_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-07
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_sources_api.py:182
+  - tests/integration/test_postgres_sources_api.py:186
 - from: module:tests/integration/test_postgres_sources_api.py
   rel: verifies
   to: ticket:DRIVN-47
@@ -5469,7 +5469,7 @@ edges:
   to: ticket:DRIVN-49
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_sources_api.py:239
+  - tests/integration/test_postgres_sources_api.py:243
 - from: module:tests/integration/test_preview_api.py
   rel: imports
   to: module:tests/conftest.py
