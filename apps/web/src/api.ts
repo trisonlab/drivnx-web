@@ -197,6 +197,84 @@ export async function givePassword(sourceId: string, password: string): Promise<
   return connectedFrom(response);
 }
 
+export type ObjectKind = "table" | "partitioned_table" | "view" | "materialized_view";
+
+/** A table or view as the last listing found it (CFX-APP-postgres AC-08). */
+export type DatabaseObject = {
+  id: string;
+  name: string;
+  kind: ObjectKind;
+  // The server's estimate, null where it has none: a view, or never analysed.
+  estimated_rows: number | null;
+  readable: boolean;
+  // False for a materialized view never refreshed, which can't be read.
+  populated: boolean;
+  chosen: boolean;
+};
+
+export type ObjectsList = {
+  // Null until the database's objects are first listed.
+  discovered_at: string | null;
+  schemas: { name: string; objects: DatabaseObject[] }[];
+};
+
+export async function getObjects(sourceId: string): Promise<ObjectsList> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/objects`);
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
+/** List the database again, as it is now (AC-08, AC-13). A failure says why. */
+export async function refreshObjects(sourceId: string): Promise<ObjectsList> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/discover`, { method: "POST" });
+  return connectedFrom(response);
+}
+
+export type ObjectColumn = {
+  name: string;
+  physical_type: string;
+  normalised_type: string;
+  allows_nulls: boolean;
+};
+
+export type DeclaredKey = {
+  kind: "primary_key" | "unique" | "foreign_key";
+  name: string;
+  // In the key's order.
+  columns: string[];
+  // What a foreign key references, by name.
+  references: { schema: string; object: string; columns: string[] } | null;
+};
+
+export type ObjectDetail = DatabaseObject & { schema: string; columns: ObjectColumn[]; keys: DeclaredKey[] };
+
+/** The object is no longer listed: a refresh replaced or dropped it. */
+export class ObjectGoneError extends Error {}
+
+/** An object's columns and declared keys, as the last listing found them (AC-09). */
+export async function getObject(sourceId: string, objectId: string): Promise<ObjectDetail> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/objects/${objectId}`);
+  if (response.status === 404) {
+    throw new ObjectGoneError("Gone");
+  }
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
+/** Choose exactly these objects to profile (AC-11). A refusal says why. */
+export async function saveSelection(sourceId: string, objectIds: string[]): Promise<ObjectsList> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/selection`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ object_ids: objectIds }),
+  });
+  return connectedFrom(response);
+}
+
 export type Cell = { value: string | null; cut: boolean };
 
 export type RowsPage = {

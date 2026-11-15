@@ -11,13 +11,30 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from artifacts.sources import (
+    NotChoosable,
+    ObjectFound,
+    StoredColumn,
+    StoredKey,
+    StoredObject,
+    StoredObjects,
     StoredPostgresSource,
     add_postgres_source,
     find_source,
     find_source_by_connection,
+    read_object,
+    read_objects,
+    save_discovery,
+    save_selection,
 )
 from artifacts.workspace import Workspace
-from connectors.postgres import ConnectFailure, ConnectionDetails, ServerFacts, check
+from connectors.postgres import (
+    ConnectFailure,
+    ConnectionDetails,
+    Discovery,
+    ServerFacts,
+    check,
+    discover,
+)
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import (
     AfterValidator,
@@ -194,6 +211,171 @@ def _connected(details: ConnectionDetails, password: str, workspace: Workspace) 
         raise HTTPException(status_code=422, detail=str(failure)) from None
 
 
+class SelectionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # The chosen objects' ids, as the list gave them (32 characters today). An empty list
+    # chooses nothing.
+    object_ids: Annotated[
+        list[Annotated[str, StringConstraints(min_length=1, max_length=64)]],
+        Field(max_length=100_000),
+    ]
+
+
+class ObjectSummary(BaseModel):
+    id: str
+    name: str
+    kind: Literal["table", "partitioned_table", "view", "materialized_view"]
+    # None when the server has no estimate: a view, or an object never analysed.
+    estimated_rows: int | None
+    readable: bool
+    # False for a materialized view never refreshed: it can't be read or chosen.
+    populated: bool
+    chosen: bool
+
+
+class SchemaResponse(BaseModel):
+    name: str
+    objects: list[ObjectSummary]
+
+
+class ObjectsResponse(BaseModel):
+    # None until the source's objects are first listed.
+    discovered_at: str | None
+    schemas: list[SchemaResponse]
+
+
+class ObjectColumn(BaseModel):
+    name: str
+    physical_type: str
+    normalised_type: str
+    allows_nulls: bool
+
+
+class KeyReference(BaseModel):
+    # Sent as "schema": a field of that name would shadow BaseModel.schema().
+    schema_: str = Field(serialization_alias="schema")
+    object: str
+    columns: list[str]
+
+
+class KeyResponse(BaseModel):
+    kind: Literal["primary_key", "unique", "foreign_key"]
+    name: str
+    # In the key's order.
+    columns: list[str]
+    # What a foreign key references, by name: it may not be listed.
+    references: KeyReference | None
+
+
+class ObjectResponse(ObjectSummary):
+    schema_: str = Field(serialization_alias="schema")
+    columns: list[ObjectColumn]
+    keys: list[KeyResponse]
+
+
+def _summary(found: StoredObject) -> ObjectSummary:
+    return ObjectSummary(
+        id=found.id,
+        name=found.name,
+        kind=found.kind,
+        estimated_rows=found.estimated_rows,
+        readable=found.readable,
+        populated=found.populated,
+        chosen=found.chosen,
+    )
+
+
+def objects_response(stored: StoredObjects) -> ObjectsResponse:
+    return ObjectsResponse(
+        discovered_at=stored.discovered_at,
+        schemas=[
+            SchemaResponse(
+                name=schema,
+                objects=[_summary(found) for found in stored.objects if found.schema == schema],
+            )
+            for schema in stored.schemas
+        ],
+    )
+
+
+def object_response(
+    found: StoredObject, columns: tuple[StoredColumn, ...], keys: tuple[StoredKey, ...]
+) -> ObjectResponse:
+    return ObjectResponse(
+        **_summary(found).model_dump(),
+        schema_=found.schema,
+        columns=[
+            ObjectColumn(
+                name=column.name,
+                physical_type=column.physical_type,
+                normalised_type=column.normalised_type,
+                allows_nulls=column.allows_nulls,
+            )
+            for column in columns
+        ],
+        keys=[
+            KeyResponse(
+                kind=key.kind,
+                name=key.name,
+                columns=list(key.columns),
+                references=None
+                if key.referenced_object is None
+                else KeyReference(
+                    schema_=key.referenced_schema,
+                    object=key.referenced_object,
+                    columns=list(key.referenced_columns or ()),
+                ),
+            )
+            for key in keys
+        ],
+    )
+
+
+def _save_discovery(workspace: Workspace, source_id: str, discovery: Discovery) -> None:
+    """Save what the connector found. The workspace package doesn't know the connector's types."""
+    save_discovery(
+        workspace.engine,
+        source_id,
+        discovery.schemas,
+        tuple(
+            ObjectFound(
+                schema=found.schema,
+                name=found.name,
+                kind=found.kind,
+                estimated_rows=found.estimated_rows,
+                readable=found.readable,
+                columns=tuple(
+                    StoredColumn(
+                        column.name,
+                        column.physical_type,
+                        column.normalised_type,
+                        column.allows_nulls,
+                    )
+                    for column in found.columns
+                ),
+                keys=tuple(
+                    StoredKey(
+                        key.kind,
+                        key.name,
+                        key.columns,
+                        key.referenced_schema,
+                        key.referenced_object,
+                        key.referenced_columns,
+                    )
+                    for key in found.keys
+                ),
+                populated=found.populated,
+            )
+            for found in discovery.objects
+        ),
+    )
+
+
+NOT_CHOOSABLE = (
+    "Some of these objects can't be chosen: they have no read access, have never been populated,"
+    " or are no longer in the database. Refresh and choose again."
+)
 CANNOT_CHANGE_YET = "Changing a saved connection isn't available yet."
 
 
@@ -215,6 +397,14 @@ def _same_tls(saved: StoredPostgresSource, details: ConnectionDetails) -> None:
 
 def postgres_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
     router = APIRouter(prefix="/api/sources")
+
+    def database(source_id: str) -> StoredPostgresSource:
+        source = find_source(workspace.engine, source_id)
+        if source is None:
+            raise HTTPException(status_code=404, detail="There's no such source.")
+        if not isinstance(source, StoredPostgresSource):
+            raise HTTPException(status_code=409, detail="A file has no schemas or tables.")
+        return source
 
     @router.post("/postgres/test")
     def test_connection(body: ConnectionRequest) -> ServerResponse:
@@ -247,6 +437,15 @@ def postgres_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             assert existing is not None
             _same_tls(existing, details)
             source = existing
+        else:
+            # A new source lists its objects straight away (AC-08). If that fails, the source is
+            # still saved, as the connection works, and the screen offers to list them.
+            try:
+                discovery = discover(details, password, workspace.temp_directory)
+            except ConnectFailure:
+                pass
+            else:
+                _save_discovery(workspace, source.id, discovery)
         kept.keep(source.id, password, facts)
         return postgres_response(source, kept.get(source.id))
 
@@ -261,5 +460,50 @@ def postgres_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         password = body.password.get_secret_value()
         kept.keep(source.id, password, _connected(_details_of(source), password, workspace))
         return postgres_response(source, kept.get(source.id))
+
+    @router.post("/{source_id}/discover")
+    def refresh_objects(source_id: str) -> ObjectsResponse:
+        """List the database's objects as they are now (AC-08, AC-13)."""
+        source = database(source_id)
+        known = kept.get(source_id)
+        if known is None:
+            # After a restart, until the user gives it again (AC-05).
+            raise HTTPException(
+                status_code=409, detail="Enter the password for this database first."
+            )
+        try:
+            discovery = discover(_details_of(source), known.password, workspace.temp_directory)
+        except ConnectFailure as failure:
+            raise HTTPException(status_code=422, detail=str(failure)) from None
+        _save_discovery(workspace, source_id, discovery)
+        return objects_response(read_objects(workspace.engine, source_id))
+
+    @router.get("/{source_id}/objects")
+    def get_objects(source_id: str) -> ObjectsResponse:
+        """From the workspace only, so it works after a restart, before the password."""
+        database(source_id)
+        return objects_response(read_objects(workspace.engine, source_id))
+
+    @router.put("/{source_id}/selection")
+    def save_chosen_objects(source_id: str, body: SelectionRequest) -> ObjectsResponse:
+        """Choose exactly these objects to profile, the others not (AC-11)."""
+        database(source_id)
+        try:
+            save_selection(workspace.engine, source_id, frozenset(body.object_ids))
+        except NotChoosable:
+            raise HTTPException(status_code=422, detail=NOT_CHOOSABLE) from None
+        return objects_response(read_objects(workspace.engine, source_id))
+
+    @router.get("/{source_id}/objects/{object_id}")
+    def get_object(source_id: str, object_id: str) -> ObjectResponse:
+        """An object's columns and declared keys, as the last discovery found them (AC-09)."""
+        database(source_id)
+        found = read_object(workspace.engine, source_id, object_id)
+        if found is None:
+            # Gone in a refresh, or another source's.
+            raise HTTPException(
+                status_code=404, detail="There's no such object. Refresh the list."
+            )
+        return object_response(*found)
 
     return router

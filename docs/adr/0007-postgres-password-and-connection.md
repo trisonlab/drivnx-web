@@ -26,8 +26,10 @@ source in the workspace has no password column. DRIVN-48 puts the credential sto
 
 **2. The connection string holds no secret.** `attach()` in `connectors/postgres.py` creates the secret with the host,
 port, database, user and password, and attaches with `sslmode`, `sslrootcert` (only for `verify-full`),
-`connect_timeout`, `application_name=DrivnX` and `options=-c default_transaction_read_only=on`. Every value is quoted
-for both SQL and libpq.
+`connect_timeout`, `application_name=DrivnX` and `options=-c default_transaction_read_only=on -c statement_timeout=30s`.
+Every value is quoted for both SQL and libpq. The 30 s limit is the spec's for discovery, preview and values on
+request; it applies to every statement on the connection, so a profile sets its own per-table limit instead (DRIVN-51,
+ADR 0005 §6). Added by DRIVN-49.
 
 **3. Every session is read-only twice:** DuckDB attaches `READ_ONLY`, and the server starts each transaction read-only.
 Either alone makes the server refuse a write, even through `postgres_execute`; each has its own test (AC-14).

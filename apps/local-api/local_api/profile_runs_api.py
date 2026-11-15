@@ -47,10 +47,8 @@ from local_api.sources_api import (
 )
 
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
-# Profiling a database comes with choosing its tables (DRIVN-49 and DRIVN-51).
-NO_DATABASE_PROFILE_YET = (
-    "Profiling a database comes with choosing its tables, which isn't available yet."
-)
+# Profiling a chosen table comes later (DRIVN-51).
+NO_DATABASE_PROFILE_YET = "Profiling a database's tables isn't available yet."
 ALREADY_FINISHED = "This profile has already finished."
 SETTINGS_CHANGED = "This file's settings changed just now. Start the profile again."
 COLUMNS_NO_LONGER_MATCH = (

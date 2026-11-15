@@ -295,7 +295,15 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
         "/api/profile-runs/{run_id}/values": {"column": "name", "confirmed": "true"},
     }
 
-    for method, path in api_reads(client):
+    # A database's objects: a file has none, so these are read with a database in
+    # test_postgres_objects_api.py's test_reading_the_list_or_an_object_changes_nothing.
+    database_reads = {
+        ("GET", "/api/sources/{source_id}/objects"),
+        ("GET", "/api/sources/{source_id}/objects/{object_id}"),
+    }
+    assert database_reads <= set(api_reads(client))
+
+    for method, path in [read for read in api_reads(client) if read not in database_reads]:
         # A literal {source_id} would only ever reach the 404, and read nothing.
         response = client.request(
             method, path.format(source_id=source_id, run_id=run_id), params=params.get(path)

@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-14T07:25:21+00:00'
+updated_at: '2026-11-15T01:49:58+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -31,7 +31,7 @@ sources:
   .ai/knowledge/work/DRIVN-46.md: b4f7e57bf2416d0d677c65061eca0d860f5647e8e5b4fdf1d3025e1ef481f4ee
   .ai/knowledge/work/DRIVN-47.md: f859e9a8406a7a944fc4bb7a864faf87f41be6359035e2d151afb89c8a8a1d08
   .ai/knowledge/work/DRIVN-48.md: 2d62a8a9a2f30eff68c0649651c1feb329b23dc47da6d5e63f7b5972fb028db2
-  .ai/knowledge/work/DRIVN-49.md: 6db72c0eeede243b2a7bafa1cf936668f911520f94fcc68fd36ed4edd1053a92
+  .ai/knowledge/work/DRIVN-49.md: 87500fc0dffdcf5fdadc49e0f08ec855e14aa0e0f0f58a469dca56702eb7e548
   .ai/knowledge/work/DRIVN-50.md: bac215bbfee2e6335e1d49acb27a6f1c352b514fdbb7e3dda4b1409ed591c3fb
   .ai/knowledge/work/DRIVN-51.md: f9a144bf269b72e4e4c661f1f1e6b5cb6ba4c8f23c740ce1acd03e7ba9e81852
   .ai/knowledge/work/DRIVN-52.md: b3ded2309456d6eb0ccf0217a0d09432b514408e80385df1d3c82bcdaf3c19da
@@ -47,19 +47,22 @@ sources:
   apps/local-api/local_api/cli.py: 318728dede8634bb41f0a7cbe4f288daf601e157d221aa3a0a7037dce15961a9
   apps/local-api/local_api/findings_api.py: b8457388ca7df1413e7685aa3e434b6d81ab8d17be4ad09e322654ed5c233853
   apps/local-api/local_api/guard.py: 0a065df935b5753303ddb14b6475b30cedae87d4f5d096d556509ae42288a9ae
-  apps/local-api/local_api/postgres_api.py: 921d2d4ac8d5c8f154b61dc1b197a4489ca3ad508db6612639c55c2330b2b9bd
+  apps/local-api/local_api/postgres_api.py: 0f410cb8362a63798627ad200b456b1d54899dcb18abf8373f3bc1ebb379d403
   apps/local-api/local_api/profile_jobs.py: c66e810cc91e3b991ea5eb40ac18e514e16eb9649324dd9833a574c9f57289d6
-  apps/local-api/local_api/profile_runs_api.py: e19f826002cc5e669bdbdf7da20c37287aac90527ad7232976b804d96506d076
+  apps/local-api/local_api/profile_runs_api.py: d8a51aa36fc62c3ef503317d93d857f02036c18913e844cb5b06d9673b51bc69
   apps/local-api/local_api/session.py: 0f2f5f32a475a78c7a3a5bfbf65b2018e14cb0f07df458c5ee2e79ebd4c3bd3e
-  apps/local-api/local_api/sources_api.py: 7074a61ad52ceab7fb46a842e2602af7c43c356147e1b55e9152362ef849039e
+  apps/local-api/local_api/sources_api.py: 982dd52b2afa87c037232b533f5d38dc703be20be20bb239c8eac7ca7bc9b0f8
   apps/web/package.json: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
   apps/web/pnpm-lock.yaml: c9140539e3622a70d6a0d272593b22dc12a51e3ea75a816bfd33f52a89a2708b
   apps/web/src/App.test.tsx: 38a25dd11a7530de354f05a7b4814e3fac4926cf61be9a174a3594029bca752d
   apps/web/src/App.tsx: f1e501cbc1ac8153cc4436e05d80f706dc4187d82d0aee358c03a3ced8b923a8
   apps/web/src/DataExplorer.tsx: 01febbddaeb1cea88eb79c49e811e59261808798b0033723f13a3fdb5e818859
+  apps/web/src/DatabaseObjects.test.tsx: 05839357c4fb3190904517376cfe9d9f30734a268c6a2a029848f77678561fe8
+  apps/web/src/DatabaseObjects.tsx: 475d41f04b99143da3ab1f5c51f4f554ba31093480f6f821ab7c3a4dcb8fdcd5
   apps/web/src/Findings.tsx: 6ecab92f106a6907a1f560c4113944890bc04af3b776ab8f47b3ac3f33c9cebe
-  apps/web/src/Postgres.test.tsx: df066a3feb41bf15eb58f3a053dad57c3e62235b596bf73b312d28c646038466
-  apps/web/src/PostgresDetails.tsx: fbbdd36064dc50bb1f154e62ef47b59e5311018587167ad8ccea6006f62cbfc9
+  apps/web/src/ObjectDetails.tsx: 79d0ff53983b82f100a46e348e7418144dcc9d9c8789c1882beab98198efdec5
+  apps/web/src/Postgres.test.tsx: 820413a17d98631d16f85ae81502dad9d50eaa618e6d6b5d3b62ff316d9c4ec6
+  apps/web/src/PostgresDetails.tsx: b5904565086a3723881ffe7a407673ae7a081d76cf6a1c93dc9a14e739adc82e
   apps/web/src/PostgresForm.tsx: eac4bddeb54295a657f1b6b4ecab0c4b3df7d0ec34ef8a1aae69a6fcb66acba6
   apps/web/src/Preview.test.tsx: a14bc6c5e6440210ad45e3df29fe41fc1c19b553cb93d26083f35aa5a0593de3
   apps/web/src/Preview.tsx: bd0a3ffad006554757c63b63706c2ae0982a87e7c2bf1af6b4b36611c2f3f62b
@@ -71,27 +74,28 @@ sources:
   apps/web/src/SourceSettings.test.tsx: 9c638e65de85598de027e7f71c4bf1915f9a6aeb8a25621eac033d6aa51ebe5b
   apps/web/src/SourceSettings.tsx: 6cafadf79d7f80ef8612aeb406f81c86a54989de643f1d447851bed65a473144
   apps/web/src/Sources.test.tsx: 02416d25025671aa5f75bef9e6c91878a610126ef329374288c1becac25ece26
-  apps/web/src/api.ts: 52ac69e24c04d469a34d35f2122946a2578b4d270f46454374dcf61a5b30dd5a
+  apps/web/src/api.ts: 608b2a4f13a63f9133f1177e8bcba6c957ca361bf5be5bd3ad8046d193d7ddbb
   apps/web/src/main.tsx: a092eb0be7e15855ffc2d8cd35c780c063e9686c2d96689d54ff3ae14deabe4c
   apps/web/src/session.test.ts: 1cfe4e0e785dafef6c141859de01b29725ba49e609b0a9d7651d2976aaa3a3a6
   apps/web/src/session.ts: 606b8ed83032ca43d62da07c2b90c3cdb5e761467e3cf1b4d907b0a96950aab4
   apps/web/src/sourceFormat.ts: 089d6d12912f71f90adc55c819869eb3ae6024e83ed2ca4eef41b816041ce15c
-  apps/web/src/styles.css: c6353a63f4fbad762ffa1f01d4d222fb899267e80fecea181578c6e436ab5b3a
+  apps/web/src/styles.css: f5309640d103fc38ca7a66db2988b960919268a8b666a9b4b6c88d4bff943785
   apps/web/tsconfig.json: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
   hatch_build.py: c14da9b93d0e509993defcb1221d630d6872b22e7eee7daf0c07101e988e7c5b
   packages/artifacts/migrations/versions/0005_source_settings.py: f9dbf1baf732afb3cc794b4b1a86dead9f4b86e3f32793c607b284ff5450df87
   packages/artifacts/migrations/versions/0006_finding_kind.py: 808a3346f80723d10c461213eb58356ae1fc92635ed108ae0de61cdebb7c97e4
   packages/artifacts/migrations/versions/0007_postgres_sources.py: eb63bf61813648e3c4f5dd1642ade7d01116a3940d6c2abe676eb4fad0b1aae3
+  packages/artifacts/migrations/versions/0008_postgres_objects.py: 4fdbc0ab3faaba590683e6e56bb231f8beba74509c5208cef7dd5abeca1e278c
   packages/artifacts/profiles.py: 530461762ee7927f687943e809be104c665ce7f8182bc2407074aeb5c1085df8
   packages/artifacts/provenance.py: 006c59372b073c3aa223564142dd6f604a8667d07f5c00f427b9087cadb52be2
   packages/artifacts/review.py: f959e1fbf57048bc3ee35a8c0d501eb18cfdd92186325e132f3f1a4a72cdbeaa
   packages/artifacts/schema.py: 713e5b4a63502f907fa3ae6ff42ca3831660ec8d9f5834b157b88431e0bd58c6
   packages/artifacts/settings.py: f485bc3a90b6ba403d2377b93adc64737afefd8f837458e1b9b45a3cb4596289
-  packages/artifacts/sources.py: 05322ba761c2c67277ae0e8a1e952bae3838c3370fcc1ad946e11c4e068f5987
+  packages/artifacts/sources.py: e0a4194728969cf602e545dafcfb03eb1109637b52d5a5bbb44a531e27e429ab
   packages/artifacts/store.py: 342da5f8686ec2f8672e296a7c51b803e9617a5e25b9e413d87028715a65c352
   packages/artifacts/workspace.py: 5eb2e1c2ea6fcc8a9d8bbec8b9c5245b5a12038714d6d32321c71b7d6d2513a0
   packages/connectors/csv_files.py: c9261f73242606e3a0907157f8c6f6c003b81e692cc8e2281b4f605d3c9c6a39
-  packages/connectors/postgres.py: 900cbc2e879c6c7eafb34794af4f7216ac9c5f9763399a7089636672c9b036ac
+  packages/connectors/postgres.py: 6bba058cc4523e95fa726f2f66a6ca306188e1f8ee41492ef1733da17756bf7e
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
   packages/profiling/findings.py: 60e9053ec8d2a80e29cfacb8fcf8f48b66ec22347e9d9a113b03ddda06bb51ee
@@ -102,9 +106,10 @@ sources:
   testdata/generate_csv.py: 1efaee1071657759b0fc2d4b941aa442869dd30091144663bb4fc2be74738c91
   testdata/postgres/compose.yaml: 5fd10c92c88abb01b713c9693d293369fed1d440a3ce7545e1935445755c1d82
   testdata/postgres/fixture.sql: 5e4beab467a00824c7ddcacdae6cd8cf75d4d427a0373061a7924daaff0039d1
-  tests/conftest.py: 83889f5314b59f58453780455a3d22d9182f0164da07329637d66359d60bb7a9
+  tests/conftest.py: 6e9045d25b4e99b70c7d0208907194375539c2a256a99e4b9054d3167320d784
   tests/e2e/test_accessibility.py: 8f41a3afbc8cbae8b867920bcd0df2cb1f50793d16a96687e779df812524c71d
   tests/e2e/test_browser_security.py: 40921bd8aa1f8522bcb659e4f0f8a2088b6683918c87dc3cc541226fb7e0f699
+  tests/e2e/test_choose_postgres_objects.py: 3a5c8a6ff9d4e1de473816a8d9c4fa549c1ae4cf75bab097f6ce47f3c7b28b8d
   tests/e2e/test_connect_csv.py: 86c9356d9ffe11c5d23edaa9fbc970dbfc7a324900e6762b8b2ff2e58d07fc4c
   tests/e2e/test_connect_postgres.py: ca5760dba349eb1ea25fd0c40f0576e9face33de4ffed1e38563e648e83e35ed
   tests/e2e/test_fast_profile.py: 9cbb00b5b9de657de31bd804da4ae7b090e60198e31d54d8559cfac5e85d4ae5
@@ -133,16 +138,19 @@ sources:
   tests/integration/test_lockfiles.py: 57e05370d8f93e07a508026075bb853c510e1bee69564f9e4c575538ac7b9257
   tests/integration/test_masked_patterns.py: aa2d0c69e59b42a0c0508cb912f80009100cac6eb7f3e1c4d9603f216ff164cf
   tests/integration/test_postgres_connect.py: 4b112f3415d8da2643346c4d4ccd94a4b51da7670de3bba025517c95bb5261f2
+  tests/integration/test_postgres_discovery.py: 43887d5f7a3f9bb66a3a2b97d48768b71198b018d6939b79807300844a1c5dd5
   tests/integration/test_postgres_extension.py: 694e52700e6c97dceecde1d0a3b64a9d975ee39a58a52d02bb4e630b1d53cd0f
   tests/integration/test_postgres_extension_build.py: d4bc9552a15e1f405fc7d16f06b927da9ebb68862d9f88b9ef55e26fb886a447
   tests/integration/test_postgres_fixture.py: 72faf18bfcc5d7d8b89d98eb4b05539dd6b309bbbc71359f3a42b3f8a157f04b
-  tests/integration/test_postgres_sources.py: 7595e0f316b7d85e6fe2dc27b04fcbdfd0d3e461b279c639a2f640a305a89f48
-  tests/integration/test_postgres_sources_api.py: aa1fdb60902a46df8f0ff6c00ff5d281e8ffbb9c7211372a7861bb69d4b608f4
+  tests/integration/test_postgres_objects_api.py: fbc079a6339899fbef67577b26a3eb748e346365d90cb608954fa23805200a00
+  tests/integration/test_postgres_objects_store.py: f5b994c3a9fccfaf4bbcefa7a93ad15f3993cd00ea9d8f3b049000a93a14e740
+  tests/integration/test_postgres_sources.py: 186726c2a0d17aa95d95d92fe0ad5e950c45ace25b506ef28becc04413a7751a
+  tests/integration/test_postgres_sources_api.py: 5c681467b12850e8d1151b94d98a0f0c757f7adf817732c24989cbfc5183517f
   tests/integration/test_preview_api.py: d74949610184b6907c2f80dbe8bde248a19c23ae888674112176cda4f8ed377f
   tests/integration/test_profile_runs.py: f63c29b378c08d20fae1366fb6a368667a66fc100389aeac2d8b62c87736a6b3
   tests/integration/test_replacing_column_names.py: 21077f1a724e5cac275ae6f732b8b0433975f7b2fef7e0bf0e243ae3a799e61d
   tests/integration/test_review.py: 7e21dba34a4a0b474578895dbae51c3e42a30ffd094ddc98081baaf0e16c2513
-  tests/integration/test_session.py: 6c3f73d0030e41bd449cc668f2de0765799d28028de8aa347383984df9edf14d
+  tests/integration/test_session.py: 6a318a4fd847aab4a339f8f16f7a255fbb6fd55a77b61f061b7fb720adfad9b5
   tests/integration/test_source_settings.py: 02f4a397a17956c1b87080786fabf936b7e8264cc4f19497dd31f2275a443702
   tests/integration/test_sources_api.py: 800608bdbd9b10ea088f5f6ca6341681a08024eb222426f16b4ae68080ee3218
   tests/integration/test_testdata.py: f2c65d371cd50ebc2aaf265ce208a12d87d90bf9a108ff47417515a312a02d3a
@@ -155,7 +163,7 @@ sources:
   tests/integration/test_workspace_store.py: e0897385bf4fc5b492e29eef3328928938ebc78216335bf15b0a231f526013b9
   tests/measure_large_csv.py: 7ecd66f5deda7846c590a5cac114023d4c70e5c4dfa7d23bd18575f819a39842
   tests/measure_postgres_sample.py: 0faaba1d39350a0be659cc6235a9975c82c7dd6dc1d3ef25629c67d29f956c96
-  tests/postgres_fixture.py: 7b2d3b4cbaa8c607952c4be40b81500d7bdf3725508aadfb809b64dfa108bf87
+  tests/postgres_fixture.py: b98250d3e4b97ca9eab9e116cbffe84f48e0a544f9a21891cae26bd119a88baf
   uv.lock: d08ed707505114885c2007155ed7dd383464929473dfed35802cccd8ad9a029d
 nodes:
 - id: criterion:CFX-APP-csv-profile/AC-01
@@ -998,19 +1006,27 @@ nodes:
 - id: endpoint:GET /api/profile-runs
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:255
+  - apps/local-api/local_api/profile_runs_api.py:253
 - id: endpoint:GET /api/profile-runs/{}
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:259
+  - apps/local-api/local_api/profile_runs_api.py:257
 - id: endpoint:GET /api/profile-runs/{}/values
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:297
+  - apps/local-api/local_api/profile_runs_api.py:295
 - id: endpoint:GET /api/sources
   kind: endpoint
   evidence:
   - apps/local-api/local_api/sources_api.py:209
+- id: endpoint:GET /api/sources/{}/objects
+  kind: endpoint
+  evidence:
+  - apps/local-api/local_api/postgres_api.py:481
+- id: endpoint:GET /api/sources/{}/objects/{}
+  kind: endpoint
+  evidence:
+  - apps/local-api/local_api/postgres_api.py:497
 - id: endpoint:GET /api/sources/{}/rows
   kind: endpoint
   evidence:
@@ -1022,11 +1038,11 @@ nodes:
 - id: endpoint:POST /api/profile-runs
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:213
+  - apps/local-api/local_api/profile_runs_api.py:211
 - id: endpoint:POST /api/profile-runs/{}/cancel
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:247
+  - apps/local-api/local_api/profile_runs_api.py:245
 - id: endpoint:POST /api/sources
   kind: endpoint
   evidence:
@@ -1034,15 +1050,23 @@ nodes:
 - id: endpoint:POST /api/sources/postgres
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/postgres_api.py:224
+  - apps/local-api/local_api/postgres_api.py:414
 - id: endpoint:POST /api/sources/postgres/test
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/postgres_api.py:219
+  - apps/local-api/local_api/postgres_api.py:409
+- id: endpoint:POST /api/sources/{}/discover
+  kind: endpoint
+  evidence:
+  - apps/local-api/local_api/postgres_api.py:464
 - id: endpoint:POST /api/sources/{}/password
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/postgres_api.py:253
+  - apps/local-api/local_api/postgres_api.py:452
+- id: endpoint:PUT /api/sources/{}/selection
+  kind: endpoint
+  evidence:
+  - apps/local-api/local_api/postgres_api.py:487
 - id: endpoint:PUT /api/sources/{}/settings
   kind: endpoint
   evidence:
@@ -1131,10 +1155,22 @@ nodes:
   kind: module
   evidence:
   - apps/web/src/DataExplorer.tsx:1
+- id: module:apps/web/src/DatabaseObjects.test.tsx
+  kind: module
+  evidence:
+  - apps/web/src/DatabaseObjects.test.tsx:1
+- id: module:apps/web/src/DatabaseObjects.tsx
+  kind: module
+  evidence:
+  - apps/web/src/DatabaseObjects.tsx:1
 - id: module:apps/web/src/Findings.tsx
   kind: module
   evidence:
   - apps/web/src/Findings.tsx:1
+- id: module:apps/web/src/ObjectDetails.tsx
+  kind: module
+  evidence:
+  - apps/web/src/ObjectDetails.tsx:1
 - id: module:apps/web/src/Postgres.test.tsx
   kind: module
   evidence:
@@ -1223,6 +1259,10 @@ nodes:
   kind: module
   evidence:
   - packages/artifacts/migrations/versions/0007_postgres_sources.py:1
+- id: module:packages/artifacts/migrations/versions/0008_postgres_objects.py
+  kind: module
+  evidence:
+  - packages/artifacts/migrations/versions/0008_postgres_objects.py:1
 - id: module:packages/artifacts/profiles.py
   kind: module
   evidence:
@@ -1311,6 +1351,10 @@ nodes:
   kind: module
   evidence:
   - tests/e2e/test_browser_security.py:1
+- id: module:tests/e2e/test_choose_postgres_objects.py
+  kind: module
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:1
 - id: module:tests/e2e/test_connect_csv.py
   kind: module
   evidence:
@@ -1423,6 +1467,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_postgres_connect.py:1
+- id: module:tests/integration/test_postgres_discovery.py
+  kind: module
+  evidence:
+  - tests/integration/test_postgres_discovery.py:1
 - id: module:tests/integration/test_postgres_extension.py
   kind: module
   evidence:
@@ -1435,6 +1483,14 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_postgres_fixture.py:1
+- id: module:tests/integration/test_postgres_objects_api.py
+  kind: module
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:1
+- id: module:tests/integration/test_postgres_objects_store.py
+  kind: module
+  evidence:
+  - tests/integration/test_postgres_objects_store.py:1
 - id: module:tests/integration/test_postgres_sources.py
   kind: module
   evidence:
@@ -1879,7 +1935,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-49.md
   title: Discover and choose objects
-  state: blocked
+  state: ready
   external_key: DRIVN-49
 - id: ticket:DRIVN-50
   kind: ticket
@@ -3016,24 +3072,52 @@ edges:
   - apps/local-api/local_api/guard.py:6
 - from: module:apps/local-api/local_api/postgres_api.py
   rel: exposes
+  to: endpoint:GET /api/sources/{}/objects
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/postgres_api.py:481
+  note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
+- from: module:apps/local-api/local_api/postgres_api.py
+  rel: exposes
+  to: endpoint:GET /api/sources/{}/objects/{}
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/postgres_api.py:497
+  note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
+- from: module:apps/local-api/local_api/postgres_api.py
+  rel: exposes
   to: endpoint:POST /api/sources/postgres
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/postgres_api.py:224
+  - apps/local-api/local_api/postgres_api.py:414
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/postgres_api.py
   rel: exposes
   to: endpoint:POST /api/sources/postgres/test
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/postgres_api.py:219
+  - apps/local-api/local_api/postgres_api.py:409
+  note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
+- from: module:apps/local-api/local_api/postgres_api.py
+  rel: exposes
+  to: endpoint:POST /api/sources/{}/discover
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/postgres_api.py:464
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/postgres_api.py
   rel: exposes
   to: endpoint:POST /api/sources/{}/password
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/postgres_api.py:253
+  - apps/local-api/local_api/postgres_api.py:452
+  note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
+- from: module:apps/local-api/local_api/postgres_api.py
+  rel: exposes
+  to: endpoint:PUT /api/sources/{}/selection
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/postgres_api.py:487
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/postgres_api.py
   rel: implements
@@ -3046,48 +3130,42 @@ edges:
   to: ticket:DRIVN-48
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/postgres_api.py:153
+  - apps/local-api/local_api/postgres_api.py:170
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:GET /api/profile-runs
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:255
+  - apps/local-api/local_api/profile_runs_api.py:253
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:GET /api/profile-runs/{}
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:259
+  - apps/local-api/local_api/profile_runs_api.py:257
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:GET /api/profile-runs/{}/values
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:297
+  - apps/local-api/local_api/profile_runs_api.py:295
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:POST /api/profile-runs
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:213
+  - apps/local-api/local_api/profile_runs_api.py:211
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:POST /api/profile-runs/{}/cancel
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:247
+  - apps/local-api/local_api/profile_runs_api.py:245
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
-- from: module:apps/local-api/local_api/profile_runs_api.py
-  rel: implements
-  to: ticket:DRIVN-49
-  status: CONFIRMED
-  evidence:
-  - apps/local-api/local_api/profile_runs_api.py:50
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: implements
   to: ticket:DRIVN-51
@@ -3134,12 +3212,6 @@ edges:
   evidence:
   - apps/local-api/local_api/sources_api.py:255
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
-- from: module:apps/local-api/local_api/sources_api.py
-  rel: implements
-  to: ticket:DRIVN-49
-  status: CONFIRMED
-  evidence:
-  - apps/local-api/local_api/sources_api.py:43
 - from: module:apps/local-api/local_api/sources_api.py
   rel: implements
   to: ticket:DRIVN-50
@@ -3274,6 +3346,76 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/src/DataExplorer.tsx:5
+- from: module:apps/web/src/DatabaseObjects.test.tsx
+  rel: imports
+  to: module:apps/web/src/PostgresDetails.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/DatabaseObjects.test.tsx:6
+- from: module:apps/web/src/DatabaseObjects.test.tsx
+  rel: imports
+  to: module:apps/web/src/api.ts
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/DatabaseObjects.test.tsx:5
+- from: module:apps/web/src/DatabaseObjects.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-08
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/DatabaseObjects.test.tsx:85
+  - apps/web/src/DatabaseObjects.test.tsx:105
+  - apps/web/src/DatabaseObjects.test.tsx:121
+- from: module:apps/web/src/DatabaseObjects.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-09
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/DatabaseObjects.test.tsx:282
+  - apps/web/src/DatabaseObjects.test.tsx:306
+  - apps/web/src/DatabaseObjects.test.tsx:320
+- from: module:apps/web/src/DatabaseObjects.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-10
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/DatabaseObjects.test.tsx:180
+  - apps/web/src/DatabaseObjects.test.tsx:249
+- from: module:apps/web/src/DatabaseObjects.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-11
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/DatabaseObjects.test.tsx:202
+  - apps/web/src/DatabaseObjects.test.tsx:236
+  - apps/web/src/DatabaseObjects.test.tsx:364
+- from: module:apps/web/src/DatabaseObjects.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-13
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/DatabaseObjects.test.tsx:132
+  - apps/web/src/DatabaseObjects.test.tsx:150
+  - apps/web/src/DatabaseObjects.test.tsx:333
+  - apps/web/src/DatabaseObjects.test.tsx:344
+- from: module:apps/web/src/DatabaseObjects.tsx
+  rel: imports
+  to: module:apps/web/src/ObjectDetails.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/DatabaseObjects.tsx:12
+- from: module:apps/web/src/DatabaseObjects.tsx
+  rel: imports
+  to: module:apps/web/src/PostgresForm.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/DatabaseObjects.tsx:13
+- from: module:apps/web/src/DatabaseObjects.tsx
+  rel: imports
+  to: module:apps/web/src/api.ts
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/DatabaseObjects.tsx:3
 - from: module:apps/web/src/Findings.tsx
   rel: imports
   to: module:apps/web/src/ProfileTab.tsx
@@ -3286,6 +3428,12 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/src/Findings.tsx:3
+- from: module:apps/web/src/ObjectDetails.tsx
+  rel: imports
+  to: module:apps/web/src/api.ts
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ObjectDetails.tsx:3
 - from: module:apps/web/src/Postgres.test.tsx
   rel: imports
   to: module:apps/web/src/App.tsx
@@ -3303,42 +3451,54 @@ edges:
   to: criterion:CFX-APP-postgres/AC-01
   status: CONFIRMED
   evidence:
-  - apps/web/src/Postgres.test.tsx:101
-  - apps/web/src/Postgres.test.tsx:119
-  - apps/web/src/Postgres.test.tsx:129
-  - apps/web/src/Postgres.test.tsx:176
+  - apps/web/src/Postgres.test.tsx:104
+  - apps/web/src/Postgres.test.tsx:122
+  - apps/web/src/Postgres.test.tsx:132
+  - apps/web/src/Postgres.test.tsx:179
 - from: module:apps/web/src/Postgres.test.tsx
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-02
   status: CONFIRMED
   evidence:
-  - apps/web/src/Postgres.test.tsx:141
-  - apps/web/src/Postgres.test.tsx:163
-  - apps/web/src/Postgres.test.tsx:249
+  - apps/web/src/Postgres.test.tsx:144
+  - apps/web/src/Postgres.test.tsx:166
+  - apps/web/src/Postgres.test.tsx:252
 - from: module:apps/web/src/Postgres.test.tsx
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-03
   status: CONFIRMED
   evidence:
-  - apps/web/src/Postgres.test.tsx:202
-  - apps/web/src/Postgres.test.tsx:294
+  - apps/web/src/Postgres.test.tsx:205
+  - apps/web/src/Postgres.test.tsx:297
 - from: module:apps/web/src/Postgres.test.tsx
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-05
   status: CONFIRMED
   evidence:
-  - apps/web/src/Postgres.test.tsx:283
-  - apps/web/src/Postgres.test.tsx:329
-  - apps/web/src/Postgres.test.tsx:352
+  - apps/web/src/Postgres.test.tsx:286
+  - apps/web/src/Postgres.test.tsx:332
+  - apps/web/src/Postgres.test.tsx:355
 - from: module:apps/web/src/Postgres.test.tsx
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-07
   status: CONFIRMED
   evidence:
-  - apps/web/src/Postgres.test.tsx:202
+  - apps/web/src/Postgres.test.tsx:205
+- from: module:apps/web/src/Postgres.test.tsx
+  rel: verifies
+  to: ticket:DRIVN-49
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Postgres.test.tsx:384
 - from: module:apps/web/src/PostgresDetails.tsx
   rel: imports
   to: module:apps/web/src/DataExplorer.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/PostgresDetails.tsx:5
+- from: module:apps/web/src/PostgresDetails.tsx
+  rel: imports
+  to: module:apps/web/src/DatabaseObjects.tsx
   status: CONFIRMED
   evidence:
   - apps/web/src/PostgresDetails.tsx:4
@@ -3347,7 +3507,7 @@ edges:
   to: module:apps/web/src/PostgresForm.tsx
   status: CONFIRMED
   evidence:
-  - apps/web/src/PostgresDetails.tsx:5
+  - apps/web/src/PostgresDetails.tsx:6
 - from: module:apps/web/src/PostgresDetails.tsx
   rel: imports
   to: module:apps/web/src/api.ts
@@ -3835,6 +3995,12 @@ edges:
   - apps/web/src/api.ts:61
 - from: module:apps/web/src/api.ts
   rel: implements
+  to: criterion:CFX-APP-postgres/AC-08
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/api.ts:202
+- from: module:apps/web/src/api.ts
+  rel: implements
   to: ticket:DRIVN-48
   status: CONFIRMED
   evidence:
@@ -3870,6 +4036,19 @@ edges:
   evidence:
   - apps/web/src/session.test.ts:27
   - apps/web/src/session.test.ts:56
+- from: module:apps/web/src/styles.css
+  rel: implements
+  to: ticket:DRIVN-49
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/styles.css:457
+- from: module:packages/artifacts/migrations/versions/0008_postgres_objects.py
+  rel: implements
+  to: criterion:CFX-APP-postgres/AC-10
+  status: INFERRED
+  evidence:
+  - packages/artifacts/migrations/versions/0008_postgres_objects.py:51
+  note: bare AC-10; the file names only CFX-APP-postgres
 - from: module:packages/artifacts/profiles.py
   rel: imports
   to: module:packages/artifacts/provenance.py
@@ -3943,29 +4122,23 @@ edges:
   evidence:
   - packages/artifacts/settings.py:8
 - from: module:packages/artifacts/sources.py
-  rel: implements
-  to: ticket:DRIVN-49
-  status: CONFIRMED
-  evidence:
-  - packages/artifacts/sources.py:70
-- from: module:packages/artifacts/sources.py
   rel: imports
   to: module:packages/artifacts/profiles.py
-  status: CONFIRMED
-  evidence:
-  - packages/artifacts/sources.py:9
-- from: module:packages/artifacts/sources.py
-  rel: imports
-  to: module:packages/artifacts/provenance.py
   status: CONFIRMED
   evidence:
   - packages/artifacts/sources.py:10
 - from: module:packages/artifacts/sources.py
   rel: imports
-  to: module:packages/artifacts/store.py
+  to: module:packages/artifacts/provenance.py
   status: CONFIRMED
   evidence:
   - packages/artifacts/sources.py:11
+- from: module:packages/artifacts/sources.py
+  rel: imports
+  to: module:packages/artifacts/store.py
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/sources.py:12
 - from: module:packages/artifacts/workspace.py
   rel: imports
   to: module:packages/artifacts/schema.py
@@ -3983,7 +4156,7 @@ edges:
   to: module:packages/connectors/csv_files.py
   status: CONFIRMED
   evidence:
-  - packages/connectors/postgres.py:8
+  - packages/connectors/postgres.py:9
 - from: module:packages/profiling/findings.py
   rel: imports
   to: module:packages/profiling/sensitive.py
@@ -4031,19 +4204,19 @@ edges:
   to: module:tests/postgres_fixture.py
   status: CONFIRMED
   evidence:
-  - tests/conftest.py:23
+  - tests/conftest.py:25
 - from: module:tests/conftest.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-42
   status: CONFIRMED
   evidence:
-  - tests/conftest.py:105
+  - tests/conftest.py:107
 - from: module:tests/conftest.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-48
   status: CONFIRMED
   evidence:
-  - tests/conftest.py:144
+  - tests/conftest.py:146
 - from: module:tests/e2e/test_accessibility.py
   rel: imports
   to: module:tests/conftest.py
@@ -4105,6 +4278,67 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/e2e/test_browser_security.py:63
+- from: module:tests/e2e/test_choose_postgres_objects.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:16
+- from: module:tests/e2e/test_choose_postgres_objects.py
+  rel: imports
+  to: module:tests/e2e/test_accessibility.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:17
+- from: module:tests/e2e/test_choose_postgres_objects.py
+  rel: imports
+  to: module:tests/e2e/test_connect_csv.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:18
+- from: module:tests/e2e/test_choose_postgres_objects.py
+  rel: imports
+  to: module:tests/e2e/test_connect_postgres.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:19
+- from: module:tests/e2e/test_choose_postgres_objects.py
+  rel: imports
+  to: module:tests/postgres_fixture.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:15
+- from: module:tests/e2e/test_choose_postgres_objects.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-08
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:4
+  - tests/e2e/test_choose_postgres_objects.py:59
+- from: module:tests/e2e/test_choose_postgres_objects.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-09
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:59
+- from: module:tests/e2e/test_choose_postgres_objects.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-10
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:59
+- from: module:tests/e2e/test_choose_postgres_objects.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-11
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:86
+- from: module:tests/e2e/test_choose_postgres_objects.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-13
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_choose_postgres_objects.py:86
 - from: module:tests/e2e/test_connect_csv.py
   rel: imports
   to: module:tests/conftest.py
@@ -5290,6 +5524,52 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_connect.py:1
+- from: module:tests/integration/test_postgres_discovery.py
+  rel: imports
+  to: module:tests/postgres_fixture.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_discovery.py:20
+- from: module:tests/integration/test_postgres_discovery.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-08
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_discovery.py:1
+  - tests/integration/test_postgres_discovery.py:144
+  - tests/integration/test_postgres_discovery.py:162
+  - tests/integration/test_postgres_discovery.py:169
+  - tests/integration/test_postgres_discovery.py:178
+  - tests/integration/test_postgres_discovery.py:320
+  - tests/integration/test_postgres_discovery.py:338
+- from: module:tests/integration/test_postgres_discovery.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-09
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_discovery.py:218
+  - tests/integration/test_postgres_discovery.py:248
+  - tests/integration/test_postgres_discovery.py:260
+  - tests/integration/test_postgres_discovery.py:278
+  - tests/integration/test_postgres_discovery.py:287
+  - tests/integration/test_postgres_discovery.py:306
+  - tests/integration/test_postgres_discovery.py:1
+  - tests/integration/test_postgres_discovery.py:338
+- from: module:tests/integration/test_postgres_discovery.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-10
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_discovery.py:191
+  - tests/integration/test_postgres_discovery.py:205
+  - tests/integration/test_postgres_discovery.py:1
+- from: module:tests/integration/test_postgres_discovery.py
+  rel: verifies
+  to: ticket:DRIVN-49
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_discovery.py:1
+  - tests/integration/test_postgres_discovery.py:205
 - from: module:tests/integration/test_postgres_extension.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-07
@@ -5374,22 +5654,168 @@ edges:
   evidence:
   - tests/integration/test_postgres_fixture.py:75
   - tests/integration/test_postgres_fixture.py:84
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:16
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: imports
+  to: module:tests/integration/test_session.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:17
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: imports
+  to: module:tests/postgres_fixture.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:15
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-05
+  status: INFERRED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:450
+  note: bare AC-05; the file names only CFX-APP-postgres
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-08
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:2
+  - tests/integration/test_postgres_objects_api.py:78
+  - tests/integration/test_postgres_objects_api.py:93
+  - tests/integration/test_postgres_objects_api.py:111
+  - tests/integration/test_postgres_objects_api.py:275
+  - tests/integration/test_postgres_objects_api.py:416
+  - tests/integration/test_postgres_objects_api.py:384
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-09
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:144
+  - tests/integration/test_postgres_objects_api.py:179
+  - tests/integration/test_postgres_objects_api.py:2
+  - tests/integration/test_postgres_objects_api.py:275
+  - tests/integration/test_postgres_objects_api.py:384
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-10
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:226
+  - tests/integration/test_postgres_objects_api.py:246
+  - tests/integration/test_postgres_objects_api.py:2
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-11
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:202
+  - tests/integration/test_postgres_objects_api.py:311
+  - tests/integration/test_postgres_objects_api.py:335
+  - tests/integration/test_postgres_objects_api.py:463
+  - tests/integration/test_postgres_objects_api.py:2
+  - tests/integration/test_postgres_objects_api.py:500
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-13
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:449
+  - tests/integration/test_postgres_objects_api.py:500
+  - tests/integration/test_postgres_objects_api.py:537
+  - tests/integration/test_postgres_objects_api.py:2
+  - tests/integration/test_postgres_objects_api.py:246
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: verifies
+  to: ticket:DRIVN-49
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:2
+  - tests/integration/test_postgres_objects_api.py:246
+  - tests/integration/test_postgres_objects_api.py:384
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: verifies
+  to: ticket:DRIVN-50
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:336
+- from: module:tests/integration/test_postgres_objects_api.py
+  rel: verifies
+  to: ticket:DRIVN-51
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_api.py:336
+- from: module:tests/integration/test_postgres_objects_store.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-08
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_store.py:1
+  - tests/integration/test_postgres_objects_store.py:117
+  - tests/integration/test_postgres_objects_store.py:162
+  - tests/integration/test_postgres_objects_store.py:315
+  - tests/integration/test_postgres_objects_store.py:347
+- from: module:tests/integration/test_postgres_objects_store.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-09
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_store.py:284
+  - tests/integration/test_postgres_objects_store.py:377
+- from: module:tests/integration/test_postgres_objects_store.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-10
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_store.py:258
+  - tests/integration/test_postgres_objects_store.py:453
+  - tests/integration/test_postgres_objects_store.py:602
+  - tests/integration/test_postgres_objects_store.py:636
+  - tests/integration/test_postgres_objects_store.py:651
+- from: module:tests/integration/test_postgres_objects_store.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-11
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_store.py:413
+  - tests/integration/test_postgres_objects_store.py:441
+- from: module:tests/integration/test_postgres_objects_store.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-13
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_store.py:496
+  - tests/integration/test_postgres_objects_store.py:538
+  - tests/integration/test_postgres_objects_store.py:570
+  - tests/integration/test_postgres_objects_store.py:668
+- from: module:tests/integration/test_postgres_objects_store.py
+  rel: verifies
+  to: ticket:DRIVN-49
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_store.py:2
+  - tests/integration/test_postgres_objects_store.py:636
 - from: module:tests/integration/test_postgres_sources.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-01
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_sources.py:180
+  - tests/integration/test_postgres_sources.py:197
 - from: module:tests/integration/test_postgres_sources.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-02
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_sources.py:1
-  - tests/integration/test_postgres_sources.py:65
-  - tests/integration/test_postgres_sources.py:94
-  - tests/integration/test_postgres_sources.py:116
-  - tests/integration/test_postgres_sources.py:164
+  - tests/integration/test_postgres_sources.py:79
+  - tests/integration/test_postgres_sources.py:111
+  - tests/integration/test_postgres_sources.py:133
+  - tests/integration/test_postgres_sources.py:181
 - from: module:tests/integration/test_postgres_sources.py
   rel: verifies
   to: ticket:DRIVN-47
@@ -5466,7 +5892,7 @@ edges:
   - tests/integration/test_postgres_sources_api.py:41
 - from: module:tests/integration/test_postgres_sources_api.py
   rel: verifies
-  to: ticket:DRIVN-49
+  to: ticket:DRIVN-50
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_sources_api.py:243
@@ -5752,7 +6178,7 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_session.py:1
-  - tests/integration/test_session.py:336
+  - tests/integration/test_session.py:344
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-08
@@ -5778,7 +6204,7 @@ edges:
   - tests/integration/test_session.py:60
   - tests/integration/test_session.py:77
   - tests/integration/test_session.py:198
-  - tests/integration/test_session.py:503
+  - tests/integration/test_session.py:511
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-11
@@ -5790,7 +6216,7 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-12
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:355
+  - tests/integration/test_session.py:363
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-13
@@ -5803,16 +6229,16 @@ edges:
   to: criterion:CFX-APP-first-slice/AC-48
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:311
+  - tests/integration/test_session.py:319
 - from: module:tests/integration/test_session.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-52
   status: CONFIRMED
   evidence:
-  - tests/integration/test_session.py:418
-  - tests/integration/test_session.py:431
-  - tests/integration/test_session.py:452
-  - tests/integration/test_session.py:463
+  - tests/integration/test_session.py:426
+  - tests/integration/test_session.py:439
+  - tests/integration/test_session.py:460
+  - tests/integration/test_session.py:471
 - from: module:tests/integration/test_source_settings.py
   rel: imports
   to: module:tests/conftest.py

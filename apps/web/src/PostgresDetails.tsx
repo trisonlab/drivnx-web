@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useId, useState } from "react";
 import { givePassword, type PostgresSource, UNTIL_STOP } from "./api";
+import { DatabaseObjects } from "./DatabaseObjects";
 import { SOURCES_QUERY } from "./DataExplorer";
 import { failureMessage, serverFacts } from "./PostgresForm";
 
@@ -70,6 +71,8 @@ export function PostgresDetails({ source }: { source: PostgresSource }) {
       {source.server_version !== null && source.encrypted !== null && (
         <p>{serverFacts({ server_version: source.server_version, encrypted: source.encrypted })}</p>
       )}
+      {/* After a restart, nothing about the source is asked for until the password is (AC-05). */}
+      {!source.password_needed && <DatabaseObjects key={source.id} source={source} />}
     </section>
   );
 }

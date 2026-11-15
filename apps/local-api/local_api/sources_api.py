@@ -40,8 +40,8 @@ MAX_OFFSET = 2**63 - 1
 RUN_ON_THIS_FILE = (
     "A profile is running on this file. Wait for it to finish, then save your settings."
 )
-# Choosing a database's tables comes later (DRIVN-49), and previewing them with it (DRIVN-50).
-NO_PREVIEW_YET = "Previewing a database comes with choosing its tables, which isn't available yet."
+# Previewing a chosen table comes later (DRIVN-50).
+NO_PREVIEW_YET = "Previewing a database's tables isn't available yet."
 NO_FILE_SETTINGS = "A database has no file settings."
 
 

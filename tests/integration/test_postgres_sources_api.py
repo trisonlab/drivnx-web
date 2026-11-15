@@ -239,8 +239,8 @@ SETTINGS = {"delimiter": ",", "encoding": "UTF-8", "has_header": True, "skip_lin
 def test_what_only_a_file_can_do_is_refused_for_a_database_with_a_reason(
     client: TestClient, postgres_server: str, method: str, path: str, body: dict | None
 ) -> None:
-    # CFX-APP-postgres/AC-02: a saved database is a source, and previewing or profiling it comes
-    # with choosing its tables (DRIVN-49 to 51), so these say so rather than fail.
+    # CFX-APP-postgres/AC-02: a saved database is a source, and previewing or profiling its tables
+    # comes later (DRIVN-50 and 51), so these say so rather than fail.
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
     filled = json.loads(json.dumps(body).replace("{id}", source_id)) if body else None
 

@@ -16,7 +16,7 @@ evidence:
 - path: docs/adr/0006-postgres-extension-in-the-wheel.md
   sha256: 86662d0b293d67401493b0e41990665e64b609596d0533bd23d1a74b06bbab7b
 - path: docs/adr/0007-postgres-password-and-connection.md
-  sha256: 42718f21827289099afb04707938960474afb2b22bc9b2362b9532bcaf9a4ce4
+  sha256: 5c7365533dae3980cc9e832f2c9418124fbfdd2a8c974ab74a8692b076b328ef
 ---
 # Architecture decisions
 

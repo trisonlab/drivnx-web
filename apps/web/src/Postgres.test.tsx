@@ -56,6 +56,9 @@ beforeEach(() => {
     if (url === "/api/profile-runs") {
       return Response.json([]);
     }
+    if (/^\/api\/sources\/[^/]+\/objects$/.test(url)) {
+      return Response.json({ discovered_at: null, schemas: [] });
+    }
     return Response.json(sources);
   });
   vi.stubGlobal("fetch", fetchMock);
@@ -344,7 +347,7 @@ test("after a restart, opening the source asks for its password before anything 
   await user.click(within(prompt).getByRole("button", { name: "Connect" }));
 
   expect(await within(details).findByText(/Connected to PostgreSQL 18\.1/)).toBeInTheDocument();
-  expect(within(details).queryByRole("form")).not.toBeInTheDocument();
+  expect(within(details).queryByRole("form", { name: "Password for drivnx_reader" })).not.toBeInTheDocument();
   expect(posted("/api/sources/p1/password")).toEqual([{ password: PASSWORD }]);
 });
 
@@ -378,7 +381,10 @@ test("a database source's profile and preview aren't available yet, and nothing 
   expect(screen.queryByRole("button", { name: /fast profile/i })).not.toBeInTheDocument();
   const review = screen.getByRole("complementary", { name: "Intelligence & Review" });
   expect(review).not.toHaveTextContent(/profile this file/i);
-  expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("p1"))).toEqual([]);
+  // Its list of tables is read from the workspace (DRIVN-49); nothing reads its rows or settings.
+  expect(
+    fetchMock.mock.calls.filter(([url]) => /\/p1\/(rows|settings)|profile-runs\/./.test(String(url))),
+  ).toEqual([]);
 });
 
 test("a verify-full connection shows its CA certificate file, and another doesn't", async () => {
