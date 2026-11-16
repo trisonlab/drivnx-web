@@ -165,7 +165,7 @@ def test_no_part_of_a_password_reaches_the_workspace_logs_browser_storage_or_a_u
     refused_later = secrets.token_urlsafe(18)  # stored, as if the password changed since
     right = postgres_fixture.PASSWORD
     run = ("--no-browser", "--log-level", "trace")
-    env = {} if store else NO_STORE
+    env = store.env if store else NO_STORE
     workspace = tmp_path / "workspace"
     if store:
         # Before anything is saved, so an entry written by a run that fails is deleted too.

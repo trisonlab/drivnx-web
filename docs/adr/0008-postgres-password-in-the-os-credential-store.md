@@ -98,6 +98,17 @@ on Linux with no Secret Service they're skipped.
   any URL the browser requested. A password planted in session storage, and one put in a URL, each make it fail.
 - Not measured yet: Keychain on macOS and Credential Manager on Windows. Both run only on CI's runners.
 
+2026-11-16, CI on PR #22 (run 43782467060) and a probe on a macOS runner (run 43793755378):
+
+- Windows: every store test passed, including `persist = "local_machine"`.
+- macOS: Keychain works with the user's own `HOME`, in the test process and in a new one (written in 0.30 s). Under a
+  `HOME` with no login keychain, `security default-keychain` says "A default keychain could not be found" and the
+  first write waits on a SecurityAgent dialog that nobody can answer on CI. The tests give every DrivnX started for
+  this computer's store the user's own `HOME` (`RealStore.env`); the others still get an empty one.
+- A store call that never returns keeps `drivnx` running after SIGTERM: uvicorn's shutdown waits for that request,
+  whose worker thread is still in the store (measured on Linux with a store that blocks; an idle `drivnx` stopped in
+  0.2 s).
+
 ## Consequences
 
 - A password is in a third place, the OS store, until the user deletes the entry. No source can be removed yet, so an
@@ -111,5 +122,7 @@ on Linux with no Secret Service they're skipped.
   replaces it, so after a restart DrivnX tries it once more and asks again.
 - Ubuntu CI has no Secret Service, so there the real-store tests are skipped and DrivnX uses memory; the store's own
   behaviour is proven on the macOS and Windows runners.
-- **Open, to check on CI:** whether Keychain is found while the tests point `HOME` elsewhere, and that
-  `persist = "local_machine"` is accepted on Windows.
+- While the store waits for an unlock nobody answers, `drivnx` doesn't stop on SIGTERM either (Measured). Not tested
+  with Ctrl+C.
+- The real-store tests on macOS need the user's own `HOME`, so they run with it, and pass an explicit workspace so
+  nothing is written in the user's home folder.

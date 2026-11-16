@@ -6,6 +6,7 @@ import sys
 import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import keyring
 import pytest
@@ -67,6 +68,9 @@ class RealStore:
 
     store: KeyringBackend
     written: list[tuple[str, str]] = field(default_factory=list)
+    # For `start_drivnx(env=...)`, which otherwise gives DrivnX an empty home directory: macOS finds
+    # the login keychain through HOME, and with none waits on a dialog nobody can answer on CI.
+    env: dict[str, str] = field(default_factory=lambda: {"HOME": str(Path.home())})
 
     def set(self, service: str, username: str, password: str) -> None:
         self.written.append((service, username))

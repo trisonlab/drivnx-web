@@ -18,7 +18,7 @@ evidence:
 - path: docs/adr/0007-postgres-password-and-connection.md
   sha256: 2a563edf68717c775b98e54a03662489a83ea16c4651994f75af8a0e06af239f
 - path: docs/adr/0008-postgres-password-in-the-os-credential-store.md
-  sha256: fbaecefc6686823ba1867ca8dec24894a446b09397c3941d3765ddb68c7d26a7
+  sha256: 30731e7174126249d49711b9795e357c6eb3b66e42ab50d51f75ce76e44769c3
 ---
 # Architecture decisions
 

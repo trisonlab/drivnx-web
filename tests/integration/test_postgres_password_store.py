@@ -449,7 +449,7 @@ def test_no_part_of_a_stored_password_reaches_the_workspace_or_the_most_detailed
     refused_later = secrets.token_urlsafe(18)  # stored, as if the password changed since
     right = postgres_fixture.QUOTES_PASSWORD
     run = ("--no-browser", "--log-level", "trace")
-    env = {} if store else NO_STORE
+    env = store.env if store else NO_STORE
     directory = tmp_path / "workspace"
 
     before = start_drivnx(*run, env=env, workspace=directory)
@@ -491,14 +491,16 @@ def test_a_restart_reads_the_password_from_the_os_store(
 ) -> None:
     # CFX-APP-postgres/AC-04 with DrivnX as a user runs it, and this computer's own store.
     workspace = tmp_path / "workspace"
-    before = start_drivnx("--no-browser", workspace=workspace)
+    before = start_drivnx("--no-browser", env=real_store.env, workspace=workspace)
     saved = sign_in(before.wait_for_launch()).post("/api/sources/postgres", json=DETAILS).json()
     source = stored(saved)
     real_store.written.append(entry(source))
     before.process.terminate()
     before.process.wait(timeout=30)
 
-    after = sign_in(start_drivnx("--no-browser", workspace=workspace).wait_for_launch())
+    after = sign_in(
+        start_drivnx("--no-browser", env=real_store.env, workspace=workspace).wait_for_launch()
+    )
 
     (listed,) = after.get("/api/sources").json()
     assert (listed["password_kept"], listed["password_needed"]) == (CREDENTIAL_STORE, False)
