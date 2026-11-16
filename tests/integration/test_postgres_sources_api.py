@@ -3,6 +3,7 @@
 
 import json
 from pathlib import Path
+from urllib.parse import quote
 
 import pytest
 from connectors import postgres
@@ -11,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from .. import postgres_fixture
 from ..conftest import StartDrivnX
+from .test_credential_store import NO_STORE
 from .test_session import sign_in
 
 DETAILS = {
@@ -204,12 +206,14 @@ def test_after_a_restart_a_source_asks_for_its_password_and_keeps_the_one_that_w
 ) -> None:
     # CFX-APP-postgres/AC-02 and AC-05: the source stays after a restart, and its password doesn't.
     directory = tmp_path / "workspace"
-    before = start_drivnx("--no-browser", workspace=directory)
+    before = start_drivnx("--no-browser", env=NO_STORE, workspace=directory)
     saved = sign_in(before.wait_for_launch()).post("/api/sources/postgres", json=QUOTES).json()
     before.process.terminate()
     before.process.wait(timeout=30)
 
-    after = sign_in(start_drivnx("--no-browser", workspace=directory).wait_for_launch())
+    after = sign_in(
+        start_drivnx("--no-browser", env=NO_STORE, workspace=directory).wait_for_launch()
+    )
     unknown = {"password_needed": True, "server_version": None, "encrypted": None}
     assert after.get("/api/sources").json() == [{**saved, **unknown}]
     wrong = after.post(f"/api/sources/{saved['id']}/password", json={"password": "not it"})
@@ -263,13 +267,24 @@ def test_a_password_is_only_taken_for_a_database_that_exists(
     assert client.post(f"/api/sources/{'0' * 32}/password", json=password).status_code == 404
 
 
-def forms_of(password: str) -> list[bytes]:
-    """The password as it could be written down: as typed, and as JSON escapes it."""
-    return [
-        password.encode("utf-8"),
-        json.dumps(password).strip('"').encode("ascii"),
-        json.dumps(password, ensure_ascii=False).strip('"').encode("utf-8"),
-    ]
+PART = 8
+
+
+def parts_of(password: str) -> set[bytes]:
+    """Every part of the password that a scan looks for (AC-30, "no part of the password"):
+    each run of 8 characters in it, as typed, as JSON escapes it, and as a URL encodes it. 8
+    characters of a planted password don't turn up anywhere by chance."""
+    windows = {password[start : start + PART] for start in range(max(1, len(password) - PART + 1))}
+    return {
+        form
+        for window in windows
+        for form in (
+            window.encode("utf-8"),
+            json.dumps(window).strip('"').encode("ascii"),
+            json.dumps(window, ensure_ascii=False).strip('"').encode("utf-8"),
+            quote(window, safe="").encode("ascii"),
+        )
+    }
 
 
 def test_no_password_reaches_the_workspace_or_the_most_detailed_logs(
@@ -279,14 +294,18 @@ def test_no_password_reaches_the_workspace_or_the_most_detailed_logs(
     # save, a restart and the password asked again.
     wrong = "Wr0ng-Pl4nted-pass"  # pragma: allowlist secret, ai-skills: allow
     directory = tmp_path / "workspace"
-    before = start_drivnx("--no-browser", "--log-level", "trace", workspace=directory)
+    before = start_drivnx(
+        "--no-browser", "--log-level", "trace", env=NO_STORE, workspace=directory
+    )
     first = sign_in(before.wait_for_launch())
     refused = first.post("/api/sources/postgres", json={**QUOTES, "password": wrong})
     assert refused.status_code == 422
     saved = first.post("/api/sources/postgres", json=QUOTES).json()
     before.process.terminate()
     before.process.wait(timeout=30)
-    after = start_drivnx("--no-browser", "--log-level", "trace", workspace=directory)
+    after = start_drivnx(
+        "--no-browser", "--log-level", "trace", env=NO_STORE, workspace=directory
+    )
     second = sign_in(after.wait_for_launch())
     second.post(f"/api/sources/{saved['id']}/password", json={"password": wrong})
     second.post(
@@ -301,7 +320,7 @@ def test_no_password_reaches_the_workspace_or_the_most_detailed_logs(
     written = [path for path in directory.rglob("*") if path.is_file()]
     assert any(path.name == "workspace.db" for path in written)
     for password in (postgres_fixture.QUOTES_PASSWORD, wrong):
-        for form in forms_of(password):
+        for form in parts_of(password):
             assert form not in output
             for path in written:
                 assert form not in path.read_bytes(), path.name

@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 
 from .. import postgres_fixture
 from ..conftest import StartDrivnX
+from .test_credential_store import NO_STORE
 from .test_session import sign_in
 
 DETAILS = {
@@ -431,7 +432,7 @@ def test_a_file_has_no_objects_and_an_unknown_source_none_either(
 def restarted(start_drivnx: StartDrivnX, directory: Path) -> tuple[httpx.Client, dict]:
     """DrivnX with a saved connection whose objects are listed, stopped and started again, so it
     doesn't know the password. The saved source's objects as they were, by name."""
-    before = start_drivnx("--no-browser", workspace=directory)
+    before = start_drivnx("--no-browser", env=NO_STORE, workspace=directory)
     first = sign_in(before.wait_for_launch())
     source_id = first.post("/api/sources/postgres", json=DETAILS).json()["id"]
     listed = objects_in(first.get(f"/api/sources/{source_id}/objects").json())
@@ -442,7 +443,8 @@ def restarted(start_drivnx: StartDrivnX, directory: Path) -> tuple[httpx.Client,
     saved = first.get(f"/api/sources/{source_id}/objects").json()
     before.process.terminate()
     before.process.wait(timeout=30)
-    return sign_in(start_drivnx("--no-browser", workspace=directory).wait_for_launch()), saved
+    after = start_drivnx("--no-browser", env=NO_STORE, workspace=directory)
+    return sign_in(after.wait_for_launch()), saved
 
 
 def test_listing_again_needs_the_password(start_drivnx: StartDrivnX, tmp_path: Path) -> None:

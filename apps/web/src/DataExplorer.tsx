@@ -6,6 +6,9 @@ import { cleanPastedPath } from "./sourceFormat";
 
 export const SOURCES_QUERY = ["sources"];
 
+/** Asking the server on opening a database source, with the password DrivnX has (AC-04). */
+export const connectQuery = (sourceId: string) => ["connect", sourceId];
+
 function failureMessage(error: Error): string {
   if (error instanceof RefusedPathError) {
     return error.reason ?? "DrivnX couldn't use this path. Check the path and try again.";

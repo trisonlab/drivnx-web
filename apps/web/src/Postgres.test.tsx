@@ -3,7 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { App } from "./App";
-import { UNTIL_STOP } from "./api";
+import { CREDENTIAL_STORE, UNTIL_STOP } from "./api";
 
 const workspace = {
   location: "/home/me/DrivnX/default",
@@ -367,6 +367,124 @@ test("after a restart, a password the server refuses isn't kept, and the prompt 
     "The server refused this user name and password.",
   );
   expect(screen.getByRole("form", { name: "Password for drivnx_reader" })).toBeInTheDocument();
+});
+
+// After a restart, with the password in the OS credential store: not connected yet in this run.
+const stored = { ...fixture, password_kept: CREDENTIAL_STORE, server_version: null, encrypted: null };
+
+function connects(): number {
+  return fetchMock.mock.calls.filter(
+    ([url, init]) => url === "/api/sources/p1/connect" && init?.method === "POST",
+  ).length;
+}
+
+test("after a restart, opening the source connects with the password from the credential store", async () => {
+  // CFX-APP-postgres/AC-04: "DrivnX reads it from there after a restart", without asking.
+  const connected = { ...stored, server_version: fixture.server_version, encrypted: true };
+  sources = [stored];
+  answers["/api/sources/p1/connect"] = () => {
+    sources = [connected];
+    return Response.json(connected);
+  };
+  renderApp();
+
+  const details = await screen.findByRole("region", { name: "drivnx_fixture" });
+
+  expect(await within(details).findByText(/Connected to PostgreSQL 18\.1/)).toBeInTheDocument();
+  expect(connects()).toBe(1);
+  expect(within(details).queryByRole("form", { name: "Password for drivnx_reader" })).not.toBeInTheDocument();
+  expect(details).not.toHaveTextContent(/only until it stops/);
+});
+
+test("a stored password the server now refuses asks for the password, says why, and a new one connects", async () => {
+  // CFX-APP-postgres/AC-06: "when the source is opened, then the user is asked for the password".
+  const user = userEvent.setup();
+  const connected = { ...stored, server_version: fixture.server_version, encrypted: true };
+  sources = [stored];
+  answers["/api/sources/p1/connect"] = () => {
+    sources = [{ ...stored, password_needed: true }];
+    return Response.json({ detail: "The server refused this user name and password." }, { status: 422 });
+  };
+  answers["/api/sources/p1/password"] = () => {
+    sources = [connected];
+    return Response.json(connected);
+  };
+  renderApp();
+
+  const prompt = await screen.findByRole("form", { name: "Password for drivnx_reader" });
+
+  expect(
+    await within(prompt).findByText(
+      "The server refused this user name and password. Enter the password for drivnx_reader to connect again.",
+    ),
+  ).toBeInTheDocument();
+  expect(prompt).not.toHaveTextContent(/DrivnX has restarted/);
+  await user.type(within(prompt).getByLabelText("Password"), PASSWORD);
+  await user.click(within(prompt).getByRole("button", { name: "Connect" }));
+  const details = screen.getByRole("region", { name: "drivnx_fixture" });
+  expect(await within(details).findByText(/Connected to PostgreSQL 18\.1/)).toBeInTheDocument();
+  expect(posted("/api/sources/p1/password")).toEqual([{ password: PASSWORD }]);
+  expect(connects()).toBe(1);
+  // The refusal was for the old password, so it no longer shows.
+  expect(within(details).queryByRole("alert")).not.toBeInTheDocument();
+});
+
+test("a password the server refuses when the tables are listed asks for it, saying why", async () => {
+  // CFX-APP-postgres/AC-06 when listing is the read that finds it: the server dropped the password.
+  const user = userEvent.setup();
+  sources = [{ ...fixture, password_kept: CREDENTIAL_STORE }];
+  answers["/api/sources/p1/discover"] = () => {
+    sources = [{ ...stored, password_needed: true }];
+    return Response.json({ detail: "The server refused this user name and password." }, { status: 422 });
+  };
+  renderApp();
+  const details = await screen.findByRole("region", { name: "drivnx_fixture" });
+
+  await user.click(await within(details).findByRole("button", { name: "List schemas and tables" }));
+
+  const prompt = await within(details).findByRole("form", { name: "Password for drivnx_reader" });
+  expect(prompt).toHaveTextContent(
+    "The server refused this user name and password. Enter the password for drivnx_reader to connect again.",
+  );
+  expect(connects()).toBe(0);
+});
+
+test("a server that doesn't answer on opening says so, and the password isn't asked for", async () => {
+  // CFX-APP-postgres/AC-06 asks again only when the server refuses the password; AC-03's reason.
+  sources = [stored];
+  answers["/api/sources/p1/connect"] = () =>
+    Response.json({ detail: "DrivnX couldn't reach this host. Check the host and port." }, { status: 422 });
+  renderApp();
+
+  const details = await screen.findByRole("region", { name: "drivnx_fixture" });
+
+  expect(await within(details).findByRole("alert")).toHaveTextContent("DrivnX couldn't reach this host. Check the host and port.");
+  expect(within(details).queryByRole("form", { name: "Password for drivnx_reader" })).not.toBeInTheDocument();
+});
+
+test("a server that answers again when its tables are listed no longer says it can't be reached", async () => {
+  // CFX-APP-postgres/AC-06: the password was kept, so listing the tables connects again.
+  const connected = { ...stored, server_version: fixture.server_version, encrypted: true };
+  sources = [stored];
+  let reachable = false;
+  answers["/api/sources/p1/connect"] = () => {
+    if (!reachable) {
+      return Response.json({ detail: "DrivnX couldn't reach this host. Check the host and port." }, { status: 422 });
+    }
+    sources = [connected];
+    return Response.json(connected);
+  };
+  answers["/api/sources/p1/discover"] = () => Response.json({ discovered_at: "2026-11-15T10:00:00Z", schemas: [] });
+  const user = userEvent.setup();
+  renderApp();
+  const details = await screen.findByRole("region", { name: "drivnx_fixture" });
+  await within(details).findByRole("alert");
+
+  reachable = true;
+  await user.click(within(details).getByRole("button", { name: "List schemas and tables" }));
+
+  expect(await within(details).findByText(/Connected to PostgreSQL 18\.1/)).toBeInTheDocument();
+  expect(within(details).queryByRole("alert")).not.toBeInTheDocument();
 });
 
 test("a database source's profile and preview aren't available yet, and nothing asks for its rows", async () => {

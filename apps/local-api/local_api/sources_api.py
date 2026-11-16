@@ -209,7 +209,7 @@ def sources_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
     @router.get("")
     def get_sources() -> list[SourceResponse | PostgresSourceResponse]:
         return [
-            postgres_response(source, kept.get(source.id))
+            postgres_response(source, kept)
             if isinstance(source, StoredPostgresSource)
             else _response(source)
             for source in list_sources(workspace.engine)

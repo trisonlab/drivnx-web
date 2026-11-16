@@ -9,6 +9,7 @@ import {
   refreshObjects,
   saveSelection,
 } from "./api";
+import { connectQuery, SOURCES_QUERY } from "./DataExplorer";
 import { ObjectDetails } from "./ObjectDetails";
 import { failureMessage } from "./PostgresForm";
 
@@ -147,7 +148,14 @@ function Selection({ sourceId, listed, onSaved, onOpen }: SelectionProps) {
 }
 
 /** The database's schemas and objects, from the workspace: only listing again reads the database. */
-export function DatabaseObjects({ source }: { source: PostgresSource }) {
+export function DatabaseObjects({
+  source,
+  onFailed,
+}: {
+  source: PostgresSource;
+  // Why listing failed. If the server refused the password, the source now asks for it (AC-06).
+  onFailed: (reason: string) => void;
+}) {
   const headingId = useId();
   const queryClient = useQueryClient();
   const queryKey = ["objects", source.id];
@@ -159,6 +167,12 @@ export function DatabaseObjects({ source }: { source: PostgresSource }) {
       queryClient.setQueryData(queryKey, listed);
       // Its columns may have changed, and with them its id.
       setOpenedId(null);
+      // The server answered, so a connection that failed on opening is asked again (AC-06).
+      void queryClient.invalidateQueries({ queryKey: connectQuery(source.id) });
+    },
+    onError: (error: Error) => {
+      onFailed(failureMessage(error));
+      void queryClient.invalidateQueries({ queryKey: SOURCES_QUERY });
     },
   });
 

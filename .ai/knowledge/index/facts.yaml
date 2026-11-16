@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-15T01:49:56+00:00'
+updated_at: '2026-11-16T08:30:56+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -35,7 +35,7 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'postgresql'
-  sha256: 4cab202868dd780f60d658ef1d45deba565b2b26d8aa80164442e559e0cc7e63
+  sha256: 44e6c51efc357b05bccb13ace5dd1da37ab07d5858303c7cc8492d621368d91b
   source: detector
   planned_in: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md:52
 - id: database:sql
@@ -47,7 +47,7 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'fastapi'
-  sha256: 4cab202868dd780f60d658ef1d45deba565b2b26d8aa80164442e559e0cc7e63
+  sha256: 44e6c51efc357b05bccb13ace5dd1da37ab07d5858303c7cc8492d621368d91b
   source: detector
   planned_in: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md:155
 - id: framework:react
@@ -78,7 +78,7 @@ facts:
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'sqlalchemy'
-  sha256: 4cab202868dd780f60d658ef1d45deba565b2b26d8aa80164442e559e0cc7e63
+  sha256: 44e6c51efc357b05bccb13ace5dd1da37ab07d5858303c7cc8492d621368d91b
   source: detector
 - id: pm:pnpm
   status: CONFIRMED
@@ -88,13 +88,13 @@ facts:
 - id: pm:uv
   status: CONFIRMED
   evidence: uv.lock
-  sha256: d08ed707505114885c2007155ed7dd383464929473dfed35802cccd8ad9a029d
+  sha256: 71f0537a186d2156f44af20e562dbb391f880e540b9621813cbcb571906d693f
   source: detector
 - id: testing:pytest
   status: CONFIRMED
   evidence: pyproject.toml
   detail: dependency 'pytest'
-  sha256: 4cab202868dd780f60d658ef1d45deba565b2b26d8aa80164442e559e0cc7e63
+  sha256: 44e6c51efc357b05bccb13ace5dd1da37ab07d5858303c7cc8492d621368d91b
   source: detector
 - id: testing:vitest
   status: CONFIRMED

@@ -18,6 +18,7 @@ from artifacts.workspace import (
 
 from local_api.app import UI_DIR, MissingUiBundleError, create_app
 from local_api.binding import LOOPBACK_ADDRESS, bind_listener
+from local_api.credentials import os_credential_store
 from local_api.session import LaunchSession
 
 
@@ -124,6 +125,7 @@ def main() -> None:
             workspace,
             ui_dir=None if args.dev_origin else UI_DIR,
             dev_origin=args.dev_origin,
+            credential_store=os_credential_store(),
         )
     except MissingUiBundleError as error:
         raise SystemExit(str(error)) from None
