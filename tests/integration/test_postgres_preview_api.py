@@ -17,6 +17,7 @@ from .test_postgres_password_store import (  # noqa: F401 (the fixtures)
     start_app,
     workspace,
 )
+from .test_preview_api import everything_stored
 from .test_session import sign_in
 
 SCHEMA = "drivnx_api_preview"
@@ -211,10 +212,9 @@ def test_a_preview_is_never_stored_by_drivnx_or_the_browser(
     assert response.status_code == 200, response.text
     assert PLANTED in response.text
     assert response.headers["cache-control"] == "no-store"
-    written = [path for path in workspace_dir.rglob("*") if path.is_file()]
-    assert any(path.name == "workspace.db" for path in written)
-    for path in written:
-        assert PLANTED.encode() not in path.read_bytes(), path.name
+    # Not the lock file, which holds nothing and which Windows won't let anyone read meanwhile.
+    assert (workspace_dir / "workspace.db").is_file()
+    assert PLANTED.encode() not in everything_stored(workspace_dir)
 
 
 def test_a_table_without_columns_shows_its_rows_with_no_cells(client: TestClient) -> None:
