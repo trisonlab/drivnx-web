@@ -27,3 +27,14 @@ API and component tests for paging, `Cache-Control: no-store`, and cells cut and
 
 ## Blocked by
 DRIVN-49
+
+## Plan agreed with the user
+Approved in chat, 2026-11-16, with one decision: **the preview's row order** is the primary key's where the object
+declares one, so pages never overlap; views and tables without a key come in the server's own order, which
+PostgreSQL doesn't promise to keep between pages of a large table read by others at the same time.
+
+Approach: `GET /api/sources/{id}/objects/{object_id}/rows` beside the other object routes, with the CSV preview's page
+(50 rows by default, 200 at most, cells cut at 1,000 characters). One query on the server per page, each discovered
+column as PostgreSQL's text, `LIMIT` one more than the page and `OFFSET`, so only that page reaches DrivnX and nothing
+is written. An object not chosen is refused (409, AC-11); a refused password asks for it again (AC-06); an object
+changed since it was listed points to a refresh (409).

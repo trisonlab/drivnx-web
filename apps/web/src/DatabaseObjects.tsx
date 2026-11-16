@@ -10,7 +10,7 @@ import {
   saveSelection,
 } from "./api";
 import { connectQuery, SOURCES_QUERY } from "./DataExplorer";
-import { ObjectDetails } from "./ObjectDetails";
+import { ObjectDetails, objectQuery } from "./ObjectDetails";
 import { failureMessage } from "./PostgresForm";
 
 const KINDS: Record<ObjectKind, string> = {
@@ -205,11 +205,15 @@ export function DatabaseObjects({
           key={objects.data.discovered_at}
           sourceId={source.id}
           listed={objects.data}
-          onSaved={(listed) => queryClient.setQueryData(queryKey, listed)}
+          onSaved={(listed) => {
+            queryClient.setQueryData(queryKey, listed);
+            // The opened object says whether it's chosen, which decides if its rows are shown.
+            void queryClient.invalidateQueries({ queryKey: objectQuery(source.id) });
+          }}
           onOpen={setOpenedId}
         />
       )}
-      {openedId !== null && <ObjectDetails key={openedId} sourceId={source.id} objectId={openedId} />}
+      {openedId !== null && <ObjectDetails key={openedId} sourceId={source.id} objectId={openedId} onFailed={onFailed} />}
     </section>
   );
 }

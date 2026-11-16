@@ -100,6 +100,15 @@ _SILENT = (
 )
 _UNREACHABLE = "DrivnX couldn't reach this host. Check the host and port."
 _NOT_LISTED = "DrivnX couldn't list this database's schemas and tables. Try again."
+_NOT_READ = (
+    "DrivnX couldn't read this object. It may have changed since it was listed: refresh the list."
+)
+# The longest any one statement may run, as the spec assumes for discovery, preview and values.
+STATEMENT_TIMEOUT_SECONDS = 30
+_TIMED_OUT = (
+    f"The database took longer than {STATEMENT_TIMEOUT_SECONDS} seconds to read this page."
+    " Try again."
+)
 # What libpq says, in English, in the order to look for it: a TLS failure can also mention
 # pg_hba.conf. A server set to another language gets the general message instead.
 _FAILURES = (
@@ -159,9 +168,10 @@ def attach(
         "sslmode": details.tls_mode,
         "connect_timeout": str(_PER_ATTEMPT_SECONDS),
         "application_name": "DrivnX",
-        # Read-only on the server's side too, under DuckDB's READ_ONLY (AC-14). 30 s for any one
-        # statement, as the spec assumes for discovery, preview and values.
-        "options": "-c default_transaction_read_only=on -c statement_timeout=30s",
+        # Read-only on the server's side too, under DuckDB's READ_ONLY (AC-14), and a limit for
+        # any one statement.
+        "options": "-c default_transaction_read_only=on"
+        f" -c statement_timeout={STATEMENT_TIMEOUT_SECONDS}s",
     }
     if details.ca_path is not None:
         settings["sslrootcert"] = details.ca_path
@@ -294,7 +304,8 @@ _KEYS = f"""
 """
 
 
-def _catalog(connection: duckdb.DuckDBPyConnection, sql: str) -> list[tuple]:
+def _on_server(connection: duckdb.DuckDBPyConnection, sql: str) -> list[tuple]:
+    """Run one query on the server, in its own SQL, through the attached database."""
     return connection.execute(f"SELECT * FROM postgres_query('{NAME}', {_sql(sql)})").fetchall()
 
 
@@ -344,9 +355,9 @@ def discover(details: ConnectionDetails, password: str, temp_directory: Path) ->
         try:
             # One transaction, so every query reads the same snapshot of the catalog.
             connection.execute("BEGIN")
-            schemas = _catalog(connection, _SCHEMAS)
-            objects = _catalog(connection, _OBJECTS)
-            keys = _catalog(connection, _KEYS)
+            schemas = _on_server(connection, _SCHEMAS)
+            objects = _on_server(connection, _OBJECTS)
+            keys = _on_server(connection, _KEYS)
             connection.execute("COMMIT")
         except duckdb.Error:
             # Never DuckDB's own text, which repeats the query and the server's error.
@@ -370,3 +381,43 @@ def check(details: ConnectionDetails, password: str, temp_directory: Path) -> Se
     with duckdb_connection(temp_directory) as connection:
         attach(connection, details, password)
         return server_facts(connection)
+
+
+def _identifier(name: str) -> str:
+    """A schema, object or column name as PostgreSQL quotes it, whatever it holds."""
+    return '"' + name.replace('"', '""') + '"'
+
+
+def read_rows(
+    details: ConnectionDetails,
+    password: str,
+    temp_directory: Path,
+    object_name: tuple[str, str],
+    columns: tuple[str, ...],
+    key: tuple[str, ...],
+    offset: int,
+    limit: int,
+) -> list[tuple[str | None, ...]]:
+    """`limit` rows of an object from `offset`, each value as PostgreSQL's text for it, read on
+    the server so only these rows reach DrivnX. In the order of the primary key's columns `key`
+    when there is one, else in the server's own (the order agreed for DRIVN-50)."""
+    schema, name = object_name
+    # Every column named, as the extension wraps the query and selects its columns by name.
+    shown = ", ".join(f"{_identifier(column)}::text AS c{n}" for n, column in enumerate(columns))
+    # A table can have no columns, and its rows are still rows: one constant each, dropped below.
+    shown = shown or "1 AS c0"
+    sql = f"SELECT {shown} FROM {_identifier(schema)}.{_identifier(name)}"
+    if key:
+        sql += " ORDER BY " + ", ".join(_identifier(column) for column in key)
+    sql += f" LIMIT {int(limit)} OFFSET {int(offset)}"
+    with duckdb_connection(temp_directory) as connection:
+        attach(connection, details, password)
+        try:
+            rows = _on_server(connection, sql)
+        except duckdb.Error as error:
+            # Never DuckDB's own text, which repeats the query and the server's error: only
+            # whether the server stopped it for taking too long, in its English text.
+            if "canceling statement due to statement timeout" in str(error):
+                raise ConnectFailure("timeout", _TIMED_OUT) from None
+            raise ConnectFailure("changed", _NOT_READ) from None
+    return rows if columns else [() for _ in rows]

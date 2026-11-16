@@ -300,6 +300,7 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
     database_reads = {
         ("GET", "/api/sources/{source_id}/objects"),
         ("GET", "/api/sources/{source_id}/objects/{object_id}"),
+        ("GET", "/api/sources/{source_id}/objects/{object_id}/rows"),
     }
     assert database_reads <= set(api_reads(client))
 

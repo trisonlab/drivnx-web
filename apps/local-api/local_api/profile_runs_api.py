@@ -37,13 +37,12 @@ from local_api.profile_jobs import (
     start_profile,
     values_of,
 )
+from local_api.pages import CellResponse, shown_cell
 from local_api.sources_api import (
-    CellResponse,
     cannot_read,
     current_encoding,
     is_available,
     modified_at,
-    shown_cell,
 )
 
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."

@@ -1,11 +1,13 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useId, useState } from "react";
-import { type Cell, FileUnreadableError, getRows } from "./api";
+import { type Cell, ConnectionRefusedError, FileUnreadableError, getRows, ObjectGoneError, type RowsPage } from "./api";
 
 const PAGE_ROWS = 50;
 
 function failureMessage(error: Error): string {
-  return error instanceof FileUnreadableError
+  return error instanceof FileUnreadableError ||
+    error instanceof ConnectionRefusedError ||
+    error instanceof ObjectGoneError
     ? error.message
     : "DrivnX couldn't load these rows. Start DrivnX again.";
 }
@@ -25,12 +27,22 @@ export function CellText({ cell }: { cell: Cell }) {
   );
 }
 
-export function Preview({ sourceId }: { sourceId: string }) {
+/** A file's rows, or with `objectId` and its `load` a chosen database object's (CFX-APP-postgres AC-12). */
+export function Preview({
+  sourceId,
+  objectId,
+  load = (offset) => getRows(sourceId, offset),
+}: {
+  sourceId: string;
+  objectId?: string;
+  load?: (offset: number) => Promise<RowsPage>;
+}) {
   const headingId = useId();
   const [offset, setOffset] = useState(0);
   const page = useQuery({
-    queryKey: ["rows", sourceId, offset],
-    queryFn: () => getRows(sourceId, offset),
+    // A file's first page is shared with its settings (SourceSettings.tsx), under this same key.
+    queryKey: objectId === undefined ? ["rows", sourceId, offset] : ["rows", sourceId, objectId, offset],
+    queryFn: () => load(offset),
     // The rows on screen stay until the next page arrives, and Next stays enabled so keyboard focus
     // isn't lost from it. Paging works from those rows, so pressing again asks for the same page.
     placeholderData: keepPreviousData,
