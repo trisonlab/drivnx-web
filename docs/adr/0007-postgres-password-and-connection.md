@@ -1,6 +1,6 @@
 # 0007 — A PostgreSQL password lives only in memory and a temporary DuckDB secret, and every session is read-only
 
-- **Status:** Accepted 2026-11-14
+- **Status:** Accepted 2026-11-14; Decision 1 amended by ADR 0008 (the OS credential store, DRIVN-48)
 - **Date:** 2026-11-14
 - **Source:** The plan for ticket DRIVN-47, approved by the user in chat on 2026-11-13; spec `CFX-APP-postgres`
   revision 2 (AC-01, AC-02, AC-03, AC-05, AC-14, AC-30); Section 7 of the direction doc; ADR 0006
@@ -22,7 +22,8 @@ error text**: for a wrong password, a refused port, an unknown host, a missing d
 (`KeptPasswords` in `local_api/postgres_api.py`), and a `TEMPORARY` DuckDB secret in the in-memory DuckDB of the one
 job that connects. The secret goes when that connection closes. The password is never in SQLite, the connection string,
 an environment variable, a file, a log, a URL or an answer from the API; the request models hold it as `SecretStr`. A
-source in the workspace has no password column. DRIVN-48 puts the credential store behind `KeptPasswords`.
+source in the workspace has no password column. DRIVN-48 puts the credential store behind `KeptPasswords`: a third
+place, the OS store, where there is one (ADR 0008).
 
 **2. The connection string holds no secret.** `attach()` in `connectors/postgres.py` creates the secret with the host,
 port, database, user and password, and attaches with `sslmode`, `sslrootcert` (only for `verify-full`),
@@ -76,7 +77,8 @@ attempt fails (Measured).
 ## Consequences
 
 - **A wrong password is two failed sign-ins** in the server's log, so an account lockout counts each attempt twice.
-- After a restart, a database source asks for its password before anything is read (AC-05), until DRIVN-48.
+- After a restart, a database source asks for its password before anything is read (AC-05), until DRIVN-48. Since
+  ADR 0008 it does so only where there's no OS credential store, or the server refuses the stored password.
 - Failure reasons are read from libpq's English messages. A server or client set to another language gets the general
   message, never DuckDB's text.
 - libpq reads `~/.pgpass` only when no password is given, and the form requires one. Under `require`, libpq's
@@ -84,4 +86,4 @@ attempt fails (Measured).
   verifies more than `require` asks. This is from the documentation, not tested.
 - The password stays in Python's memory until DrivnX stops; Python can't reliably wipe a string.
 - Browser storage and exports aren't scanned yet: the UI keeps the password only in the form's state, and AC-30's scan
-  comes with DRIVN-48.
+  comes with DRIVN-48. It does now, for browser storage and every URL requested (ADR 0008, Measured).

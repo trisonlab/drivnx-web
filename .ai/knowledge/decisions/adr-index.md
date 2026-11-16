@@ -16,7 +16,9 @@ evidence:
 - path: docs/adr/0006-postgres-extension-in-the-wheel.md
   sha256: 86662d0b293d67401493b0e41990665e64b609596d0533bd23d1a74b06bbab7b
 - path: docs/adr/0007-postgres-password-and-connection.md
-  sha256: 5c7365533dae3980cc9e832f2c9418124fbfdd2a8c974ab74a8692b076b328ef
+  sha256: 2a563edf68717c775b98e54a03662489a83ea16c4651994f75af8a0e06af239f
+- path: docs/adr/0008-postgres-password-in-the-os-credential-store.md
+  sha256: fbaecefc6686823ba1867ca8dec24894a446b09397c3941d3765ddb68c7d26a7
 ---
 # Architecture decisions
 
@@ -31,3 +33,4 @@ Index of the project's ADRs. Status comes from each file; the ADR text is the au
 | 0005 — How a profile reads a PostgreSQL table: page samples with a seed, one connection, DrivnX's own time limit | unknown | `docs/adr/0005-postgres-sampling.md` |
 | 0006 — DuckDB's PostgreSQL extension ships in the wheel, and one script starts PostgreSQL for tests | unknown | `docs/adr/0006-postgres-extension-in-the-wheel.md` |
 | 0007 — A PostgreSQL password lives only in memory and a temporary DuckDB secret, and every session is read-only | unknown | `docs/adr/0007-postgres-password-and-connection.md` |
+| 0008 — A PostgreSQL password is kept in the OS credential store through keyring, and in memory only where there is none | unknown | `docs/adr/0008-postgres-password-in-the-os-credential-store.md` |

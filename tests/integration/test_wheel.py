@@ -10,6 +10,7 @@ from pathlib import Path
 
 import duckdb
 import pytest
+from packaging.markers import Marker
 
 from ..conftest import REPO_ROOT, run
 from .test_lockfiles import _clean_checkout
@@ -172,17 +173,27 @@ def _normal(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def _locked_for_running() -> dict[str, str]:
-    """What `uv.lock` says running DrivnX needs, walked from the project without the dev group."""
+def _locked_for_running(on_this_platform: bool = False) -> dict[str, str]:
+    """What `uv.lock` says running DrivnX needs, walked from the project without the dev group:
+    on any platform, or only what is installed on this one (a link's marker, such as keyring's
+    `sys_platform == 'win32'` for pywin32-ctypes, holds here)."""
     lock = tomllib.loads((REPO_ROOT / "uv.lock").read_text(encoding="utf-8"))
     packages = {package["name"]: package for package in lock["package"]}
+
+    def needed(links: list[dict]) -> list[str]:
+        return [
+            link["name"]
+            for link in links
+            if not on_this_platform or "marker" not in link or Marker(link["marker"]).evaluate()
+        ]
+
     found: dict[str, str] = {}
-    waiting = [dep["name"] for dep in packages["drivnx-data"]["dependencies"]]
+    waiting = needed(packages["drivnx-data"]["dependencies"])
     while waiting:
         name = waiting.pop()
         if name not in found:
             found[name] = packages[name]["version"]
-            waiting += [dep["name"] for dep in packages[name].get("dependencies", [])]
+            waiting += needed(packages[name].get("dependencies", []))
     return found
 
 
@@ -232,7 +243,8 @@ def test_the_installed_versions_are_the_tested_ones(
     del installed["drivnx-data"]
 
     assert installed == {
-        _normal(name): version for name, version in _locked_for_running().items()
+        _normal(name): version
+        for name, version in _locked_for_running(on_this_platform=True).items()
     }
 
 

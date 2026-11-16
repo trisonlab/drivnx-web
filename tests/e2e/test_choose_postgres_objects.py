@@ -14,6 +14,7 @@ from playwright.sync_api import Page, expect
 
 from .. import postgres_fixture
 from ..conftest import StartDrivnX
+from ..integration.test_credential_store import NO_STORE
 from .test_accessibility import violations
 from .test_connect_csv import details_of, open_set_up_app
 from .test_connect_postgres import database_form, fill_in
@@ -57,7 +58,7 @@ def test_a_saved_database_lists_its_tables_and_opens_one(
     start_drivnx: StartDrivnX, page: Page, objects: Callable[[str], None]
 ) -> None:
     # CFX-APP-postgres/AC-08, CFX-APP-postgres/AC-09 and CFX-APP-postgres/AC-10
-    open_set_up_app(page, start_drivnx("--no-browser").wait_for_launch().url)
+    open_set_up_app(page, start_drivnx("--no-browser", env=NO_STORE).wait_for_launch().url)
 
     listed = save_connection(page)
 
@@ -85,7 +86,7 @@ def test_a_selection_stays_after_a_restart_and_a_refresh_shows_a_new_column(
 ) -> None:
     # CFX-APP-postgres/AC-11 and CFX-APP-postgres/AC-13
     workspace = tmp_path / "workspace"
-    first = start_drivnx("--no-browser", workspace=workspace)
+    first = start_drivnx("--no-browser", env=NO_STORE, workspace=workspace)
     open_set_up_app(page, first.wait_for_launch().url)
     listed = save_connection(page)
     listed.get_by_role("checkbox", name=f"Choose all of {SCHEMA}").click()
@@ -95,7 +96,7 @@ def test_a_selection_stays_after_a_restart_and_a_refresh_shows_a_new_column(
 
     first.process.terminate()
     first.process.wait(timeout=10)
-    page.goto(start_drivnx("--no-browser", workspace=workspace).wait_for_launch().url)
+    page.goto(start_drivnx("--no-browser", env=NO_STORE, workspace=workspace).wait_for_launch().url)
     details = details_of(page, postgres_fixture.DATABASE)
     prompt = details.get_by_role("form", name=f"Password for {postgres_fixture.USER}")
     prompt.get_by_label("Password").fill(postgres_fixture.PASSWORD)

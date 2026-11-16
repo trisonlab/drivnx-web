@@ -29,3 +29,11 @@ Tests on each OS CI runs, with the in-memory fallback where no store exists. A s
 
 ## Blocked by
 DRIVN-47
+
+## Plan agreed with the user
+Approved in chat, 2026-11-15, as recorded in ADR 0008
+(`docs/adr/0008-postgres-password-in-the-os-credential-store.md`), with two decisions:
+- **A store that can't keep the password** (locked, its prompt dismissed) doesn't fail the save: the password is kept
+  in memory and the screen says it lasts until DrivnX stops, as AC-05 does with no store.
+- **A stored password the server refuses** stays in the store until a password the server takes replaces it, so a
+  brief refusal (a rotation in progress) loses nothing; after a restart DrivnX tries it once more, then asks.

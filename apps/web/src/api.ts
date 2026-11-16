@@ -58,8 +58,9 @@ export type CsvSource = {
 
 export type TlsMode = "prefer" | "require" | "verify-full";
 
-// How long a password is kept, which the screen tells the user (CFX-APP-postgres AC-05).
+// How long a password is kept, which the screen tells the user (CFX-APP-postgres AC-04, AC-05).
 export const UNTIL_STOP = "until_stop";
+export const CREDENTIAL_STORE = "credential_store";
 
 export type PostgresSource = {
   id: string;
@@ -72,8 +73,8 @@ export type PostgresSource = {
   user: string;
   tls_mode: TlsMode;
   ca_path: string | null;
-  // Until there's an OS credential store (DRIVN-48), a password lasts until DrivnX stops.
-  password_kept: typeof UNTIL_STOP;
+  // In the OS credential store, or until DrivnX stops where there is none.
+  password_kept: typeof UNTIL_STOP | typeof CREDENTIAL_STORE;
   // After a restart, until the user gives the password again.
   password_needed: boolean;
   // What the server said, once connected since DrivnX started.
@@ -194,6 +195,13 @@ export async function givePassword(sourceId: string, password: string): Promise<
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password }),
   });
+  return connectedFrom(response);
+}
+
+/** On opening a source whose password DrivnX has, from the credential store after a restart: the
+ * server's version and encryption. A refusal says why (CFX-APP-postgres AC-04, AC-06). */
+export async function connectStored(sourceId: string): Promise<PostgresSource> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/connect`, { method: "POST" });
   return connectedFrom(response);
 }
 

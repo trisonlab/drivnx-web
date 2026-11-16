@@ -1,12 +1,14 @@
 """`/api/sources` for PostgreSQL: testing a connection, saving it, and its password after a restart.
 
-The password is kept only in this process's memory, never in the workspace (CFX-APP-postgres AC-05).
+The password is kept in this process's memory, and in the OS credential store where there is one
+(CFX-APP-postgres AC-04, AC-05, ADR 0008); never in the workspace.
 """
 
+import logging
 import threading
 import unicodedata
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -36,6 +38,7 @@ from connectors.postgres import (
     discover,
 )
 from fastapi import APIRouter, HTTPException, Response
+from keyring.backend import KeyringBackend
 from pydantic import (
     AfterValidator,
     BaseModel,
@@ -46,27 +49,110 @@ from pydantic import (
     model_validator,
 )
 
+from local_api.credentials import entry
+
+_log = logging.getLogger(__name__)
+
+
+def _store_failed(action: str, error: Exception) -> None:
+    """Only the kind of failure: the store's own text could say anything (AC-30)."""
+    _log.warning("The OS credential store couldn't %s a password: %s", action, type(error).__name__)
+
+
+# How long a password is kept, which the screen tells the user (AC-04, AC-05).
+UNTIL_STOP = "until_stop"
+CREDENTIAL_STORE = "credential_store"
+HowKept = Literal["until_stop", "credential_store"]
+
 
 @dataclass(frozen=True)
 class Kept:
     password: str
-    facts: ServerFacts
+    # None for a password read from the store, until the server is asked in this run.
+    facts: ServerFacts | None
+    kept: HowKept
 
 
 class KeptPasswords:
-    """Each source's password and what the server said, in this process's memory only."""
+    """Each source's password and what the server said, in this process's memory, and the
+    password also in the OS credential store when there is one (AC-04)."""
 
-    def __init__(self) -> None:
+    def __init__(self, store: KeyringBackend | None) -> None:
+        self._store = store
         self._kept: dict[str, Kept] = {}
+        # Sources that ask the user for the password, not the store, until one is given: the
+        # server refused the stored one (AC-06), or the store had none or couldn't be read. A
+        # locked store shows its unlock prompt on every read, so it's read once per run.
+        self._asking: set[str] = set()
+        # The store failed when read: not read again in this run, for any source, as a locked
+        # store prompts on each read (ADR 0008 Decision 6). A password given is still written.
+        self._unreadable = False
         self._lock = threading.Lock()
 
-    def keep(self, source_id: str, password: str, facts: ServerFacts) -> None:
+    def keep(self, source: StoredPostgresSource, password: str, facts: ServerFacts) -> None:
+        kept: HowKept = UNTIL_STOP
+        if self._store is not None:
+            try:
+                self._store.set_password(*entry(source), password)
+                kept = CREDENTIAL_STORE
+            except Exception as error:
+                # Locked, its prompt dismissed, or full: kept in memory only, as the screen
+                # then says (AC-05). keyring raises no KeyringError for Windows' errors or a
+                # dismissed Secret Service prompt, so any failure counts (ADR 0008 Decision 8).
+                _store_failed("keep", error)
         with self._lock:
-            self._kept[source_id] = Kept(password, facts)
+            self._kept[source.id] = Kept(password, facts, kept)
+            self._asking.discard(source.id)
 
-    def get(self, source_id: str) -> Kept | None:
+    @property
+    def next_kept(self) -> HowKept:
+        """Where a password given now goes, which the screen says before it's asked for."""
+        return UNTIL_STOP if self._store is None else CREDENTIAL_STORE
+
+    def connected(self, source_id: str, known: Kept, facts: ServerFacts) -> None:
+        """The server took the kept or stored password: what it said, with the password left
+        where it is."""
         with self._lock:
-            return self._kept.get(source_id)
+            # Unless another password replaced it meanwhile.
+            if self._kept.get(source_id) is known:
+                self._kept[source_id] = replace(known, facts=facts)
+
+    def refused(self, source_id: str, known: Kept) -> None:
+        """The server refused the password: ask for it, until one it takes replaces it."""
+        with self._lock:
+            # Unless another password replaced it meanwhile, which the server took.
+            if self._kept.get(source_id) is known:
+                del self._kept[source_id]
+                self._asking.add(source_id)
+
+    def get(self, source: StoredPostgresSource) -> Kept | None:
+        """From memory, else read once from the store, as after a restart (AC-04)."""
+        source_id = source.id
+        with self._lock:
+            known = self._kept.get(source_id)
+            if (
+                known is not None
+                or self._store is None
+                or self._unreadable
+                or source_id in self._asking
+            ):
+                return known
+        # Outside the lock: the store may take a moment, or wait for the user to unlock it.
+        try:
+            password = self._store.get_password(*entry(source))
+        except Exception as error:
+            # Locked, its prompt dismissed, or failing: asked for, as without a store.
+            _store_failed("read", error)
+            self._unreadable = True
+            password = None
+        with self._lock:
+            known = self._kept.get(source_id)
+            if known is not None or source_id in self._asking:
+                return known
+            if password is None:
+                self._asking.add(source_id)
+                return None
+            return self._kept.setdefault(source_id, Kept(password, None, CREDENTIAL_STORE))
 
 
 def _text(value: str) -> str:
@@ -148,10 +234,6 @@ class ConnectionRequest(BaseModel):
         )
 
 
-# How long a password is kept, which the screen tells the user (AC-05).
-UNTIL_STOP = "until_stop"
-
-
 class ServerResponse(BaseModel):
     server_version: str
     encrypted: bool
@@ -167,15 +249,18 @@ class PostgresSourceResponse(BaseModel):
     user: str
     tls_mode: str
     ca_path: str | None
-    # Until DRIVN-48 adds the OS credential store, a password lasts until DrivnX stops.
-    password_kept: Literal["until_stop"]
+    # In the OS credential store, or until DrivnX stops where there is none.
+    password_kept: HowKept
     # After a restart, until the user gives the password again.
     password_needed: bool
     server_version: str | None
     encrypted: bool | None
 
 
-def postgres_response(source: StoredPostgresSource, kept: Kept | None) -> PostgresSourceResponse:
+def postgres_response(
+    source: StoredPostgresSource, passwords: KeptPasswords
+) -> PostgresSourceResponse:
+    kept = passwords.get(source)
     return PostgresSourceResponse(
         id=source.id,
         kind="postgres",
@@ -186,10 +271,10 @@ def postgres_response(source: StoredPostgresSource, kept: Kept | None) -> Postgr
         user=source.user,
         tls_mode=source.tls_mode,
         ca_path=source.ca_path,
-        password_kept=UNTIL_STOP,
+        password_kept=kept.kept if kept else passwords.next_kept,
         password_needed=kept is None,
-        server_version=kept.facts.version if kept else None,
-        encrypted=kept.facts.encrypted if kept else None,
+        server_version=kept.facts.version if kept and kept.facts else None,
+        encrypted=kept.facts.encrypted if kept and kept.facts else None,
     )
 
 
@@ -406,6 +491,21 @@ def postgres_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             raise HTTPException(status_code=409, detail="A file has no schemas or tables.")
         return source
 
+    def with_password(source_id: str) -> StoredPostgresSource:
+        source = find_source(workspace.engine, source_id)
+        if source is None:
+            raise HTTPException(status_code=404, detail="There's no such source.")
+        if not isinstance(source, StoredPostgresSource):
+            raise HTTPException(status_code=409, detail="A file has no password.")
+        return source
+
+    def failed(source_id: str, known: Kept, failure: ConnectFailure) -> HTTPException:
+        """A read with the kept or stored password failed. If the server refused the password,
+        the source asks for it again (AC-06); an unreachable server leaves it as it is."""
+        if failure.reason == "credentials":
+            kept.refused(source_id, known)
+        return HTTPException(status_code=422, detail=str(failure))
+
     @router.post("/postgres/test")
     def test_connection(body: ConnectionRequest) -> ServerResponse:
         facts = _connected(body.details(), body.password.get_secret_value(), workspace)
@@ -446,26 +546,39 @@ def postgres_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
                 pass
             else:
                 _save_discovery(workspace, source.id, discovery)
-        kept.keep(source.id, password, facts)
-        return postgres_response(source, kept.get(source.id))
+        kept.keep(source, password, facts)
+        return postgres_response(source, kept)
 
     @router.post("/{source_id}/password")
     def give_password(source_id: str, body: PasswordRequest) -> PostgresSourceResponse:
-        """After a restart: kept only if the server takes it (AC-05)."""
-        source = find_source(workspace.engine, source_id)
-        if source is None:
-            raise HTTPException(status_code=404, detail="There's no such source.")
-        if not isinstance(source, StoredPostgresSource):
-            raise HTTPException(status_code=409, detail="A file has no password.")
+        """After a restart or a refusal: kept only if the server takes it (AC-05, AC-06)."""
+        source = with_password(source_id)
         password = body.password.get_secret_value()
-        kept.keep(source.id, password, _connected(_details_of(source), password, workspace))
-        return postgres_response(source, kept.get(source.id))
+        kept.keep(source, password, _connected(_details_of(source), password, workspace))
+        return postgres_response(source, kept)
+
+    @router.post("/{source_id}/connect")
+    def connect(source_id: str) -> PostgresSourceResponse:
+        """On opening a source: the server's version and encryption, with the password kept or
+        stored, so a password the server now refuses is found then (AC-04, AC-06)."""
+        source = with_password(source_id)
+        known = kept.get(source)
+        if known is None:
+            raise HTTPException(
+                status_code=409, detail="Enter the password for this database first."
+            )
+        try:
+            facts = check(_details_of(source), known.password, workspace.temp_directory)
+        except ConnectFailure as failure:
+            raise failed(source_id, known, failure) from None
+        kept.connected(source_id, known, facts)
+        return postgres_response(source, kept)
 
     @router.post("/{source_id}/discover")
     def refresh_objects(source_id: str) -> ObjectsResponse:
         """List the database's objects as they are now (AC-08, AC-13)."""
         source = database(source_id)
-        known = kept.get(source_id)
+        known = kept.get(source)
         if known is None:
             # After a restart, until the user gives it again (AC-05).
             raise HTTPException(
@@ -474,7 +587,7 @@ def postgres_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         try:
             discovery = discover(_details_of(source), known.password, workspace.temp_directory)
         except ConnectFailure as failure:
-            raise HTTPException(status_code=422, detail=str(failure)) from None
+            raise failed(source_id, known, failure) from None
         _save_discovery(workspace, source_id, discovery)
         return objects_response(read_objects(workspace.engine, source_id))
 
