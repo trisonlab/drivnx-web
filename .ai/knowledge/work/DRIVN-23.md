@@ -3,7 +3,7 @@ id: DRIVN-23
 legacy_id: CFX-APP-csv-profile-T03
 title: "Replace earlier column names"
 feature: CFX-APP-csv-profile
-feature_revision: 4
+feature_revision: 5
 stories: [US-01]
 criteria: [AC-04]
 blocked_by: [DRIVN-22]

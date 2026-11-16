@@ -3,7 +3,7 @@ id: DRIVN-13
 legacy_id: CFX-APP-first-slice-T03
 title: "Workspace opens safely"
 feature: CFX-APP-first-slice
-feature_revision: 9
+feature_revision: 10
 stories: [US-01, US-03, US-08]
 criteria: [AC-02, AC-03, AC-04, AC-17, AC-18, AC-19, AC-44]
 blocked_by: [DRIVN-11]

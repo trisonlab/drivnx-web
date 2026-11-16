@@ -3,7 +3,7 @@ id: DRIVN-11
 legacy_id: CFX-APP-first-slice-T01
 title: "Installable runtime serves a page"
 feature: CFX-APP-first-slice
-feature_revision: 9
+feature_revision: 10
 stories: [US-01, US-02, US-09]
 criteria: [AC-05, AC-07, AC-50]
 blocked_by: []

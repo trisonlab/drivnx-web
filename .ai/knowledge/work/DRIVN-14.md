@@ -3,7 +3,7 @@ id: DRIVN-14
 legacy_id: CFX-APP-first-slice-T04
 title: "Set up a workspace in the app shell"
 feature: CFX-APP-first-slice
-feature_revision: 9
+feature_revision: 10
 stories: [US-01, US-03, US-07]
 criteria: [AC-01, AC-14, AC-15, AC-16, AC-32, AC-33, AC-34]
 blocked_by: [DRIVN-12, DRIVN-13]
