@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-16T13:30:21+00:00'
+updated_at: '2026-11-16T14:23:43+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -32,7 +32,7 @@ sources:
   .ai/knowledge/work/DRIVN-47.md: f859e9a8406a7a944fc4bb7a864faf87f41be6359035e2d151afb89c8a8a1d08
   .ai/knowledge/work/DRIVN-48.md: cc37e29ea27510c9603b4b3f6afbe595928685467202136e1f0fde71b3bc3228
   .ai/knowledge/work/DRIVN-49.md: 18011bfaeb84761c306d7dd3af58379fca8fe10fb7f9dca9795240c38345ffe3
-  .ai/knowledge/work/DRIVN-50.md: daf2d864517b623ddb5fa69793ef460da75c5798d300c35eb4d6f33a73670eb3
+  .ai/knowledge/work/DRIVN-50.md: cbe500cceac8ace383f825fe727b5b53c335a9c3e81370db3792099d9a88011b
   .ai/knowledge/work/DRIVN-51.md: f9a144bf269b72e4e4c661f1f1e6b5cb6ba4c8f23c740ce1acd03e7ba9e81852
   .ai/knowledge/work/DRIVN-52.md: b3ded2309456d6eb0ccf0217a0d09432b514408e80385df1d3c82bcdaf3c19da
   .ai/knowledge/work/DRIVN-53.md: ae1b9853cc28cdb14189f31423b97a00ae6be59e688f3d105ce54d0788d7d8be
@@ -63,7 +63,7 @@ sources:
   apps/web/src/DatabaseObjects.tsx: 0e217dfe5ca1dc588d9620d91d9ed4ac68765a46ba316ca7f7294067b1820096
   apps/web/src/Findings.tsx: 6ecab92f106a6907a1f560c4113944890bc04af3b776ab8f47b3ac3f33c9cebe
   apps/web/src/ObjectDetails.tsx: 62a2cbce8fdef6d95f9892f9285000fa4d36a1a650f11509b4b1bba772ae8797
-  apps/web/src/Postgres.test.tsx: 9074fe8e1f49f768a1c4c8d003c11e88ab3ea5835ceb3fc93a98aeb869bfcc4e
+  apps/web/src/Postgres.test.tsx: 9c39a2324b3ead81a7bce5e6e547f7d64f04209b027f1a37d69e21fd1efddd2b
   apps/web/src/PostgresDetails.tsx: 2fe5dfc71e6ba8b80a6706a46bb4c1314b8a04f5807028e8a7505826d4f28c0e
   apps/web/src/PostgresForm.tsx: eac4bddeb54295a657f1b6b4ecab0c4b3df7d0ec34ef8a1aae69a6fcb66acba6
   apps/web/src/Preview.test.tsx: a14bc6c5e6440210ad45e3df29fe41fc1c19b553cb93d26083f35aa5a0593de3
@@ -71,7 +71,7 @@ sources:
   apps/web/src/ProfileTab.test.tsx: 745a2e924a617b0d05b4cffbc6e24f108100377761e2cd9f2243e06e656239b8
   apps/web/src/ProfileTab.tsx: 32aa1adab050d0b322ccd57eca1f2180dac837e7898037dca8899d7902fe82f2
   apps/web/src/SetupScreen.tsx: 2a9504d56277d388b0db5e0b7d29a68de334f4206e49900754bcd312a6070a1a
-  apps/web/src/Shell.tsx: 9bcd8a1fa475820e92cab425fd6e5369878be5084005127da5e5a66e8981233e
+  apps/web/src/Shell.tsx: b983d34a21de8834dc50d07c1326cfb0f02e5ff715f8e069db7b05ffaa9d5c63
   apps/web/src/SourceDetails.tsx: ee7db3b3eb65efe04f6d73a05c0761bf3389b966ea1c264c2af07bb6d0dc5cce
   apps/web/src/SourceSettings.test.tsx: 9d1f30b8b6817f757728c34f37f3be4ef7f6f9da5460eaebb75c59b3c4881f20
   apps/web/src/SourceSettings.tsx: 6cafadf79d7f80ef8612aeb406f81c86a54989de643f1d447851bed65a473144
@@ -148,7 +148,7 @@ sources:
   tests/integration/test_postgres_objects_api.py: 1f66660f18846a7607bda4b39fd5961ab440285fd5c3abdc659eb1f47926b7bd
   tests/integration/test_postgres_objects_store.py: f5b994c3a9fccfaf4bbcefa7a93ad15f3993cd00ea9d8f3b049000a93a14e740
   tests/integration/test_postgres_password_store.py: 8eebbead2dc4b70ed2ea865c7d37455dae4e7d6951435be20454dc3094dbbb5d
-  tests/integration/test_postgres_preview_api.py: 0d2b5819041ec861fcafe074ede968a1cb160574fcea4e1e607553b2875edfc5
+  tests/integration/test_postgres_preview_api.py: ed158df845b8269ea758d3ea7d4e8fe9e9cddaaea8f12eb27e21f678ff5d50e0
   tests/integration/test_postgres_sources.py: 186726c2a0d17aa95d95d92fe0ad5e950c45ace25b506ef28becc04413a7751a
   tests/integration/test_postgres_sources_api.py: 7176a00b5d7fe0f494afa3b59ff5c847784ba29486f87649c175832087a9989f
   tests/integration/test_preview_api.py: d74949610184b6907c2f80dbe8bde248a19c23ae888674112176cda4f8ed377f
@@ -1975,7 +1975,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-50.md
   title: Preview a chosen object
-  state: ready
+  state: done
   external_key: DRIVN-50
 - id: ticket:DRIVN-51
   kind: ticket
@@ -3626,13 +3626,14 @@ edges:
   to: criterion:CFX-APP-postgres/AC-12
   status: CONFIRMED
   evidence:
-  - apps/web/src/Postgres.test.tsx:552
+  - apps/web/src/Postgres.test.tsx:497
+  - apps/web/src/Postgres.test.tsx:554
 - from: module:apps/web/src/Postgres.test.tsx
   rel: verifies
   to: ticket:DRIVN-49
   status: CONFIRMED
   evidence:
-  - apps/web/src/Postgres.test.tsx:508
+  - apps/web/src/Postgres.test.tsx:510
 - from: module:apps/web/src/PostgresDetails.tsx
   rel: imports
   to: module:apps/web/src/DataExplorer.tsx
@@ -3941,16 +3942,10 @@ edges:
   - apps/web/src/SetupScreen.tsx:3
 - from: module:apps/web/src/Shell.tsx
   rel: implements
-  to: ticket:DRIVN-49
-  status: CONFIRMED
-  evidence:
-  - apps/web/src/Shell.tsx:88
-- from: module:apps/web/src/Shell.tsx
-  rel: implements
   to: ticket:DRIVN-50
   status: CONFIRMED
   evidence:
-  - apps/web/src/Shell.tsx:88
+  - apps/web/src/Shell.tsx:85
 - from: module:apps/web/src/Shell.tsx
   rel: imports
   to: module:apps/web/src/DataExplorer.tsx
@@ -6125,43 +6120,49 @@ edges:
   - tests/integration/test_postgres_preview_api.py:13
 - from: module:tests/integration/test_postgres_preview_api.py
   rel: imports
-  to: module:tests/integration/test_session.py
+  to: module:tests/integration/test_preview_api.py
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_preview_api.py:20
+- from: module:tests/integration/test_postgres_preview_api.py
+  rel: imports
+  to: module:tests/integration/test_session.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_preview_api.py:21
 - from: module:tests/integration/test_postgres_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-28
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_preview_api.py:105
+  - tests/integration/test_postgres_preview_api.py:106
 - from: module:tests/integration/test_postgres_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-first-slice/AC-29
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_preview_api.py:113
+  - tests/integration/test_postgres_preview_api.py:114
 - from: module:tests/integration/test_postgres_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-11
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_preview_api.py:129
+  - tests/integration/test_postgres_preview_api.py:130
 - from: module:tests/integration/test_postgres_preview_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-12
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_preview_api.py:1
-  - tests/integration/test_postgres_preview_api.py:79
-  - tests/integration/test_postgres_preview_api.py:91
-  - tests/integration/test_postgres_preview_api.py:105
-  - tests/integration/test_postgres_preview_api.py:113
-  - tests/integration/test_postgres_preview_api.py:141
-  - tests/integration/test_postgres_preview_api.py:153
-  - tests/integration/test_postgres_preview_api.py:173
-  - tests/integration/test_postgres_preview_api.py:190
-  - tests/integration/test_postgres_preview_api.py:207
+  - tests/integration/test_postgres_preview_api.py:80
+  - tests/integration/test_postgres_preview_api.py:92
+  - tests/integration/test_postgres_preview_api.py:106
+  - tests/integration/test_postgres_preview_api.py:114
+  - tests/integration/test_postgres_preview_api.py:142
+  - tests/integration/test_postgres_preview_api.py:154
+  - tests/integration/test_postgres_preview_api.py:174
+  - tests/integration/test_postgres_preview_api.py:191
+  - tests/integration/test_postgres_preview_api.py:208
   - tests/integration/test_postgres_preview_api.py:221
   - tests/integration/test_postgres_preview_api.py:230
 - from: module:tests/integration/test_postgres_preview_api.py
@@ -6170,7 +6171,7 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_preview_api.py:1
-  - tests/integration/test_postgres_preview_api.py:80
+  - tests/integration/test_postgres_preview_api.py:81
 - from: module:tests/integration/test_postgres_sources.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-01
