@@ -493,7 +493,9 @@ test("a server that answers again when its tables are listed no longer says it c
   expect(within(details).queryByRole("alert")).not.toBeInTheDocument();
 });
 
-test("a database source's profile and preview aren't available yet, and nothing asks for its rows", async () => {
+test("a database source's profile isn't available yet, its rows are previewed by object, and nothing asks for them", async () => {
+  // CFX-APP-postgres/AC-12: a chosen object's preview is in its details (DatabaseObjects.test.tsx), so
+  // the source has none of its own.
   sources = [fixture];
   renderApp();
 
@@ -501,7 +503,7 @@ test("a database source's profile and preview aren't available yet, and nothing 
   expect(screen.getByRole("tabpanel", { name: "Profile" })).toHaveTextContent(
     "Profiling a database Not available yet",
   );
-  expect(screen.getByRole("region", { name: "Preview" })).toHaveTextContent("Not available yet");
+  expect(screen.queryByRole("region", { name: "Preview" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /fast profile/i })).not.toBeInTheDocument();
   const review = screen.getByRole("complementary", { name: "Intelligence & Review" });
   expect(review).not.toHaveTextContent(/profile this file/i);
