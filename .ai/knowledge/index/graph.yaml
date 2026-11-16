@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-16T23:35:59+00:00'
+updated_at: '2026-11-16T23:50:01+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -101,7 +101,7 @@ sources:
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
   packages/profiling/findings.py: 60e9053ec8d2a80e29cfacb8fcf8f48b66ec22347e9d9a113b03ddda06bb51ee
-  packages/profiling/first_rows.py: 441bd02f3fefc647d666b7b7327588df3583d41bdf6e79f02efaacfd421c24ae
+  packages/profiling/first_rows.py: a707f6b018e13fb2b80206a8b4aedf8204fcedbe89a0541dc250c0483a5169a5
   packages/profiling/on_request.py: b764cb6fae044d6334d29dcd9259f6aea07ebae0170fb6a9e5c8c3f1aa59c6cb
   packages/profiling/sensitive.py: d0afb67b6b9c983d59cba82ce543bad90c283ef1d957d8ee19845e0ec573f550
   pyproject.toml: 44e6c51efc357b05bccb13ace5dd1da37ab07d5858303c7cc8492d621368d91b
@@ -135,7 +135,7 @@ sources:
   tests/integration/test_fast_profile.py: b32480c3b20afbbefdd4a118e94cf6d0a6d08a1cf91d365ad5a6e08e26fd9cdf
   tests/integration/test_finding_rules.py: 7787025fbd878895511827db96aa3f802aff9b50f8f676b527ba01c8303aa551
   tests/integration/test_findings_api.py: 7cfff80d5e45436a86110d0f84f1bc49ec4219958e127e26098c245969afaaba
-  tests/integration/test_first_rows.py: 45f897b84049b2258fcd8847ffc0e6e4995c7c4f0ecfd1d2db6e7b33a8d4a0a4
+  tests/integration/test_first_rows.py: e4047c65cccec813f3bf34d8abe62f7a990ace26f5ab3aeb7d6437c63e0c2492
   tests/integration/test_full_profile.py: 41a6b38e78f81838371bd7368d7a9d85ddcb184fe7aca7a959fbea4a6d47d96c
   tests/integration/test_launch.py: ef1f5de72f0e6e7a594ccc8dca3a132df1b0e46054800b3b94a9cbf6f0139fb2
   tests/integration/test_lockfiles.py: 57e05370d8f93e07a508026075bb853c510e1bee69564f9e4c575538ac7b9257
@@ -4315,6 +4315,13 @@ edges:
   status: CONFIRMED
   evidence:
   - packages/profiling/findings.py:7
+- from: module:packages/profiling/first_rows.py
+  rel: implements
+  to: ticket:DRIVN-51
+  status: CONFIRMED
+  evidence:
+  - packages/profiling/first_rows.py:95
+  - packages/profiling/first_rows.py:190
 - from: module:packages/profiling/on_request.py
   rel: imports
   to: module:packages/profiling/first_rows.py
@@ -5536,28 +5543,47 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_first_rows.py:1
-  - tests/integration/test_first_rows.py:77
-  - tests/integration/test_first_rows.py:88
-  - tests/integration/test_first_rows.py:110
-  - tests/integration/test_first_rows.py:121
-  - tests/integration/test_first_rows.py:136
-  - tests/integration/test_first_rows.py:157
-  - tests/integration/test_first_rows.py:170
-  - tests/integration/test_first_rows.py:185
-  - tests/integration/test_first_rows.py:200
+  - tests/integration/test_first_rows.py:78
+  - tests/integration/test_first_rows.py:89
+  - tests/integration/test_first_rows.py:111
+  - tests/integration/test_first_rows.py:122
+  - tests/integration/test_first_rows.py:137
+  - tests/integration/test_first_rows.py:158
+  - tests/integration/test_first_rows.py:171
+  - tests/integration/test_first_rows.py:186
+  - tests/integration/test_first_rows.py:201
 - from: module:tests/integration/test_first_rows.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-14
   status: CONFIRMED
   evidence:
-  - tests/integration/test_first_rows.py:213
+  - tests/integration/test_first_rows.py:214
 - from: module:tests/integration/test_first_rows.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-17
   status: CONFIRMED
   evidence:
-  - tests/integration/test_first_rows.py:45
-  - tests/integration/test_first_rows.py:147
+  - tests/integration/test_first_rows.py:46
+  - tests/integration/test_first_rows.py:148
+- from: module:tests/integration/test_first_rows.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-18
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_first_rows.py:252
+- from: module:tests/integration/test_first_rows.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-24
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_first_rows.py:240
+- from: module:tests/integration/test_first_rows.py
+  rel: verifies
+  to: ticket:DRIVN-51
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_first_rows.py:230
+  - tests/integration/test_first_rows.py:240
 - from: module:tests/integration/test_full_profile.py
   rel: imports
   to: module:tests/conftest.py

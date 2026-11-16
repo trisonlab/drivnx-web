@@ -86,15 +86,24 @@ def _percent(part: int, whole: int) -> float | None:
     return round(100 * part / whole, 2) if whole else None
 
 
-def _cells(column: str, table: str, every_row: bool = False) -> str:
-    """A column's first rows, or every row, as `cell`, with missing values as NULL."""
+def _cells(
+    column: str, table: str, every_row: bool = False, blank_is_missing: bool = True
+) -> str:
+    """A column's first rows, or every row, as `cell`, with missing values as NULL.
+
+    In a file a blank cell is missing; a database keeps NULL apart from a blank string, which is
+    a value (agreed for DRIVN-51).
+    """
     first_rows_only = "" if every_row else f"WHERE rowid < {FIRST_ROWS}"
+    cell = (
+        f"CASE WHEN {column} IS NULL OR regexp_full_match({column}, '{BLANK}') THEN NULL"
+        f" ELSE {column} END"
+        if blank_is_missing
+        else column
+    )
     return f"""
         WITH cells AS (
-            SELECT CASE
-                WHEN {column} IS NULL OR regexp_full_match({column}, '{BLANK}') THEN NULL
-                ELSE {column}
-            END AS cell
+            SELECT {cell} AS cell
             FROM {table}
             {first_rows_only}
         )
@@ -102,11 +111,11 @@ def _cells(column: str, table: str, every_row: bool = False) -> str:
 
 
 def _masked_patterns(
-    connection: duckdb.DuckDBPyConnection, column: str, table: str
+    connection: duckdb.DuckDBPyConnection, column: str, table: str, blank_is_missing: bool
 ) -> tuple[MaskedPattern, ...]:
     rows = connection.execute(
         f"""
-        {_cells(column, table)}
+        {_cells(column, table, blank_is_missing=blank_is_missing)}
         SELECT left(masked, {PATTERN_CHARACTERS}) AS pattern,
                length(masked) > {PATTERN_CHARACTERS} OR length(cell) > {CHARACTERS_MASKED} AS cut,
                count(*) AS found
@@ -127,6 +136,7 @@ def _measure_column(
     column_type: str,
     formats: Mapping[str, str],
     every_row: bool,
+    blank_is_missing: bool,
 ) -> ColumnMetrics:
     column = f"c{position}"
     # A format comes from what DuckDB sniffed. A plain cast only knows the ISO one, and would say
@@ -138,7 +148,7 @@ def _measure_column(
         fits = f"try_strptime(cell, ?) IS NOT NULL OR {fits}"
     row = connection.execute(
         f"""
-        {_cells(column, table, every_row)}
+        {_cells(column, table, every_row, blank_is_missing)}
         SELECT count(cell), count(DISTINCT cell),
                count(cell) FILTER (WHERE NOT coalesce({fits}, FALSE)),
                min(length(cell)), max(length(cell)), avg(length(cell))
@@ -157,7 +167,7 @@ def _measure_column(
         shortest,
         longest,
         round(average, 2) if average is not None else None,
-        _masked_patterns(connection, column, table),
+        _masked_patterns(connection, column, table, blank_is_missing),
     )
 
 
@@ -167,12 +177,20 @@ def measure_rows(
     types: Sequence[str],
     formats: Mapping[str, str],
     every_row: bool,
+    *,
+    count_duplicates: bool | None = None,
+    blank_is_missing: bool = True,
 ) -> MeasuredRows:
     """Measure a table's first columns, one for each of `types`, on its first rows or every row.
 
     The table's columns are named by position, `c0`, `c1` and so on. One short query per column
     keeps a wide file's queries small. A `LIMIT` in them ran out of memory where `rowid` doesn't.
+    Copies of a row are counted when every row is measured, unless `count_duplicates` says not:
+    a database's page sample is measured whole, but only a full profile counts them. With
+    `blank_is_missing` off, only NULL is missing, as in a database (DRIVN-51).
     """
+    if count_duplicates is None:
+        count_duplicates = every_row
     loaded = connection.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
     rows_read = loaded if every_row else min(loaded, FIRST_ROWS)
     return MeasuredRows(
@@ -180,11 +198,18 @@ def measure_rows(
         every_row or loaded <= FIRST_ROWS,
         tuple(
             _measure_column(
-                connection, table, position, rows_read, column_type, formats, every_row
+                connection,
+                table,
+                position,
+                rows_read,
+                column_type,
+                formats,
+                every_row,
+                blank_is_missing,
             )
             for position, column_type in enumerate(types)
         ),
-        _duplicate_rows(connection, table) if every_row else None,
+        _duplicate_rows(connection, table) if count_duplicates else None,
     )
 
 
