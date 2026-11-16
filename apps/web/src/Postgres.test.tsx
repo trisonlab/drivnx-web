@@ -34,9 +34,12 @@ const fetchMock = vi.fn();
 let sources: object[] = [];
 // What the server answers to a POST, by path.
 let answers: Record<string, () => Response> = {};
+// What it answers to a GET, by path, where a test needs more than the defaults below.
+let gets: Record<string, () => Response> = {};
 
 beforeEach(() => {
   sources = [];
+  gets = {};
   answers = {
     "/api/sources/postgres/test": () =>
       Response.json({ server_version: "18.1 (Debian 18.1-1.pgdg13+1)", encrypted: true }),
@@ -49,6 +52,9 @@ beforeEach(() => {
   fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
     if (init?.method === "POST") {
       return answers[url]();
+    }
+    if (gets[url] !== undefined) {
+      return gets[url]();
     }
     if (url === "/api/workspace") {
       return Response.json(workspace);
@@ -487,7 +493,9 @@ test("a server that answers again when its tables are listed no longer says it c
   expect(within(details).queryByRole("alert")).not.toBeInTheDocument();
 });
 
-test("a database source's profile and preview aren't available yet, and nothing asks for its rows", async () => {
+test("a database source's profile isn't available yet, its rows are previewed by object, and nothing asks for them", async () => {
+  // CFX-APP-postgres/AC-12: a chosen object's preview is in its details (DatabaseObjects.test.tsx), so
+  // the source has none of its own.
   sources = [fixture];
   renderApp();
 
@@ -495,7 +503,7 @@ test("a database source's profile and preview aren't available yet, and nothing 
   expect(screen.getByRole("tabpanel", { name: "Profile" })).toHaveTextContent(
     "Profiling a database Not available yet",
   );
-  expect(screen.getByRole("region", { name: "Preview" })).toHaveTextContent("Not available yet");
+  expect(screen.queryByRole("region", { name: "Preview" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /fast profile/i })).not.toBeInTheDocument();
   const review = screen.getByRole("complementary", { name: "Intelligence & Review" });
   expect(review).not.toHaveTextContent(/profile this file/i);
@@ -540,4 +548,27 @@ test("changing a detail after a test clears its result, which was for the old de
   await user.type(within(form).getByRole("textbox", { name: "Host" }), "x");
 
   expect(within(form).queryByRole("status")).not.toBeInTheDocument();
+});
+
+test("a password the server refuses when an object is previewed asks for it, saying why", async () => {
+  // CFX-APP-postgres/AC-12 with AC-06: the preview is the read that finds the password refused.
+  const user = userEvent.setup();
+  sources = [fixture];
+  const orders = { id: "o1", name: "orders", kind: "table", estimated_rows: 3, readable: true, populated: true, chosen: true };
+  gets["/api/sources/p1/objects"] = () =>
+    Response.json({ discovered_at: "2026-11-16T10:00:00+00:00", schemas: [{ name: "sales", objects: [orders] }] });
+  gets["/api/sources/p1/objects/o1"] = () => Response.json({ ...orders, schema: "sales", columns: [], keys: [] });
+  gets["/api/sources/p1/objects/o1/rows?offset=0"] = () => {
+    sources = [{ ...fixture, password_needed: true }];
+    return Response.json({ detail: "The server refused this user name and password." }, { status: 422 });
+  };
+  renderApp();
+  const details = await screen.findByRole("region", { name: "drivnx_fixture" });
+
+  await user.click(await within(details).findByRole("button", { name: "orders" }));
+
+  const prompt = await within(details).findByRole("form", { name: "Password for drivnx_reader" });
+  expect(prompt).toHaveTextContent(
+    "The server refused this user name and password. Enter the password for drivnx_reader to connect again.",
+  );
 });

@@ -258,6 +258,8 @@ export type DeclaredKey = {
 
 export type ObjectDetail = DatabaseObject & { schema: string; columns: ObjectColumn[]; keys: DeclaredKey[] };
 
+export const NO_LONGER_LISTED = "This object is no longer listed. Refresh the list.";
+
 /** The object is no longer listed: a refresh replaced or dropped it. */
 export class ObjectGoneError extends Error {}
 
@@ -306,6 +308,16 @@ export async function getRows(sourceId: string, offset: number): Promise<RowsPag
     throw new Error(`The server answered ${response.status}`);
   }
   return response.json();
+}
+
+/** A page of a chosen database object's rows, read from the database (CFX-APP-postgres AC-12). A failure says why. */
+export async function getObjectRows(sourceId: string, objectId: string, offset: number): Promise<RowsPage> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/objects/${objectId}/rows?offset=${offset}`);
+  if (response.status === 404) {
+    throw new ObjectGoneError(NO_LONGER_LISTED);
+  }
+  // The password is needed or refused, or the object changed since it was listed: the server says.
+  return connectedFrom(response);
 }
 
 export type SourceSettingsChoice = {

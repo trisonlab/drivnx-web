@@ -273,7 +273,8 @@ def test_a_materialized_view_never_refreshed_is_listed_and_can_be_chosen_once_re
 def test_reading_the_list_or_an_object_changes_nothing(
     client: TestClient, workspace_dir: Path
 ) -> None:
-    # CFX-APP-postgres/AC-08 and AC-09: GET routes only read, as every other one.
+    # CFX-APP-postgres/AC-08, AC-09 and AC-12: GET routes only read, as every other one; a
+    # chosen object's rows, and one not chosen, too.
     source_id, listed = saved_source(client)
     client.put(
         f"/api/sources/{source_id}/selection", json={"object_ids": [listed["orders"]["id"]]}
@@ -289,6 +290,8 @@ def test_reading_the_list_or_an_object_changes_nothing(
         f"objects/{listed['orders']['id']}",
         f"objects/{listed['secret']['id']}",
         "objects/" + "0" * 32,
+        f"objects/{listed['orders']['id']}/rows",
+        f"objects/{listed['customers']['id']}/rows",
     ):
         assert client.get(f"/api/sources/{source_id}/{path}").status_code < 500
 
@@ -325,7 +328,7 @@ def test_a_selection_that_cant_be_right_is_refused_and_changes_nothing(
     ("method", "path", "body", "says"),
     [
         ("GET", "/api/sources/{id}/rows", None,
-         "Previewing a database's tables isn't available yet."),
+         "A database is previewed one chosen object at a time."),
         ("POST", "/api/profile-runs", {"source_id": "{id}", "mode": "fast"},
          "Profiling a database's tables isn't available yet."),
     ],
@@ -333,8 +336,9 @@ def test_a_selection_that_cant_be_right_is_refused_and_changes_nothing(
 def test_previewing_and_profiling_a_database_no_longer_wait_for_choosing(
     client: TestClient, method: str, path: str, body: dict | None, says: str
 ) -> None:
-    # CFX-APP-postgres/AC-11: choosing is here, so the message no longer says it isn't; previewing
-    # (DRIVN-50) and profiling (DRIVN-51) a chosen object come next.
+    # CFX-APP-postgres/AC-11: choosing is here, so the message no longer says it isn't. A database
+    # is previewed by object (DRIVN-50, test_postgres_preview_api.py); profiling a chosen object
+    # comes next (DRIVN-51).
     source_id, _ = saved_source(client)
     filled = {key: value.replace("{id}", source_id) for key, value in body.items()} if body else None
 

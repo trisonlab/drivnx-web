@@ -372,3 +372,89 @@ test("changing the selection after saving it no longer says it's saved", async (
 
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
 });
+
+function cells(...values: (string | null)[]) {
+  return values.map((value) => ({ value, cut: false }));
+}
+
+test("a chosen object's preview shows its rows 50 at a time, with next and previous", async () => {
+  // CFX-APP-postgres/AC-12, with CFX-APP-first-slice/AC-29: markup in a cell is only text.
+  answers["GET /api/sources/p1/objects/o1"] = () => Response.json({ ...orders, chosen: true });
+  answers["GET /api/sources/p1/objects/o1/rows?offset=0"] = () =>
+    Response.json({
+      columns: cells("id", "region"),
+      rows: [cells("1", "<b>north</b>"), cells("2", null)],
+      offset: 0,
+      has_next: true,
+      skipped_lines: 0,
+    });
+  answers["GET /api/sources/p1/objects/o1/rows?offset=50"] = () =>
+    Response.json({ columns: cells("id", "region"), rows: [cells("51", "south")], offset: 50, has_next: false, skipped_lines: 0 });
+  const user = renderDetails();
+
+  await user.click(await screen.findByRole("button", { name: "orders" }));
+
+  const preview = await screen.findByRole("region", { name: "Preview" });
+  expect(await within(preview).findByText("<b>north</b>")).toBeInTheDocument();
+  expect(preview.querySelector("b")).toBeNull();
+  expect(within(preview).getByRole("status")).toHaveTextContent("Rows 1 to 2");
+  expect(within(preview).getByRole("button", { name: "Previous" })).toBeDisabled();
+
+  await user.click(within(preview).getByRole("button", { name: "Next" }));
+
+  expect(await within(preview).findByText("south")).toBeInTheDocument();
+  expect(within(preview).getByRole("status")).toHaveTextContent("Rows 51 to 51");
+  expect(within(preview).getByRole("button", { name: "Next" })).toBeDisabled();
+  expect(within(preview).getByRole("button", { name: "Previous" })).toBeEnabled();
+});
+
+test("an object that isn't chosen says to choose it to see its rows, and reads none", async () => {
+  // CFX-APP-postgres/AC-11: only chosen objects can be previewed.
+  answers["GET /api/sources/p1/objects/o1"] = () => Response.json(orders);
+  const user = renderDetails();
+
+  await user.click(await screen.findByRole("button", { name: "orders" }));
+
+  const opened = await screen.findByRole("region", { name: "sales.orders" });
+  expect(opened).toHaveTextContent("Choose this object and save the selection to see its rows.");
+  expect(within(opened).queryByRole("region", { name: "Preview" })).toBeNull();
+  expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(["/api/sources/p1/objects", "/api/sources/p1/objects/o1"]);
+});
+
+test("choosing the opened object and saving shows its rows", async () => {
+  // CFX-APP-postgres/AC-11 and AC-12: the saved selection decides, so the opened object follows it.
+  let chosen = false;
+  answers["GET /api/sources/p1/objects/o1"] = () => Response.json({ ...orders, chosen });
+  answers["PUT /api/sources/p1/selection"] = () => {
+    chosen = true;
+    const saved = listed.schemas.map((schema) => ({
+      ...schema,
+      objects: schema.objects.map((found) => ({ ...found, chosen: found.id === "o1" })),
+    }));
+    return Response.json({ ...listed, schemas: saved });
+  };
+  answers["GET /api/sources/p1/objects/o1/rows?offset=0"] = () =>
+    Response.json({ columns: cells("id"), rows: [cells("1")], offset: 0, has_next: false, skipped_lines: 0 });
+  const user = renderDetails();
+  await user.click(await screen.findByRole("button", { name: "orders" }));
+  await screen.findByText("Choose this object and save the selection to see its rows.");
+
+  await user.click(screen.getByRole("checkbox", { name: "Choose orders" }));
+  await user.click(screen.getByRole("button", { name: "Save selection" }));
+
+  const preview = await screen.findByRole("region", { name: "Preview" });
+  expect(await within(preview).findByRole("cell", { name: "1" })).toBeInTheDocument();
+});
+
+test("a page of an object gone since it was opened says to refresh", async () => {
+  // CFX-APP-postgres/AC-12 with AC-13: refreshed in another window, as when the object is opened.
+  answers["GET /api/sources/p1/objects/o1"] = () => Response.json({ ...orders, chosen: true });
+  answers["GET /api/sources/p1/objects/o1/rows?offset=0"] = () =>
+    Response.json({ detail: "There's no such object. Refresh the list." }, { status: 404 });
+  const user = renderDetails();
+
+  await user.click(await screen.findByRole("button", { name: "orders" }));
+
+  const preview = await screen.findByRole("region", { name: "Preview" });
+  expect(await within(preview).findByRole("alert")).toHaveTextContent("This object is no longer listed. Refresh the list.");
+});

@@ -36,8 +36,9 @@ from connectors.postgres import (
     ServerFacts,
     check,
     discover,
+    read_rows,
 )
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Query, Response
 from keyring.backend import KeyringBackend
 from pydantic import (
     AfterValidator,
@@ -50,6 +51,13 @@ from pydantic import (
 )
 
 from local_api.credentials import entry
+from local_api.pages import (
+    DEFAULT_PAGE_ROWS,
+    MAX_OFFSET,
+    MAX_PAGE_ROWS,
+    PageResponse,
+    shown_cell,
+)
 
 _log = logging.getLogger(__name__)
 
@@ -499,12 +507,37 @@ def postgres_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             raise HTTPException(status_code=409, detail="A file has no password.")
         return source
 
+    def listed_object(
+        source_id: str, object_id: str
+    ) -> tuple[StoredObject, tuple[StoredColumn, ...], tuple[StoredKey, ...]]:
+        """An object as the last discovery found it, or a 404."""
+        database(source_id)
+        found = read_object(workspace.engine, source_id, object_id)
+        if found is None:
+            # Gone in a refresh, or another source's.
+            raise HTTPException(
+                status_code=404, detail="There's no such object. Refresh the list."
+            )
+        return found
+
+    def password_of(source: StoredPostgresSource) -> Kept:
+        """The password kept or stored, for a request that reads the database. After a restart
+        without a store, there's none until the user gives it again (AC-05)."""
+        known = kept.get(source)
+        if known is None:
+            raise HTTPException(
+                status_code=409, detail="Enter the password for this database first."
+            )
+        return known
+
     def failed(source_id: str, known: Kept, failure: ConnectFailure) -> HTTPException:
         """A read with the kept or stored password failed. If the server refused the password,
         the source asks for it again (AC-06); an unreachable server leaves it as it is."""
         if failure.reason == "credentials":
             kept.refused(source_id, known)
-        return HTTPException(status_code=422, detail=str(failure))
+        # An object that changed since it was listed: the request was fine, the list isn't.
+        status = 409 if failure.reason == "changed" else 422
+        return HTTPException(status_code=status, detail=str(failure))
 
     @router.post("/postgres/test")
     def test_connection(body: ConnectionRequest) -> ServerResponse:
@@ -562,11 +595,7 @@ def postgres_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         """On opening a source: the server's version and encryption, with the password kept or
         stored, so a password the server now refuses is found then (AC-04, AC-06)."""
         source = with_password(source_id)
-        known = kept.get(source)
-        if known is None:
-            raise HTTPException(
-                status_code=409, detail="Enter the password for this database first."
-            )
+        known = password_of(source)
         try:
             facts = check(_details_of(source), known.password, workspace.temp_directory)
         except ConnectFailure as failure:
@@ -578,12 +607,7 @@ def postgres_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
     def refresh_objects(source_id: str) -> ObjectsResponse:
         """List the database's objects as they are now (AC-08, AC-13)."""
         source = database(source_id)
-        known = kept.get(source)
-        if known is None:
-            # After a restart, until the user gives it again (AC-05).
-            raise HTTPException(
-                status_code=409, detail="Enter the password for this database first."
-            )
+        known = password_of(source)
         try:
             discovery = discover(_details_of(source), known.password, workspace.temp_directory)
         except ConnectFailure as failure:
@@ -610,13 +634,44 @@ def postgres_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
     @router.get("/{source_id}/objects/{object_id}")
     def get_object(source_id: str, object_id: str) -> ObjectResponse:
         """An object's columns and declared keys, as the last discovery found them (AC-09)."""
-        database(source_id)
-        found = read_object(workspace.engine, source_id, object_id)
-        if found is None:
-            # Gone in a refresh, or another source's.
-            raise HTTPException(
-                status_code=404, detail="There's no such object. Refresh the list."
+        return object_response(*listed_object(source_id, object_id))
+
+    @router.get("/{source_id}/objects/{object_id}/rows")
+    def get_object_rows(
+        source_id: str,
+        object_id: str,
+        offset: Annotated[int, Query(ge=0, le=MAX_OFFSET)] = 0,
+        limit: Annotated[int, Query(ge=1, le=MAX_PAGE_ROWS)] = DEFAULT_PAGE_ROWS,
+    ) -> PageResponse:
+        """A page of a chosen object's rows, read from the database and never saved (AC-12)."""
+        source = database(source_id)
+        stored, columns, keys = listed_object(source_id, object_id)
+        if not stored.chosen:
+            # Only chosen objects can be previewed or profiled (AC-11).
+            raise HTTPException(status_code=409, detail="Choose this object to preview its rows.")
+        known = password_of(source)
+        names = tuple(column.name for column in columns)
+        key = next((key.columns for key in keys if key.kind == "primary_key"), ())
+        try:
+            # One row more than the page shows whether there is a next page, without counting.
+            rows = read_rows(
+                _details_of(source),
+                known.password,
+                workspace.temp_directory,
+                (stored.schema, stored.name),
+                names,
+                key,
+                offset,
+                limit + 1,
             )
-        return object_response(*found)
+        except ConnectFailure as failure:
+            raise failed(source_id, known, failure) from None
+        return PageResponse(
+            columns=[shown_cell(name) for name in names],
+            rows=[[shown_cell(value) for value in row] for row in rows[:limit]],
+            offset=offset,
+            has_next=len(rows) > limit,
+            skipped_lines=0,
+        )
 
     return router

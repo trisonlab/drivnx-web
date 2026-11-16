@@ -1,8 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId } from "react";
-import { type DeclaredKey, getObject, ObjectGoneError, type ObjectKind } from "./api";
+import { type DeclaredKey, getObject, getObjectRows, NO_LONGER_LISTED, ObjectGoneError, type ObjectKind } from "./api";
+import { SOURCES_QUERY } from "./DataExplorer";
+import { failureMessage } from "./PostgresForm";
+import { Preview } from "./Preview";
 
 const VIEWS: Partial<Record<ObjectKind, string>> = { view: "view", materialized_view: "materialized view" };
+
+/** The query for one object, or with no object for every object of the source. */
+export const objectQuery = (sourceId: string, objectId?: string) =>
+  objectId === undefined ? ["object", sourceId] : ["object", sourceId, objectId];
 
 const KEY_KINDS: Record<DeclaredKey["kind"], string> = {
   primary_key: "Primary key",
@@ -18,11 +25,21 @@ function describe(key: DeclaredKey): string {
   return `${KEY_KINDS[key.kind]} ${key.name}: ${columns}${target}`;
 }
 
-/** An object's columns and declared keys, from the workspace: no row is read (AC-09). */
-export function ObjectDetails({ sourceId, objectId }: { sourceId: string; objectId: string }) {
+/** An object's columns and declared keys, from the workspace (AC-09), and a chosen one's rows (AC-12). */
+export function ObjectDetails({
+  sourceId,
+  objectId,
+  onFailed,
+}: {
+  sourceId: string;
+  objectId: string;
+  // Why reading its rows failed. If the server refused the password, the source now asks for it (AC-06).
+  onFailed: (reason: string) => void;
+}) {
   const headingId = useId();
+  const queryClient = useQueryClient();
   const found = useQuery({
-    queryKey: ["object", sourceId, objectId],
+    queryKey: objectQuery(sourceId, objectId),
     queryFn: () => getObject(sourceId, objectId),
   });
 
@@ -30,7 +47,7 @@ export function ObjectDetails({ sourceId, objectId }: { sourceId: string; object
     return (
       <p role="alert">
         {found.error instanceof ObjectGoneError
-          ? "This object is no longer listed. Refresh the list."
+          ? NO_LONGER_LISTED
           : "DrivnX couldn't open this object. Start DrivnX again."}
       </p>
     );
@@ -78,6 +95,24 @@ export function ObjectDetails({ sourceId, objectId }: { sourceId: string; object
             <li key={key.name}>{describe(key)}</li>
           ))}
         </ul>
+      )}
+      {/* Only a chosen object's rows are read (AC-11, AC-12). */}
+      {data.chosen ? (
+        <Preview
+          sourceId={sourceId}
+          objectId={objectId}
+          load={async (offset) => {
+            try {
+              return await getObjectRows(sourceId, objectId, offset);
+            } catch (error) {
+              onFailed(failureMessage(error as Error));
+              void queryClient.invalidateQueries({ queryKey: SOURCES_QUERY });
+              throw error;
+            }
+          }}
+        />
+      ) : (
+        <p>Choose this object and save the selection to see its rows.</p>
       )}
     </section>
   );
