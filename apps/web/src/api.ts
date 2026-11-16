@@ -58,8 +58,9 @@ export type CsvSource = {
 
 export type TlsMode = "prefer" | "require" | "verify-full";
 
-// How long a password is kept, which the screen tells the user (CFX-APP-postgres AC-05).
+// How long a password is kept, which the screen tells the user (CFX-APP-postgres AC-04, AC-05).
 export const UNTIL_STOP = "until_stop";
+export const CREDENTIAL_STORE = "credential_store";
 
 export type PostgresSource = {
   id: string;
@@ -72,8 +73,8 @@ export type PostgresSource = {
   user: string;
   tls_mode: TlsMode;
   ca_path: string | null;
-  // Until there's an OS credential store (DRIVN-48), a password lasts until DrivnX stops.
-  password_kept: typeof UNTIL_STOP;
+  // In the OS credential store, or until DrivnX stops where there is none.
+  password_kept: typeof UNTIL_STOP | typeof CREDENTIAL_STORE;
   // After a restart, until the user gives the password again.
   password_needed: boolean;
   // What the server said, once connected since DrivnX started.
@@ -197,6 +198,93 @@ export async function givePassword(sourceId: string, password: string): Promise<
   return connectedFrom(response);
 }
 
+/** On opening a source whose password DrivnX has, from the credential store after a restart: the
+ * server's version and encryption. A refusal says why (CFX-APP-postgres AC-04, AC-06). */
+export async function connectStored(sourceId: string): Promise<PostgresSource> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/connect`, { method: "POST" });
+  return connectedFrom(response);
+}
+
+export type ObjectKind = "table" | "partitioned_table" | "view" | "materialized_view";
+
+/** A table or view as the last listing found it (CFX-APP-postgres AC-08). */
+export type DatabaseObject = {
+  id: string;
+  name: string;
+  kind: ObjectKind;
+  // The server's estimate, null where it has none: a view, or never analysed.
+  estimated_rows: number | null;
+  readable: boolean;
+  // False for a materialized view never refreshed, which can't be read.
+  populated: boolean;
+  chosen: boolean;
+};
+
+export type ObjectsList = {
+  // Null until the database's objects are first listed.
+  discovered_at: string | null;
+  schemas: { name: string; objects: DatabaseObject[] }[];
+};
+
+export async function getObjects(sourceId: string): Promise<ObjectsList> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/objects`);
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
+/** List the database again, as it is now (AC-08, AC-13). A failure says why. */
+export async function refreshObjects(sourceId: string): Promise<ObjectsList> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/discover`, { method: "POST" });
+  return connectedFrom(response);
+}
+
+export type ObjectColumn = {
+  name: string;
+  physical_type: string;
+  normalised_type: string;
+  allows_nulls: boolean;
+};
+
+export type DeclaredKey = {
+  kind: "primary_key" | "unique" | "foreign_key";
+  name: string;
+  // In the key's order.
+  columns: string[];
+  // What a foreign key references, by name.
+  references: { schema: string; object: string; columns: string[] } | null;
+};
+
+export type ObjectDetail = DatabaseObject & { schema: string; columns: ObjectColumn[]; keys: DeclaredKey[] };
+
+export const NO_LONGER_LISTED = "This object is no longer listed. Refresh the list.";
+
+/** The object is no longer listed: a refresh replaced or dropped it. */
+export class ObjectGoneError extends Error {}
+
+/** An object's columns and declared keys, as the last listing found them (AC-09). */
+export async function getObject(sourceId: string, objectId: string): Promise<ObjectDetail> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/objects/${objectId}`);
+  if (response.status === 404) {
+    throw new ObjectGoneError("Gone");
+  }
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}`);
+  }
+  return response.json();
+}
+
+/** Choose exactly these objects to profile (AC-11). A refusal says why. */
+export async function saveSelection(sourceId: string, objectIds: string[]): Promise<ObjectsList> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/selection`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ object_ids: objectIds }),
+  });
+  return connectedFrom(response);
+}
+
 export type Cell = { value: string | null; cut: boolean };
 
 export type RowsPage = {
@@ -220,6 +308,16 @@ export async function getRows(sourceId: string, offset: number): Promise<RowsPag
     throw new Error(`The server answered ${response.status}`);
   }
   return response.json();
+}
+
+/** A page of a chosen database object's rows, read from the database (CFX-APP-postgres AC-12). A failure says why. */
+export async function getObjectRows(sourceId: string, objectId: string, offset: number): Promise<RowsPage> {
+  const response = await fetch(`${SOURCES_PATH}/${sourceId}/objects/${objectId}/rows?offset=${offset}`);
+  if (response.status === 404) {
+    throw new ObjectGoneError(NO_LONGER_LISTED);
+  }
+  // The password is needed or refused, or the object changed since it was listed: the server says.
+  return connectedFrom(response);
 }
 
 export type SourceSettingsChoice = {

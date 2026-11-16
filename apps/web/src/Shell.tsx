@@ -26,7 +26,6 @@ export function Shell({ workspace }: { workspace: Workspace }) {
   const runs = useProfileRuns();
   const profileTabId = useId();
   const profilePanelId = useId();
-  const previewHeadingId = useId();
 
   return (
     <div className="shell">
@@ -83,14 +82,8 @@ export function Shell({ workspace }: { workspace: Workspace }) {
           )}
         </div>
         {chosen?.kind === "postgres" && (
-          <>
-            <PostgresDetails source={chosen} />
-            {/* Previewing a database comes with choosing its tables (DRIVN-49, DRIVN-50). */}
-            <section className="preview" aria-labelledby={previewHeadingId}>
-              <h3 id={previewHeadingId}>Preview</h3>
-              <p className="unavailable">{NOT_AVAILABLE}</p>
-            </section>
-          </>
+          // A chosen object's rows are previewed in its details (DRIVN-50).
+          <PostgresDetails source={chosen} />
         )}
         {chosen && chosen.kind !== "postgres" && (
           <>

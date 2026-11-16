@@ -20,7 +20,6 @@ from artifacts.sources import (
 )
 from artifacts.workspace import Workspace
 from connectors.csv_files import (
-    MAX_CELL_CHARACTERS,
     CsvError,
     detect_encoding,
     normalised_type,
@@ -31,17 +30,20 @@ from connectors.csv_files import (
 from fastapi import APIRouter, HTTPException, Query, Response
 from pydantic import AfterValidator, BaseModel, Field, StringConstraints
 
+from local_api.pages import (
+    DEFAULT_PAGE_ROWS,
+    MAX_OFFSET,
+    MAX_PAGE_ROWS,
+    PageResponse,
+    shown_cell,
+)
 from local_api.postgres_api import KeptPasswords, PostgresSourceResponse, postgres_response
 
-DEFAULT_PAGE_ROWS = 50
-MAX_PAGE_ROWS = 200
-# The largest position DuckDB accepts. Past the end of a file, a page is just empty.
-MAX_OFFSET = 2**63 - 1
 RUN_ON_THIS_FILE = (
     "A profile is running on this file. Wait for it to finish, then save your settings."
 )
-# Choosing a database's tables comes later (DRIVN-49), and previewing them with it (DRIVN-50).
-NO_PREVIEW_YET = "Previewing a database comes with choosing its tables, which isn't available yet."
+# A database's rows are a chosen object's, at /api/sources/{id}/objects/{object_id}/rows (DRIVN-50).
+ONE_OBJECT_AT_A_TIME = "A database is previewed one chosen object at a time."
 NO_FILE_SETTINGS = "A database has no file settings."
 
 
@@ -86,25 +88,6 @@ class SourceResponse(BaseModel):
     modified_at: str
     available: bool
     columns: list[ColumnResponse]
-
-
-class CellResponse(BaseModel):
-    value: str | None
-    cut: bool
-
-
-class PageResponse(BaseModel):
-    columns: list[CellResponse]
-    rows: list[list[CellResponse]]
-    offset: int
-    has_next: bool
-    skipped_lines: int
-
-
-def shown_cell(value: str | None) -> CellResponse:
-    if value is None or len(value) <= MAX_CELL_CHARACTERS:
-        return CellResponse(value=value, cut=False)
-    return CellResponse(value=value[:MAX_CELL_CHARACTERS], cut=True)
 
 
 def is_available(path: Path) -> bool:
@@ -209,7 +192,7 @@ def sources_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
     @router.get("")
     def get_sources() -> list[SourceResponse | PostgresSourceResponse]:
         return [
-            postgres_response(source, kept.get(source.id))
+            postgres_response(source, kept)
             if isinstance(source, StoredPostgresSource)
             else _response(source)
             for source in list_sources(workspace.engine)
@@ -312,7 +295,7 @@ def sources_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         if source is None:
             raise HTTPException(status_code=404, detail="There's no such source.")
         if isinstance(source, StoredPostgresSource):
-            raise cannot_read(NO_PREVIEW_YET)
+            raise cannot_read(ONE_OBJECT_AT_A_TIME)
         if not is_available(source.path):
             raise cannot_read(
                 "DrivnX can't find this file. It may have moved or been deleted."

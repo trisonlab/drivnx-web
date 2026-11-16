@@ -14,6 +14,8 @@ from threading import Thread
 
 import pytest
 from artifacts.workspace import open_workspace
+from connectors.csv_files import duckdb_connection
+from connectors.postgres import load_postgres
 from fastapi.testclient import TestClient
 from local_api.app import create_app
 from local_api.session import LaunchSession
@@ -375,3 +377,22 @@ def postgres_server() -> str:
     """The PostgreSQL fixture's connection string, once something listens on its port."""
     find_postgres(postgres_fixture.PORT, os.environ.get("DRIVNX_REQUIRE_POSTGRES") == "1")
     return postgres_fixture.dsn()
+
+
+@pytest.fixture(scope="module")
+def postgres_admin(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Callable[[str], None]]:
+    """Run SQL in the fixture's database as its superuser, so tests can make the objects they
+    need. Only tests sign in this way: DrivnX never does."""
+    find_postgres(postgres_fixture.PORT, os.environ.get("DRIVNX_REQUIRE_POSTGRES") == "1")
+    admin_dsn = postgres_fixture.dsn(
+        postgres_fixture.SUPERUSER, postgres_fixture.SUPERUSER_PASSWORD
+    )
+    with duckdb_connection(tmp_path_factory.mktemp("postgres-admin")) as connection:
+        load_postgres(connection)
+        connection.execute(f"ATTACH '{admin_dsn}' AS admin (TYPE postgres)")
+
+        def run(sql: str) -> None:
+            """One statement: the extension prepares it, and PostgreSQL prepares only one."""
+            connection.execute("CALL postgres_execute('admin', ?)", [sql])
+
+        yield run

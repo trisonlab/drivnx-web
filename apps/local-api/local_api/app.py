@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from keyring.backend import KeyringBackend
 from pydantic import AfterValidator, BaseModel, StringConstraints
 
 from local_api.binding import LOOPBACK_ADDRESS
@@ -68,8 +69,10 @@ def create_app(
     workspace: Workspace,
     ui_dir: Path | None = UI_DIR,
     dev_origin: str | None = None,
+    credential_store: KeyringBackend | None = None,
 ) -> FastAPI:
-    """Build the app. In development Vite serves the UI, so `ui_dir` is None."""
+    """Build the app. In development Vite serves the UI, so `ui_dir` is None. Without a
+    `credential_store`, a database's password lasts until DrivnX stops (CFX-APP-postgres AC-05)."""
     if ui_dir is not None and not (ui_dir / "index.html").is_file():
         raise MissingUiBundleError(
             f"The UI bundle is missing from {ui_dir}. Reinstall DrivnX."
@@ -142,8 +145,9 @@ def create_app(
         return workspace_response(settings)
 
     app.state.workspace = workspace
-    # Passwords last as long as this app, which is until DrivnX stops (CFX-APP-postgres AC-05).
-    kept = KeptPasswords()
+    # In the OS credential store if there is one, else until DrivnX stops (CFX-APP-postgres AC-04,
+    # AC-05).
+    kept = KeptPasswords(credential_store)
     app.include_router(sources_router(workspace, kept))
     app.include_router(postgres_router(workspace, kept))
     app.include_router(profile_runs_router(workspace))

@@ -281,3 +281,23 @@ test("saving the same settings after the file changed reads the rows again", asy
     expect(fetchMock.mock.calls.map(([url]) => url)).toContain("/api/sources/s1/rows?offset=0"),
   );
 });
+
+test("the settings use the first page the preview already read", async () => {
+  // CFX-APP-csv-profile/AC-02: the lines worked out show at once, without reading the file again.
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(
+    <QueryClientProvider client={client}>
+      <SourceSettings source={report} />
+      <Preview sourceId="s1" />
+    </QueryClientProvider>,
+  );
+  await screen.findByText("2 lines above this table aren't shown.");
+  const answered = fetchMock.getMockImplementation();
+  fetchMock.mockImplementation((url: string, init?: RequestInit) =>
+    url.includes("/rows") ? new Promise(() => {}) : answered?.(url, init),
+  );
+
+  await open();
+
+  expect(screen.getByRole("spinbutton", { name: "Lines to skip above the table" })).toHaveValue(2);
+});

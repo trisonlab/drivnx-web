@@ -44,6 +44,18 @@ BEFORE_POSTGRES = [
 ]
 TABLES = ("source", "dataset", "field", "profile_run", "observation")
 NEW_SOURCE_COLUMNS = {"host", "port", "database_name", "user_name", "tls_mode", "ca_path"}
+# Added by 0008 (a database's objects), which runs after 0007 here.
+LATER_COLUMNS = {
+    "discovered_at",
+    "schema_name",
+    "object_name",
+    "object_kind",
+    "estimated_rows",
+    "readable",
+    "populated",
+    "chosen",
+    "allows_nulls",
+}
 
 
 def rows(database: Path, table: str) -> list[tuple[object, ...]]:
@@ -51,7 +63,9 @@ def rows(database: Path, table: str) -> list[tuple[object, ...]]:
     try:
         columns = [row[1] for row in connection.execute(f"PRAGMA table_info({table})")]
         # Only the columns the schema before PostgreSQL had, in their order.
-        kept = [column for column in columns if column not in NEW_SOURCE_COLUMNS]
+        kept = [
+            column for column in columns if column not in NEW_SOURCE_COLUMNS | LATER_COLUMNS
+        ]
         return connection.execute(
             f"SELECT {', '.join(kept)} FROM {table} ORDER BY rowid"
         ).fetchall()
@@ -65,7 +79,10 @@ def test_a_workspace_from_before_postgres_keeps_every_csv_source_and_run(
     # CFX-APP-postgres/AC-02: migration 0007 rebuilds `source`, which every dataset refers to.
     before = tmp_path / "migrations"
     shutil.copytree(
-        MIGRATIONS_DIR, before, ignore=shutil.ignore_patterns("0007_*", "__pycache__")
+        MIGRATIONS_DIR,
+        before,
+        # 0007 and every migration after it, which depend on it.
+        ignore=shutil.ignore_patterns("0007_*", "0008_*", "__pycache__"),
     )
     directory = tmp_path / "workspace"
     open_workspace(directory, before).close()

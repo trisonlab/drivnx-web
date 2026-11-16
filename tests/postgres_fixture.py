@@ -34,6 +34,7 @@ QUOTES_PASSWORD = "it's a \\ test é"  # pragma: allowlist secret, ai-skills: al
 FIXTURE = Path(__file__).resolve().parents[1] / "testdata" / "postgres"
 COMPOSE = ["docker", "compose", "--file", str(FIXTURE / "compose.yaml")]
 OWN_SERVER = Path(tempfile.gettempdir()) / "drivnx-postgres-fixture"
+SUPERUSER = "postgres"
 SUPERUSER_PASSWORD = "fixture-superuser"  # pragma: allowlist secret, ai-skills: allow
 # A throwaway CA and the server certificate it signs, made at start and removed at stop.
 TLS = Path(tempfile.gettempdir()) / "drivnx-postgres-tls"
