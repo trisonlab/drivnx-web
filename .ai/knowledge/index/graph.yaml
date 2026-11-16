@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-16T02:46:29+00:00'
+updated_at: '2026-11-16T08:30:57+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -30,7 +30,7 @@ sources:
   .ai/knowledge/work/DRIVN-32.md: f4f09d26c06b3ed6bf99f7e2ab1ff5ae4def713fd8e6b26c9ee86ec0719d995f
   .ai/knowledge/work/DRIVN-46.md: b4f7e57bf2416d0d677c65061eca0d860f5647e8e5b4fdf1d3025e1ef481f4ee
   .ai/knowledge/work/DRIVN-47.md: f859e9a8406a7a944fc4bb7a864faf87f41be6359035e2d151afb89c8a8a1d08
-  .ai/knowledge/work/DRIVN-48.md: 6852b9b42d9a541b26ff3c57011f4c01d9e6949825a7d4a08b0ba6586e315d55
+  .ai/knowledge/work/DRIVN-48.md: cc37e29ea27510c9603b4b3f6afbe595928685467202136e1f0fde71b3bc3228
   .ai/knowledge/work/DRIVN-49.md: 18011bfaeb84761c306d7dd3af58379fca8fe10fb7f9dca9795240c38345ffe3
   .ai/knowledge/work/DRIVN-50.md: bac215bbfee2e6335e1d49acb27a6f1c352b514fdbb7e3dda4b1409ed591c3fb
   .ai/knowledge/work/DRIVN-51.md: f9a144bf269b72e4e4c661f1f1e6b5cb6ba4c8f23c740ce1acd03e7ba9e81852
@@ -1947,7 +1947,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-48.md
   title: Password in the OS credential store
-  state: ready
+  state: done
   external_key: DRIVN-48
 - id: ticket:DRIVN-49
   kind: ticket
