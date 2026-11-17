@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-17T01:15:47+00:00'
+updated_at: '2026-11-17T01:35:33+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -63,20 +63,20 @@ sources:
   apps/web/src/DatabaseObjects.tsx: 0e217dfe5ca1dc588d9620d91d9ed4ac68765a46ba316ca7f7294067b1820096
   apps/web/src/Findings.tsx: 6ecab92f106a6907a1f560c4113944890bc04af3b776ab8f47b3ac3f33c9cebe
   apps/web/src/ObjectDetails.tsx: 62a2cbce8fdef6d95f9892f9285000fa4d36a1a650f11509b4b1bba772ae8797
-  apps/web/src/Postgres.test.tsx: 9c39a2324b3ead81a7bce5e6e547f7d64f04209b027f1a37d69e21fd1efddd2b
+  apps/web/src/Postgres.test.tsx: bbf9c525272120cf3b3fa96de62a6f3466bf555976c97cca6edc4a35352a9f29
   apps/web/src/PostgresDetails.tsx: 2fe5dfc71e6ba8b80a6706a46bb4c1314b8a04f5807028e8a7505826d4f28c0e
   apps/web/src/PostgresForm.tsx: eac4bddeb54295a657f1b6b4ecab0c4b3df7d0ec34ef8a1aae69a6fcb66acba6
   apps/web/src/Preview.test.tsx: a14bc6c5e6440210ad45e3df29fe41fc1c19b553cb93d26083f35aa5a0593de3
   apps/web/src/Preview.tsx: 0b538c56427f646ff51a6f5e7802f958965eb3fb1f9d300f915b0dd215078454
   apps/web/src/ProfileTab.test.tsx: 745a2e924a617b0d05b4cffbc6e24f108100377761e2cd9f2243e06e656239b8
-  apps/web/src/ProfileTab.tsx: 32aa1adab050d0b322ccd57eca1f2180dac837e7898037dca8899d7902fe82f2
+  apps/web/src/ProfileTab.tsx: 82e91814039e96ccc1321ed925ec7b52a36888a1d6ddf4997433c99add89f1f9
   apps/web/src/SetupScreen.tsx: 2a9504d56277d388b0db5e0b7d29a68de334f4206e49900754bcd312a6070a1a
-  apps/web/src/Shell.tsx: b983d34a21de8834dc50d07c1326cfb0f02e5ff715f8e069db7b05ffaa9d5c63
+  apps/web/src/Shell.tsx: f04bbcbbd7f67b094de3d2f109045377766d74ceaacc001a0428faf34bd2890e
   apps/web/src/SourceDetails.tsx: ee7db3b3eb65efe04f6d73a05c0761bf3389b966ea1c264c2af07bb6d0dc5cce
   apps/web/src/SourceSettings.test.tsx: 9d1f30b8b6817f757728c34f37f3be4ef7f6f9da5460eaebb75c59b3c4881f20
   apps/web/src/SourceSettings.tsx: 6cafadf79d7f80ef8612aeb406f81c86a54989de643f1d447851bed65a473144
   apps/web/src/Sources.test.tsx: 02416d25025671aa5f75bef9e6c91878a610126ef329374288c1becac25ece26
-  apps/web/src/api.ts: e5cb3a44fb5d913a40779ded2fb52f8d88f8a117117ec4d143866849dbc081e5
+  apps/web/src/api.ts: 72f553db124778ca311dac4b24a1c16f3cf2b26120b087b0141f9119f350d7f2
   apps/web/src/main.tsx: a092eb0be7e15855ffc2d8cd35c780c063e9686c2d96689d54ff3ae14deabe4c
   apps/web/src/session.test.ts: 1cfe4e0e785dafef6c141859de01b29725ba49e609b0a9d7651d2976aaa3a3a6
   apps/web/src/session.ts: 606b8ed83032ca43d62da07c2b90c3cdb5e761467e3cf1b4d907b0a96950aab4
@@ -3669,14 +3669,38 @@ edges:
   to: criterion:CFX-APP-postgres/AC-12
   status: CONFIRMED
   evidence:
+  - apps/web/src/Postgres.test.tsx:555
+- from: module:apps/web/src/Postgres.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-17
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Postgres.test.tsx:656
+- from: module:apps/web/src/Postgres.test.tsx
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-18
+  status: CONFIRMED
+  evidence:
   - apps/web/src/Postgres.test.tsx:497
-  - apps/web/src/Postgres.test.tsx:554
+  - apps/web/src/Postgres.test.tsx:594
 - from: module:apps/web/src/Postgres.test.tsx
   rel: verifies
   to: ticket:DRIVN-49
   status: CONFIRMED
   evidence:
-  - apps/web/src/Postgres.test.tsx:510
+  - apps/web/src/Postgres.test.tsx:511
+- from: module:apps/web/src/Postgres.test.tsx
+  rel: verifies
+  to: ticket:DRIVN-54
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Postgres.test.tsx:497
+- from: module:apps/web/src/Postgres.test.tsx
+  rel: verifies
+  to: ticket:DRIVN-56
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Postgres.test.tsx:596
 - from: module:apps/web/src/PostgresDetails.tsx
   rel: imports
   to: module:apps/web/src/DataExplorer.tsx
@@ -3966,11 +3990,35 @@ edges:
   - apps/web/src/ProfileTab.test.tsx:446
   - apps/web/src/ProfileTab.test.tsx:457
 - from: module:apps/web/src/ProfileTab.tsx
+  rel: implements
+  to: criterion:CFX-APP-postgres/AC-17
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.tsx:87
+- from: module:apps/web/src/ProfileTab.tsx
+  rel: implements
+  to: criterion:CFX-APP-postgres/AC-18
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.tsx:516
+- from: module:apps/web/src/ProfileTab.tsx
+  rel: implements
+  to: ticket:DRIVN-54
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.tsx:635
+- from: module:apps/web/src/ProfileTab.tsx
+  rel: implements
+  to: ticket:DRIVN-56
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.tsx:525
+- from: module:apps/web/src/ProfileTab.tsx
   rel: imports
   to: module:apps/web/src/Preview.tsx
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:18
+  - apps/web/src/ProfileTab.tsx:19
 - from: module:apps/web/src/ProfileTab.tsx
   rel: imports
   to: module:apps/web/src/api.ts
@@ -3988,7 +4036,7 @@ edges:
   to: ticket:DRIVN-50
   status: CONFIRMED
   evidence:
-  - apps/web/src/Shell.tsx:85
+  - apps/web/src/Shell.tsx:81
 - from: module:apps/web/src/Shell.tsx
   rel: imports
   to: module:apps/web/src/DataExplorer.tsx
@@ -4194,6 +4242,18 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/src/api.ts:313
+- from: module:apps/web/src/api.ts
+  rel: implements
+  to: criterion:CFX-APP-postgres/AC-17
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/api.ts:356
+- from: module:apps/web/src/api.ts
+  rel: implements
+  to: criterion:CFX-APP-postgres/AC-18
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/api.ts:377
 - from: module:apps/web/src/main.tsx
   rel: imports
   to: module:apps/web/src/App.tsx

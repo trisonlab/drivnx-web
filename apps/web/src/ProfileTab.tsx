@@ -11,6 +11,7 @@ import {
   type MaskedPattern,
   type Metric,
   type ProfileRun,
+  type ProfileRunDetail,
   RunRefusedError,
   type Source,
   startProfile,
@@ -83,7 +84,9 @@ export function profileStatus(
   const running = runs.find((run) => run.status === "running");
   if (running) {
     const name = sources?.find((source) => source.id === running.source_id)?.name;
-    return name ? `Running on ${name}` : "Running";
+    // A database's run also names the object it's reading (CFX-APP-postgres AC-17).
+    const on = running.current_object ? `${name}: ${running.current_object}` : name;
+    return name ? `Running on ${on}` : "Running";
   }
   const newest = chosen && runsWithCurrentSettings(runs, chosen)[0];
   if (!newest || newest.status === "running") {
@@ -355,15 +358,17 @@ function RunsList({
   runs,
   shown,
   onOpen,
+  of,
 }: {
   runs: ProfileRun[];
   shown: ProfileRun | undefined;
   onOpen: (runId: string) => void;
+  of: "file" | "database";
 }) {
   const headingId = useId();
   return (
     <section aria-labelledby={headingId}>
-      <h3 id={headingId}>Runs of this file</h3>
+      <h3 id={headingId}>Runs of this {of}</h3>
       <ol className="runs-list" aria-labelledby={headingId}>
         {runs.map((run) => {
           const started = new Date(run.started_at).toLocaleString();
@@ -508,6 +513,79 @@ function Results({ run }: { run: ProfileRun }) {
   );
 }
 
+// How a database run read an object, with the rows it read (CFX-APP-postgres AC-18, AC-24).
+const READ_AS: Record<NonNullable<ProfileRunDetail["objects"]>[number]["method"], (rows: string) => string> = {
+  page_sample: (rows) => `about ${rows} rows, sampled by page`,
+  whole: (rows) => `the whole object, ${rows} rows`,
+  first_rows: (rows) => `the first ${rows} rows returned, not random`,
+  view_first_rows: (rows) => `the first ${rows} rows the view returned, not random`,
+};
+
+/** A database run's results: one table per object, with how its rows were read. No values that
+ * don't fit, which a typed column can't hold, and no values on request yet (DRIVN-56). */
+function DatabaseResults({ run }: { run: ProfileRun }) {
+  const results = useQuery({ queryKey: ["profile-run", run.id], queryFn: () => getProfileRun(run.id) });
+  if (results.isError) {
+    return <p role="alert">DrivnX couldn't load these results. Start DrivnX again.</p>;
+  }
+  if (!results.data) {
+    return null;
+  }
+  const { metrics, objects = [] } = results.data;
+  return (
+    <>
+      <p>
+        Run {run.id}, finished {new Date(run.ended_at ?? run.started_at).toLocaleString()}
+      </p>
+      {objects.map(({ object, method }) => {
+        const own = metrics.filter((metric) => metric.object === object);
+        const rows = own.find((metric) => metric.column === null && metric.metric === "rows_read")?.value;
+        const columns = [...new Set(own.flatMap((metric) => metric.column ?? []))];
+        return (
+          <div className="table-scroll" key={object}>
+            <table className="column-table">
+              <caption>
+                {object}: {READ_AS[method](shown(rows))}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Column</th>
+                  <th scope="col">Precision</th>
+                  <th scope="col">Missing</th>
+                  <th scope="col">Distinct</th>
+                  <th scope="col">Shortest</th>
+                  <th scope="col">Longest</th>
+                  <th scope="col">Average</th>
+                  <th scope="col">Patterns</th>
+                </tr>
+              </thead>
+              <tbody>
+                {columns.map((column) => {
+                  const ofColumn = own.filter((metric) => metric.column === column);
+                  const value = (name: string) => ofColumn.find((metric) => metric.metric === name)?.value;
+                  const patterns = value("masked_patterns");
+                  return (
+                    <tr key={column}>
+                      <th scope="row">{column}</th>
+                      <td>{PRECISION_LABELS[ofColumn[0].precision]}</td>
+                      <td>{withPercent(value("missing_count"), value("missing_percent"))}</td>
+                      <td>{withPercent(value("distinct_count"), value("distinct_percent"))}</td>
+                      <td>{shown(value("shortest_length"))}</td>
+                      <td>{shown(value("longest_length"))}</td>
+                      <td>{shown(value("average_length"))}</td>
+                      <td>{Array.isArray(patterns) ? <Patterns patterns={patterns} /> : NOT_SAVED}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 export function ProfileTab({
   source,
   openedRunId,
@@ -553,15 +631,24 @@ export function ProfileTab({
         <button type="button" onClick={() => start.mutate("fast")}>
           Fast profile
         </button>{" "}
-        <button type="button" onClick={() => start.mutate("full")}>
-          Full profile
-        </button>
+        {source.kind === "postgres" ? (
+          // A database's full profile comes with its time limit and cancel (DRIVN-54).
+          <button type="button" disabled>
+            Full profile <span className="unavailable">Not available yet</span>
+          </button>
+        ) : (
+          <button type="button" onClick={() => start.mutate("full")}>
+            Full profile
+          </button>
+        )}
       </p>
       {start.isError && <p role="alert">{startFailure(start.error)}</p>}
       {running && (
         <p role="status">
           {running.source_id === source.id
-            ? "A profile is running. Results appear here when it finishes."
+            ? running.current_object
+              ? `A profile is running on ${running.current_object}. Results appear here when it finishes.`
+              : "A profile is running. Results appear here when it finishes."
             : "A profile is running on another file."}
         </p>
       )}
@@ -584,11 +671,22 @@ export function ProfileTab({
       {mine[0]?.status === "interrupted" && <p>This profile was interrupted when DrivnX stopped.</p>}
       {didNotComplete && showingTheNewest && <p>The results below are from the run before.</p>}
       {completed ? (
-        <Results key={completed.id} run={completed} />
+        source.kind === "postgres" ? (
+          <DatabaseResults key={completed.id} run={completed} />
+        ) : (
+          <Results key={completed.id} run={completed} />
+        )
       ) : (
         runs.isSuccess && mine.length === 0 && <p>No profile has been run with these settings yet.</p>
       )}
-      {ofThisFile.length > 0 && <RunsList runs={ofThisFile} shown={completed} onOpen={onOpenRun} />}
+      {ofThisFile.length > 0 && (
+        <RunsList
+          runs={ofThisFile}
+          shown={completed}
+          onOpen={onOpenRun}
+          of={source.kind === "postgres" ? "database" : "file"}
+        />
+      )}
     </section>
   );
 }

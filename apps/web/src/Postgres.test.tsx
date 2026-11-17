@@ -493,18 +493,19 @@ test("a server that answers again when its tables are listed no longer says it c
   expect(within(details).queryByRole("alert")).not.toBeInTheDocument();
 });
 
-test("a database source's profile isn't available yet, its rows are previewed by object, and nothing asks for them", async () => {
-  // CFX-APP-postgres/AC-12: a chosen object's preview is in its details (DatabaseObjects.test.tsx), so
-  // the source has none of its own.
+test("a database source offers a fast profile, its rows are previewed by object, and nothing asks for them", async () => {
+  // CFX-APP-postgres/AC-18: a fast profile of its chosen objects; a full one comes with DRIVN-54.
+  // AC-12: a chosen object's preview is in its details (DatabaseObjects.test.tsx), so the source has
+  // none of its own.
   sources = [fixture];
   renderApp();
 
   await screen.findByRole("region", { name: "drivnx_fixture" });
-  expect(screen.getByRole("tabpanel", { name: "Profile" })).toHaveTextContent(
-    "Profiling a database Not available yet",
-  );
+  const tab = screen.getByRole("tabpanel", { name: "Profile" });
+  expect(await within(tab).findByRole("button", { name: "Fast profile" })).toBeEnabled();
+  expect(within(tab).getByRole("button", { name: /Full profile/ })).toBeDisabled();
+  expect(tab).toHaveTextContent("Full profile Not available yet");
   expect(screen.queryByRole("region", { name: "Preview" })).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: /fast profile/i })).not.toBeInTheDocument();
   const review = screen.getByRole("complementary", { name: "Intelligence & Review" });
   expect(review).not.toHaveTextContent(/profile this file/i);
   // Its list of tables is read from the workspace (DRIVN-49); nothing reads its rows or settings.
@@ -571,4 +572,98 @@ test("a password the server refuses when an object is previewed asks for it, say
   expect(prompt).toHaveTextContent(
     "The server refused this user name and password. Enter the password for drivnx_reader to connect again.",
   );
+});
+
+function metric(object: string, column: string | null, name: string, value: unknown, scope = "sample") {
+  return { object, column, metric: name, value, scope, precision: "exact" };
+}
+
+const databaseRun = {
+  id: "r1",
+  source_id: "p1",
+  mode: "fast",
+  status: "completed",
+  started_at: "2026-11-17T09:00:00+00:00",
+  ended_at: "2026-11-17T09:00:02+00:00",
+  current_settings: true,
+  failure: null,
+  current_object: null,
+};
+
+test("a database run's results show each object with how its rows were read, the run's ID and time", async () => {
+  // CFX-APP-postgres/AC-18 and AC-24: each object's scope (about N rows sampled by page, the first rows
+  // returned, or the whole object), each metric's precision, and the run's time and ID; no "values that
+  // don't fit" in a typed column, and no values on request yet (DRIVN-56).
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
+  gets["/api/profile-runs/r1"] = () =>
+    Response.json({
+      ...databaseRun,
+      file_changed: null,
+      objects: [
+        { object: "sales.big_guess", method: "first_rows" },
+        { object: "sales.order_view", method: "view_first_rows" },
+        { object: "sales.orders", method: "page_sample" },
+        { object: "sales.small", method: "whole" },
+      ],
+      metrics: [
+        metric("sales.big_guess", null, "rows_read", 100000),
+        metric("sales.order_view", null, "rows_read", 100000),
+        metric("sales.orders", null, "rows_read", 98412),
+        metric("sales.orders", "region", "missing_count", 12),
+        metric("sales.orders", "region", "missing_percent", 0.01),
+        metric("sales.orders", "region", "distinct_count", 4),
+        metric("sales.orders", "region", "distinct_percent", 0.0),
+        metric("sales.orders", "region", "shortest_length", 4),
+        metric("sales.orders", "region", "longest_length", 5),
+        metric("sales.orders", "region", "average_length", 4.5),
+        metric("sales.small", null, "rows_read", 3, "full"),
+      ],
+    });
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+
+  const tables = await within(tab).findAllByRole("table");
+  expect(tables.map((table) => table.querySelector("caption")?.textContent)).toEqual([
+    "sales.big_guess: the first 100,000 rows returned, not random",
+    "sales.order_view: the first 100,000 rows the view returned, not random",
+    "sales.orders: about 98,412 rows, sampled by page",
+    "sales.small: the whole object, 3 rows",
+  ]);
+  expect(tab).toHaveTextContent(`Run r1, finished ${new Date(databaseRun.ended_at).toLocaleString()}`);
+  const orders = tables[2];
+  expect(
+    within(orders)
+      .getAllByRole("columnheader")
+      .map((header) => header.textContent),
+  ).toEqual(["Column", "Precision", "Missing", "Distinct", "Shortest", "Longest", "Average", "Patterns"]);
+  const region = within(orders).getByRole("row", { name: /region/ });
+  expect([...region.querySelectorAll("th, td")].map((cell) => cell.textContent)).toEqual([
+    "region",
+    "Exact",
+    "12 (0.01%)",
+    "4 (0%)",
+    "4",
+    "5",
+    "4.5",
+    "\u2014",
+  ]);
+});
+
+test("a running database run says which object it is on, in the header and the Profile tab", async () => {
+  // CFX-APP-postgres/AC-17
+  sources = [fixture];
+  gets["/api/profile-runs"] = () =>
+    Response.json([{ ...databaseRun, status: "running", ended_at: null, current_object: "sales.orders" }]);
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+
+  expect(await screen.findByText("Profile status: Running on drivnx_fixture: sales.orders")).toBeInTheDocument();
+  expect(within(tab).getByRole("status")).toHaveTextContent(
+    "A profile is running on sales.orders. Results appear here when it finishes.",
+  );
+  expect(within(tab).getByRole("heading", { name: "Runs of this database" })).toBeInTheDocument();
 });
