@@ -1,15 +1,21 @@
 """A fast profile of a database's chosen objects through the API, CFX-APP-postgres AC-13, AC-17,
 AC-18 and AC-24 (DRIVN-51)."""
 
+import threading
 import time
 from collections.abc import Callable, Iterator
+from pathlib import Path
 
 import pytest
 from artifacts.profiles import read_findings, read_observations, read_profile_run
 from artifacts.sources import read_chosen_objects
 from artifacts.workspace import Workspace
+from connectors.csv_files import duckdb_connection
+from connectors.postgres import load_postgres
 from fastapi.testclient import TestClient
+from local_api import profile_jobs
 
+from .. import postgres_fixture
 from .test_postgres_objects_api import DETAILS, objects_in
 from .test_postgres_password_store import (  # noqa: F401 (the fixtures)
     REFUSED,
@@ -35,6 +41,10 @@ OBJECTS = (
     f"CREATE TABLE {SCHEMA}.misestimated (id integer) WITH (autovacuum_enabled = false)",
     f"ANALYZE {SCHEMA}.misestimated",
     f"INSERT INTO {SCHEMA}.misestimated SELECT n FROM generate_series(1, 100050) AS n",
+    # 100,000 rows of about 1,000 characters each: more than 100 MB once loaded, to spill.
+    f"CREATE TABLE {SCHEMA}.wide (id integer, text text)",
+    f"INSERT INTO {SCHEMA}.wide SELECT n, n || repeat(md5(n::text), 31) FROM generate_series(1, 100000) AS n",
+    f"ANALYZE {SCHEMA}.wide",
     # Read in about 2 s, so a run on it is still going when a test looks.
     f"CREATE VIEW {SCHEMA}.slow AS SELECT 1 AS n FROM pg_sleep(2)",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
@@ -343,3 +353,79 @@ def test_a_database_runs_values_on_request_arent_available_yet(client: TestClien
         409,
         {"detail": "Values on request for a database aren't available yet."},
     )
+
+
+# DrivnX's sessions on the server, as its superuser sees them.
+SESSIONS = (
+    "SELECT * FROM postgres_query('admin', 'SELECT count(*) FROM pg_stat_activity"
+    " WHERE application_name = ''DrivnX''')"
+)
+
+
+@pytest.fixture
+def drivnx_sessions(tmp_path: Path) -> Iterator[Callable[[], int]]:
+    """How many sessions DrivnX has open on the fixture's server now."""
+    admin = postgres_fixture.dsn(postgres_fixture.SUPERUSER, postgres_fixture.SUPERUSER_PASSWORD)
+    with duckdb_connection(tmp_path) as connection:
+        load_postgres(connection)
+        connection.execute(f"ATTACH '{admin}' AS admin (TYPE postgres)")
+        yield lambda: connection.execute(SESSIONS).fetchone()[0]
+
+
+def test_a_run_holds_at_most_one_connection_to_the_server(
+    client: TestClient, drivnx_sessions: Callable[[], int]
+) -> None:
+    # CFX-APP-postgres/AC-23: "DrivnX holds at most one connection to the server for it". A table
+    # large enough that DuckDB's own scanner would read it over several (ADR 0005), and a view
+    # slow enough to watch.
+    source_id = chosen_source(client, "misestimated", "slow")
+    seen: list[int] = []
+    watching = threading.Event()
+
+    def watch() -> None:
+        while not watching.is_set():
+            seen.append(drivnx_sessions())
+            time.sleep(0.01)
+
+    watcher = threading.Thread(target=watch)
+    watcher.start()
+    try:
+        run_id = client.post(
+            "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+        ).json()["id"]
+        run = ended(client, run_id)
+    finally:
+        watching.set()
+        watcher.join()
+
+    assert run["status"] == "completed"
+    assert max(seen) == 1, seen
+
+
+def test_a_run_creates_nothing_in_the_current_directory_and_spills_inside_the_workspace(
+    client: TestClient, workspace_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-postgres/AC-23: "it creates nothing in the current directory, any spill files are
+    # inside <workspace>/duckdb-tmp/". A memory limit small enough that the rows spill.
+    current = tmp_path / "current"
+    current.mkdir()
+    monkeypatch.chdir(current)
+    source_id = chosen_source(client, "wide")
+    seen: dict[str, list[Path]] = {}
+    measure = profile_jobs.measure_rows
+
+    def watching_measure(*args, **kwargs):
+        seen["spilled"] = list((workspace_dir / "duckdb-tmp").rglob("*"))
+        return measure(*args, **kwargs)
+
+    monkeypatch.setattr(profile_jobs, "measure_rows", watching_measure)
+    monkeypatch.setattr(profile_jobs, "PROFILE_MEMORY_LIMIT", "100MB")
+
+    run_id = client.post(
+        "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+    ).json()["id"]
+
+    assert ended(client, run_id)["status"] == "completed"
+    assert seen["spilled"] != []
+    assert list(current.iterdir()) == []
+    assert list((workspace_dir / "duckdb-tmp").iterdir()) == []

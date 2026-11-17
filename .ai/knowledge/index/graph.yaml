@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-17T01:35:33+00:00'
+updated_at: '2026-11-17T02:09:25+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -121,6 +121,7 @@ sources:
   tests/e2e/test_full_profile.py: 9b333f8b035a89fcccd4c55d0a6fa4bf0e432dfb29baf14517a7dc2e653520c1
   tests/e2e/test_preview.py: b3ed711aafcc06b6758a86fdb27a152d51d78c7d6f9d39a84192583ed02ea2c1
   tests/e2e/test_profile_journey.py: e26888e465fde831f073f236feab708de2fd7e2d61025dab3341f81183f3afcc
+  tests/e2e/test_profile_postgres.py: e7ada4b04e8b47a7d29b9731335c815f75a319b5a1b7c8a3cdbf50813995a08b
   tests/e2e/test_source_settings.py: 40b61f2af153357b309e47229358626fd673783579a9e7372d035173f25bb816
   tests/e2e/test_values.py: 533333876f6a49b4e819392fd17e5647c4790c1308a49462a02e89e8b44aced7
   tests/golden/test_metrics.py: a27d17ff3300a920fac8806c8e2b166ccb6434eeb299c7526903453c8abc15be
@@ -149,7 +150,7 @@ sources:
   tests/integration/test_postgres_objects_store.py: d9c191c7d9fe6482f576079c1a31ceb5beb2668f063cde47029518211a79e789
   tests/integration/test_postgres_password_store.py: 8eebbead2dc4b70ed2ea865c7d37455dae4e7d6951435be20454dc3094dbbb5d
   tests/integration/test_postgres_preview_api.py: ed158df845b8269ea758d3ea7d4e8fe9e9cddaaea8f12eb27e21f678ff5d50e0
-  tests/integration/test_postgres_profile_api.py: 169287f34f2a47a609c974f6a404cacc3fbe91fb4392e60cbc1961b75ddf460a
+  tests/integration/test_postgres_profile_api.py: 9bf734bab8de16b6c6735f89417dd25d86bee68e7387fe1e5a691460af939a57
   tests/integration/test_postgres_reading.py: bd7d80f328c771da0ba75aec36210bc802cbbfd35c144f9fb89d55fc485369cd
   tests/integration/test_postgres_sources.py: 186726c2a0d17aa95d95d92fe0ad5e950c45ace25b506ef28becc04413a7751a
   tests/integration/test_postgres_sources_api.py: 7176a00b5d7fe0f494afa3b59ff5c847784ba29486f87649c175832087a9989f
@@ -1414,6 +1415,10 @@ nodes:
   kind: module
   evidence:
   - tests/e2e/test_profile_journey.py:1
+- id: module:tests/e2e/test_profile_postgres.py
+  kind: module
+  evidence:
+  - tests/e2e/test_profile_postgres.py:1
 - id: module:tests/e2e/test_source_settings.py
   kind: module
   evidence:
@@ -5108,6 +5113,60 @@ edges:
   evidence:
   - tests/e2e/test_profile_journey.py:116
   - tests/e2e/test_profile_journey.py:232
+- from: module:tests/e2e/test_profile_postgres.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_postgres.py:11
+- from: module:tests/e2e/test_profile_postgres.py
+  rel: imports
+  to: module:tests/e2e/test_accessibility.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_postgres.py:13
+- from: module:tests/e2e/test_profile_postgres.py
+  rel: imports
+  to: module:tests/e2e/test_choose_postgres_objects.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_postgres.py:14
+- from: module:tests/e2e/test_profile_postgres.py
+  rel: imports
+  to: module:tests/e2e/test_connect_csv.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_postgres.py:15
+- from: module:tests/e2e/test_profile_postgres.py
+  rel: imports
+  to: module:tests/integration/test_credential_store.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_postgres.py:12
+- from: module:tests/e2e/test_profile_postgres.py
+  rel: imports
+  to: module:tests/postgres_fixture.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_postgres.py:10
+- from: module:tests/e2e/test_profile_postgres.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-17
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_postgres.py:1
+- from: module:tests/e2e/test_profile_postgres.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-18
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_postgres.py:44
+- from: module:tests/e2e/test_profile_postgres.py
+  rel: verifies
+  to: ticket:DRIVN-51
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_postgres.py:2
 - from: module:tests/e2e/test_source_settings.py
   rel: imports
   to: module:tests/conftest.py
@@ -6327,85 +6386,98 @@ edges:
   to: module:tests/integration/test_postgres_objects_api.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:13
+  - tests/integration/test_postgres_profile_api.py:19
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: imports
   to: module:tests/integration/test_postgres_password_store.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:14
+  - tests/integration/test_postgres_profile_api.py:20
+- from: module:tests/integration/test_postgres_profile_api.py
+  rel: imports
+  to: module:tests/postgres_fixture.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_profile_api.py:18
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-05
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:83
+  - tests/integration/test_postgres_profile_api.py:93
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-06
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:99
+  - tests/integration/test_postgres_profile_api.py:109
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-13
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_profile_api.py:1
-  - tests/integration/test_postgres_profile_api.py:116
+  - tests/integration/test_postgres_profile_api.py:126
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-17
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:243
-  - tests/integration/test_postgres_profile_api.py:258
+  - tests/integration/test_postgres_profile_api.py:253
+  - tests/integration/test_postgres_profile_api.py:268
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-18
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:147
-  - tests/integration/test_postgres_profile_api.py:220
-  - tests/integration/test_postgres_profile_api.py:317
+  - tests/integration/test_postgres_profile_api.py:157
+  - tests/integration/test_postgres_profile_api.py:230
+  - tests/integration/test_postgres_profile_api.py:327
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-19
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:69
+  - tests/integration/test_postgres_profile_api.py:79
+- from: module:tests/integration/test_postgres_profile_api.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-23
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_profile_api.py:378
+  - tests/integration/test_postgres_profile_api.py:408
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-24
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:181
-  - tests/integration/test_postgres_profile_api.py:279
+  - tests/integration/test_postgres_profile_api.py:191
+  - tests/integration/test_postgres_profile_api.py:289
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-28
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:333
+  - tests/integration/test_postgres_profile_api.py:343
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: ticket:DRIVN-51
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_profile_api.py:2
-  - tests/integration/test_postgres_profile_api.py:183
+  - tests/integration/test_postgres_profile_api.py:193
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: ticket:DRIVN-54
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:69
+  - tests/integration/test_postgres_profile_api.py:79
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: ticket:DRIVN-56
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:333
+  - tests/integration/test_postgres_profile_api.py:343
 - from: module:tests/integration/test_postgres_reading.py
   rel: imports
   to: module:tests/postgres_fixture.py
