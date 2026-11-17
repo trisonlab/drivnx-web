@@ -526,3 +526,39 @@ def load_object_rows(
         if loaded > SAMPLE_ROWS:
             return "first_rows"
     return reading.method
+
+
+def load_whole_object(
+    connection: duckdb.DuckDBPyConnection,
+    object_name: tuple[str, str],
+    columns: tuple[str, ...],
+    table: str,
+) -> None:
+    """Load every row of an object for a full profile into `table`, as text columns `c0`, `c1`,
+    …, through DuckDB's scanner, each value as PostgreSQL's text (ADR 0009)."""
+    schema, name = object_name
+    source = f"{NAME}.{_identifier(schema)}.{_identifier(name)}"
+    # Only for this read: an unscaled or wide numeric and an array keep PostgreSQL's text, not a
+    # double's or DuckDB's list's. Elsewhere `postgres_query` must still return arrays as lists.
+    connection.execute("SET pg_numeric_as_varchar = true")
+    connection.execute("SET pg_array_as_varchar = true")
+    try:
+        blobs = {
+            column
+            for column, column_type, *_ in connection.execute(f"DESCRIBE {source}").fetchall()
+            if column_type == "BLOB"
+        }
+
+        def as_text(column: str) -> str:
+            # `bytea` as PostgreSQL writes it, `\x` and lowercase hex, not DuckDB's `\xDE\xAD`.
+            if column in blobs:
+                return f"'\\x' || lower(hex({_identifier(column)}))"
+            return f"CAST({_identifier(column)} AS VARCHAR)"
+
+        shown = ", ".join(f"{as_text(column)} AS c{n}" for n, column in enumerate(columns))
+        connection.execute(f"CREATE TABLE {table} AS SELECT {shown} FROM {source}")
+    except duckdb.Error as error:
+        raise _not_read(error) from None
+    finally:
+        connection.execute("RESET pg_numeric_as_varchar")
+        connection.execute("RESET pg_array_as_varchar")

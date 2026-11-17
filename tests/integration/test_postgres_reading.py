@@ -11,6 +11,7 @@ from connectors.postgres import (
     Reading,
     attach,
     load_object_rows,
+    load_whole_object,
     reading_for,
 )
 
@@ -39,6 +40,18 @@ OBJECTS = (
     f"ANALYZE {SCHEMA}.misestimated",
     f"INSERT INTO {SCHEMA}.misestimated SELECT n FROM generate_series(1, 100050) AS n",
     f"CREATE VIEW {SCHEMA}.big_view AS SELECT id, label FROM {SCHEMA}.big",
+    # The types whose text the scanner writes differently from PostgreSQL unless told (ADR 0009),
+    # and the ones that depend on the server's time zone and locale. A row of NULLs too.
+    f"""CREATE TABLE {SCHEMA}.typed (
+        unscaled numeric, scaled numeric(10, 2), wide numeric(50, 10), integers integer[],
+        grid integer[][], words text[], bytes bytea, document json, binary_document jsonb,
+        moment timestamptz, clock timetz, span interval, amount money
+    )""",
+    f"""INSERT INTO {SCHEMA}.typed VALUES
+        (1.00, 1.5, 12345678901234567890123456789.0123456789, '{{1,2}}', '{{{{1,2}},{{3,4}}}}',
+         '{{"x y",z,NULL,"a,b"}}', '\\xdeadbeef', '{{"a": 1}}', '{{"a": 1}}',
+         '2024-03-25 10:00:00.123456+02', '10:00+02', '1 day 02:00', 12.5),
+        (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)""",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -152,3 +165,28 @@ def test_a_view_is_read_from_its_first_100000_rows(attached: duckdb.DuckDBPyConn
 
     assert method == "view_first_rows"
     assert count(attached, "rows") == 100_000
+
+
+TYPED_COLUMNS = (
+    "unscaled", "scaled", "wide", "integers", "grid", "words", "bytes", "document",
+    "binary_document", "moment", "clock", "span", "amount",
+)
+
+
+def test_a_whole_read_gives_each_value_as_postgresqls_text(
+    attached: duckdb.DuckDBPyConnection,
+) -> None:
+    # CFX-APP-postgres/AC-19 and ADR 0009: a full profile measures the same text a fast profile
+    # does, so `1.00` stays `1.00`, an array `{1,2}` and `bytea` `\xdeadbeef`, as the server
+    # writes them. The expected text is the server's own `::text`.
+    as_text = ", ".join(f'"{column}"::text AS c{n}' for n, column in enumerate(TYPED_COLUMNS))
+    attached.execute(
+        "CREATE TABLE expected AS SELECT * FROM postgres_query('source', "
+        f"'SELECT {as_text} FROM {SCHEMA}.typed')"
+    )
+
+    load_whole_object(attached, (SCHEMA, "typed"), TYPED_COLUMNS, "rows")
+
+    assert count(attached, "rows") == 2
+    assert attached.execute("SELECT * FROM rows EXCEPT ALL SELECT * FROM expected").fetchall() == []
+    assert same_rows(attached, "rows", "expected")
