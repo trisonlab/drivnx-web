@@ -39,6 +39,8 @@ def test_a_runs_findings_say_what_was_observed_inferred_and_why_with_their_evide
     assert all(first[part] for part in ("interpretation", "why_it_matters", "recommended_action"))
     assert first["evidence"] == [
         {
+            # A database run's metrics name their object (DRIVN-51); a file's run has none.
+            "object": None,
             "column": "amount",
             "metric": "not_fitting_count",
             "value": 1,
@@ -47,6 +49,7 @@ def test_a_runs_findings_say_what_was_observed_inferred_and_why_with_their_evide
         }
     ]
     assert findings[2]["evidence"][0] == {
+        "object": None,
         "column": "note",
         "metric": "missing_count",
         "value": 7_500,

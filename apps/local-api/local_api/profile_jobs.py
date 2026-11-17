@@ -210,11 +210,13 @@ def _run_database_profile(
     except (ConnectFailure, duckdb.Error, OSError, WorkspaceBusy) as error:
         # Never DuckDB's or the server's text, which can quote the database's values.
         if not job.stop.is_set():
-            _failures[run_id] = (
-                str(error)
-                if isinstance(error, WorkspaceBusy)
-                else f"{job.object_name}: {_why_object_failed(error)}"
-            )
+            if isinstance(error, WorkspaceBusy):
+                _failures[run_id] = str(error)
+            elif job.object_name is None:
+                # Refused before any object was read: the connection, not an object.
+                _failures[run_id] = _why_object_failed(error)
+            else:
+                _failures[run_id] = f"{job.object_name}: {_why_object_failed(error)}"
     finally:
         with _jobs_lock:
             try:

@@ -59,7 +59,6 @@ from local_api.sources_api import (
 )
 
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
-# Profiling a chosen table comes later (DRIVN-51).
 # A database's full profile comes with its time limit and cancel (DRIVN-54).
 NO_FULL_DATABASE_PROFILE_YET = "A full profile of a database isn't available yet."
 NOTHING_CHOSEN = "Choose the objects to profile first."
@@ -249,6 +248,10 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         objects = read_chosen_objects(workspace.engine, database.id)
         if not objects:
             raise HTTPException(status_code=409, detail=NOTHING_CHOSEN)
+        # Before reading the database, so a second run opens no session there (AC-23). The start
+        # checks again, for two requests at once.
+        if any(run.status == "running" for run in list_profile_runs(workspace.engine)):
+            raise HTTPException(status_code=409, detail=RUN_IN_PROGRESS)
         known = password_for(kept, database)
         try:
             # As the database is now, not as it was listed (AC-13).

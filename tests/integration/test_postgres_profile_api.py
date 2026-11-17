@@ -8,12 +8,13 @@ from pathlib import Path
 
 import pytest
 from artifacts.profiles import read_findings, read_observations, read_profile_run
-from artifacts.sources import read_chosen_objects
+from artifacts.sources import StoredPostgresSource, find_source, read_chosen_objects
 from artifacts.workspace import Workspace
 from connectors.csv_files import duckdb_connection
-from connectors.postgres import load_postgres
+from connectors.postgres import load_postgres, reading_for
 from fastapi.testclient import TestClient
 from local_api import profile_jobs
+from local_api.postgres_api import details_of
 
 from .. import postgres_fixture
 from .test_postgres_objects_api import DETAILS, objects_in
@@ -249,6 +250,34 @@ def test_a_run_that_cant_read_an_object_fails_and_says_which(
     assert read_observations(workspace.engine, run_id) == []
 
 
+def test_a_run_whose_connection_is_refused_says_why_without_naming_an_object(
+    start_app: StartApp, workspace: Workspace, postgres_server: str
+) -> None:
+    # CFX-APP-postgres/AC-18: the job connects again after the start's check, and the server can
+    # refuse it then, as when the password changed meanwhile. No object was being read, so the
+    # reason stands alone. Started directly, as a request can't reach that moment.
+    client = start_app(None)
+    source_id = chosen_source(client, "people")
+    source = find_source(workspace.engine, source_id)
+    assert isinstance(source, StoredPostgresSource)
+    chosen = read_chosen_objects(workspace.engine, source_id)
+
+    run_id = profile_jobs.start_database_profile(
+        workspace,
+        details_of(source),
+        source,
+        "not-the-password",  # pragma: allowlist secret
+        chosen,
+        {found.dataset.id: reading_for(found.kind, 3) for found in chosen},
+    )
+    run = ended(client, run_id)
+
+    assert (run["status"], run["failure"]) == (
+        "failed",
+        "The server refused this user name and password.",
+    )
+
+
 def test_a_second_run_is_refused_while_one_is_in_progress(client: TestClient) -> None:
     # CFX-APP-postgres/AC-17: "a second run is refused with a clear message".
     source_id = chosen_source(client, "slow")
@@ -262,6 +291,37 @@ def test_a_second_run_is_refused_while_one_is_in_progress(client: TestClient) ->
         {"detail": "A profile is already running. Wait for it to finish, then try again."},
     )
     assert ended(client, first.json()["id"])["status"] == "completed"
+
+
+def test_a_second_run_is_refused_without_connecting_to_the_server(
+    client: TestClient, postgres_admin: Callable[[str], None]
+) -> None:
+    # CFX-APP-postgres/AC-17 and AC-23: refusing a second run needs nothing from the server, so
+    # it opens no second session there. The role is held to the one session the job has.
+    source_id = chosen_source(client, "slow")
+    run_id = client.post(
+        "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+    ).json()["id"]
+    deadline = time.monotonic() + 30
+    while not running_on(client, run_id) and time.monotonic() < deadline:
+        time.sleep(0.01)
+    postgres_admin(f"ALTER ROLE {postgres_fixture.USER} CONNECTION LIMIT 1")
+    try:
+        second = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "fast"})
+    finally:
+        postgres_admin(f"ALTER ROLE {postgres_fixture.USER} CONNECTION LIMIT -1")
+
+    assert (second.status_code, second.json()) == (
+        409,
+        {"detail": "A profile is already running. Wait for it to finish, then try again."},
+    )
+    assert ended(client, run_id)["status"] == "completed"
+
+
+def running_on(client: TestClient, run_id: str) -> str | None:
+    """The object the run is reading, once its job has connected."""
+    (run,) = [run for run in client.get("/api/profile-runs").json() if run["id"] == run_id]
+    return run.get("current_object")
 
 
 def test_a_running_run_says_which_object_it_is_on(client: TestClient) -> None:
