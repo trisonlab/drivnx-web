@@ -7,6 +7,7 @@ from contextlib import contextmanager
 import duckdb
 from artifacts.profiles import (
     ListedProfileRun,
+    Observation,
     RunInProgress,
     SettingsChanged,
     find_listed_profile_run,
@@ -37,6 +38,7 @@ from local_api.profile_jobs import (
     Mode,
     cancel_profile,
     failure_of,
+    object_of,
     start_database_profile,
     start_profile,
     values_of,
@@ -61,6 +63,8 @@ RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try
 # A database's full profile comes with its time limit and cancel (DRIVN-54).
 NO_FULL_DATABASE_PROFILE_YET = "A full profile of a database isn't available yet."
 NOTHING_CHOSEN = "Choose the objects to profile first."
+# Values on request from a database come with DRIVN-56.
+NO_DATABASE_VALUES_YET = "Values on request for a database aren't available yet."
 OBJECTS_CHANGED = "{} changed since the list was refreshed. Refresh the list, then profile again."
 OBJECTS_CHANGED_JUST_NOW = "The list was refreshed just now. Start the profile again."
 ALREADY_FINISHED = "This profile has already finished."
@@ -93,6 +97,8 @@ class ProfileRunResponse(BaseModel):
     current_settings: bool
     # Why it failed, when DrivnX knows. Not kept across a restart.
     failure: str | None
+    # The object a database's running run is reading, as `schema.object` (AC-17).
+    current_object: str | None = None
 
 
 class PatternResponse(BaseModel):
@@ -102,6 +108,8 @@ class PatternResponse(BaseModel):
 
 
 class MetricResponse(BaseModel):
+    # A database run's object, as `schema.object`; None for a file's run.
+    object: str | None = None
     column: str | None
     metric: str
     value: int | float | list[PatternResponse]
@@ -109,8 +117,18 @@ class MetricResponse(BaseModel):
     precision: str
 
 
+class ObjectReadResponse(BaseModel):
+    """How a database run read an object (AC-18): `page_sample`, `whole`, `first_rows` (read
+    whole, but larger than its estimate) or `view_first_rows`."""
+
+    object: str
+    method: str
+
+
 class ProfileRunDetail(ProfileRunResponse):
     metrics: list[MetricResponse]
+    # A database run's objects, in the order it read them; none for a file's run.
+    objects: list[ObjectReadResponse] = []
     # Whether the file's size or modified time differs from the run's now (AC-37), or `None` when
     # the file can't be looked at.
     file_changed: bool | None
@@ -174,6 +192,7 @@ def _response(run: ListedProfileRun) -> ProfileRunResponse:
         ended_at=run.ended_at,
         current_settings=run.current_settings,
         failure=failure_of(run.id) if run.status == "failed" else None,
+        current_object=object_of(run.id) if run.status == "running" else None,
     )
 
 
@@ -317,8 +336,10 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             if run.status == "completed"
             else []
         )
-        names = read_field_names(workspace.engine, run.dataset_id)
         scope = read_profile_run(workspace.engine, run.id).scope
+        if run.dataset_id is None:
+            return database_run_detail(run, scope, observations)
+        names = read_field_names(workspace.engine, run.dataset_id)
         return ProfileRunDetail(
             **_response(run).model_dump(),
             file_changed=_file_changed(find_source(workspace.engine, run.source_id), scope),
@@ -336,6 +357,50 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             ],
         )
 
+    def database_run_detail(
+        run: ListedProfileRun, scope: dict, observations: list[Observation]
+    ) -> ProfileRunDetail:
+        """Each metric with its object, and how each object was read (AC-24)."""
+        objects = {found["dataset_id"]: found for found in scope["objects"]}
+        named = {
+            dataset_id: f"{found['schema']}.{found['name']}" for dataset_id, found in objects.items()
+        }
+        columns = {
+            field_id: name
+            for dataset_id in objects
+            for field_id, name in read_field_names(workspace.engine, dataset_id).items()
+        }
+        # A whole read that came back larger than its estimate was measured on its first rows.
+        sampled = {
+            seen.dataset_id
+            for seen in observations
+            if seen.metric == "rows_read" and seen.scope == "sample"
+        }
+        return ProfileRunDetail(
+            **_response(run).model_dump(),
+            file_changed=None,
+            objects=[
+                ObjectReadResponse(
+                    object=named[dataset_id],
+                    method="first_rows"
+                    if found["method"] == "whole" and dataset_id in sampled
+                    else found["method"],
+                )
+                for dataset_id, found in objects.items()
+            ],
+            metrics=[
+                MetricResponse(
+                    object=named[seen.dataset_id],
+                    column=columns[seen.field_id] if seen.field_id else None,
+                    metric=seen.metric,
+                    value=seen.value,
+                    scope=seen.scope,
+                    precision=seen.precision,
+                )
+                for seen in observations
+            ],
+        )
+
     def flagged(run_id: str, field_id: str) -> bool:
         """Whether the run found the column possibly sensitive."""
         fields = {seen.id: seen.field_id for seen in read_observations(workspace.engine, run_id)}
@@ -350,6 +415,8 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
     def get_values(run_id: str, column: str, confirmed: bool = False) -> ValuesResponse:
         """A column's values from the part of the file the run read (AC-30), computed now."""
         run = existing_run(run_id)
+        if run.dataset_id is None:
+            raise HTTPException(status_code=409, detail=NO_DATABASE_VALUES_YET)
         if run.status != "completed":
             raise HTTPException(status_code=409, detail=NOT_COMPLETED)
         # Its columns may have been renamed since, and its settings no longer read the file.

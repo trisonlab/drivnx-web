@@ -73,7 +73,8 @@ class _Job:
     thread: threading.Thread | None = None
     # Set while the job's DuckDB connection is open, and only under `_jobs_lock`.
     connection: duckdb.DuckDBPyConnection | None = None
-    # The object a database's run is reading, as `schema.object` (DRIVN-51).
+    # The object a database's run is reading, as `schema.object` (DRIVN-51). Written by the job
+    # alone, and read without the lock (`object_of`).
     object_name: str | None = None
 
 
@@ -251,8 +252,7 @@ def _measure_objects(
             connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
             attach(connection, details, password)
             for found in objects:
-                with _jobs_lock:
-                    job.object_name = f"{found.schema}.{found.name}"
+                job.object_name = f"{found.schema}.{found.name}"
                 fields = found.dataset.fields
                 method = load_object_rows(
                     connection,
@@ -383,6 +383,16 @@ def _why_it_failed(error: Exception, path: Path, started_on: os.stat_result) -> 
     if isinstance(error, RowNotReadable):
         return ROW_NOT_READABLE
     return COULDNT_PROFILE
+
+
+def object_of(run_id: str) -> str | None:
+    """The object a database's running run is reading, as `schema.object` (AC-17).
+
+    Not under `_jobs_lock`: a run ends holding it while it writes the workspace, and listing the
+    runs mustn't wait for that. One lookup and one attribute, which the job alone writes.
+    """
+    job = _jobs.get(run_id)
+    return job.object_name if job else None
 
 
 def failure_of(run_id: str) -> str | None:

@@ -31,6 +31,10 @@ OBJECTS = (
     # Only the test that changes it chooses it, and the same for `revoked`.
     f"CREATE TABLE {SCHEMA}.changing (id integer, label text)",
     f"CREATE TABLE {SCHEMA}.revoked (id integer)",
+    # Analysed empty, then filled past the 100,001-row guard; autovacuum mustn't fix the estimate.
+    f"CREATE TABLE {SCHEMA}.misestimated (id integer) WITH (autovacuum_enabled = false)",
+    f"ANALYZE {SCHEMA}.misestimated",
+    f"INSERT INTO {SCHEMA}.misestimated SELECT n FROM generate_series(1, 100050) AS n",
     # Read in about 2 s, so a run on it is still going when a test looks.
     f"CREATE VIEW {SCHEMA}.slow AS SELECT 1 AS n FROM pg_sleep(2)",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
@@ -248,3 +252,94 @@ def test_a_second_run_is_refused_while_one_is_in_progress(client: TestClient) ->
         {"detail": "A profile is already running. Wait for it to finish, then try again."},
     )
     assert ended(client, first.json()["id"])["status"] == "completed"
+
+
+def test_a_running_run_says_which_object_it_is_on(client: TestClient) -> None:
+    # CFX-APP-postgres/AC-17: "the header's profile status and the Profile tab show which object
+    # a running run is on", from the run as the API lists it.
+    source_id = chosen_source(client, "slow")
+    run_id = client.post(
+        "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+    ).json()["id"]
+
+    deadline = time.monotonic() + 30
+    seen = None
+    while seen is None and time.monotonic() < deadline:
+        (run,) = client.get("/api/profile-runs").json()
+        seen = run.get("current_object")
+        if run["status"] != "running":
+            break
+        time.sleep(0.01)
+
+    assert seen == f"{SCHEMA}.slow"
+    assert ended(client, run_id)["current_object"] is None
+
+
+def test_a_database_runs_results_say_how_each_object_was_read(client: TestClient) -> None:
+    # CFX-APP-postgres/AC-24: each metric's object and scope, and each object's method, for the
+    # Profile tab's labels.
+    source_id = chosen_source(client, "people", "names")
+    run_id = client.post(
+        "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+    ).json()["id"]
+    assert ended(client, run_id)["status"] == "completed"
+
+    response = client.get(f"/api/profile-runs/{run_id}")
+
+    assert response.status_code == 200, response.text
+    detail = response.json()
+    assert detail["objects"] == [
+        {"object": f"{SCHEMA}.names", "method": "view_first_rows"},
+        {"object": f"{SCHEMA}.people", "method": "whole"},
+    ]
+    assert detail["file_changed"] is None
+    assert {
+        "object": f"{SCHEMA}.people",
+        "column": "name",
+        "metric": "missing_count",
+        "value": 1,
+        "scope": "full",
+        "precision": "exact",
+    } in detail["metrics"]
+    assert {
+        "object": f"{SCHEMA}.names",
+        "column": None,
+        "metric": "rows_read",
+        "value": 3,
+        "scope": "sample",
+        "precision": "exact",
+    } in detail["metrics"]
+
+
+def test_an_object_larger_than_its_estimate_is_labelled_as_its_first_rows(
+    client: TestClient,
+) -> None:
+    # CFX-APP-postgres/AC-18: "a smaller or never-analysed one whole, unless it returns more than
+    # 100,000 rows, when it's labelled as the first rows returned, not random".
+    source_id = chosen_source(client, "misestimated")
+    run_id = client.post(
+        "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+    ).json()["id"]
+    assert ended(client, run_id)["status"] == "completed"
+
+    detail = client.get(f"/api/profile-runs/{run_id}").json()
+
+    assert detail["objects"] == [{"object": f"{SCHEMA}.misestimated", "method": "first_rows"}]
+    (rows_read,) = [metric for metric in detail["metrics"] if metric["metric"] == "rows_read"]
+    assert (rows_read["value"], rows_read["scope"]) == (100_000, "sample")
+
+
+def test_a_database_runs_values_on_request_arent_available_yet(client: TestClient) -> None:
+    # CFX-APP-postgres AC-28 comes with DRIVN-56.
+    source_id = chosen_source(client, "people")
+    run_id = client.post(
+        "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+    ).json()["id"]
+    assert ended(client, run_id)["status"] == "completed"
+
+    response = client.get(f"/api/profile-runs/{run_id}/values", params={"column": "name"})
+
+    assert (response.status_code, response.json()) == (
+        409,
+        {"detail": "Values on request for a database aren't available yet."},
+    )
