@@ -34,11 +34,13 @@ after it attaches. The job's session stays open and reads the next object. Both 
 `pg_pool_acquire_mode = 'wait'`, and loads with `threads = 1`, so the pid it holds is the session that reads.
 Stopping a read is the only time a second DrivnX session appears, for under a second. AC-23 says so from revision 3.
 
-**3. A full profile reads each object whole through DuckDB's scanner, as PostgreSQL's text.** The connection has
-`pg_numeric_as_varchar` and `pg_array_as_varchar` on, each column is cast to `VARCHAR` in DuckDB, and `bytea` is
-written as `'\x' || lower(hex(...))`. The rows go into the job's local table and are measured there, as a CSV's full
-profile is, since measuring sends several queries per column. A full run attaches with a `statement_timeout` of the
-time limit and a margin, as a view's one statement can take longer than the 30 s other reads have.
+**3. A full profile reads each object whole through DuckDB's scanner, as PostgreSQL's text.** `pg_numeric_as_varchar`
+and `pg_array_as_varchar` are on for that read only, and reset after it: with the array setting on, `postgres_query`
+returns arrays as text too, and discovery's key columns came back as `{id}` (DRIVN-53, step 1). Each column is cast to
+`VARCHAR` in DuckDB, and `bytea` is written as `'\x' || lower(hex(...))`. The rows go into the job's local table and are
+measured there, as a CSV's full profile is, since measuring sends several queries per column. A full run attaches with a
+`statement_timeout` of the time limit and a margin, as a view's one statement can take longer than the 30 s other reads
+have.
 
 **4. A full profile's masked patterns come from the object's fast reading.** Before the full read, the job reads the
 object as a fast profile would (ADR 0005 Decisions 1 to 3) and keeps only its patterns, saved with scope `sample`.

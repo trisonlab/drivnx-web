@@ -76,18 +76,6 @@ def chosen_source(client: TestClient, *names: str) -> str:
     return source_id
 
 
-def test_a_full_profile_of_a_database_isnt_available_yet(client: TestClient) -> None:
-    # CFX-APP-postgres AC-19 comes with DRIVN-54; a fast profile is this ticket's.
-    source_id = chosen_source(client, "people")
-
-    response = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "full"})
-
-    assert (response.status_code, response.json()) == (
-        409,
-        {"detail": "A full profile of a database isn't available yet."},
-    )
-
-
 def test_after_a_restart_a_run_waits_for_the_password(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
@@ -264,6 +252,7 @@ def test_a_run_whose_connection_is_refused_says_why_without_naming_an_object(
 
     run_id = profile_jobs.start_database_profile(
         workspace,
+        "fast",
         details_of(source),
         source,
         "not-the-password",  # pragma: allowlist secret

@@ -31,6 +31,7 @@ from connectors.postgres import (
     Reading,
     attach,
     load_object_rows,
+    load_whole_object,
 )
 from domain.trust import Actor
 from profiling.findings import findings_for
@@ -46,6 +47,8 @@ SHUTDOWN_WAIT_SECONDS = 5
 # The queries measured peak at about 3 GB here (ADR 0004). DuckDB's default of 80% of the machine's
 # memory could slow the user's other programs.
 PROFILE_MEMORY_LIMIT = "4GB"
+# A database's full profile stops an object at this, unless the run asks for another (DRIVN-53).
+DEFAULT_TIME_LIMIT_MINUTES = 10
 COLUMNS_CHANGED = "The file's columns no longer match the saved ones."
 FILE_GONE = "DrivnX can't find this file. It may have moved or been deleted."
 FILE_CHANGED = "The file changed while it was being profiled. Profile it again."
@@ -140,6 +143,7 @@ def start_profile(
 
 def start_database_profile(
     workspace: Workspace,
+    mode: Mode,
     details: ConnectionDetails,
     source: StoredPostgresSource,
     password: str,
@@ -147,9 +151,12 @@ def start_database_profile(
     readings: dict[str, Reading],
     *,
     write_access: dict,
+    time_limit_minutes: int | None = None,
 ) -> str:
-    """Record a fast profile of a database's chosen objects, each read as `readings` says by its
-    dataset's id, then work in the background. Returns its ID (DRIVN-51).
+    """Record a profile of a database's chosen objects, then work in the background. Returns its ID.
+
+    A fast profile reads each as `readings` says by its dataset's id (DRIVN-51), a full one every
+    row (DRIVN-53).
 
     Raises `RunInProgress`, `Busy` while values are being worked out, or `SettingsChanged` if a
     refresh has replaced one of the objects.
@@ -176,15 +183,20 @@ def start_database_profile(
                 ],
                 # What the role could change in them as the run started (DRIVN-52).
                 "write_access": write_access,
+                **(
+                    {"time_limit_minutes": time_limit_minutes or DEFAULT_TIME_LIMIT_MINUTES}
+                    if mode == "full"
+                    else {}
+                ),
             },
-            mode="fast",
-            sample_size=SAMPLE_ROWS,
+            mode=mode,
+            sample_size=SAMPLE_ROWS if mode == "fast" else None,
             # One seed for the run, so its page samples, and values on request, can be repeated.
             seed=seed,
         )
         job.thread = threading.Thread(
             target=_run_database_profile,
-            args=(workspace, run_id, job, details, password, objects, readings, seed),
+            args=(workspace, run_id, job, mode, details, password, objects, readings, seed),
             name=JOB_THREAD_NAME,
             daemon=True,
         )
@@ -197,6 +209,7 @@ def _run_database_profile(
     workspace: Workspace,
     run_id: str,
     job: _Job,
+    mode: Mode,
     details: ConnectionDetails,
     password: str,
     objects: tuple[ChosenObject, ...],
@@ -205,7 +218,9 @@ def _run_database_profile(
 ) -> None:
     status = "failed"
     try:
-        observations = _measure_objects(workspace, job, details, password, objects, readings, seed)
+        observations = _measure_objects(
+            workspace, job, mode, details, password, objects, readings, seed
+        )
         for batch in batched(observations, MAX_OBSERVATIONS_PER_TRANSACTION):
             if job.stop.is_set():
                 break
@@ -243,6 +258,7 @@ _COUNTS = ("missing_count", "missing_percent", "distinct_count", "distinct_perce
 def _measure_objects(
     workspace: Workspace,
     job: _Job,
+    mode: Mode,
     details: ConnectionDetails,
     password: str,
     objects: tuple[ChosenObject, ...],
@@ -259,31 +275,47 @@ def _measure_objects(
             attach(connection, details, password)
             for found in objects:
                 job.object_name = f"{found.schema}.{found.name}"
-                fields = found.dataset.fields
-                method = load_object_rows(
-                    connection,
-                    (found.schema, found.name),
-                    tuple(field.name for field in fields),
-                    readings[found.dataset.id],
-                    seed,
-                    ROWS_TABLE,
+                name = (found.schema, found.name)
+                columns = tuple(field.name for field in found.dataset.fields)
+                types = [field.normalised_type for field in found.dataset.fields]
+                fast = load_object_rows(
+                    connection, name, columns, readings[found.dataset.id], seed, ROWS_TABLE
                 )
-                measured = measure_rows(
-                    connection,
-                    ROWS_TABLE,
-                    [field.normalised_type for field in fields],
-                    {},
-                    # Every row read, unless an object turned out larger than its estimate.
-                    every_row=method != "first_rows",
-                    count_duplicates=False,
-                    blank_is_missing=False,
-                )
-                connection.execute(f"DROP TABLE {ROWS_TABLE}")
-                observations += _object_observations(found, measured, method)
+                sampled = _measure_loaded(connection, types, fast)
+                if mode == "fast":
+                    observations += _object_observations(found, sampled, fast)
+                    continue
+                # A full profile's masked patterns are its fast reading's (decided for DRIVN-53).
+                load_whole_object(connection, name, columns, ROWS_TABLE)
+                measured = _measure_loaded(connection, types, "full")
+                observations += _object_observations(found, measured, "full", (sampled, fast))
         finally:
             with _jobs_lock:
                 job.connection = None
     return observations
+
+
+def _measure_loaded(
+    connection: duckdb.DuckDBPyConnection, types: list[str], method: str
+) -> MeasuredRows:
+    """Measure the rows just loaded, read as `method` says, then drop them."""
+    measured = measure_rows(
+        connection,
+        ROWS_TABLE,
+        types,
+        {},
+        # Every row read, unless an object turned out larger than its estimate.
+        every_row=method != "first_rows",
+        # Copies of a row are a full profile's, as for a CSV (DRIVN-53).
+        count_duplicates=method == "full",
+        blank_is_missing=False,
+    )
+    connection.execute(f"DROP TABLE {ROWS_TABLE}")
+    return measured
+
+
+def _read_scope(method: str) -> str:
+    return "full" if method in ("whole", "full") else "sample"
 
 
 def _why_object_failed(error: Exception) -> str:
@@ -296,15 +328,35 @@ def _why_object_failed(error: Exception) -> str:
 
 
 def _object_observations(
-    found: ChosenObject, measured: MeasuredRows, method: str
+    found: ChosenObject,
+    measured: MeasuredRows,
+    method: str,
+    patterns_from: tuple[MeasuredRows, str] | None = None,
 ) -> list[NewObservation]:
-    scope = "full" if method == "whole" else "sample"
+    """What's saved for an object read as `method` says, with its masked patterns taken from
+    `patterns_from`, rows read another way, when given."""
+    patterns_method = method
+    if patterns_from is not None:
+        sampled, patterns_method = patterns_from
+        measured = dataclasses.replace(
+            measured,
+            columns=tuple(
+                dataclasses.replace(column, patterns=sample.patterns)
+                for column, sample in zip(measured.columns, sampled.columns, strict=True)
+            ),
+        )
 
     def observation(field_id: str | None, metric: str, value: Any) -> NewObservation:
+        scope = _read_scope(patterns_method if metric == "masked_patterns" else method)
         return NewObservation(found.dataset.id, field_id, metric, value, scope, "count", "exact")
 
     return [
         observation(None, "rows_read", measured.rows_read),
+        *(
+            [observation(None, "duplicate_rows", measured.duplicate_rows)]
+            if measured.duplicate_rows is not None
+            else []
+        ),
         *(
             observation(field.id, metric, value)
             for field, column in zip(found.dataset.fields, measured.columns, strict=True)
