@@ -7,7 +7,7 @@ feature_revision: 2
 stories: [US-02, US-04, US-05]
 criteria: [AC-13, AC-17, AC-18, AC-23, AC-24]
 blocked_by: [DRIVN-49]
-state: ready
+state: done
 external_key: DRIVN-51
 status: CONFIRMED
 ---
@@ -20,14 +20,31 @@ Plane: [DRIVN-51](https://app.plane.so/drivnx/browse/DRIVN-51/) · `CFX-APP-post
 A user runs a fast profile over the chosen objects and reads each one's metrics, labelled with how its rows were chosen: a page sample with a seed for a table, the whole of a small one, or a view's first rows. A run on an object that changed since discovery is refused.
 
 ## Acceptance checklist
-- [ ] AC-13 (US-02): Given an object dropped, or whose columns or types changed since discovery, when the user refreshes the source, then the list and the columns show the database as it is now. When a run starts on such an object, it is refused with a message pointing to the refresh.
-- [ ] AC-17 (US-04): Given chosen objects and no run in progress, then a second run is refused with a clear message, and the header's profile status and the Profile tab show which object a running run is on.
-- [ ] AC-18 (US-04): Given chosen objects, when the user chooses Fast profile, then one run profiles each object: a table, partitioned table or materialized view estimated above 100,000 rows from a page sample of about 100,000 rows with a seed saved in the run, labelled "about N rows, sampled by page"; a smaller or never-analysed one whole, unless it returns more than 100,000 rows, when it's labelled as the first rows returned, not random; and a view from the first 100,000 rows it returns, labelled "first rows the view returned, not random".
-- [ ] AC-23 (US-04): Given a profile job, then it creates nothing in the current directory, any spill files are inside `<workspace>/duckdb-tmp/`, and DrivnX holds at most one connection to the server for it, on a full profile too.
-- [ ] AC-24 (US-05): Given a completed run, then for each column the Profile tab shows the metrics in the Assumptions, and each metric's scope (about N rows sampled by page, the first rows returned, or the whole object), its precision, and its run's time and ID. An estimated row count is never shown as exact.
+- [x] AC-13 (US-02): Given an object dropped, or whose columns or types changed since discovery, when the user refreshes the source, then the list and the columns show the database as it is now. When a run starts on such an object, it is refused with a message pointing to the refresh.
+- [x] AC-17 (US-04): Given chosen objects and no run in progress, then a second run is refused with a clear message, and the header's profile status and the Profile tab show which object a running run is on.
+- [x] AC-18 (US-04): Given chosen objects, when the user chooses Fast profile, then one run profiles each object: a table, partitioned table or materialized view estimated above 100,000 rows from a page sample of about 100,000 rows with a seed saved in the run, labelled "about N rows, sampled by page"; a smaller or never-analysed one whole, unless it returns more than 100,000 rows, when it's labelled as the first rows returned, not random; and a view from the first 100,000 rows it returns, labelled "first rows the view returned, not random".
+- [x] AC-23 (US-04): Given a profile job, then it creates nothing in the current directory, any spill files are inside `<workspace>/duckdb-tmp/`, and DrivnX holds at most one connection to the server for it, on a full profile too.
+- [x] AC-24 (US-05): Given a completed run, then for each column the Profile tab shows the metrics in the Assumptions, and each metric's scope (about N rows sampled by page, the first rows returned, or the whole object), its precision, and its run's time and ID. An estimated row count is never shown as exact.
 
 ## Expected evidence
 Integration tests for each kind of object and each label, the seed saved in the run, one connection to the server, spill files in the workspace, and a refused run. A Playwright run in the Profile tab.
+
+## Verification
+Commit `3345956`, 2026-11-17, Linux, with the PostgreSQL fixture.
+
+| Criterion | Evidence | Result |
+|---|---|---|
+| AC-13 | `test_postgres_profile_api.py` `test_a_run_on_an_object_changed_since_the_list_is_refused_pointing_to_the_refresh`; `test_postgres_objects_store.py` (the list as the database is now, a changed object refusing a run); e2e `test_choose_postgres_objects.py` | PASS |
+| AC-17 | `test_postgres_profile_api.py` `test_a_second_run_is_refused_while_one_is_in_progress`, `test_a_second_run_is_refused_without_connecting_to_the_server`, `test_a_running_run_says_which_object_it_is_on`; `Postgres.test.tsx` "a running database run says which object it is on, in the header and the Profile tab" | PASS |
+| AC-18 | `test_postgres_profile_api.py` `test_a_fast_profile_reads_each_chosen_object_as_planned_with_the_runs_seed`, `test_an_object_larger_than_its_estimate_is_labelled_as_its_first_rows`; `test_postgres_reading.py`; `test_first_rows.py`; e2e `test_profile_postgres.py` | PASS |
+| AC-23 | `test_postgres_profile_api.py` `test_a_run_holds_at_most_one_connection_to_the_server` and `test_a_run_creates_nothing_in_the_current_directory_and_spills_inside_the_workspace`, each seen failing with the code it guards broken (a second session: `assert 2 == 1`; spilling into the current directory: `assert [] != []`) | PASS for a fast profile. "On a full profile too" moves to DRIVN-53, which builds the full profile. |
+| AC-24 | `test_postgres_profile_api.py` `test_each_objects_columns_get_the_metrics_for_their_type_and_only_null_is_missing`, `test_a_database_runs_results_say_how_each_object_was_read`; `Postgres.test.tsx` (scope labels, "about N rows, sampled by page", the run's ID and time); e2e `test_profile_postgres.py` with an accessibility check | PASS |
+
+Checks: `pytest tests/integration tests/golden` 2494 passed, 8 skipped (Windows-only and by-design files); `pytest tests/e2e`
+80 passed; `pnpm --dir apps/web test` 214 passed, 1 failed (`Preview.test.tsx` "the preview opens on the first 50
+rows", which fails the same way on `main` at `0e6675c` and passes alone); `pnpm --dir apps/web build` (with `tsc`)
+clean; `detect-secrets`, `pip-audit` and `pnpm audit` clean; `ai-skills knowledge check` consistent. NOT RUN locally:
+macOS and Windows (CI).
 
 ## Notes
 AC-13 is shared with DRIVN-49.

@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-17T11:54:13+00:00'
+updated_at: '2026-11-17T14:13:10+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -33,7 +33,7 @@ sources:
   .ai/knowledge/work/DRIVN-48.md: cc37e29ea27510c9603b4b3f6afbe595928685467202136e1f0fde71b3bc3228
   .ai/knowledge/work/DRIVN-49.md: 18011bfaeb84761c306d7dd3af58379fca8fe10fb7f9dca9795240c38345ffe3
   .ai/knowledge/work/DRIVN-50.md: cbe500cceac8ace383f825fe727b5b53c335a9c3e81370db3792099d9a88011b
-  .ai/knowledge/work/DRIVN-51.md: 1c3db05db8b9062717cb39c6aa0140e65f9ba6af1447452ec918ddffd67052d5
+  .ai/knowledge/work/DRIVN-51.md: 434e356b943634dc7ba7bc171661f49874d07eb909c88545918e02b74f0be389
   .ai/knowledge/work/DRIVN-52.md: b3ded2309456d6eb0ccf0217a0d09432b514408e80385df1d3c82bcdaf3c19da
   .ai/knowledge/work/DRIVN-53.md: ae1b9853cc28cdb14189f31423b97a00ae6be59e688f3d105ce54d0788d7d8be
   .ai/knowledge/work/DRIVN-54.md: afa6f011cc62fd3f8c7f869f155eb2e46eb5b9040118cafb261b51e5729b7689
@@ -1997,7 +1997,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-51.md
   title: Fast profile of chosen objects, end to end
-  state: ready
+  state: done
   external_key: DRIVN-51
 - id: ticket:DRIVN-52
   kind: ticket
