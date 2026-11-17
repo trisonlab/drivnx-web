@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-17T14:13:10+00:00'
+updated_at: '2026-11-17T14:13:29+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -34,9 +34,9 @@ sources:
   .ai/knowledge/work/DRIVN-49.md: 18011bfaeb84761c306d7dd3af58379fca8fe10fb7f9dca9795240c38345ffe3
   .ai/knowledge/work/DRIVN-50.md: cbe500cceac8ace383f825fe727b5b53c335a9c3e81370db3792099d9a88011b
   .ai/knowledge/work/DRIVN-51.md: 434e356b943634dc7ba7bc171661f49874d07eb909c88545918e02b74f0be389
-  .ai/knowledge/work/DRIVN-52.md: b3ded2309456d6eb0ccf0217a0d09432b514408e80385df1d3c82bcdaf3c19da
-  .ai/knowledge/work/DRIVN-53.md: ae1b9853cc28cdb14189f31423b97a00ae6be59e688f3d105ce54d0788d7d8be
-  .ai/knowledge/work/DRIVN-54.md: afa6f011cc62fd3f8c7f869f155eb2e46eb5b9040118cafb261b51e5729b7689
+  .ai/knowledge/work/DRIVN-52.md: 180f275cdf9f3393855b75df0302f1cb2ff7a35ece3003ce8ddaffc8e6deee2c
+  .ai/knowledge/work/DRIVN-53.md: 893bcbfef6f0ef33932d055233ff68a89f8cb889080b19c9cc78a6d040b9ca55
+  .ai/knowledge/work/DRIVN-54.md: c4d49cf4697ac473a4b2dfb3f5e22630698cde9130c5c5a224d237d72488d14f
   .ai/knowledge/work/DRIVN-55.md: 2c66eb4352f58b3a4478fbf78c359cc5a60b91d3f70b45aaa05152e58b2562c0
   .ai/knowledge/work/DRIVN-56.md: 8c3a122ed78b74e037b4d6511b38776ccc052530152528c5398577996349669b
   .ai/knowledge/work/DRIVN-57.md: d4da2cd0e294616413b87dfc69a96975b79e3bf29138a1bc45cacead0983da50
@@ -2004,21 +2004,21 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-52.md
   title: Confirm before profiling with an account that can write
-  state: blocked
+  state: ready
   external_key: DRIVN-52
 - id: ticket:DRIVN-53
   kind: ticket
   evidence:
   - .ai/knowledge/work/DRIVN-53.md
   title: Full profile, time limit and cancel
-  state: blocked
+  state: ready
   external_key: DRIVN-53
 - id: ticket:DRIVN-54
   kind: ticket
   evidence:
   - .ai/knowledge/work/DRIVN-54.md
   title: Every metric against the golden fixture
-  state: blocked
+  state: ready
   external_key: DRIVN-54
 - id: ticket:DRIVN-55
   kind: ticket
@@ -8409,6 +8409,12 @@ edges:
 - from: ticket:DRIVN-53
   rel: covers
   to: criterion:CFX-APP-postgres/AC-22
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-53.md
+- from: ticket:DRIVN-53
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-23
   status: CONFIRMED
   evidence:
   - .ai/knowledge/work/DRIVN-53.md
