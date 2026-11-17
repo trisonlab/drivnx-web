@@ -12,13 +12,15 @@ evidence:
 - path: docs/adr/0004-profile-values-and-caching.md
   sha256: 12322e4c09166082db9f7d0aaf9f2778771e08f1f3d831f9d0349ef795516980
 - path: docs/adr/0005-postgres-sampling.md
-  sha256: adb06a3e3e83e0021c8fc0a63117e726441e3d2eeaea5e54d2dcc4634c8dda88
+  sha256: 10c94851b1fcbeb66d335e9629cd3a3b5071ac99e3a0c247519f0b21b17505c3
 - path: docs/adr/0006-postgres-extension-in-the-wheel.md
   sha256: 86662d0b293d67401493b0e41990665e64b609596d0533bd23d1a74b06bbab7b
 - path: docs/adr/0007-postgres-password-and-connection.md
   sha256: 2a563edf68717c775b98e54a03662489a83ea16c4651994f75af8a0e06af239f
 - path: docs/adr/0008-postgres-password-in-the-os-credential-store.md
   sha256: 30731e7174126249d49711b9795e357c6eb3b66e42ab50d51f75ce76e44769c3
+- path: docs/adr/0009-stopping-a-postgres-read.md
+  sha256: 2232477c4b86d80ac564a81cff4953ae9165500581414123c916c797863803f1
 ---
 # Architecture decisions
 
@@ -34,3 +36,4 @@ Index of the project's ADRs. Status comes from each file; the ADR text is the au
 | 0006 — DuckDB's PostgreSQL extension ships in the wheel, and one script starts PostgreSQL for tests | unknown | `docs/adr/0006-postgres-extension-in-the-wheel.md` |
 | 0007 — A PostgreSQL password lives only in memory and a temporary DuckDB secret, and every session is read-only | unknown | `docs/adr/0007-postgres-password-and-connection.md` |
 | 0008 — A PostgreSQL password is kept in the OS credential store through keyring, and in memory only where there is none | unknown | `docs/adr/0008-postgres-password-in-the-os-credential-store.md` |
+| 0009 — A PostgreSQL read is stopped by DuckDB's interrupt, then by the server's cancel; a full profile reads PostgreSQL's text through the scanner | unknown | `docs/adr/0009-stopping-a-postgres-read.md` |

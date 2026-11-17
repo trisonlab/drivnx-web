@@ -3,7 +3,7 @@ id: DRIVN-46
 legacy_id: CFX-APP-postgres-T01
 title: "Fixture and bundled extension"
 feature: CFX-APP-postgres
-feature_revision: 2
+feature_revision: 3
 stories: [US-01, US-07]
 criteria: [AC-07, AC-34]
 blocked_by: []

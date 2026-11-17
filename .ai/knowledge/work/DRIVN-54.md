@@ -3,7 +3,7 @@ id: DRIVN-54
 legacy_id: CFX-APP-postgres-T09
 title: "Every metric against the golden fixture"
 feature: CFX-APP-postgres
-feature_revision: 2
+feature_revision: 3
 stories: [US-05]
 criteria: [AC-25]
 blocked_by: [DRIVN-51]

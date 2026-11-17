@@ -3,7 +3,7 @@ id: DRIVN-55
 legacy_id: CFX-APP-postgres-T10
 title: "Findings and sensitive fields"
 feature: CFX-APP-postgres
-feature_revision: 2
+feature_revision: 3
 stories: [US-05]
 criteria: [AC-26, AC-27]
 blocked_by: [DRIVN-53, DRIVN-54]

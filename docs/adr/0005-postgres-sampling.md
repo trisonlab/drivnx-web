@@ -1,6 +1,6 @@
 # 0005 — How a profile reads a PostgreSQL table: page samples with a seed, one connection, DrivnX's own time limit
 
-- **Status:** Accepted 2026-11-13
+- **Status:** Accepted 2026-11-13; Decision 6 amended by ADR 0009 (stopping a read, DRIVN-53)
 - **Date:** 2026-11-13
 - **Source:** The user's decisions in chat on 2026-11-13, recorded in spec `CFX-APP-postgres`; spike 2 of the direction
   doc (Section 10, "Can we profile large remote tables without expensive full scans?"); the open "PostgreSQL sampling"

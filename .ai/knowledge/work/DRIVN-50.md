@@ -3,7 +3,7 @@ id: DRIVN-50
 legacy_id: CFX-APP-postgres-T05
 title: "Preview a chosen object"
 feature: CFX-APP-postgres
-feature_revision: 2
+feature_revision: 3
 stories: [US-02]
 criteria: [AC-12]
 blocked_by: [DRIVN-49]
