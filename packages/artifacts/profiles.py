@@ -143,6 +143,7 @@ def start_only_profile_run(
     mode: str,
     sample_size: int | None = None,
     strategy: str | None = None,
+    seed: int | None = None,
 ) -> str:
     """Start a run unless one is in progress, or its dataset was replaced, `SettingsChanged`.
 
@@ -168,7 +169,7 @@ def start_only_profile_run(
             ).scalar()
             if replaced:
                 raise SettingsChanged
-        return _insert_run(connection, scope, mode, sample_size, strategy, None)
+        return _insert_run(connection, scope, mode, sample_size, strategy, seed)
 
 
 def read_profile_run(engine: Engine, run_id: str) -> ProfileRun:

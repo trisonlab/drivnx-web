@@ -19,12 +19,15 @@ from artifacts.provenance import now
 from artifacts.sources import (
     StoredPostgresSource,
     StoredSource,
+    changed_since_listed,
     find_source,
+    read_chosen_objects,
     read_dataset,
     read_field_names,
 )
 from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, read_page, sniffed_columns
+from connectors.postgres import ConnectFailure, discover, reading_for
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.exc import NoResultFound
@@ -34,10 +37,18 @@ from local_api.profile_jobs import (
     Mode,
     cancel_profile,
     failure_of,
+    start_database_profile,
     start_profile,
     values_of,
 )
 from local_api.pages import CellResponse, shown_cell
+from local_api.postgres_api import (
+    KeptPasswords,
+    details_of,
+    found_objects,
+    password_for,
+    read_failed,
+)
 from local_api.sources_api import (
     cannot_read,
     current_encoding,
@@ -47,7 +58,11 @@ from local_api.sources_api import (
 
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
 # Profiling a chosen table comes later (DRIVN-51).
-NO_DATABASE_PROFILE_YET = "Profiling a database's tables isn't available yet."
+# A database's full profile comes with its time limit and cancel (DRIVN-54).
+NO_FULL_DATABASE_PROFILE_YET = "A full profile of a database isn't available yet."
+NOTHING_CHOSEN = "Choose the objects to profile first."
+OBJECTS_CHANGED = "{} changed since the list was refreshed. Refresh the list, then profile again."
+OBJECTS_CHANGED_JUST_NOW = "The list was refreshed just now. Start the profile again."
 ALREADY_FINISHED = "This profile has already finished."
 SETTINGS_CHANGED = "This file's settings changed just now. Start the profile again."
 COLUMNS_NO_LONGER_MATCH = (
@@ -198,7 +213,7 @@ def columns_now(
     )
 
 
-def profile_runs_router(workspace: Workspace) -> APIRouter:
+def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
     router = APIRouter(prefix="/api/profile-runs")
 
     def existing_run(run_id: str) -> ListedProfileRun:
@@ -207,11 +222,51 @@ def profile_runs_router(workspace: Workspace) -> APIRouter:
             raise HTTPException(status_code=404, detail="There's no such profile run.")
         return run
 
+    def start_database_run(database: StoredPostgresSource, mode: Mode) -> str:
+        """A fast profile of the database's chosen objects (DRIVN-51). Returns its ID."""
+        if mode == "full":
+            raise HTTPException(status_code=409, detail=NO_FULL_DATABASE_PROFILE_YET)
+        # Only chosen objects are profiled (AC-11).
+        objects = read_chosen_objects(workspace.engine, database.id)
+        if not objects:
+            raise HTTPException(status_code=409, detail=NOTHING_CHOSEN)
+        known = password_for(kept, database)
+        try:
+            # As the database is now, not as it was listed (AC-13).
+            discovery = discover(details_of(database), known.password, workspace.temp_directory)
+        except ConnectFailure as failure:
+            raise read_failed(kept, database.id, known, failure) from None
+        changed = changed_since_listed(workspace.engine, database.id, found_objects(discovery))
+        if changed:
+            raise HTTPException(
+                status_code=409, detail=OBJECTS_CHANGED.format(", ".join(changed))
+            )
+        # From the estimates as they are now, not as they were listed (ADR 0005).
+        estimates = {(found.schema, found.name): found for found in discovery.objects}
+        readings = {
+            chosen.dataset.id: reading_for(
+                chosen.kind, estimates[(chosen.schema, chosen.name)].estimated_rows
+            )
+            for chosen in objects
+        }
+        try:
+            run_id = start_database_profile(
+                workspace, details_of(database), database, known.password, objects, readings
+            )
+        except RunInProgress:
+            raise HTTPException(status_code=409, detail=RUN_IN_PROGRESS) from None
+        except Busy:
+            raise HTTPException(status_code=409, detail=BUSY) from None
+        except SettingsChanged:
+            raise HTTPException(status_code=409, detail=OBJECTS_CHANGED_JUST_NOW) from None
+        return run_id
+
     @router.post("", status_code=202)
     def start_run(body: ProfileRunRequest) -> ProfileRunResponse:
         no_such_source = HTTPException(status_code=404, detail="There's no such source.")
-        if isinstance(find_source(workspace.engine, body.source_id), StoredPostgresSource):
-            raise HTTPException(status_code=409, detail=NO_DATABASE_PROFILE_YET)
+        database = find_source(workspace.engine, body.source_id)
+        if isinstance(database, StoredPostgresSource):
+            return _response(existing_run(start_database_run(database, body.mode)))
         try:
             # Before the settings, so a correction saved after either replaces this dataset, and
             # the start is refused instead of reading with settings that aren't this dataset's.
