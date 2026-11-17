@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-16T23:49:59+00:00'
+updated_at: '2026-11-17T00:04:04+00:00'
 facts:
 - id: api:openapi
   status: INFERRED

@@ -155,12 +155,19 @@ def start_only_profile_run(
         ).first()
         if running:
             raise RunInProgress
-        replaced = connection.execute(
-            text("SELECT replaced_at IS NOT NULL FROM dataset WHERE id = :id"),
-            {"id": scope["dataset_id"]},
-        ).scalar()
-        if replaced:
-            raise SettingsChanged
+        # A file's run reads one dataset; a database's, one for each chosen object (DRIVN-51).
+        dataset_ids = (
+            [scope["dataset_id"]]
+            if "dataset_id" in scope
+            else [found["dataset_id"] for found in scope["objects"]]
+        )
+        for dataset_id in dataset_ids:
+            replaced = connection.execute(
+                text("SELECT replaced_at IS NOT NULL FROM dataset WHERE id = :id"),
+                {"id": dataset_id},
+            ).scalar()
+            if replaced:
+                raise SettingsChanged
         return _insert_run(connection, scope, mode, sample_size, strategy, None)
 
 
@@ -192,7 +199,8 @@ def read_profile_run(engine: Engine, run_id: str) -> ProfileRun:
 class ListedProfileRun:
     id: str
     source_id: str
-    dataset_id: str
+    # A file's run reads one dataset; a database's reads one per object, in its scope.
+    dataset_id: str | None
     mode: str
     status: str
     started_at: str
@@ -200,12 +208,23 @@ class ListedProfileRun:
     current_settings: bool
 
 
+# A database's run names its source and its objects' datasets in its scope (DRIVN-51), and is
+# current while none of them has been replaced by a refresh.
 _SELECT_LISTED_RUNS = """
-    SELECT profile_run.id, dataset.source_id, dataset.id AS dataset_id, profile_run.mode,
+    SELECT profile_run.id,
+           coalesce(dataset.source_id, json_extract(profile_run.scope, '$.source_id'))
+               AS source_id,
+           dataset.id AS dataset_id, profile_run.mode,
            profile_run.status, profile_run.started_at, profile_run.ended_at,
-           dataset.replaced_at IS NULL AS current_settings
+           CASE WHEN dataset.id IS NOT NULL THEN dataset.replaced_at IS NULL
+                ELSE NOT EXISTS (
+                    SELECT 1 FROM json_each(profile_run.scope, '$.objects') AS run_object
+                    JOIN dataset AS read ON read.id = json_extract(run_object.value, '$.dataset_id')
+                    WHERE read.replaced_at IS NOT NULL
+                ) END AS current_settings
     FROM profile_run
-    JOIN dataset ON dataset.id = json_extract(profile_run.scope, '$.dataset_id')
+    LEFT JOIN dataset ON dataset.id = json_extract(profile_run.scope, '$.dataset_id')
+    WHERE (dataset.id IS NOT NULL OR json_extract(profile_run.scope, '$.source_id') IS NOT NULL)
 """
 
 
@@ -234,7 +253,7 @@ def list_profile_runs(engine: Engine) -> list[ListedProfileRun]:
 def find_listed_profile_run(engine: Engine, run_id: str) -> ListedProfileRun | None:
     with engine.connect() as connection:
         row = connection.execute(
-            text(f"{_SELECT_LISTED_RUNS} WHERE profile_run.id = :id"), {"id": run_id}
+            text(f"{_SELECT_LISTED_RUNS} AND profile_run.id = :id"), {"id": run_id}
         ).first()
     return _listed(row) if row else None
 

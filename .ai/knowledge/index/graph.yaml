@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-16T23:50:01+00:00'
+updated_at: '2026-11-17T00:04:05+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -88,12 +88,12 @@ sources:
   packages/artifacts/migrations/versions/0006_finding_kind.py: 808a3346f80723d10c461213eb58356ae1fc92635ed108ae0de61cdebb7c97e4
   packages/artifacts/migrations/versions/0007_postgres_sources.py: eb63bf61813648e3c4f5dd1642ade7d01116a3940d6c2abe676eb4fad0b1aae3
   packages/artifacts/migrations/versions/0008_postgres_objects.py: 4fdbc0ab3faaba590683e6e56bb231f8beba74509c5208cef7dd5abeca1e278c
-  packages/artifacts/profiles.py: 530461762ee7927f687943e809be104c665ce7f8182bc2407074aeb5c1085df8
+  packages/artifacts/profiles.py: 40b0a96dbd3d22efdd3629cda2c607645d9b2e4e909af19c811b76165deb51a6
   packages/artifacts/provenance.py: 006c59372b073c3aa223564142dd6f604a8667d07f5c00f427b9087cadb52be2
   packages/artifacts/review.py: f959e1fbf57048bc3ee35a8c0d501eb18cfdd92186325e132f3f1a4a72cdbeaa
   packages/artifacts/schema.py: 713e5b4a63502f907fa3ae6ff42ca3831660ec8d9f5834b157b88431e0bd58c6
   packages/artifacts/settings.py: f485bc3a90b6ba403d2377b93adc64737afefd8f837458e1b9b45a3cb4596289
-  packages/artifacts/sources.py: e0a4194728969cf602e545dafcfb03eb1109637b52d5a5bbb44a531e27e429ab
+  packages/artifacts/sources.py: ae6ccb3ec1957cf5e066757ae040c6036b17a3ae137e42d483baa0880d2d07a1
   packages/artifacts/store.py: 342da5f8686ec2f8672e296a7c51b803e9617a5e25b9e413d87028715a65c352
   packages/artifacts/workspace.py: 5eb2e1c2ea6fcc8a9d8bbec8b9c5245b5a12038714d6d32321c71b7d6d2513a0
   packages/connectors/csv_files.py: c9261f73242606e3a0907157f8c6f6c003b81e692cc8e2281b4f605d3c9c6a39
@@ -146,7 +146,7 @@ sources:
   tests/integration/test_postgres_extension_build.py: d4bc9552a15e1f405fc7d16f06b927da9ebb68862d9f88b9ef55e26fb886a447
   tests/integration/test_postgres_fixture.py: 72faf18bfcc5d7d8b89d98eb4b05539dd6b309bbbc71359f3a42b3f8a157f04b
   tests/integration/test_postgres_objects_api.py: 1f66660f18846a7607bda4b39fd5961ab440285fd5c3abdc659eb1f47926b7bd
-  tests/integration/test_postgres_objects_store.py: f5b994c3a9fccfaf4bbcefa7a93ad15f3993cd00ea9d8f3b049000a93a14e740
+  tests/integration/test_postgres_objects_store.py: d9c191c7d9fe6482f576079c1a31ceb5beb2668f063cde47029518211a79e789
   tests/integration/test_postgres_password_store.py: 8eebbead2dc4b70ed2ea865c7d37455dae4e7d6951435be20454dc3094dbbb5d
   tests/integration/test_postgres_preview_api.py: ed158df845b8269ea758d3ea7d4e8fe9e9cddaaea8f12eb27e21f678ff5d50e0
   tests/integration/test_postgres_sources.py: 186726c2a0d17aa95d95d92fe0ad5e950c45ace25b506ef28becc04413a7751a
@@ -4196,6 +4196,13 @@ edges:
   - packages/artifacts/migrations/versions/0008_postgres_objects.py:51
   note: bare AC-10; the file names only CFX-APP-postgres
 - from: module:packages/artifacts/profiles.py
+  rel: implements
+  to: ticket:DRIVN-51
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/profiles.py:158
+  - packages/artifacts/profiles.py:211
+- from: module:packages/artifacts/profiles.py
   rel: imports
   to: module:packages/artifacts/provenance.py
   status: CONFIRMED
@@ -6000,50 +6007,64 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_objects_store.py:1
-  - tests/integration/test_postgres_objects_store.py:117
-  - tests/integration/test_postgres_objects_store.py:162
-  - tests/integration/test_postgres_objects_store.py:315
-  - tests/integration/test_postgres_objects_store.py:347
+  - tests/integration/test_postgres_objects_store.py:124
+  - tests/integration/test_postgres_objects_store.py:169
+  - tests/integration/test_postgres_objects_store.py:322
+  - tests/integration/test_postgres_objects_store.py:354
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-09
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:284
-  - tests/integration/test_postgres_objects_store.py:377
+  - tests/integration/test_postgres_objects_store.py:291
+  - tests/integration/test_postgres_objects_store.py:384
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-10
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:258
-  - tests/integration/test_postgres_objects_store.py:453
-  - tests/integration/test_postgres_objects_store.py:602
-  - tests/integration/test_postgres_objects_store.py:636
-  - tests/integration/test_postgres_objects_store.py:651
+  - tests/integration/test_postgres_objects_store.py:265
+  - tests/integration/test_postgres_objects_store.py:460
+  - tests/integration/test_postgres_objects_store.py:609
+  - tests/integration/test_postgres_objects_store.py:643
+  - tests/integration/test_postgres_objects_store.py:658
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-11
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:413
-  - tests/integration/test_postgres_objects_store.py:441
+  - tests/integration/test_postgres_objects_store.py:420
+  - tests/integration/test_postgres_objects_store.py:448
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-13
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:496
-  - tests/integration/test_postgres_objects_store.py:538
-  - tests/integration/test_postgres_objects_store.py:570
-  - tests/integration/test_postgres_objects_store.py:668
+  - tests/integration/test_postgres_objects_store.py:503
+  - tests/integration/test_postgres_objects_store.py:545
+  - tests/integration/test_postgres_objects_store.py:577
+  - tests/integration/test_postgres_objects_store.py:675
+  - tests/integration/test_postgres_objects_store.py:728
+  - tests/integration/test_postgres_objects_store.py:745
+- from: module:tests/integration/test_postgres_objects_store.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-17
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_store.py:756
+- from: module:tests/integration/test_postgres_objects_store.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-18
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_objects_store.py:692
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: ticket:DRIVN-49
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_objects_store.py:2
-  - tests/integration/test_postgres_objects_store.py:636
+  - tests/integration/test_postgres_objects_store.py:643
 - from: module:tests/integration/test_postgres_password_store.py
   rel: imports
   to: module:tests/conftest.py
