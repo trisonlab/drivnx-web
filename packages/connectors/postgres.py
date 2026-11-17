@@ -388,6 +388,25 @@ def _identifier(name: str) -> str:
     return '"' + name.replace('"', '""') + '"'
 
 
+def _as_text(object_name: tuple[str, str], columns: tuple[str, ...]) -> str:
+    """Select an object's columns as PostgreSQL's text for each value, named `c0`, `c1`, …"""
+    schema, name = object_name
+    # Every column named, as the extension wraps the query and selects its columns by name.
+    shown = ", ".join(f"{_identifier(column)}::text AS c{n}" for n, column in enumerate(columns))
+    # A table can have no columns, and its rows are still rows: one constant each, dropped later.
+    shown = shown or "1 AS c0"
+    return f"SELECT {shown} FROM {_identifier(schema)}.{_identifier(name)}"
+
+
+def _not_read(error: duckdb.Error) -> ConnectFailure:
+    """Why an object's rows couldn't be read. Never DuckDB's own text, which repeats the query
+    and the server's error: only whether the server stopped it for taking too long, in its
+    English text."""
+    if "canceling statement due to statement timeout" in str(error):
+        return ConnectFailure("timeout", _TIMED_OUT)
+    return ConnectFailure("changed", _NOT_READ)
+
+
 def read_rows(
     details: ConnectionDetails,
     password: str,
@@ -401,12 +420,7 @@ def read_rows(
     """`limit` rows of an object from `offset`, each value as PostgreSQL's text for it, read on
     the server so only these rows reach DrivnX. In the order of the primary key's columns `key`
     when there is one, else in the server's own (the order agreed for DRIVN-50)."""
-    schema, name = object_name
-    # Every column named, as the extension wraps the query and selects its columns by name.
-    shown = ", ".join(f"{_identifier(column)}::text AS c{n}" for n, column in enumerate(columns))
-    # A table can have no columns, and its rows are still rows: one constant each, dropped below.
-    shown = shown or "1 AS c0"
-    sql = f"SELECT {shown} FROM {_identifier(schema)}.{_identifier(name)}"
+    sql = _as_text(object_name, columns)
     if key:
         sql += " ORDER BY " + ", ".join(_identifier(column) for column in key)
     sql += f" LIMIT {int(limit)} OFFSET {int(offset)}"
@@ -415,9 +429,64 @@ def read_rows(
         try:
             rows = _on_server(connection, sql)
         except duckdb.Error as error:
-            # Never DuckDB's own text, which repeats the query and the server's error: only
-            # whether the server stopped it for taking too long, in its English text.
-            if "canceling statement due to statement timeout" in str(error):
-                raise ConnectFailure("timeout", _TIMED_OUT) from None
-            raise ConnectFailure("changed", _NOT_READ) from None
+            raise _not_read(error) from None
     return rows if columns else [() for _ in rows]
+
+
+# About how many rows a fast profile reads from each object (ADR 0005).
+SAMPLE_ROWS = 100_000
+
+
+@dataclass(frozen=True)
+class Reading:
+    """How a fast profile reads an object: a page sample at `percent` of its pages, the whole
+    object, or a view's first rows (ADR 0005)."""
+
+    method: str
+    percent: float | None = None
+
+
+def reading_for(kind: str, estimated_rows: int | None) -> Reading:
+    """How to read an object of this kind and estimated size for a fast profile (AC-18).
+
+    PostgreSQL refuses `TABLESAMPLE` on a view, so it reads its first rows. Anything else larger
+    than a sample is sampled by page; a smaller one, or one never analysed, is read whole, with a
+    guard for an estimate that was wrong.
+    """
+    if kind == "view":
+        return Reading("view_first_rows")
+    if estimated_rows is not None and estimated_rows > SAMPLE_ROWS:
+        return Reading("page_sample", 100 * SAMPLE_ROWS / estimated_rows)
+    return Reading("whole")
+
+
+def load_object_rows(
+    connection: duckdb.DuckDBPyConnection,
+    object_name: tuple[str, str],
+    columns: tuple[str, ...],
+    reading: Reading,
+    seed: int,
+    table: str,
+) -> str:
+    """Load an object's rows for a fast profile into `table`, as text columns `c0`, `c1`, …, and
+    say how they were read: as `reading` says, or `first_rows` when an object read whole turns
+    out larger than its estimate (ADR 0005)."""
+    sql = _as_text(object_name, columns)
+    if reading.method == "page_sample":
+        sql += f" TABLESAMPLE SYSTEM ({float(reading.percent or 0)}) REPEATABLE ({int(seed)})"
+    elif reading.method == "view_first_rows":
+        sql += f" LIMIT {SAMPLE_ROWS}"
+    else:
+        # One more than a sample, to know whether that was all of it.
+        sql += f" LIMIT {SAMPLE_ROWS + 1}"
+    try:
+        connection.execute(
+            f"CREATE TABLE {table} AS SELECT * FROM postgres_query('{NAME}', {_sql(sql)})"
+        )
+    except duckdb.Error as error:
+        raise _not_read(error) from None
+    if reading.method == "whole":
+        (loaded,) = connection.execute(f"SELECT count(*) FROM {table}").fetchone()
+        if loaded > SAMPLE_ROWS:
+            return "first_rows"
+    return reading.method

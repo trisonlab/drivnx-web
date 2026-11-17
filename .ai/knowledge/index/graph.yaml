@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-17T00:04:05+00:00'
+updated_at: '2026-11-17T00:14:47+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -97,7 +97,7 @@ sources:
   packages/artifacts/store.py: 342da5f8686ec2f8672e296a7c51b803e9617a5e25b9e413d87028715a65c352
   packages/artifacts/workspace.py: 5eb2e1c2ea6fcc8a9d8bbec8b9c5245b5a12038714d6d32321c71b7d6d2513a0
   packages/connectors/csv_files.py: c9261f73242606e3a0907157f8c6f6c003b81e692cc8e2281b4f605d3c9c6a39
-  packages/connectors/postgres.py: 779189ea8dab167f1540235289739d4b4da7b4452af218269839b230f742a697
+  packages/connectors/postgres.py: 6437a7c3f8f875aa58f3b1561368015426b031b89b7b3951892b624b2d8f8477
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
   packages/profiling/findings.py: 60e9053ec8d2a80e29cfacb8fcf8f48b66ec22347e9d9a113b03ddda06bb51ee
@@ -149,6 +149,7 @@ sources:
   tests/integration/test_postgres_objects_store.py: d9c191c7d9fe6482f576079c1a31ceb5beb2668f063cde47029518211a79e789
   tests/integration/test_postgres_password_store.py: 8eebbead2dc4b70ed2ea865c7d37455dae4e7d6951435be20454dc3094dbbb5d
   tests/integration/test_postgres_preview_api.py: ed158df845b8269ea758d3ea7d4e8fe9e9cddaaea8f12eb27e21f678ff5d50e0
+  tests/integration/test_postgres_reading.py: bd7d80f328c771da0ba75aec36210bc802cbbfd35c144f9fb89d55fc485369cd
   tests/integration/test_postgres_sources.py: 186726c2a0d17aa95d95d92fe0ad5e950c45ace25b506ef28becc04413a7751a
   tests/integration/test_postgres_sources_api.py: 7176a00b5d7fe0f494afa3b59ff5c847784ba29486f87649c175832087a9989f
   tests/integration/test_preview_api.py: d74949610184b6907c2f80dbe8bde248a19c23ae888674112176cda4f8ed377f
@@ -1524,6 +1525,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_postgres_preview_api.py:1
+- id: module:tests/integration/test_postgres_reading.py
+  kind: module
+  evidence:
+  - tests/integration/test_postgres_reading.py:1
 - id: module:tests/integration/test_postgres_sources.py
   kind: module
   evidence:
@@ -4309,7 +4314,7 @@ edges:
   to: ticket:DRIVN-50
   status: CONFIRMED
   evidence:
-  - packages/connectors/postgres.py:403
+  - packages/connectors/postgres.py:422
 - from: module:packages/connectors/postgres.py
   rel: imports
   to: module:packages/connectors/csv_files.py
@@ -6219,6 +6224,30 @@ edges:
   evidence:
   - tests/integration/test_postgres_preview_api.py:1
   - tests/integration/test_postgres_preview_api.py:81
+- from: module:tests/integration/test_postgres_reading.py
+  rel: imports
+  to: module:tests/postgres_fixture.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_reading.py:17
+- from: module:tests/integration/test_postgres_reading.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-18
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_reading.py:1
+  - tests/integration/test_postgres_reading.py:95
+  - tests/integration/test_postgres_reading.py:102
+  - tests/integration/test_postgres_reading.py:120
+  - tests/integration/test_postgres_reading.py:137
+  - tests/integration/test_postgres_reading.py:148
+- from: module:tests/integration/test_postgres_reading.py
+  rel: verifies
+  to: ticket:DRIVN-51
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_reading.py:1
+  - tests/integration/test_postgres_reading.py:121
 - from: module:tests/integration/test_postgres_sources.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-01
