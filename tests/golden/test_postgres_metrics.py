@@ -46,6 +46,19 @@ OBJECTS = (
         (6, NULL, 'x'),
         (7, repeat(U&'\\0416', 45), NULL)""",
     f"ANALYZE {SCHEMA}.words",
+    # Numbers. 9007199254740993 is 2**53 + 1, which a double can't hold apart from 2**53.
+    f"""CREATE TABLE {SCHEMA}.numbers (
+        id integer PRIMARY KEY, whole integer, big bigint, exact numeric, scaled numeric(5, 2),
+        single real, double double precision
+    )""",
+    f"""INSERT INTO {SCHEMA}.numbers VALUES
+        (1, 1, 9007199254740992, 1, 1, 0.1, 0.3),
+        (2, 2, 9007199254740993, 1.0, 1.0, 0.1, 0.30000000000000004),
+        (3, 2, NULL, 1.00, 1.005, '-0', 'NaN'),
+        (4, NULL, -9223372036854775808, 'NaN', 'NaN', '0', 'Infinity'),
+        (5, -2147483648, 9007199254740992, NULL, NULL, 'NaN', '-Infinity'),
+        (6, 0, 0, 0.000, -999.99, 'Infinity', NULL)""",
+    f"ANALYZE {SCHEMA}.numbers",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -125,6 +138,30 @@ EXPECTED = {
                     pattern("A9", 1),
                 ],
             },
+        },
+    },
+    # Numbers get counts only. Each distinct count is of PostgreSQL's text for the values, and one
+    # NULL in 6 rows is 16.67% missing.
+    "numbers": {
+        "rows_read": 6,
+        "columns": {
+            "id": counts(missing=0, distinct=6, rows=6),
+            # 1, 2, 2, -2147483648 and 0: 4 of 5.
+            "whole": counts(missing=1, distinct=4, rows=6),
+            # 2**53 twice, 2**53 + 1, the smallest bigint and 0: 4 of 5, as text keeps 2**53 + 1.
+            "big": counts(missing=1, distinct=4, rows=6),
+            # 1, 1.0, 1.00, NaN and 0.000: an unscaled numeric keeps the scale it was written with,
+            # so they're 5 of 5, although PostgreSQL finds 1, 1.0 and 1.00 equal (DRIVN-51).
+            "exact": counts(missing=1, distinct=5, rows=6),
+            # numeric(5, 2) writes 1, 1.0 as 1.00 and rounds 1.005 to 1.01: 1.00 twice, 1.01, NaN
+            # and -999.99, 4 of 5.
+            "scaled": counts(missing=1, distinct=4, rows=6),
+            # 0.1 twice, -0, 0, NaN and Infinity. -0 and 0 are equal in PostgreSQL but written
+            # apart, so 5 of 6.
+            "single": counts(missing=0, distinct=5, rows=6),
+            # 0.3 and 0.1 + 0.2 are two doubles, written 0.3 and 0.30000000000000004; then NaN,
+            # Infinity and -Infinity: 5 of 5.
+            "double": counts(missing=1, distinct=5, rows=6),
         },
     },
 }
