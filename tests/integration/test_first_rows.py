@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import duckdb
 import pytest
 from connectors.csv_files import CsvError, duckdb_connection, load_rows
 from profiling.first_rows import FIRST_ROWS, MeasuredRows, measure_rows
@@ -222,3 +223,40 @@ def test_a_surplus_column_can_share_a_name_with_duckdbs_own_row_number(
         )
 
     assert missing_of(measured) == (1,)
+
+
+def loaded(connection: duckdb.DuckDBPyConnection, *columns: list[str | None]) -> None:
+    """A table of text columns `c0`, `c1`, … as a database run loads its rows (DRIVN-51)."""
+    names = ", ".join(f"c{position} VARCHAR" for position in range(len(columns)))
+    connection.execute(f"CREATE TABLE object_rows ({names})")
+    connection.executemany(
+        f"INSERT INTO object_rows VALUES ({', '.join('?' * len(columns))})",
+        list(zip(*columns, strict=True)),
+    )
+
+
+def test_in_a_database_only_null_is_missing(tmp_path: Path) -> None:
+    # CFX-APP-postgres AC-24's metrics, with the rule agreed for DRIVN-51: a database keeps NULL
+    # apart from an empty or blank string, which are values with a length.
+    with duckdb_connection(tmp_path) as connection:
+        loaded(connection, [None, "", "   ", "x"])
+        (column,) = measure_rows(
+            connection, "object_rows", ["string"], {}, every_row=False, blank_is_missing=False
+        ).columns
+
+    assert (column.missing, column.distinct, column.shortest, column.longest) == (1, 3, 0, 3)
+
+
+def test_a_page_sample_is_measured_whole_without_counting_copies(tmp_path: Path) -> None:
+    # CFX-APP-postgres/AC-18: a page sample is about 100,000 rows, often more, and all of it is
+    # measured; duplicate rows are only for a full profile (AC-26).
+    with duckdb_connection(tmp_path) as connection:
+        connection.execute(
+            "CREATE TABLE object_rows AS SELECT (range % 1000)::VARCHAR AS c0 FROM range(100500)"
+        )
+        measured = measure_rows(
+            connection, "object_rows", ["string"], {}, every_row=True, count_duplicates=False
+        )
+
+    assert (measured.rows_read, measured.duplicate_rows) == (100_500, None)
+    assert measured.columns[0].distinct == 1000

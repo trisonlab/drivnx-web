@@ -9,6 +9,11 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
+from artifacts.profiles import (
+    find_listed_profile_run,
+    list_profile_runs,
+    start_only_profile_run,
+)
 from artifacts.schema import read_revision
 from artifacts.sources import (
     NotChoosable,
@@ -18,6 +23,8 @@ from artifacts.sources import (
     StoredObject,
     StoredPostgresSource,
     add_postgres_source,
+    changed_since_listed,
+    read_chosen_objects,
     read_object,
     read_objects,
     save_discovery,
@@ -679,3 +686,86 @@ def test_a_refresh_after_refreshing_the_view_lets_it_be_chosen_and_after_emptyin
 
     assert chosen(workspace) == set()
     assert read_object(workspace.engine, SOURCE.id, totals)[0].populated is False
+
+
+def test_the_chosen_objects_are_read_with_their_fields_for_a_run(workspace: Workspace) -> None:
+    # CFX-APP-postgres/AC-18: a run profiles each chosen object, by schema then name, and saves
+    # what it measures against each one's fields.
+    save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
+    ids = {object_id(workspace, "sales", name) for name in ("orders", "order_view")}
+    save_selection(workspace.engine, SOURCE.id, frozenset(ids))
+
+    found = read_chosen_objects(workspace.engine, SOURCE.id)
+
+    assert [
+        (each.schema, each.name, each.kind, [(f.name, f.physical_type) for f in each.dataset.fields])
+        for each in found
+    ] == [
+        ("sales", "order_view", "view", [("id", "bigint"), ("region", "text")]),
+        (
+            "sales",
+            "orders",
+            "table",
+            [("id", "bigint"), ("region", "text"), ("amount", "numeric(10,2)")],
+        ),
+    ]
+    assert {each.dataset.id for each in found} == ids
+    assert all(field.id for each in found for field in each.dataset.fields)
+
+
+def without_orders(change: str) -> tuple[ObjectFound, ...]:
+    """What a discovery finds after `orders` is dropped or changed in one way."""
+    if change == "dropped":
+        return FOUND[1:]
+    replaced = {"kind": "partitioned_table"} if change == "its kind" else {"columns": CHANGES[change]}
+    return (ObjectFound(**{**ORDERS.__dict__, **replaced}), *FOUND[1:])
+
+
+@pytest.mark.parametrize("change", ["dropped", "its kind", *CHANGES])
+def test_a_chosen_object_gone_or_changed_since_the_list_is_named(
+    workspace: Workspace, change: str
+) -> None:
+    # CFX-APP-postgres/AC-13: a run on it is refused, pointing to the refresh, by the same rule a
+    # refresh uses to replace it.
+    save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
+    save_selection(
+        workspace.engine,
+        SOURCE.id,
+        frozenset({object_id(workspace, "sales", "orders"), object_id(workspace, "sales", "events")}),
+    )
+
+    assert changed_since_listed(workspace.engine, SOURCE.id, without_orders(change)) == (
+        "sales.orders",
+    )
+
+
+def test_unchanged_chosen_objects_or_a_change_to_another_one_name_nothing(
+    workspace: Workspace,
+) -> None:
+    # CFX-APP-postgres/AC-13: only a chosen object that changed refuses a run.
+    save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
+    save_selection(workspace.engine, SOURCE.id, frozenset({object_id(workspace, "sales", "events")}))
+
+    assert changed_since_listed(workspace.engine, SOURCE.id, FOUND) == ()
+    assert changed_since_listed(workspace.engine, SOURCE.id, without_orders("dropped")) == ()
+
+
+def test_a_database_run_is_listed_under_its_source_and_current_until_an_object_is_replaced(
+    workspace: Workspace,
+) -> None:
+    # CFX-APP-postgres/AC-17 and AC-24: one run covers the source's chosen objects; a refresh that
+    # replaces one of them makes the run's results no longer current.
+    save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
+    ids = [object_id(workspace, "sales", name) for name in ("order_view", "orders")]
+    save_selection(workspace.engine, SOURCE.id, frozenset(ids))
+    scope = {"source_id": SOURCE.id, "objects": [{"dataset_id": each} for each in ids]}
+
+    run_id = start_only_profile_run(workspace.engine, scope=scope, mode="fast")
+
+    (listed,) = list_profile_runs(workspace.engine)
+    assert (listed.id, listed.source_id, listed.dataset_id) == (run_id, SOURCE.id, None)
+    assert listed.current_settings is True
+    assert find_listed_profile_run(workspace.engine, run_id) == listed
+    save_discovery(workspace.engine, SOURCE.id, SCHEMAS, without_orders("a new column"))
+    (listed,) = list_profile_runs(workspace.engine)
+    assert listed.current_settings is False

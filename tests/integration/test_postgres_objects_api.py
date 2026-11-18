@@ -330,15 +330,15 @@ def test_a_selection_that_cant_be_right_is_refused_and_changes_nothing(
         ("GET", "/api/sources/{id}/rows", None,
          "A database is previewed one chosen object at a time."),
         ("POST", "/api/profile-runs", {"source_id": "{id}", "mode": "fast"},
-         "Profiling a database's tables isn't available yet."),
+         "Choose the objects to profile first."),
     ],
 )
 def test_previewing_and_profiling_a_database_no_longer_wait_for_choosing(
     client: TestClient, method: str, path: str, body: dict | None, says: str
 ) -> None:
     # CFX-APP-postgres/AC-11: choosing is here, so the message no longer says it isn't. A database
-    # is previewed by object (DRIVN-50, test_postgres_preview_api.py); profiling a chosen object
-    # comes next (DRIVN-51).
+    # is previewed by object (DRIVN-50, test_postgres_preview_api.py), and only chosen objects are
+    # profiled (DRIVN-51, test_postgres_profile_api.py); nothing is chosen here.
     source_id, _ = saved_source(client)
     filled = {key: value.replace("{id}", source_id) for key, value in body.items()} if body else None
 

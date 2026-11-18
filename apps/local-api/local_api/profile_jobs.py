@@ -2,6 +2,8 @@
 
 import dataclasses
 import os
+import re
+import secrets
 import threading
 import time
 from itertools import batched
@@ -18,10 +20,18 @@ from artifacts.profiles import (
     read_observations,
     start_only_profile_run,
 )
-from artifacts.sources import StoredDataset, StoredSource
+from artifacts.sources import ChosenObject, StoredDataset, StoredPostgresSource, StoredSource
 from artifacts.store import WorkspaceBusy
 from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, RowNotReadable, duckdb_connection, load_rows
+from connectors.postgres import (
+    SAMPLE_ROWS,
+    ConnectFailure,
+    ConnectionDetails,
+    Reading,
+    attach,
+    load_object_rows,
+)
 from domain.trust import Actor
 from profiling.findings import findings_for
 from profiling.first_rows import FIRST_ROWS, MeasuredRows, measure_rows
@@ -63,6 +73,9 @@ class _Job:
     thread: threading.Thread | None = None
     # Set while the job's DuckDB connection is open, and only under `_jobs_lock`.
     connection: duckdb.DuckDBPyConnection | None = None
+    # The object a database's run is reading, as `schema.object` (DRIVN-51). Written by the job
+    # alone, and read without the lock (`object_of`).
+    object_name: str | None = None
 
 
 # The jobs that haven't ended, by run ID.
@@ -123,6 +136,179 @@ def start_profile(
         _jobs[run_id] = job
     job.thread.start()
     return run_id
+
+
+def start_database_profile(
+    workspace: Workspace,
+    details: ConnectionDetails,
+    source: StoredPostgresSource,
+    password: str,
+    objects: tuple[ChosenObject, ...],
+    readings: dict[str, Reading],
+) -> str:
+    """Record a fast profile of a database's chosen objects, each read as `readings` says by its
+    dataset's id, then work in the background. Returns its ID (DRIVN-51).
+
+    Raises `RunInProgress`, `Busy` while values are being worked out, or `SettingsChanged` if a
+    refresh has replaced one of the objects.
+    """
+    job = _Job()
+    with _jobs_lock:
+        if _values_lock.locked():
+            raise Busy
+        seed = secrets.randbelow(2**31)
+        run_id = start_only_profile_run(
+            workspace.engine,
+            scope={
+                "source_id": source.id,
+                "objects": [
+                    {
+                        "dataset_id": found.dataset.id,
+                        "schema": found.schema,
+                        "name": found.name,
+                        "kind": found.kind,
+                        "method": readings[found.dataset.id].method,
+                        "percent": readings[found.dataset.id].percent,
+                    }
+                    for found in objects
+                ],
+            },
+            mode="fast",
+            sample_size=SAMPLE_ROWS,
+            # One seed for the run, so its page samples, and values on request, can be repeated.
+            seed=seed,
+        )
+        job.thread = threading.Thread(
+            target=_run_database_profile,
+            args=(workspace, run_id, job, details, password, objects, readings, seed),
+            name=JOB_THREAD_NAME,
+            daemon=True,
+        )
+        _jobs[run_id] = job
+    job.thread.start()
+    return run_id
+
+
+def _run_database_profile(
+    workspace: Workspace,
+    run_id: str,
+    job: _Job,
+    details: ConnectionDetails,
+    password: str,
+    objects: tuple[ChosenObject, ...],
+    readings: dict[str, Reading],
+    seed: int,
+) -> None:
+    status = "failed"
+    try:
+        observations = _measure_objects(workspace, job, details, password, objects, readings, seed)
+        for batch in batched(observations, MAX_OBSERVATIONS_PER_TRANSACTION):
+            if job.stop.is_set():
+                break
+            add_observations(workspace.engine, Actor.SYSTEM, run_id, batch)
+        status = "completed"
+    except (ConnectFailure, duckdb.Error, OSError, WorkspaceBusy) as error:
+        # Never DuckDB's or the server's text, which can quote the database's values.
+        if not job.stop.is_set():
+            if isinstance(error, WorkspaceBusy):
+                _failures[run_id] = str(error)
+            elif job.object_name is None:
+                # Refused before any object was read: the connection, not an object.
+                _failures[run_id] = _why_object_failed(error)
+            else:
+                _failures[run_id] = f"{job.object_name}: {_why_object_failed(error)}"
+    finally:
+        with _jobs_lock:
+            try:
+                if not job.leaving:
+                    if job.stop.is_set():
+                        status = "cancelled"
+                    finish_profile_run(workspace.engine, run_id, status, ())
+            finally:
+                del _jobs[run_id]
+                job.ended.set()
+
+
+# The text types whose lengths and masked patterns are measured; any other column gets counts
+# only (CFX-APP-postgres, the Assumptions' metrics). An array of them isn't one.
+_TEXT_TYPE = re.compile(r"(text|character varying|character|citext|name)(\(\d+\))?")
+# Measured for every column. "Values that don't fit the type" can't happen in a typed column.
+_COUNTS = ("missing_count", "missing_percent", "distinct_count", "distinct_percent")
+
+
+def _measure_objects(
+    workspace: Workspace,
+    job: _Job,
+    details: ConnectionDetails,
+    password: str,
+    objects: tuple[ChosenObject, ...],
+    readings: dict[str, Reading],
+    seed: int,
+) -> list[NewObservation]:
+    """Each object read as planned and measured, over one connection to the server."""
+    observations: list[NewObservation] = []
+    with duckdb_connection(workspace.temp_directory) as connection:
+        with _jobs_lock:
+            job.connection = connection
+        try:
+            connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
+            attach(connection, details, password)
+            for found in objects:
+                job.object_name = f"{found.schema}.{found.name}"
+                fields = found.dataset.fields
+                method = load_object_rows(
+                    connection,
+                    (found.schema, found.name),
+                    tuple(field.name for field in fields),
+                    readings[found.dataset.id],
+                    seed,
+                    ROWS_TABLE,
+                )
+                measured = measure_rows(
+                    connection,
+                    ROWS_TABLE,
+                    [field.normalised_type for field in fields],
+                    {},
+                    # Every row read, unless an object turned out larger than its estimate.
+                    every_row=method != "first_rows",
+                    count_duplicates=False,
+                    blank_is_missing=False,
+                )
+                connection.execute(f"DROP TABLE {ROWS_TABLE}")
+                observations += _object_observations(found, measured, method)
+        finally:
+            with _jobs_lock:
+                job.connection = None
+    return observations
+
+
+def _why_object_failed(error: Exception) -> str:
+    """Written for the user: the connector's own reason, or DrivnX's."""
+    if isinstance(error, ConnectFailure):
+        return str(error)
+    if isinstance(error, duckdb.OutOfMemoryException):
+        return "DrivnX ran out of memory profiling this object."
+    return "DrivnX couldn't profile this object."
+
+
+def _object_observations(
+    found: ChosenObject, measured: MeasuredRows, method: str
+) -> list[NewObservation]:
+    scope = "full" if method == "whole" else "sample"
+
+    def observation(field_id: str | None, metric: str, value: Any) -> NewObservation:
+        return NewObservation(found.dataset.id, field_id, metric, value, scope, "count", "exact")
+
+    return [
+        observation(None, "rows_read", measured.rows_read),
+        *(
+            observation(field.id, metric, value)
+            for field, column in zip(found.dataset.fields, measured.columns, strict=True)
+            for metric, value in column.saved_metrics().items()
+            if metric in _COUNTS
+            or (metric != "not_fitting_count" and _TEXT_TYPE.fullmatch(field.physical_type))
+        ),
+    ]
 
 
 def cancel_profile(run_id: str) -> bool:
@@ -199,6 +385,16 @@ def _why_it_failed(error: Exception, path: Path, started_on: os.stat_result) -> 
     if isinstance(error, RowNotReadable):
         return ROW_NOT_READABLE
     return COULDNT_PROFILE
+
+
+def object_of(run_id: str) -> str | None:
+    """The object a database's running run is reading, as `schema.object` (AC-17).
+
+    Not under `_jobs_lock`: a run ends holding it while it writes the workspace, and listing the
+    runs mustn't wait for that. One lookup and one attribute, which the job alone writes.
+    """
+    job = _jobs.get(run_id)
+    return job.object_name if job else None
 
 
 def failure_of(run_id: str) -> str | None:

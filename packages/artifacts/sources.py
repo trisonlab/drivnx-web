@@ -195,21 +195,23 @@ def read_dataset(engine: Engine, source_id: str) -> StoredDataset:
             ),
             {"id": source_id},
         ).one()
-        fields = connection.execute(
-            text(
-                """
-                SELECT id, name, physical_type, normalised_type FROM field
-                WHERE dataset_id = :id ORDER BY position
-                """
-            ),
-            {"id": dataset.id},
-        )
         return StoredDataset(
-            dataset.id,
-            dataset.source_id,
-            dataset.name,
-            tuple(DatasetField(*field) for field in fields),
+            dataset.id, dataset.source_id, dataset.name, _fields(connection, dataset.id)
         )
+
+
+def _fields(connection: Connection, dataset_id: str) -> tuple[DatasetField, ...]:
+    """A dataset's fields, in their order."""
+    fields = connection.execute(
+        text(
+            """
+            SELECT id, name, physical_type, normalised_type FROM field
+            WHERE dataset_id = :id ORDER BY position
+            """
+        ),
+        {"id": dataset_id},
+    )
+    return tuple(DatasetField(*field) for field in fields)
 
 
 def read_field_names(engine: Engine, dataset_id: str) -> dict[str, str]:
@@ -470,6 +472,67 @@ def _object(row) -> StoredObject:
     )
 
 
+@dataclass(frozen=True)
+class ChosenObject:
+    """An object chosen to profile, as its current dataset, with where it is in the database."""
+
+    dataset: StoredDataset
+    schema: str
+    name: str
+    kind: str
+
+
+def read_chosen_objects(engine: Engine, source_id: str) -> tuple[ChosenObject, ...]:
+    """The source's chosen objects, by schema then name, for a run (AC-18)."""
+    with engine.connect() as connection:
+        rows = connection.execute(
+            text(
+                """
+                SELECT id, name, schema_name, object_name, object_kind FROM dataset
+                WHERE source_id = :source_id AND replaced_at IS NULL
+                    AND object_name IS NOT NULL AND chosen
+                ORDER BY schema_name, object_name
+                """
+            ),
+            {"source_id": source_id},
+        ).all()
+        return tuple(
+            ChosenObject(
+                StoredDataset(row.id, source_id, row.name, _fields(connection, row.id)),
+                row.schema_name,
+                row.object_name,
+                row.object_kind,
+            )
+            for row in rows
+        )
+
+
+def changed_since_listed(
+    engine: Engine, source_id: str, objects: tuple[ObjectFound, ...]
+) -> tuple[str, ...]:
+    """The chosen objects, as `schema.object`, that a discovery now finds gone or different from
+    the list, by the rule a refresh replaces them by (AC-13)."""
+    found_now = {(found.schema, found.name): found for found in objects}
+    with engine.connect() as connection:
+        listed = connection.execute(
+            text(f"{_SELECT_OBJECTS} AND chosen ORDER BY schema_name, object_name"),
+            {"source_id": source_id},
+        ).all()
+        columns = _current_columns(connection, source_id)
+    return tuple(
+        f"{row.schema_name}.{row.object_name}"
+        for row in listed
+        if (found := found_now.get((row.schema_name, row.object_name))) is None
+        or not _same_object(row, columns.get(row.id, ()), found)
+    )
+
+
+def _same_object(row, columns: tuple[StoredColumn, ...], found: ObjectFound) -> bool:
+    """Whether a listed object is still the one discovery finds: the same kind and columns. If
+    not, a refresh replaces it with a new dataset (ADR 0002)."""
+    return (row.object_kind, columns) == (found.kind, found.columns)
+
+
 def save_discovery(
     engine: Engine, source_id: str, schemas: tuple[str, ...], objects: tuple[ObjectFound, ...]
 ) -> None:
@@ -493,7 +556,7 @@ def save_discovery(
             row = current.get((found.schema, found.name))
             if row is None:
                 _insert_object(connection, source_id, found, chosen=False)
-            elif (row.object_kind, columns.get(row.id, ())) != (found.kind, found.columns):
+            elif not _same_object(row, columns.get(row.id, ()), found):
                 # As the CSV correction rule: what changed is a new dataset (ADR 0002).
                 _replace(connection, row.id, at)
                 _insert_object(

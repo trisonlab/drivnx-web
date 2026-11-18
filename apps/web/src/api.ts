@@ -353,11 +353,15 @@ export type ProfileRun = {
   current_settings: boolean;
   // Why it failed, when DrivnX knows. Not kept across a restart.
   failure: string | null;
+  // The object a database's running run is reading, as `schema.object` (CFX-APP-postgres AC-17).
+  current_object?: string | null;
 };
 
 export type MaskedPattern = { pattern: string; count: number; cut: boolean };
 
 export type Metric = {
+  // A database run's object, as `schema.object`; null for a file's run.
+  object?: string | null;
   column: string | null;
   metric: string;
   value: number | MaskedPattern[];
@@ -370,6 +374,8 @@ export type ProfileRunDetail = ProfileRun & {
   // Whether the file's size or modified time differs from the run's now (AC-37), or `null` when
   // the file can't be looked at.
   file_changed: boolean | null;
+  // A database run's objects, each with how its rows were read (CFX-APP-postgres AC-18).
+  objects?: { object: string; method: "page_sample" | "whole" | "first_rows" | "view_first_rows" }[];
 };
 
 const PROFILE_RUNS_PATH = "/api/profile-runs";

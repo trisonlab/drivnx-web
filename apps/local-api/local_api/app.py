@@ -150,7 +150,7 @@ def create_app(
     kept = KeptPasswords(credential_store)
     app.include_router(sources_router(workspace, kept))
     app.include_router(postgres_router(workspace, kept))
-    app.include_router(profile_runs_router(workspace))
+    app.include_router(profile_runs_router(workspace, kept))
     app.include_router(findings_router(workspace))
 
     if ui_dir is not None:

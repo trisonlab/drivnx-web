@@ -71,11 +71,7 @@ export function Shell({ workspace }: { workspace: Workspace }) {
           )}
         </div>
         <div role="tabpanel" id={profilePanelId} aria-labelledby={profileTabId}>
-          {chosen?.kind === "postgres" ? (
-            <p>
-              Profiling a database <span className="unavailable">{NOT_AVAILABLE}</span>
-            </p>
-          ) : chosen ? (
+          {chosen ? (
             <ProfileTab key={chosen.id} source={chosen} openedRunId={openedRunId} onOpenRun={setOpenedRunId} />
           ) : (
             <p className="empty-note">Connect a CSV file to see what is in it.</p>
