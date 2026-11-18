@@ -71,6 +71,19 @@ OBJECTS = (
         (5, 'f', ' [1, 2.0] ', ' [1, 2.0] ', '00000000-0000-0000-0000-000000000000'),
         (6, 't', NULL, '{{"a": 2}}', 'B0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11')""",
     f"ANALYZE {SCHEMA}.documents",
+    # Arrays and binary. The backslashes are doubled for Python: PostgreSQL gets '\x616263', the
+    # hex input for the bytes of `abc`.
+    f"""CREATE TABLE {SCHEMA}.collections (
+        id integer PRIMARY KEY, numbers integer[], tags text[], blob bytea
+    )""",
+    f"""INSERT INTO {SCHEMA}.collections VALUES
+        (1, '{{1,2}}', '{{a,b}}', 'abc'),
+        (2, '{{1, 2}}', '{{"a","b"}}', '\\x616263'),
+        (3, '{{}}', '{{}}', ''),
+        (4, '{{NULL}}', '{{NULL}}', NULL),
+        (5, '[0:1]={{1,2}}', '{{"a b",c}}', '\\xDEADBEEF'),
+        (6, '{{{{1,2}},{{3,4}}}}', NULL, '\\xdeadbeef')""",
+    f"ANALYZE {SCHEMA}.collections",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -192,6 +205,22 @@ EXPECTED = {
             # Upper case, braces and no hyphens are the same UUID: rows 1 to 3, the nil UUID and
             # row 6's, 3 of 5.
             "ref": counts(missing=1, distinct=3, rows=6),
+        },
+    },
+    # Arrays and bytea get counts only, an array of text too (the spec's Assumptions).
+    "collections": {
+        "rows_read": 6,
+        "columns": {
+            "id": counts(missing=0, distinct=6, rows=6),
+            # {1,2} twice (spacing isn't kept), {}, {NULL}, [0:1]={1,2}, another value as its
+            # bounds differ, and {{1,2},{3,4}}: 5 of 6. An empty array and one holding a NULL are
+            # values.
+            "numbers": counts(missing=0, distinct=5, rows=6),
+            # {a,b} twice (quotes aren't kept), {}, {NULL} and {"a b",c}: 4 of 5.
+            "tags": counts(missing=1, distinct=4, rows=6),
+            # abc and \x616263 are the same bytes, \x is the empty value, and hex is the same in
+            # either case: 3 of 5.
+            "blob": counts(missing=1, distinct=3, rows=6),
         },
     },
 }
