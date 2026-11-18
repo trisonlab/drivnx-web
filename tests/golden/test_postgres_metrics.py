@@ -59,6 +59,18 @@ OBJECTS = (
         (5, -2147483648, 9007199254740992, NULL, NULL, 'NaN', '-Infinity'),
         (6, 0, 0, 0.000, -999.99, 'Infinity', NULL)""",
     f"ANALYZE {SCHEMA}.numbers",
+    # Booleans, JSON both ways, and UUIDs, each written in more than one way.
+    f"""CREATE TABLE {SCHEMA}.documents (
+        id integer PRIMARY KEY, flag boolean, doc json, doc_binary jsonb, ref uuid
+    )""",
+    f"""INSERT INTO {SCHEMA}.documents VALUES
+        (1, 'yes', '{{"b":1, "a":2}}', '{{"b":1, "a":2}}', 'A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11'),
+        (2, 'on', '{{"a":2,"b":1}}', '{{"a":2,"b":1}}', '{{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}}'),
+        (3, 'off', '{{"a":1,"a":2}}', '{{"a":1,"a":2}}', 'a0eebc999c0b4ef8bb6d6bb9bd380a11'),
+        (4, NULL, 'null', 'null', NULL),
+        (5, 'f', ' [1, 2.0] ', ' [1, 2.0] ', '00000000-0000-0000-0000-000000000000'),
+        (6, 't', NULL, '{{"a": 2}}', 'B0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11')""",
+    f"ANALYZE {SCHEMA}.documents",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -162,6 +174,24 @@ EXPECTED = {
             # 0.3 and 0.1 + 0.2 are two doubles, written 0.3 and 0.30000000000000004; then NaN,
             # Infinity and -Infinity: 5 of 5.
             "double": counts(missing=1, distinct=5, rows=6),
+        },
+    },
+    # Booleans, JSON and UUIDs get counts only, of PostgreSQL's text for each value.
+    "documents": {
+        "rows_read": 6,
+        "columns": {
+            "id": counts(missing=0, distinct=6, rows=6),
+            # yes, on and t are all `true`; off and f are `false`: 2 of 5.
+            "flag": counts(missing=1, distinct=2, rows=6),
+            # json keeps what was written, spaces and a repeated key too, so the five are 5 of 5.
+            # A JSON null is a value; only row 6's SQL NULL is missing.
+            "doc": counts(missing=1, distinct=5, rows=6),
+            # jsonb sorts keys, sets the spaces and keeps a repeated key's last value: rows 1 and 2
+            # are {"a": 2, "b": 1}, rows 3 and 6 {"a": 2}, then null and [1, 2.0]: 4 of 6.
+            "doc_binary": counts(missing=0, distinct=4, rows=6),
+            # Upper case, braces and no hyphens are the same UUID: rows 1 to 3, the nil UUID and
+            # row 6's, 3 of 5.
+            "ref": counts(missing=1, distinct=3, rows=6),
         },
     },
 }
