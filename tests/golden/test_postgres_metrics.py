@@ -34,9 +34,25 @@ OBJECTS = (
         (5, '0044-03-15 12:00:00+00 BC', '2024-03-10 12:00:00.000001', '0044-03-15 BC', '00:00',
             '00:00-12')""",
     f"ANALYZE {SCHEMA}.moments",
+    # Text in several scripts, written with escapes so the composed and decomposed é stay as they
+    # are: U&'\00E9' is é in one code point, U&'e\0301' an e and a combining acute accent.
+    f"CREATE TABLE {SCHEMA}.words (id integer PRIMARY KEY, name text, code char(3))",
+    f"""INSERT INTO {SCHEMA}.words VALUES
+        (1, U&'Zo\\00E9', 'ab'),
+        (2, U&'Zoe\\0301', 'ab '),
+        (3, U&'\\674E\\660E', U&'\\04169'),
+        (4, '', NULL),
+        (5, '  ', U&'\\0663\\00BD\\2167'),
+        (6, NULL, 'x'),
+        (7, repeat(U&'\\0416', 45), NULL)""",
+    f"ANALYZE {SCHEMA}.words",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
+
+
+def pattern(text: str, count: int, cut: bool = False) -> dict:
+    return {"pattern": text, "count": count, "cut": cut}
 
 
 def counts(missing: int, distinct: int, rows: int) -> dict:
@@ -70,6 +86,45 @@ EXPECTED = {
             # 12:00+00 and 13:00+01 are the same instant, but PostgreSQL keeps the zone in a timetz,
             # and they aren't equal: 4 of 4.
             "clock_zoned": counts(missing=1, distinct=4, rows=5),
+        },
+    },
+    "words": {
+        "rows_read": 7,
+        "columns": {
+            "id": counts(missing=0, distinct=7, rows=7),
+            # Only row 6 is missing: the empty and the all-space names are values (DRIVN-51).
+            # Lengths in code points: Zoé composed 3, decomposed 4, 李明 2, empty 0, two spaces 2,
+            # and 45 Ж, so 56 over 6. The two Zoés are different text and the same pattern, the
+            # combining accent going with its letter. Spaces stay as they are. The 45 Ж are cut at
+            # 40. Ordered by count, then by pattern: '' < '  ' < 'AA' < 'AAAA…'.
+            "name": {
+                **counts(missing=1, distinct=6, rows=7),
+                "shortest_length": 0,
+                "longest_length": 45,
+                "average_length": 9.33,
+                "masked_patterns": [
+                    pattern("AAA", 2),
+                    pattern("", 1),
+                    pattern("  ", 1),
+                    pattern("AA", 1),
+                    pattern("A" * 40, 1, cut=True),
+                ],
+            },
+            # PostgreSQL's text for a char(3) drops its padding, as its own length() does: rows 1
+            # and 2 are both `ab`. Rows 4 and 7 are missing. Ж9, then ٣½Ⅷ, numbers in three
+            # scripts, all 9, and x: lengths 2+2+2+3+1 = 10 over 5, 4 distinct of 5.
+            "code": {
+                **counts(missing=2, distinct=4, rows=7),
+                "shortest_length": 1,
+                "longest_length": 3,
+                "average_length": 2.0,
+                "masked_patterns": [
+                    pattern("AA", 2),
+                    pattern("999", 1),
+                    pattern("A", 1),
+                    pattern("A9", 1),
+                ],
+            },
         },
     },
 }
