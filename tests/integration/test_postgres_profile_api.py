@@ -269,7 +269,7 @@ def test_a_run_whose_connection_is_refused_says_why_without_naming_an_object(
         "not-the-password",  # pragma: allowlist secret
         chosen,
         {found.dataset.id: reading_for(found.kind, 3) for found in chosen},
-        # The fixture's role only reads them (DRIVN-52).
+        # What the fixture's role could change in them: nothing.
         write_access={
             "role": "drivnx_fixture",
             "superuser": False,

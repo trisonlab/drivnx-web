@@ -7,7 +7,7 @@ feature_revision: 2
 stories: [US-03]
 criteria: [AC-16]
 blocked_by: [DRIVN-51]
-state: ready
+state: done
 external_key: DRIVN-52
 status: CONFIRMED
 ---
@@ -20,13 +20,35 @@ Plane: [DRIVN-52](https://app.plane.so/drivnx/browse/DRIVN-52/) · `CFX-APP-post
 Before a profile, a user whose account could change the chosen objects is told which ones and why, and the run starts only once they confirm. A read-only account sees that it can only read.
 
 ## Acceptance checklist
-- [ ] AC-16 (US-03): Given a role with `INSERT`, `UPDATE`, `DELETE` or `TRUNCATE` on a chosen object, or a superuser, when the user starts a profile, then the screen names the objects or the superuser role and why, and the run starts only after the user confirms. Given a role that can only read the chosen objects, then no warning appears, and the screen says the account can only read them.
+- [x] AC-16 (US-03): Given a role with `INSERT`, `UPDATE`, `DELETE` or `TRUNCATE` on a chosen object, or a superuser, when the user starts a profile, then the screen names the objects or the superuser role and why, and the run starts only after the user confirms. Given a role that can only read the chosen objects, then no warning appears, and the screen says the account can only read them.
 
 ## Expected evidence
 Fixture roles with and without write privileges and a superuser, the confirmation asked again when the selection or privileges change, and no warning for a read-only role.
 
 ## Blocked by
 DRIVN-51
+
+## Verification
+Commit `a7750db`, 2026-11-19, Linux, with the PostgreSQL fixture (PostgreSQL 17).
+
+| Criterion | Evidence | Result |
+|---|---|---|
+| AC-16, read-only role | `test_postgres_write_warning.py` `test_a_role_that_can_only_read_starts_with_no_warning_and_its_run_says_so`; `test_postgres_discovery.py` `test_a_role_that_can_only_read_can_change_nothing`; `Postgres.test.tsx` "a run whose account could only read says so" (true and false) | PASS |
+| AC-16, a role that can write is named with its objects and privileges | `test_a_role_that_can_write_is_refused_naming_the_objects_and_how`; `test_each_object_says_what_the_role_can_change_in_it` (INSERT, UPDATE on one column, DELETE and TRUNCATE); `Postgres.test.tsx` "a role that could change chosen objects is warned, naming each and how" | PASS |
+| AC-16, the run starts only after the user confirms | `test_a_role_that_can_write_starts_once_the_user_confirms`; `Postgres.test.tsx` "profiling anyway starts the run with the write access the user was shown", "cancelling the write warning starts nothing and returns to Fast profile", "the write warning takes focus on its safe choice, Cancel" | PASS |
+| AC-16, asked again only when the selection or privileges change (the Assumption) | `test_the_same_access_starts_again_without_asking`, `test_another_chosen_object_asks_again`, `test_a_grant_or_a_revoke_asks_again` (a grant and a revoke), `test_a_confirmation_of_access_that_has_since_changed_is_refused_with_the_new`; the confirmation kept across a restart and refused for a CSV, `test_postgres_sources.py` | PASS |
+| AC-16, a superuser is named by its role | `test_a_superuser_is_refused_naming_its_role`; `test_a_superuser_is_said_to_be_one`; `Postgres.test.tsx` "a superuser is warned that it can change anything, naming the role" | PASS |
+
+Each test was seen failing before its code, or, where an earlier step had built what it relies on, failing with that
+code broken (the chosen objects, the privileges or the superuser dropped from the access; any confirmation accepted;
+the read-only line shown for every run; the migration's `CHECK` removed).
+
+Checks: `pytest tests/integration tests/golden` 2520 passed, 8 skipped (Windows-only and by-design files);
+`pytest tests/e2e` 80 passed; `pnpm --dir apps/web test` 222 passed in 13 of 14 runs, one run had 1 failure that
+didn't recur and wasn't named; `pnpm --dir apps/web build` (with `tsc`) clean; `detect-secrets`, `pip-audit` and
+`pnpm audit` clean; the pre-commit hook passed; `ai-skills knowledge check` consistent. Listing 1,000 objects took
+0.53 to 0.85 s with the four privilege checks (0.51 s before, target 5 s). NOT RUN locally: PostgreSQL 18.7, macOS and
+Windows (CI); the browser journey confirming the warning, which is DRIVN-58's (AC-35).
 
 ## Plan agreed with the user
 Approved in chat, 2026-11-19, with two decisions: **the warning is asked again whenever the chosen objects or the
