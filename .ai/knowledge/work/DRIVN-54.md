@@ -29,7 +29,7 @@ Golden tests on the fixture database, each expected value worked out independent
 DRIVN-51
 
 ## Verification
-Commit `6c544b1`, 2026-11-19, Linux, with the PostgreSQL fixture (PostgreSQL 17).
+Commit `ecec99e`, 2026-11-19, Linux, with the PostgreSQL fixture (PostgreSQL 17).
 
 | Criterion | Evidence | Result |
 |---|---|---|
@@ -37,9 +37,9 @@ Commit `6c544b1`, 2026-11-19, Linux, with the PostgreSQL fixture (PostgreSQL 17)
 
 Checks: `pytest tests/integration tests/golden` 2504 passed, 8 skipped (Windows-only and by-design files) and
 `pytest tests/e2e` 80 passed, at `8a1e308`; since then only the golden test changed, and `pytest tests/golden` passed
-21 at `6c544b1`. `pnpm --dir apps/web test` 215 passed; `tsc --noEmit` clean; the pre-commit hook passed;
-`ai-skills knowledge check` consistent. NOT RUN locally: PostgreSQL 18.7, macOS and Windows (CI), `pip-audit` and
-`pnpm audit` (CI).
+21 at `ecec99e`. `pnpm --dir apps/web test` 215 passed; `tsc --noEmit` clean; the pre-commit hook passed;
+`detect-secrets`, `pip-audit` and `pnpm audit` clean; `ai-skills knowledge check` consistent. CI on `7aca4c0` passed
+its tests on Linux (PostgreSQL 18.7), macOS and Windows; its secret scan took a UUID for a key, fixed in `ecec99e`.
 
 ## Decisions agreed with the user
 Made in chat, 2026-11-18 and 19. Distinct values are counted on PostgreSQL's text form for each value, as DRIVN-51
