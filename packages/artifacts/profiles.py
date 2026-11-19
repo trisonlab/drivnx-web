@@ -207,6 +207,9 @@ class ListedProfileRun:
     started_at: str
     ended_at: str | None
     current_settings: bool
+    # What a database run's role could change in its objects as it started (DRIVN-52); None for
+    # a file's run, or a database run from before.
+    write_access: dict | None
 
 
 # A database's run names its source and its objects' datasets in its scope (DRIVN-51), and is
@@ -222,7 +225,8 @@ _SELECT_LISTED_RUNS = """
                     SELECT 1 FROM json_each(profile_run.scope, '$.objects') AS run_object
                     JOIN dataset AS read ON read.id = json_extract(run_object.value, '$.dataset_id')
                     WHERE read.replaced_at IS NOT NULL
-                ) END AS current_settings
+                ) END AS current_settings,
+           json_extract(profile_run.scope, '$.write_access') AS write_access
     FROM profile_run
     LEFT JOIN dataset ON dataset.id = json_extract(profile_run.scope, '$.dataset_id')
     WHERE (dataset.id IS NOT NULL OR json_extract(profile_run.scope, '$.source_id') IS NOT NULL)
@@ -239,6 +243,7 @@ def _listed(row: Row) -> ListedProfileRun:
         row.started_at,
         row.ended_at,
         bool(row.current_settings),
+        json.loads(row.write_access) if row.write_access is not None else None,
     )
 
 
