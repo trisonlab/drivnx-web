@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-17T14:13:29+00:00'
+updated_at: '2026-11-19T02:03:55+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -36,7 +36,7 @@ sources:
   .ai/knowledge/work/DRIVN-51.md: 434e356b943634dc7ba7bc171661f49874d07eb909c88545918e02b74f0be389
   .ai/knowledge/work/DRIVN-52.md: 180f275cdf9f3393855b75df0302f1cb2ff7a35ece3003ce8ddaffc8e6deee2c
   .ai/knowledge/work/DRIVN-53.md: 893bcbfef6f0ef33932d055233ff68a89f8cb889080b19c9cc78a6d040b9ca55
-  .ai/knowledge/work/DRIVN-54.md: c4d49cf4697ac473a4b2dfb3f5e22630698cde9130c5c5a224d237d72488d14f
+  .ai/knowledge/work/DRIVN-54.md: fd4e5c8949fc00ce6a560af6b9d3516414110c80702d3576193ec0067ec7f564
   .ai/knowledge/work/DRIVN-55.md: 2c66eb4352f58b3a4478fbf78c359cc5a60b91d3f70b45aaa05152e58b2562c0
   .ai/knowledge/work/DRIVN-56.md: 8c3a122ed78b74e037b4d6511b38776ccc052530152528c5398577996349669b
   .ai/knowledge/work/DRIVN-57.md: d4da2cd0e294616413b87dfc69a96975b79e3bf29138a1bc45cacead0983da50
@@ -125,6 +125,7 @@ sources:
   tests/e2e/test_source_settings.py: 40b61f2af153357b309e47229358626fd673783579a9e7372d035173f25bb816
   tests/e2e/test_values.py: 533333876f6a49b4e819392fd17e5647c4790c1308a49462a02e89e8b44aced7
   tests/golden/test_metrics.py: a27d17ff3300a920fac8806c8e2b166ccb6434eeb299c7526903453c8abc15be
+  tests/golden/test_postgres_metrics.py: dbe7c6fbed812a6f7f4cfdf2e8025cb5774c6108e9896b10cef2fdb61c146e49
   tests/integration/test_artifact_store.py: 039ab464d137fcb1d8793cc751e0241a2e93a8cac66c4b54df91007520f1b356
   tests/integration/test_binding.py: 79eeb61ddbb635cafec5bbf4a570033e5c418aa09dc2adde55afb539a85bd0e7
   tests/integration/test_ci.py: 5268642a540a291168000e6cf7980d0a7c6aa5f898be0cf40b292e59c1f3b7be
@@ -1431,6 +1432,10 @@ nodes:
   kind: module
   evidence:
   - tests/golden/test_metrics.py:1
+- id: module:tests/golden/test_postgres_metrics.py
+  kind: module
+  evidence:
+  - tests/golden/test_postgres_metrics.py:1
 - id: module:tests/integration/test_artifact_store.py
   kind: module
   evidence:
@@ -2018,7 +2023,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-54.md
   title: Every metric against the golden fixture
-  state: ready
+  state: done
   external_key: DRIVN-54
 - id: ticket:DRIVN-55
   kind: ticket
@@ -5242,6 +5247,25 @@ edges:
   - tests/golden/test_metrics.py:1
   - tests/golden/test_metrics.py:431
   - tests/golden/test_metrics.py:449
+- from: module:tests/golden/test_postgres_metrics.py
+  rel: imports
+  to: module:tests/integration/test_postgres_objects_api.py
+  status: CONFIRMED
+  evidence:
+  - tests/golden/test_postgres_metrics.py:16
+- from: module:tests/golden/test_postgres_metrics.py
+  rel: verifies
+  to: criterion:CFX-APP-postgres/AC-25
+  status: CONFIRMED
+  evidence:
+  - tests/golden/test_postgres_metrics.py:2
+  - tests/golden/test_postgres_metrics.py:411
+- from: module:tests/golden/test_postgres_metrics.py
+  rel: verifies
+  to: ticket:DRIVN-54
+  status: CONFIRMED
+  evidence:
+  - tests/golden/test_postgres_metrics.py:2
 - from: module:tests/integration/test_artifact_store.py
   rel: imports
   to: module:tests/conftest.py
