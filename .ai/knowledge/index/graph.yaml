@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-19T02:03:55+00:00'
+updated_at: '2026-11-19T08:55:59+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -41,6 +41,7 @@ sources:
   .ai/knowledge/work/DRIVN-56.md: 8c3a122ed78b74e037b4d6511b38776ccc052530152528c5398577996349669b
   .ai/knowledge/work/DRIVN-57.md: d4da2cd0e294616413b87dfc69a96975b79e3bf29138a1bc45cacead0983da50
   .ai/knowledge/work/DRIVN-58.md: 53417ee83809f5f70fb1473e05be1a6975d786866f05244923ea74ca4b875a12
+  .ai/knowledge/work/DRIVN-59.md: 253b03847b29e310620f4e7c10217a33634590cdff51f36b9d2b29a0388f1d61
   .github/workflows/ci.yml: 9f8319efa25c8cb3151f4df567b61c4c32af1d66b22909a8f683a4a3a71b2cd7
   apps/local-api/local_api/app.py: 7c9835a479a026188a71ae3f485c692ce3eabb65ebad3a9824c648e668a376c9
   apps/local-api/local_api/binding.py: 8c76ea6d3c19e6a0675913f0219a36bb2d9a28db55f177d50e5b288eda052d84
@@ -120,7 +121,7 @@ sources:
   tests/e2e/test_full_journey.py: 575bab4e132dc3599afc7aba3d0aa9f6f36b9b93b37e5d3733d047e2a5530bfc
   tests/e2e/test_full_profile.py: 9b333f8b035a89fcccd4c55d0a6fa4bf0e432dfb29baf14517a7dc2e653520c1
   tests/e2e/test_preview.py: b3ed711aafcc06b6758a86fdb27a152d51d78c7d6f9d39a84192583ed02ea2c1
-  tests/e2e/test_profile_journey.py: e26888e465fde831f073f236feab708de2fd7e2d61025dab3341f81183f3afcc
+  tests/e2e/test_profile_journey.py: 1df8196ae5fd1473677cd1e4cc2d9181afb9022c94e6b0103898f895d0f3cba9
   tests/e2e/test_profile_postgres.py: e7ada4b04e8b47a7d29b9731335c815f75a319b5a1b7c8a3cdbf50813995a08b
   tests/e2e/test_source_settings.py: 40b61f2af153357b309e47229358626fd673783579a9e7372d035173f25bb816
   tests/e2e/test_values.py: 533333876f6a49b4e819392fd17e5647c4790c1308a49462a02e89e8b44aced7
@@ -2053,6 +2054,13 @@ nodes:
   title: Full journey and checks
   state: blocked
   external_key: DRIVN-58
+- id: ticket:DRIVN-59
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-59.md
+  title: Scan a running workspace without SQLite's shared-memory index
+  state: in-progress
+  external_key: DRIVN-59
 edges:
 - from: criterion:CFX-APP-csv-profile/AC-01
   rel: belongs_to
@@ -5108,15 +5116,21 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/e2e/test_profile_journey.py:1
-  - tests/e2e/test_profile_journey.py:184
-  - tests/e2e/test_profile_journey.py:219
+  - tests/e2e/test_profile_journey.py:190
+  - tests/e2e/test_profile_journey.py:225
 - from: module:tests/e2e/test_profile_journey.py
   rel: verifies
   to: criterion:CFX-APP-csv-profile/AC-41
   status: CONFIRMED
   evidence:
   - tests/e2e/test_profile_journey.py:116
-  - tests/e2e/test_profile_journey.py:232
+  - tests/e2e/test_profile_journey.py:238
+- from: module:tests/e2e/test_profile_journey.py
+  rel: verifies
+  to: ticket:DRIVN-59
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_journey.py:155
 - from: module:tests/e2e/test_profile_postgres.py
   rel: imports
   to: module:tests/conftest.py
@@ -8574,3 +8588,9 @@ edges:
   status: CONFIRMED
   evidence:
   - .ai/knowledge/work/DRIVN-58.md
+- from: ticket:DRIVN-59
+  rel: covers
+  to: criterion:CFX-APP-csv-profile/AC-33
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-59.md
