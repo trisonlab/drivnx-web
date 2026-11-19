@@ -140,6 +140,24 @@ def find_source_by_connection(
         return _postgres(row) if row else None
 
 
+def read_write_confirmation(engine: Engine, source_id: str) -> dict | None:
+    """The write access a database's user last confirmed profiling with, if any (AC-16)."""
+    with engine.connect() as connection:
+        confirmed = connection.execute(
+            text("SELECT write_confirmed FROM source WHERE id = :id"), {"id": source_id}
+        ).scalar()
+    return json.loads(confirmed) if confirmed is not None else None
+
+
+def save_write_confirmation(engine: Engine, source_id: str, access: dict) -> None:
+    """Keep the write access the user confirmed, in place of any confirmed before (AC-16)."""
+    with write_transaction(engine) as connection:
+        connection.execute(
+            text("UPDATE source SET write_confirmed = :access WHERE id = :id"),
+            {"id": source_id, "access": json.dumps(access)},
+        )
+
+
 def add_postgres_source(engine: Engine, source: StoredPostgresSource) -> bool:
     """Save a connection without its password. Returns False if it is already saved."""
     with write_transaction(engine) as connection:
