@@ -150,12 +150,18 @@ def every_file_in(folder: Path) -> bytes:
     """Every byte DrivnX keeps in the folder, as anyone copying it would get them.
 
     The lock file is never written, and on Windows its first byte is locked while DrivnX runs, so
-    it's checked to be empty instead of read.
+    it's checked to be empty instead of read. SQLite's `-shm` file is its index into the WAL, page
+    numbers and checksums with no row in it, and on Windows SQLite locks parts of it while a
+    connection is open, so it isn't read either (DRIVN-59). The database and its WAL always are.
     """
     assert (folder / "workspace.db").is_file()  # so a scan of the wrong folder can't pass
     files = sorted(path for path in folder.rglob("*") if path.is_file())
     assert all(path.stat().st_size == 0 for path in files if path.name == LOCK_NAME)
-    return b"".join(path.read_bytes() for path in files if path.name != LOCK_NAME)
+    return b"".join(
+        path.read_bytes()
+        for path in files
+        if path.name != LOCK_NAME and not path.name.endswith("-shm")
+    )
 
 
 def planted_in(data: bytes) -> list[bytes]:
