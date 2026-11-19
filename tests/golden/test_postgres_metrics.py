@@ -36,15 +36,18 @@ OBJECTS = (
     f"ANALYZE {SCHEMA}.moments",
     # Text in several scripts, written with escapes so the composed and decomposed é stay as they
     # are: U&'\00E9' is é in one code point, U&'e\0301' an e and a combining acute accent.
-    f"CREATE TABLE {SCHEMA}.words (id integer PRIMARY KEY, name text, code char(3))",
+    # varchar, bounded and not, is text as much as text is.
+    f"""CREATE TABLE {SCHEMA}.words (
+        id integer PRIMARY KEY, name text, code char(3), label varchar(10), free varchar
+    )""",
     f"""INSERT INTO {SCHEMA}.words VALUES
-        (1, U&'Zo\\00E9', 'ab'),
-        (2, U&'Zoe\\0301', 'ab '),
-        (3, U&'\\674E\\660E', U&'\\04169'),
-        (4, '', NULL),
-        (5, '  ', U&'\\0663\\00BD\\2167'),
-        (6, NULL, 'x'),
-        (7, repeat(U&'\\0416', 45), NULL)""",
+        (1, U&'Zo\\00E9', 'ab', 'A-1', 'x y'),
+        (2, U&'Zoe\\0301', 'ab ', 'a-1', 'x  y'),
+        (3, U&'\\674E\\660E', U&'\\04169', 'b-22', NULL),
+        (4, '', NULL, NULL, NULL),
+        (5, '  ', U&'\\0663\\00BD\\2167', NULL, NULL),
+        (6, NULL, 'x', NULL, NULL),
+        (7, repeat(U&'\\0416', 45), NULL, 'A-1', '7')""",
     f"ANALYZE {SCHEMA}.words",
     # Numbers. 9007199254740993 is 2**53 + 1, which a double can't hold apart from 2**53.
     f"""CREATE TABLE {SCHEMA}.numbers (
@@ -194,6 +197,24 @@ EXPECTED = {
                     pattern("A9", 1),
                 ],
             },
+            # A-1 twice, a-1 and b-22: 3 of 4, 3 missing of 7. Lengths 3+3+4+3 = 13 over 4. The
+            # hyphen stays, so A-1 and a-1 share A-9.
+            "label": {
+                **counts(missing=3, missing_percent=42.86, distinct=3, distinct_percent=75.0),
+                "shortest_length": 3,
+                "longest_length": 4,
+                "average_length": 3.25,
+                "masked_patterns": [pattern("A-9", 3), pattern("A-99", 1)],
+            },
+            # `x y`, `x  y` and 7: 3 of 3, 4 missing of 7. Lengths 3+4+1 = 8 over 3, 2.67. Spaces
+            # stay as they are, and a space sorts before a letter: 9 < `A  A` < `A A`.
+            "free": {
+                **counts(missing=4, missing_percent=57.14, distinct=3, distinct_percent=100.0),
+                "shortest_length": 1,
+                "longest_length": 4,
+                "average_length": 2.67,
+                "masked_patterns": [pattern("9", 1), pattern("A  A", 1), pattern("A A", 1)],
+            },
         },
     },
     # Numbers get counts only. Each distinct count is of PostgreSQL's text for the values, and one
@@ -278,7 +299,8 @@ EXPECTED = {
     },
     # n is 1 to 100,000 and code is `c` and n. By digits: 9 of 1, 90 of 2, 900 of 3, 9,000 of 4,
     # 90,000 of 5 and 1 of 6, so code's lengths are one more, 2 to 7, and add up to
-    # 9×2 + 90×3 + 900×4 + 9,000×5 + 90,000×6 + 1×7 = 588,895, 5.88895 each.
+    # 9×2 + 90×3 + 900×4 + 9,000×5 + 90,000×6 + 1×7 = 588,895, 5.88895 each. That's half-way, and
+    # the double nearest it is just above, so 5.89 doesn't show which way a tie would round.
     "many": {
         "rows_read": 100_000,
         "columns": {
@@ -394,10 +416,14 @@ def test_every_saved_metric_equals_its_known_value(client: TestClient, name: str
     for metric in run["metrics"]:
         # Every metric is exact over the rows read: all of them, or a view's first rows.
         assert (metric["scope"], metric["precision"]) == (SCOPE_OF_READ[read], "exact")
+        # Each metric once, so a wrong value saved beside the right one can't hide behind it.
         if metric["column"] is None:
             assert metric["metric"] == "rows_read"
+            assert rows_read is None, "rows_read is saved twice"
             rows_read = metric["value"]
         else:
-            saved.setdefault(metric["column"], {})[metric["metric"]] = metric["value"]
+            column = saved.setdefault(metric["column"], {})
+            assert metric["metric"] not in column, f"{metric['column']}: {metric['metric']} twice"
+            column[metric["metric"]] = metric["value"]
     assert rows_read == EXPECTED[name]["rows_read"]
     assert saved == EXPECTED[name]["columns"]
