@@ -1,4 +1,5 @@
-"""Saving a PostgreSQL source beside the CSV ones, CFX-APP-postgres AC-02 (DRIVN-47)."""
+"""Saving a PostgreSQL source beside the CSV ones, CFX-APP-postgres AC-02 (DRIVN-47), and the
+write access its user last confirmed, AC-16 (DRIVN-52)."""
 
 import shutil
 import sqlite3
@@ -11,6 +12,8 @@ from artifacts.sources import (
     find_source,
     find_source_by_connection,
     list_sources,
+    read_write_confirmation,
+    save_write_confirmation,
 )
 from artifacts.workspace import MIGRATIONS_DIR, open_workspace
 
@@ -44,8 +47,10 @@ BEFORE_POSTGRES = [
 ]
 TABLES = ("source", "dataset", "field", "profile_run", "observation")
 NEW_SOURCE_COLUMNS = {"host", "port", "database_name", "user_name", "tls_mode", "ca_path"}
-# Added by 0008 (a database's objects), which runs after 0007 here.
+# Added by 0008 (a database's objects) and 0009 (a confirmed write warning), which run after
+# 0007 here.
 LATER_COLUMNS = {
+    "write_confirmed",
     "discovered_at",
     "schema_name",
     "object_name",
@@ -82,7 +87,7 @@ def test_a_workspace_from_before_postgres_keeps_every_csv_source_and_run(
         MIGRATIONS_DIR,
         before,
         # 0007 and every migration after it, which depend on it.
-        ignore=shutil.ignore_patterns("0007_*", "0008_*", "__pycache__"),
+        ignore=shutil.ignore_patterns("0007_*", "0008_*", "0009_*", "__pycache__"),
     )
     directory = tmp_path / "workspace"
     open_workspace(directory, before).close()
@@ -204,3 +209,101 @@ def test_a_verify_full_source_keeps_its_ca_certificate_path(tmp_path: Path) -> N
         assert find_source(workspace.engine, verified.id) == verified
     finally:
         workspace.close()
+
+
+def test_a_workspace_at_0008_keeps_its_sources_with_no_confirmation(tmp_path: Path) -> None:
+    # CFX-APP-postgres/AC-16: migration 0009 adds where a confirmed write warning is kept, empty
+    # for every source a workspace already has.
+    before = tmp_path / "migrations"
+    shutil.copytree(
+        MIGRATIONS_DIR, before, ignore=shutil.ignore_patterns("0009_*", "__pycache__")
+    )
+    directory = tmp_path / "workspace"
+    workspace = open_workspace(directory, before)
+    try:
+        assert add_postgres_source(workspace.engine, FIXTURE)
+    finally:
+        workspace.close()
+    connection = sqlite3.connect(directory / "workspace.db")
+    with connection:
+        connection.execute(BEFORE_POSTGRES[0])
+    connection.close()
+
+    workspace = open_workspace(directory)
+    try:
+        listed = list_sources(workspace.engine)
+    finally:
+        workspace.close()
+
+    connection = sqlite3.connect(directory / "workspace.db")
+    try:
+        columns = [row[1] for row in connection.execute("PRAGMA table_info(source)")]
+        assert "write_confirmed" in columns
+        kept = connection.execute(
+            "SELECT id, write_confirmed FROM source ORDER BY rowid"
+        ).fetchall()
+    finally:
+        connection.close()
+    assert kept == [(FIXTURE.id, None), ("s1", None)]
+    assert [source.id for source in listed] == [FIXTURE.id, "s1"]
+
+
+# What the warning named, as the API gives it: the role, whether it's a superuser, each chosen
+# object it could change with how, and every chosen object (DRIVN-52).
+CONFIRMED = {
+    "role": "drivnx_writer",
+    "superuser": False,
+    "objects": [{"object": "public.orders", "privileges": ["INSERT", "UPDATE"]}],
+    "chosen": ["public.orders", "public.people"],
+}
+
+
+def test_a_confirmed_write_warning_is_kept_with_its_source_after_a_restart(
+    tmp_path: Path,
+) -> None:
+    # CFX-APP-postgres/AC-16: what the user confirmed, so the next run asks only if it changed.
+    directory = tmp_path / "workspace"
+    workspace = open_workspace(directory)
+    try:
+        assert add_postgres_source(workspace.engine, FIXTURE)
+        assert read_write_confirmation(workspace.engine, FIXTURE.id) is None
+        save_write_confirmation(workspace.engine, FIXTURE.id, CONFIRMED)
+    finally:
+        workspace.close()
+
+    workspace = open_workspace(directory)
+    try:
+        assert read_write_confirmation(workspace.engine, FIXTURE.id) == CONFIRMED
+    finally:
+        workspace.close()
+
+
+@pytest.mark.parametrize(
+    "kind, confirmed",
+    [
+        # Only a database's user is asked, so a CSV source has nothing confirmed.
+        ("csv", "{}"),
+        # It's what the API gave, as JSON.
+        ("postgres", "not json"),
+    ],
+)
+def test_a_confirmation_a_source_cant_have_is_refused(
+    tmp_path: Path, kind: str, confirmed: str
+) -> None:
+    # CFX-APP-postgres/AC-16: the database refuses what the code must never write.
+    directory = tmp_path / "workspace"
+    workspace = open_workspace(directory)
+    try:
+        assert add_postgres_source(workspace.engine, FIXTURE)
+    finally:
+        workspace.close()
+    connection = sqlite3.connect(directory / "workspace.db")
+    try:
+        connection.execute(BEFORE_POSTGRES[0])
+        source_id = FIXTURE.id if kind == "postgres" else "s1"
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                "UPDATE source SET write_confirmed = ? WHERE id = ?", (confirmed, source_id)
+            )
+    finally:
+        connection.close()

@@ -25,6 +25,8 @@ from artifacts.sources import (
     read_chosen_objects,
     read_dataset,
     read_field_names,
+    read_write_confirmation,
+    save_write_confirmation,
 )
 from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, read_page, sniffed_columns
@@ -57,6 +59,7 @@ from local_api.sources_api import (
     is_available,
     modified_at,
 )
+from local_api.write_access import can_write, refusal, write_access
 
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
 # A database's full profile comes with its time limit and cancel (DRIVN-54).
@@ -84,6 +87,8 @@ BUSY = "DrivnX is already reading a file. Wait for it to finish, then try again.
 class ProfileRunRequest(BaseModel):
     source_id: str
     mode: Mode
+    # A database's write access as a refusal gave it, which the user confirmed (AC-16).
+    write_access: dict | None = None
 
 
 class ProfileRunResponse(BaseModel):
@@ -98,6 +103,8 @@ class ProfileRunResponse(BaseModel):
     failure: str | None
     # The object a database's running run is reading, as `schema.object` (AC-17).
     current_object: str | None = None
+    # Whether a database run's role could only read its objects (AC-16); None for a file's run.
+    read_only: bool | None = None
 
 
 class PatternResponse(BaseModel):
@@ -192,6 +199,7 @@ def _response(run: ListedProfileRun) -> ProfileRunResponse:
         current_settings=run.current_settings,
         failure=failure_of(run.id) if run.status == "failed" else None,
         current_object=object_of(run.id) if run.status == "running" else None,
+        read_only=None if run.write_access is None else not can_write(run.write_access),
     )
 
 
@@ -240,7 +248,9 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             raise HTTPException(status_code=404, detail="There's no such profile run.")
         return run
 
-    def start_database_run(database: StoredPostgresSource, mode: Mode) -> str:
+    def start_database_run(
+        database: StoredPostgresSource, mode: Mode, confirmed: dict | None
+    ) -> str:
         """A fast profile of the database's chosen objects (DRIVN-51). Returns its ID."""
         if mode == "full":
             raise HTTPException(status_code=409, detail=NO_FULL_DATABASE_PROFILE_YET)
@@ -263,6 +273,13 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             raise HTTPException(
                 status_code=409, detail=OBJECTS_CHANGED.format(", ".join(changed))
             )
+        # Only once the user has confirmed, if the role could change what's chosen (AC-16), and
+        # again whenever that changes.
+        access = write_access(discovery, objects)
+        if can_write(access) and access != read_write_confirmation(workspace.engine, database.id):
+            if confirmed != access:
+                raise refusal(access)
+            save_write_confirmation(workspace.engine, database.id, access)
         # From the estimates as they are now, not as they were listed (ADR 0005).
         estimates = {(found.schema, found.name): found for found in discovery.objects}
         readings = {
@@ -273,7 +290,13 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         }
         try:
             run_id = start_database_profile(
-                workspace, details_of(database), database, known.password, objects, readings
+                workspace,
+                details_of(database),
+                database,
+                known.password,
+                objects,
+                readings,
+                write_access=access,
             )
         except RunInProgress:
             raise HTTPException(status_code=409, detail=RUN_IN_PROGRESS) from None
@@ -288,7 +311,9 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         no_such_source = HTTPException(status_code=404, detail="There's no such source.")
         database = find_source(workspace.engine, body.source_id)
         if isinstance(database, StoredPostgresSource):
-            return _response(existing_run(start_database_run(database, body.mode)))
+            return _response(
+                existing_run(start_database_run(database, body.mode, body.write_access))
+            )
         try:
             # Before the settings, so a correction saved after either replaces this dataset, and
             # the start is refused instead of reading with settings that aren't this dataset's.

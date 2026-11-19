@@ -145,6 +145,8 @@ def start_database_profile(
     password: str,
     objects: tuple[ChosenObject, ...],
     readings: dict[str, Reading],
+    *,
+    write_access: dict,
 ) -> str:
     """Record a fast profile of a database's chosen objects, each read as `readings` says by its
     dataset's id, then work in the background. Returns its ID (DRIVN-51).
@@ -172,6 +174,8 @@ def start_database_profile(
                     }
                     for found in objects
                 ],
+                # What the role could change in them as the run started (DRIVN-52).
+                "write_access": write_access,
             },
             mode="fast",
             sample_size=SAMPLE_ROWS,

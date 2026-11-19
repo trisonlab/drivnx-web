@@ -355,6 +355,9 @@ export type ProfileRun = {
   failure: string | null;
   // The object a database's running run is reading, as `schema.object` (CFX-APP-postgres AC-17).
   current_object?: string | null;
+  // Whether a database run's role could only read its objects (CFX-APP-postgres AC-16); null for a
+  // file's run.
+  read_only?: boolean | null;
 };
 
 export type MaskedPattern = { pattern: string; count: number; cut: boolean };
@@ -431,6 +434,25 @@ export async function getColumnValues(runId: string, column: string, confirmed: 
 /** The server wouldn't start this run. The message is written for the user. */
 export class RunRefusedError extends Error {}
 
+/** What the role a database is profiled with could change in the chosen objects, as `schema.object`
+ * (CFX-APP-postgres AC-16). DrivnX itself only reads. */
+export type WriteAccess = {
+  role: string;
+  superuser: boolean;
+  objects: { object: string; privileges: string[] }[];
+  chosen: string[];
+};
+
+/** The run starts only once the user confirms this write access. */
+export class WriteAccessError extends RunRefusedError {
+  constructor(
+    message: string,
+    readonly writeAccess: WriteAccess,
+  ) {
+    super(message);
+  }
+}
+
 export type Finding = {
   id: string;
   profile_run_id: string;
@@ -459,14 +481,23 @@ export async function cancelProfile(runId: string): Promise<ProfileRun> {
   return response.json();
 }
 
-export async function startProfile(sourceId: string, mode: ProfileRun["mode"]): Promise<ProfileRun> {
+/** `writeAccess` is what a refusal showed the user, who confirmed it (CFX-APP-postgres AC-16). */
+export async function startProfile(
+  sourceId: string,
+  mode: ProfileRun["mode"],
+  writeAccess?: WriteAccess,
+): Promise<ProfileRun> {
   const response = await fetch(PROFILE_RUNS_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ source_id: sourceId, mode }),
+    body: JSON.stringify({ source_id: sourceId, mode, ...(writeAccess && { write_access: writeAccess }) }),
   });
   if (response.status === 409 || response.status === 503) {
     const { detail } = await response.json();
+    // A database whose role could change the chosen objects, which the user confirms (AC-16).
+    if (typeof detail === "object" && detail.write_access) {
+      throw new WriteAccessError(detail.message, detail.write_access);
+    }
     throw new RunRefusedError(detail);
   }
   if (!response.ok) {

@@ -225,12 +225,17 @@ class DiscoveredObject:
     populated: bool
     columns: tuple[DiscoveredColumn, ...]
     keys: tuple[DeclaredKey, ...]
+    # What the role could change it with, of `WRITE_PRIVILEGES` (AC-16). DrivnX itself never does.
+    write_privileges: tuple[str, ...]
 
 
 @dataclass(frozen=True)
 class Discovery:
     schemas: tuple[str, ...]
     objects: tuple[DiscoveredObject, ...]
+    # The role DrivnX signed in as, and whether it's a superuser, which can change anything.
+    role: str
+    superuser: bool
 
 
 _KINDS = {"r": "table", "p": "partitioned_table", "v": "view", "m": "materialized_view"}
@@ -263,6 +268,25 @@ _LISTED_OBJECT = (
 # A domain's base type is one level down. Every column has a name, as the extension wraps the
 # query and selects its columns by name.
 _OBJECTS = f"""
+    -- Each listed object with its partitions and the tables that inherit from it, at any depth:
+    -- rows changed in any of them are the object's rows.
+    WITH RECURSIVE family (object, member) AS (
+        SELECT c.oid, c.oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE {_LISTED_OBJECT}
+        UNION
+        SELECT family.object, i.inhrelid
+        FROM family JOIN pg_inherits i ON i.inhparent = family.member
+    ),
+    -- What the role could change each object with, in `WRITE_PRIVILEGES`' order, granted on it or
+    -- on any of its family. INSERT or UPDATE on any one column is enough to change its rows.
+    can AS (
+        SELECT object,
+            bool_or(has_any_column_privilege(member, 'INSERT')) AS can_insert,
+            bool_or(has_any_column_privilege(member, 'UPDATE')) AS can_update,
+            bool_or(has_table_privilege(member, 'DELETE')) AS can_delete,
+            bool_or(has_table_privilege(member, 'TRUNCATE')) AS can_truncate
+        FROM family GROUP BY object
+    )
     SELECT n.nspname, c.relname, c.relkind,
         -- Autovacuum analyses a partitioned table's partitions, never the table, whose own
         -- estimate stays at -1: its rows are those of its partitions that have an estimate.
@@ -274,15 +298,21 @@ _OBJECTS = f"""
         has_schema_privilege(n.oid, 'USAGE') AND has_table_privilege(c.oid, 'SELECT')
             AS readable,
         c.relispopulated AS populated,
+        can.can_insert, can.can_update, can.can_delete, can.can_truncate,
         a.attname, format_type(a.atttypid, a.atttypmod) AS physical_type,
         coalesce(b.typname, t.typname) AS base_type, NOT a.attnotnull AS allows_nulls
     FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    JOIN can ON can.object = c.oid
     LEFT JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped
     LEFT JOIN pg_type t ON t.oid = a.atttypid
     LEFT JOIN pg_type b ON b.oid = t.typbasetype
     WHERE {_LISTED_OBJECT}
     ORDER BY n.nspname, c.relname, a.attnum
 """
+# The privileges with which a role could change an object's rows (CFX-APP-postgres AC-16).
+WRITE_PRIVILEGES = ("INSERT", "UPDATE", "DELETE", "TRUNCATE")
+# The role DrivnX is signed in as, and whether it's a superuser.
+_ROLE = "SELECT current_user::text, rolsuper FROM pg_roles WHERE rolname = current_user"
 _KEY_KINDS = {"p": "primary_key", "u": "unique", "f": "foreign_key"}
 # Each key's column names in the key's order, as arrays: a name can hold a comma.
 _KEY_COLUMNS = """
@@ -324,7 +354,7 @@ def _key(row: tuple) -> DeclaredKey:
 
 def _object(rows: list[tuple], keys: tuple[DeclaredKey, ...]) -> DiscoveredObject:
     """An object from its rows of `_OBJECTS`."""
-    schema, name, kind, estimate, readable, populated = rows[0][:6]
+    schema, name, kind, estimate, readable, populated, *can = rows[0][:10]
     return DiscoveredObject(
         schema=schema,
         name=name,
@@ -345,6 +375,9 @@ def _object(rows: list[tuple], keys: tuple[DeclaredKey, ...]) -> DiscoveredObjec
             if column is not None
         ),
         keys=keys,
+        write_privileges=tuple(
+            privilege for privilege, granted in zip(WRITE_PRIVILEGES, can, strict=True) if granted
+        ),
     )
 
 
@@ -358,6 +391,7 @@ def discover(details: ConnectionDetails, password: str, temp_directory: Path) ->
             schemas = _on_server(connection, _SCHEMAS)
             objects = _on_server(connection, _OBJECTS)
             keys = _on_server(connection, _KEYS)
+            ((role, superuser),) = _on_server(connection, _ROLE)
             connection.execute("COMMIT")
         except duckdb.Error:
             # Never DuckDB's own text, which repeats the query and the server's error.
@@ -373,6 +407,8 @@ def discover(details: ConnectionDetails, password: str, temp_directory: Path) ->
             _object(list(rows), tuple(keys_of.get(found, ())))
             for found, rows in groupby(objects, key=lambda row: row[:2])
         ),
+        role=role,
+        superuser=superuser,
     )
 
 
