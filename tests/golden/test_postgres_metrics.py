@@ -84,6 +84,17 @@ OBJECTS = (
         (5, '[0:1]={{1,2}}', '{{"a b",c}}', '\\xDEADBEEF'),
         (6, '{{{{1,2}},{{3,4}}}}', NULL, '\\xdeadbeef')""",
     f"ANALYZE {SCHEMA}.collections",
+    # Missing and repeated values, and rows that are exact copies, which only a full profile
+    # counts. No key, so the copies can be.
+    f"CREATE TABLE {SCHEMA}.repeats (city text, visits integer, note text)",
+    f"""INSERT INTO {SCHEMA}.repeats VALUES
+        ('Paris', 1, NULL), ('Paris', 1, NULL), ('Paris', 1, NULL), ('Lyon', 2, NULL),
+        ('Lyon', NULL, NULL), (NULL, NULL, NULL), (NULL, NULL, NULL), ('Nice', 3, NULL)""",
+    f"ANALYZE {SCHEMA}.repeats",
+    # 100,000 distinct values. Never analysed, and autovacuum can't, so the estimate is unknown and
+    # the table is read whole: an estimate just above 100,000 would sample it by page instead.
+    f"CREATE TABLE {SCHEMA}.many (n integer, code text) WITH (autovacuum_enabled = false)",
+    f"INSERT INTO {SCHEMA}.many SELECT n, 'c' || n FROM generate_series(1, 100000) AS n",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -221,6 +232,49 @@ EXPECTED = {
             # abc and \x616263 are the same bytes, \x is the empty value, and hex is the same in
             # either case: 3 of 5.
             "blob": counts(missing=1, distinct=3, rows=6),
+        },
+    },
+    # Rows 1 to 3 are the same row, and so are 6 and 7, but a fast profile saves no count of
+    # copies: the test allows rows_read alone as a metric of the whole object.
+    "repeats": {
+        "rows_read": 8,
+        "columns": {
+            # Paris 3 times, Lyon twice and Nice, 3 of 6; 2 missing of 8. Lengths 5+5+5+4+4+4 = 27
+            # over 6. Lyon and Nice share a pattern, which sorts before Paris's at the same count.
+            "city": {
+                **counts(missing=2, distinct=3, rows=8),
+                "shortest_length": 4,
+                "longest_length": 5,
+                "average_length": 4.5,
+                "masked_patterns": [pattern("AAAA", 3), pattern("AAAAA", 3)],
+            },
+            # 1 three times, 2 and 3: 3 of 5; 3 missing of 8.
+            "visits": counts(missing=3, distinct=3, rows=8),
+            # Always missing: no distinct percentage, lengths or patterns, with nothing to measure.
+            "note": counts(missing=8, distinct=0, rows=8),
+        },
+    },
+    # n is 1 to 100,000 and code is `c` and n. By digits: 9 of 1, 90 of 2, 900 of 3, 9,000 of 4,
+    # 90,000 of 5 and 1 of 6, so code's lengths are one more, 2 to 7, and add up to
+    # 9×2 + 90×3 + 900×4 + 9,000×5 + 90,000×6 + 1×7 = 588,895, 5.88895 each.
+    "many": {
+        "rows_read": 100_000,
+        "columns": {
+            "n": counts(missing=0, distinct=100_000, rows=100_000),
+            "code": {
+                **counts(missing=0, distinct=100_000, rows=100_000),
+                "shortest_length": 2,
+                "longest_length": 7,
+                "average_length": 5.89,
+                "masked_patterns": [
+                    pattern("A99999", 90_000),
+                    pattern("A9999", 9_000),
+                    pattern("A999", 900),
+                    pattern("A99", 90),
+                    pattern("A9", 9),
+                    pattern("A999999", 1),
+                ],
+            },
         },
     },
 }
