@@ -726,6 +726,8 @@ test("profiling anyway starts the run with the write access the user was shown",
     { source_id: "p1", mode: "fast", write_access: writerAccess },
   ]);
   expect(within(tab).queryByRole("alertdialog")).not.toBeInTheDocument();
+  // WCAG 2.4.3: the dialog closes with focus in it, so focus goes back to where the user started.
+  expect(within(tab).getByRole("button", { name: "Fast profile" })).toHaveFocus();
 });
 
 test("cancelling the write warning starts nothing and returns to Fast profile", async () => {
@@ -767,7 +769,8 @@ test.each([
   [false, false],
 ])("a run whose account could only read says so (read only: %s)", async (readOnly, said) => {
   // CFX-APP-postgres/AC-16: "Given a role that can only read the chosen objects, then no warning appears,
-  // and the screen says the account can only read them."
+  // and the screen says the account can only read them." Said of the run, as the selection can change
+  // since, and of its account, as the role it signed in as can differ from the user name (found in review).
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([{ ...databaseRun, read_only: readOnly }]);
   gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
@@ -778,7 +781,9 @@ test.each([
   const tab = await screen.findByRole("tabpanel", { name: "Profile" });
   await within(tab).findByText(`Run r1, finished ${new Date(databaseRun.ended_at).toLocaleString()}`);
 
-  expect(within(tab).queryByText("drivnx_reader can only read the chosen objects.") !== null).toBe(said);
+  expect(within(tab).queryByText("The account this run used could only read the objects it profiled.") !== null).toBe(
+    said,
+  );
 });
 
 test("the write warning takes focus on its safe choice, Cancel", async () => {
@@ -791,4 +796,25 @@ test("the write warning takes focus on its safe choice, Cancel", async () => {
 
   const dialog = await within(tab).findByRole("alertdialog");
   expect(within(dialog).getByRole("button", { name: "Cancel" })).toHaveFocus();
+});
+
+test("a write warning shows even when a run elsewhere ends as the start is refused", async () => {
+  // CFX-APP-postgres/AC-16: the refusal mustn't be forgotten with a refusal for a run in progress, which
+  // the end of the run elsewhere clears (found in review).
+  sources = [fixture];
+  let postedYet = false;
+  const elsewhere = { ...databaseRun, id: "r9", source_id: "other", status: "running", ended_at: null };
+  gets["/api/profile-runs"] = () => Response.json(postedYet ? [] : [elsewhere]);
+  answers["/api/profile-runs"] = () => {
+    postedYet = true;
+    return refusedFor(writerAccess)();
+  };
+  const user = userEvent.setup();
+  renderApp();
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  await within(tab).findByText("A profile is running on another file.");
+
+  await user.click(within(tab).getByRole("button", { name: "Fast profile" }));
+
+  expect(await within(tab).findByRole("alertdialog")).toBeInTheDocument();
 });

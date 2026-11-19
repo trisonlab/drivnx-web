@@ -268,6 +268,25 @@ _LISTED_OBJECT = (
 # A domain's base type is one level down. Every column has a name, as the extension wraps the
 # query and selects its columns by name.
 _OBJECTS = f"""
+    -- Each listed object with its partitions and the tables that inherit from it, at any depth:
+    -- rows changed in any of them are the object's rows.
+    WITH RECURSIVE family (object, member) AS (
+        SELECT c.oid, c.oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE {_LISTED_OBJECT}
+        UNION
+        SELECT family.object, i.inhrelid
+        FROM family JOIN pg_inherits i ON i.inhparent = family.member
+    ),
+    -- What the role could change each object with, in `WRITE_PRIVILEGES`' order, granted on it or
+    -- on any of its family. INSERT or UPDATE on any one column is enough to change its rows.
+    can AS (
+        SELECT object,
+            bool_or(has_any_column_privilege(member, 'INSERT')) AS can_insert,
+            bool_or(has_any_column_privilege(member, 'UPDATE')) AS can_update,
+            bool_or(has_table_privilege(member, 'DELETE')) AS can_delete,
+            bool_or(has_table_privilege(member, 'TRUNCATE')) AS can_truncate
+        FROM family GROUP BY object
+    )
     SELECT n.nspname, c.relname, c.relkind,
         -- Autovacuum analyses a partitioned table's partitions, never the table, whose own
         -- estimate stays at -1: its rows are those of its partitions that have an estimate.
@@ -279,15 +298,11 @@ _OBJECTS = f"""
         has_schema_privilege(n.oid, 'USAGE') AND has_table_privilege(c.oid, 'SELECT')
             AS readable,
         c.relispopulated AS populated,
-        -- What the role could change the object with, in `WRITE_PRIVILEGES`' order. INSERT or
-        -- UPDATE on any one column is enough to change its rows.
-        has_any_column_privilege(c.oid, 'INSERT') AS can_insert,
-        has_any_column_privilege(c.oid, 'UPDATE') AS can_update,
-        has_table_privilege(c.oid, 'DELETE') AS can_delete,
-        has_table_privilege(c.oid, 'TRUNCATE') AS can_truncate,
+        can.can_insert, can.can_update, can.can_delete, can.can_truncate,
         a.attname, format_type(a.atttypid, a.atttypmod) AS physical_type,
         coalesce(b.typname, t.typname) AS base_type, NOT a.attnotnull AS allows_nulls
     FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    JOIN can ON can.object = c.oid
     LEFT JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped
     LEFT JOIN pg_type t ON t.oid = a.atttypid
     LEFT JOIN pg_type b ON b.oid = t.typbasetype

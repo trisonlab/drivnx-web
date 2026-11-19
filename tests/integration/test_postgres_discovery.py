@@ -367,12 +367,21 @@ WRITE_OBJECTS = (
         f"CREATE TABLE {WRITE_SCHEMA}.{name} (id integer, note text)"
         for name in ("inserted", "updated", "read", "emptied")
     ),
+    # Rows a role can change through a partition, or a table that inherits from another, are rows
+    # of the table it's part of: the partition and the child aren't listed, or aren't chosen.
+    f"CREATE TABLE {WRITE_SCHEMA}.split (id integer, note text) PARTITION BY RANGE (id)",
+    f"CREATE TABLE {WRITE_SCHEMA}.split_1 PARTITION OF {WRITE_SCHEMA}.split"
+    " FOR VALUES FROM (0) TO (100)",
+    f"CREATE TABLE {WRITE_SCHEMA}.family (id integer, note text)",
+    f"CREATE TABLE {WRITE_SCHEMA}.family_child () INHERITS ({WRITE_SCHEMA}.family)",
     f"GRANT USAGE ON SCHEMA {WRITE_SCHEMA} TO {WRITER}",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {WRITE_SCHEMA} TO {WRITER}",
     f"GRANT INSERT ON {WRITE_SCHEMA}.inserted TO {WRITER}",
     # One column only: the role can still change the table's data.
     f"GRANT UPDATE (note) ON {WRITE_SCHEMA}.updated TO {WRITER}",
     f"GRANT DELETE, TRUNCATE ON {WRITE_SCHEMA}.emptied TO {WRITER}",
+    f"GRANT INSERT ON {WRITE_SCHEMA}.split_1 TO {WRITER}",
+    f"GRANT DELETE ON {WRITE_SCHEMA}.family_child TO {WRITER}",
 )
 
 
@@ -397,6 +406,9 @@ def signed_in_as(user: str) -> ConnectionDetails:
     )
 
 
+WRITTEN = ("inserted", "updated", "read", "emptied")
+
+
 @pytest.mark.usefixtures("write_roles")
 def test_each_object_says_what_the_role_can_change_in_it(tmp_path: Path) -> None:
     # CFX-APP-postgres/AC-16: INSERT, UPDATE, DELETE and TRUNCATE, in that order, each as the
@@ -404,7 +416,7 @@ def test_each_object_says_what_the_role_can_change_in_it(tmp_path: Path) -> None
     found = discover(signed_in_as(WRITER), WRITER_PASSWORD, tmp_path)
 
     listed = objects_in(found, WRITE_SCHEMA)
-    assert {name: listed[name].write_privileges for name in listed} == {
+    assert {name: listed[name].write_privileges for name in WRITTEN} == {
         "inserted": ("INSERT",),
         "updated": ("UPDATE",),
         "read": (),
@@ -426,3 +438,16 @@ def test_a_role_that_can_only_read_can_change_nothing(discovery: Discovery) -> N
     # it lists has a privilege that could change it.
     assert {found.write_privileges for found in discovery.objects} == {()}
     assert (discovery.role, discovery.superuser) == (postgres_fixture.USER, False)
+
+
+@pytest.mark.usefixtures("write_roles")
+def test_a_grant_on_a_partition_or_a_child_table_counts_for_the_table_it_is_part_of(
+    tmp_path: Path,
+) -> None:
+    # CFX-APP-postgres/AC-16: the role can change the chosen table's rows through either, so it is
+    # warned as if granted on the table (found in review).
+    listed = objects_in(discover(signed_in_as(WRITER), WRITER_PASSWORD, tmp_path), WRITE_SCHEMA)
+
+    assert listed["split"].write_privileges == ("INSERT",)
+    assert listed["family"].write_privileges == ("DELETE",)
+    assert "split_1" not in listed

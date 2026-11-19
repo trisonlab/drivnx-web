@@ -335,7 +335,6 @@ function ColumnValuesSection({
   );
 }
 
-/** AC-29: asked before a possibly-sensitive column's values are worked out. */
 /** Before a database is profiled with a role that could change the chosen objects (CFX-APP-postgres
  * AC-16): which, and with what. DrivnX itself only reads. */
 function WriteAccessConfirmation({
@@ -386,6 +385,7 @@ function WriteAccessConfirmation({
   );
 }
 
+/** AC-29: asked before a possibly-sensitive column's values are worked out. */
 function SensitiveConfirmation({ onShow, onDecline }: { onShow: () => void; onDecline: () => void }) {
   const questionId = useId();
   const decline = useRef<HTMLButtonElement>(null);
@@ -669,11 +669,14 @@ export function ProfileTab({
   const confirming = start.error instanceof WriteAccessError ? start.error.writeAccess : undefined;
   const running = runs.data?.find((run) => run.status === "running");
   const anyRunning = running !== undefined;
-  // A refusal because a run is in progress stops being true when that run ends.
+  // A refusal because a run is in progress stops being true when that run ends. Only then: a start
+  // still waiting for its answer, or a write warning the user hasn't answered, is kept (AC-16).
+  const keepRefusal = start.isPending || start.error instanceof WriteAccessError;
   useEffect(() => {
-    if (!anyRunning) {
+    if (!anyRunning && !keepRefusal) {
       forgetRefusal();
     }
+    // Not on `keepRefusal`'s changes: any other refusal stays until the next run ends.
   }, [anyRunning, forgetRefusal]);
   const mine = runsWithCurrentSettings(runs.data, source);
   const ofThisFile = runs.data?.filter((run) => run.source_id === source.id) ?? [];
@@ -702,7 +705,11 @@ export function ProfileTab({
       {confirming ? (
         <WriteAccessConfirmation
           access={confirming}
-          onProfile={() => start.mutate({ mode: start.variables?.mode ?? "fast", writeAccess: confirming })}
+          onProfile={() => {
+            // The same start, everything it asked for, with the access the user was shown.
+            start.mutate({ mode: "fast", ...start.variables, writeAccess: confirming });
+            fastProfile.current?.focus();
+          }}
           onCancel={() => {
             start.reset();
             fastProfile.current?.focus();
@@ -711,9 +718,9 @@ export function ProfileTab({
       ) : (
         start.isError && <p role="alert">{startFailure(start.error)}</p>
       )}
-      {source.kind === "postgres" && mine[0]?.read_only && (
-        // No warning was needed: say why (AC-16).
-        <p>{source.user} can only read the chosen objects.</p>
+      {mine[0]?.read_only && (
+        // No warning was needed: say why (AC-16). Of the run, as the selection can have changed since.
+        <p>The account this run used could only read the objects it profiled.</p>
       )}
       {running && (
         <p role="status">

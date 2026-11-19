@@ -29,13 +29,13 @@ Fixture roles with and without write privileges and a superuser, the confirmatio
 DRIVN-51
 
 ## Verification
-Commit `a7750db`, 2026-11-19, Linux, with the PostgreSQL fixture (PostgreSQL 17).
+Commits `a7750db` and the review's fixes, 2026-11-19, Linux, with the PostgreSQL fixture (PostgreSQL 17).
 
 | Criterion | Evidence | Result |
 |---|---|---|
 | AC-16, read-only role | `test_postgres_write_warning.py` `test_a_role_that_can_only_read_starts_with_no_warning_and_its_run_says_so`; `test_postgres_discovery.py` `test_a_role_that_can_only_read_can_change_nothing`; `Postgres.test.tsx` "a run whose account could only read says so" (true and false) | PASS |
-| AC-16, a role that can write is named with its objects and privileges | `test_a_role_that_can_write_is_refused_naming_the_objects_and_how`; `test_each_object_says_what_the_role_can_change_in_it` (INSERT, UPDATE on one column, DELETE and TRUNCATE); `Postgres.test.tsx` "a role that could change chosen objects is warned, naming each and how" | PASS |
-| AC-16, the run starts only after the user confirms | `test_a_role_that_can_write_starts_once_the_user_confirms`; `Postgres.test.tsx` "profiling anyway starts the run with the write access the user was shown", "cancelling the write warning starts nothing and returns to Fast profile", "the write warning takes focus on its safe choice, Cancel" | PASS |
+| AC-16, a role that can write is named with its objects and privileges | `test_a_role_that_can_write_is_refused_naming_the_objects_and_how`; `test_each_object_says_what_the_role_can_change_in_it` (INSERT, UPDATE on one column, DELETE and TRUNCATE); `test_a_grant_on_a_partition_or_a_child_table_counts_for_the_table_it_is_part_of`; `Postgres.test.tsx` "a role that could change chosen objects is warned, naming each and how", "a write warning shows even when a run elsewhere ends as the start is refused" | PASS |
+| AC-16, the run starts only after the user confirms | `test_a_role_that_can_write_starts_once_the_user_confirms`; `Postgres.test.tsx` "profiling anyway starts the run with the write access the user was shown" (focus back on Fast profile), "cancelling the write warning starts nothing and returns to Fast profile", "the write warning takes focus on its safe choice, Cancel" | PASS |
 | AC-16, asked again only when the selection or privileges change (the Assumption) | `test_the_same_access_starts_again_without_asking`, `test_another_chosen_object_asks_again`, `test_a_grant_or_a_revoke_asks_again` (a grant and a revoke), `test_a_confirmation_of_access_that_has_since_changed_is_refused_with_the_new`; the confirmation kept across a restart and refused for a CSV, `test_postgres_sources.py` | PASS |
 | AC-16, a superuser is named by its role | `test_a_superuser_is_refused_naming_its_role`; `test_a_superuser_is_said_to_be_one`; `Postgres.test.tsx` "a superuser is warned that it can change anything, naming the role" | PASS |
 
@@ -43,11 +43,13 @@ Each test was seen failing before its code, or, where an earlier step had built 
 code broken (the chosen objects, the privileges or the superuser dropped from the access; any confirmation accepted;
 the read-only line shown for every run; the migration's `CHECK` removed).
 
-Checks: `pytest tests/integration tests/golden` 2520 passed, 8 skipped (Windows-only and by-design files);
-`pytest tests/e2e` 80 passed; `pnpm --dir apps/web test` 222 passed in 13 of 14 runs, one run had 1 failure that
-didn't recur and wasn't named; `pnpm --dir apps/web build` (with `tsc`) clean; `detect-secrets`, `pip-audit` and
-`pnpm audit` clean; the pre-commit hook passed; `ai-skills knowledge check` consistent. Listing 1,000 objects took
-0.53 to 0.85 s with the four privilege checks (0.51 s before, target 5 s). NOT RUN locally: PostgreSQL 18.7, macOS and
+Checks: `pytest tests/integration tests/golden` 2520 passed, 8 skipped (Windows-only and by-design files) at
+`a7750db`; after the review's fixes, every PostgreSQL integration test (278) and `pytest tests/golden` (21) passed,
+and `pytest tests/e2e` 80 passed; `pnpm --dir apps/web test` 223 passed, with `Preview.test.tsx` "the preview opens
+on the first 50 rows" failing once in some runs, as recorded for DRIVN-51, and passing alone; `pnpm --dir apps/web
+build` (with `tsc`) clean; `detect-secrets`, `pip-audit` and `pnpm audit` clean; the pre-commit hook passed;
+`ai-skills knowledge check` consistent. Listing 1,000 objects took 0.80 to 0.87 s with the privileges read over each
+object's partitions and child tables (0.51 s before this ticket, target 5 s). NOT RUN locally: PostgreSQL 18.7, macOS and
 Windows (CI); the browser journey confirming the warning, which is DRIVN-58's (AC-35).
 
 ## Plan agreed with the user
@@ -105,5 +107,17 @@ Risks: the migration is additive and nullable (two-way door). A database start b
 until confirmed; only the web client calls it. Four privilege checks per column row in discovery, timed against the
 1,000-object target.
 
-Out of scope: showing write access in the objects list; roles the account could `SET ROLE` to without inheriting them;
-`CREATE` on a schema; an owner's privileges on a materialized view, reported as PostgreSQL reports them.
+Out of scope: showing write access in the objects list; roles the account could `SET ROLE` to without inheriting them,
+a superuser role among them, as superuser status isn't inherited; an owner that revoked its own privileges, which it
+could grant itself again; `CREATE` on a schema; an owner's privileges on a materialized view, reported as PostgreSQL
+reports them. A view is warned about as PostgreSQL grants it, even where the view can't be written through (a view
+that isn't automatically updatable, `TRUNCATE` on a view): too many warnings, never too few. "Asked again" compares
+with the last confirmation, as the Assumption says, so access confirmed, revoked and granted again isn't asked again.
+
+## Review
+The independent review found, and this ticket fixed: a grant on a partition or on a table that inherits from a chosen
+one wasn't seen, though it changes the chosen table's rows (now read over each object's partitions and child tables);
+a write refusal could be cleared with a run-in-progress refusal when a run elsewhere ended as the start was refused;
+focus was lost after "Profile anyway"; the read-only line spoke of the current selection and the user name rather than
+the run and its account. It confirmed that only the server's own reading is saved, and that DRIVN-53's full profile
+gets the warning too once merged (six additive conflicts in `profile_runs_api.py` and `profile_jobs.py`).
