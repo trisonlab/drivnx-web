@@ -15,6 +15,8 @@ import {
   RunRefusedError,
   type Source,
   startProfile,
+  type WriteAccess,
+  WriteAccessError,
 } from "./api";
 import { CellText } from "./Preview";
 
@@ -334,6 +336,56 @@ function ColumnValuesSection({
 }
 
 /** AC-29: asked before a possibly-sensitive column's values are worked out. */
+/** Before a database is profiled with a role that could change the chosen objects (CFX-APP-postgres
+ * AC-16): which, and with what. DrivnX itself only reads. */
+function WriteAccessConfirmation({
+  access,
+  onProfile,
+  onCancel,
+}: {
+  access: WriteAccess;
+  onProfile: () => void;
+  onCancel: () => void;
+}) {
+  const questionId = useId();
+  // Focus on the choice that changes nothing, as `SensitiveConfirmation` does.
+  const cancel = useRef<HTMLButtonElement>(null);
+  useEffect(() => cancel.current?.focus(), []);
+  return (
+    <div role="alertdialog" aria-labelledby={questionId}>
+      {access.superuser ? (
+        // It could change anything, so the role is the reason, whatever the objects.
+        <>
+          <p id={questionId}>
+            {access.role} is a superuser, so it can change anything in this database. Profile it anyway?
+          </p>
+          <p>DrivnX opens every session read-only and only reads it.</p>
+        </>
+      ) : (
+        <>
+          <p id={questionId}>{access.role} can change some of the chosen objects. Profile them anyway?</p>
+          <ul>
+            {access.objects.map(({ object, privileges }) => (
+              <li key={object}>
+                {object}: {privileges.map((privilege) => privilege.toLowerCase()).join(", ")}
+              </li>
+            ))}
+          </ul>
+          <p>DrivnX opens every session read-only and only reads them.</p>
+        </>
+      )}
+      <p>
+        <button type="button" onClick={onProfile}>
+          Profile anyway
+        </button>{" "}
+        <button type="button" ref={cancel} onClick={onCancel}>
+          Cancel
+        </button>
+      </p>
+    </div>
+  );
+}
+
 function SensitiveConfirmation({ onShow, onDecline }: { onShow: () => void; onDecline: () => void }) {
   const questionId = useId();
   const decline = useRef<HTMLButtonElement>(null);
@@ -599,7 +651,8 @@ export function ProfileTab({
   const queryClient = useQueryClient();
   const runs = useProfileRuns();
   const start = useMutation({
-    mutationFn: (mode: ProfileRun["mode"]) => startProfile(source.id, mode),
+    mutationFn: ({ mode, writeAccess }: { mode: ProfileRun["mode"]; writeAccess?: WriteAccess }) =>
+      startProfile(source.id, mode, writeAccess),
     // The new run's results are what the user asked for, once it completes.
     onSuccess: () => onOpenRun(null),
     // Also after a refusal, which can come from a run this page hasn't heard of.
@@ -610,6 +663,10 @@ export function ProfileTab({
     onSettled: () => queryClient.invalidateQueries({ queryKey: PROFILE_RUNS_QUERY }),
   });
   const { reset: forgetRefusal } = start;
+  // Where focus goes back to when the user doesn't confirm a write warning.
+  const fastProfile = useRef<HTMLButtonElement>(null);
+  // A database's write access the user is asked to confirm before its run starts (AC-16).
+  const confirming = start.error instanceof WriteAccessError ? start.error.writeAccess : undefined;
   const running = runs.data?.find((run) => run.status === "running");
   const anyRunning = running !== undefined;
   // A refusal because a run is in progress stops being true when that run ends.
@@ -628,7 +685,7 @@ export function ProfileTab({
     <section className="profile-tab" aria-labelledby={headingId}>
       <h2 id={headingId}>Profile</h2>
       <p>
-        <button type="button" onClick={() => start.mutate("fast")}>
+        <button type="button" ref={fastProfile} onClick={() => start.mutate({ mode: "fast" })}>
           Fast profile
         </button>{" "}
         {source.kind === "postgres" ? (
@@ -637,12 +694,27 @@ export function ProfileTab({
             Full profile <span className="unavailable">Not available yet</span>
           </button>
         ) : (
-          <button type="button" onClick={() => start.mutate("full")}>
+          <button type="button" onClick={() => start.mutate({ mode: "full" })}>
             Full profile
           </button>
         )}
       </p>
-      {start.isError && <p role="alert">{startFailure(start.error)}</p>}
+      {confirming ? (
+        <WriteAccessConfirmation
+          access={confirming}
+          onProfile={() => start.mutate({ mode: start.variables?.mode ?? "fast", writeAccess: confirming })}
+          onCancel={() => {
+            start.reset();
+            fastProfile.current?.focus();
+          }}
+        />
+      ) : (
+        start.isError && <p role="alert">{startFailure(start.error)}</p>
+      )}
+      {source.kind === "postgres" && mine[0]?.read_only && (
+        // No warning was needed: say why (AC-16).
+        <p>{source.user} can only read the chosen objects.</p>
+      )}
       {running && (
         <p role="status">
           {running.source_id === source.id

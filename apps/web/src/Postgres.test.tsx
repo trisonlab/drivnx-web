@@ -667,3 +667,128 @@ test("a running database run says which object it is on, in the header and the P
   );
   expect(within(tab).getByRole("heading", { name: "Runs of this database" })).toBeInTheDocument();
 });
+
+// What the server refuses a start with when the role could change chosen objects (DRIVN-52).
+const writerAccess = {
+  role: "drivnx_writer",
+  superuser: false,
+  objects: [
+    { object: "sales.events", privileges: ["DELETE", "TRUNCATE"] },
+    { object: "sales.orders", privileges: ["INSERT", "UPDATE"] },
+  ],
+  chosen: ["sales.events", "sales.orders", "sales.people"],
+};
+
+function refusedFor(access: object): () => Response {
+  return () => Response.json({ detail: { message: "Confirm to profile.", write_access: access } }, { status: 409 });
+}
+
+async function startFastProfile() {
+  const user = userEvent.setup();
+  renderApp();
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  await user.click(await within(tab).findByRole("button", { name: "Fast profile" }));
+  return { user, tab };
+}
+
+test("a role that could change chosen objects is warned, naming each and how, before any run starts", async () => {
+  // CFX-APP-postgres/AC-16: "the screen names the objects ... and why, and the run starts only after the
+  // user confirms".
+  sources = [fixture];
+  answers["/api/profile-runs"] = refusedFor(writerAccess);
+
+  const { tab } = await startFastProfile();
+
+  const dialog = await within(tab).findByRole("alertdialog", {
+    name: "drivnx_writer can change some of the chosen objects. Profile them anyway?",
+  });
+  expect(within(dialog).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+    "sales.events: delete, truncate",
+    "sales.orders: insert, update",
+  ]);
+  expect(dialog).toHaveTextContent("DrivnX opens every session read-only and only reads them.");
+  expect(within(tab).queryByRole("alert")).not.toBeInTheDocument();
+});
+
+test("profiling anyway starts the run with the write access the user was shown", async () => {
+  // CFX-APP-postgres/AC-16: the run starts once the user confirms, and only what they were shown.
+  sources = [fixture];
+  let starts = 0;
+  answers["/api/profile-runs"] = () =>
+    starts++ === 0 ? refusedFor(writerAccess)() : Response.json({ ...databaseRun, status: "running" }, { status: 202 });
+  const { user, tab } = await startFastProfile();
+  const dialog = await within(tab).findByRole("alertdialog");
+
+  await user.click(within(dialog).getByRole("button", { name: "Profile anyway" }));
+
+  expect(posted("/api/profile-runs")).toEqual([
+    { source_id: "p1", mode: "fast" },
+    { source_id: "p1", mode: "fast", write_access: writerAccess },
+  ]);
+  expect(within(tab).queryByRole("alertdialog")).not.toBeInTheDocument();
+});
+
+test("cancelling the write warning starts nothing and returns to Fast profile", async () => {
+  // CFX-APP-postgres/AC-16: no run without the user's confirmation; WCAG 2.4.3, focus goes back to where
+  // the user was.
+  sources = [fixture];
+  answers["/api/profile-runs"] = refusedFor(writerAccess);
+  const { user, tab } = await startFastProfile();
+  const dialog = await within(tab).findByRole("alertdialog");
+
+  await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+  expect(posted("/api/profile-runs")).toEqual([{ source_id: "p1", mode: "fast" }]);
+  expect(within(tab).queryByRole("alertdialog")).not.toBeInTheDocument();
+  expect(within(tab).getByRole("button", { name: "Fast profile" })).toHaveFocus();
+});
+
+test("a superuser is warned that it can change anything, naming the role", async () => {
+  // CFX-APP-postgres/AC-16: "the screen names the objects or the superuser role and why".
+  sources = [fixture];
+  answers["/api/profile-runs"] = refusedFor({
+    role: "drivnx_admin",
+    superuser: true,
+    objects: [{ object: "sales.orders", privileges: ["INSERT", "UPDATE", "DELETE", "TRUNCATE"] }],
+    chosen: ["sales.orders"],
+  });
+
+  const { tab } = await startFastProfile();
+
+  const dialog = await within(tab).findByRole("alertdialog", {
+    name: "drivnx_admin is a superuser, so it can change anything in this database. Profile it anyway?",
+  });
+  expect(within(dialog).queryByRole("list")).not.toBeInTheDocument();
+  expect(dialog).toHaveTextContent("DrivnX opens every session read-only and only reads it.");
+});
+
+test.each([
+  [true, true],
+  [false, false],
+])("a run whose account could only read says so (read only: %s)", async (readOnly, said) => {
+  // CFX-APP-postgres/AC-16: "Given a role that can only read the chosen objects, then no warning appears,
+  // and the screen says the account can only read them."
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([{ ...databaseRun, read_only: readOnly }]);
+  gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
+  gets["/api/profile-runs/r1"] = () =>
+    Response.json({ ...databaseRun, read_only: readOnly, file_changed: null, objects: [], metrics: [] });
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  await within(tab).findByText(`Run r1, finished ${new Date(databaseRun.ended_at).toLocaleString()}`);
+
+  expect(within(tab).queryByText("drivnx_reader can only read the chosen objects.") !== null).toBe(said);
+});
+
+test("the write warning takes focus on its safe choice, Cancel", async () => {
+  // CFX-APP-postgres/AC-16 and WCAG 2.4.3: an alert dialog moves focus into itself, onto the choice that
+  // changes nothing, as the possibly-sensitive values' confirmation does.
+  sources = [fixture];
+  answers["/api/profile-runs"] = refusedFor(writerAccess);
+
+  const { tab } = await startFastProfile();
+
+  const dialog = await within(tab).findByRole("alertdialog");
+  expect(within(dialog).getByRole("button", { name: "Cancel" })).toHaveFocus();
+});
