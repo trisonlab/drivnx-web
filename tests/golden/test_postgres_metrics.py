@@ -3,8 +3,8 @@ CFX-APP-postgres AC-25 (DRIVN-54).
 
 Each expected value below comes from reading the rows in `OBJECTS`, and PostgreSQL's own rules for
 its types, not from running the code. Distinct values are counted on PostgreSQL's text form of
-each value, and only NULL is missing (the plan agreed for DRIVN-51). A column that isn't text gets
-its counts only: no lengths and no masked patterns (the spec's Assumptions).
+each value, and only NULL is missing (the plan agreed for the fast profile). A column that isn't
+text gets its counts only: no lengths and no masked patterns (the spec's Assumptions).
 """
 
 import time
@@ -120,17 +120,19 @@ def pattern(text: str, count: int, cut: bool = False) -> dict:
     return {"pattern": text, "count": count, "cut": cut}
 
 
-def counts(missing: int, distinct: int, rows: int) -> dict:
-    """A column that isn't text: its missing and distinct counts, each distinct percentage of the
-    values that aren't missing, as a CSV's (CFX-APP-csv-profile AC-19)."""
-    present = rows - missing
+def counts(
+    missing: int, missing_percent: float, distinct: int, distinct_percent: float | None
+) -> dict:
+    """A column's missing and distinct counts and their percentages, worked out by hand: missing of
+    every row read, distinct of the values that aren't missing, as a CSV's, to 2 places. With
+    nothing that isn't missing, there's no distinct percentage."""
     saved = {
         "missing_count": missing,
-        "missing_percent": round(100 * missing / rows, 2),
+        "missing_percent": missing_percent,
         "distinct_count": distinct,
     }
-    if present:
-        saved["distinct_percent"] = round(100 * distinct / present, 2)
+    if distinct_percent is not None:
+        saved["distinct_percent"] = distinct_percent
     return saved
 
 
@@ -138,32 +140,34 @@ EXPECTED = {
     "moments": {
         "rows_read": 5,
         "columns": {
-            "id": counts(missing=0, distinct=5, rows=5),
+            "id": counts(missing=0, missing_percent=0.0, distinct=5, distinct_percent=100.0),
             # Rows 1 and 2 are the same instant written with two offsets: one value. Row 3 is NULL;
             # 4 is infinity and 5 a date BC, so 3 of 4.
-            "instant": counts(missing=1, distinct=3, rows=5),
+            "instant": counts(missing=1, missing_percent=20.0, distinct=3, distinct_percent=75.0),
             # Rows 1 and 2 are the same; 5 is a microsecond later, and 4 is -infinity: 3 of 4.
-            "wall": counts(missing=1, distinct=3, rows=5),
+            "wall": counts(missing=1, missing_percent=20.0, distinct=3, distinct_percent=75.0),
             # Rows 1 and 2 are the same day; infinity and 44 BC are the others: 3 of 4.
-            "day": counts(missing=1, distinct=3, rows=5),
+            "day": counts(missing=1, missing_percent=20.0, distinct=3, distinct_percent=75.0),
             # 12:00, half a second later, 24:00 (not midnight) and midnight: 4 of 4.
-            "clock": counts(missing=1, distinct=4, rows=5),
+            "clock": counts(missing=1, missing_percent=20.0, distinct=4, distinct_percent=100.0),
             # 12:00+00 and 13:00+01 are the same instant, but PostgreSQL keeps the zone in a timetz,
             # and they aren't equal: 4 of 4.
-            "clock_zoned": counts(missing=1, distinct=4, rows=5),
+            "clock_zoned": counts(
+                missing=1, missing_percent=20.0, distinct=4, distinct_percent=100.0
+            ),
         },
     },
     "words": {
         "rows_read": 7,
         "columns": {
-            "id": counts(missing=0, distinct=7, rows=7),
-            # Only row 6 is missing: the empty and the all-space names are values (DRIVN-51).
+            "id": counts(missing=0, missing_percent=0.0, distinct=7, distinct_percent=100.0),
+            # Only row 6 is missing: the empty and the all-space names are values.
             # Lengths in code points: Zoé composed 3, decomposed 4, 李明 2, empty 0, two spaces 2,
             # and 45 Ж, so 56 over 6. The two Zoés are different text and the same pattern, the
             # combining accent going with its letter. Spaces stay as they are. The 45 Ж are cut at
             # 40. Ordered by count, then by pattern: '' < '  ' < 'AA' < 'AAAA…'.
             "name": {
-                **counts(missing=1, distinct=6, rows=7),
+                **counts(missing=1, missing_percent=14.29, distinct=6, distinct_percent=100.0),
                 "shortest_length": 0,
                 "longest_length": 45,
                 "average_length": 9.33,
@@ -179,7 +183,7 @@ EXPECTED = {
             # and 2 are both `ab`. Rows 4 and 7 are missing. Ж9, then ٣½Ⅷ, numbers in three
             # scripts, all 9, and x: lengths 2+2+2+3+1 = 10 over 5, 4 distinct of 5.
             "code": {
-                **counts(missing=2, distinct=4, rows=7),
+                **counts(missing=2, missing_percent=28.57, distinct=4, distinct_percent=80.0),
                 "shortest_length": 1,
                 "longest_length": 3,
                 "average_length": 2.0,
@@ -197,57 +201,59 @@ EXPECTED = {
     "numbers": {
         "rows_read": 6,
         "columns": {
-            "id": counts(missing=0, distinct=6, rows=6),
+            "id": counts(missing=0, missing_percent=0.0, distinct=6, distinct_percent=100.0),
             # 1, 2, 2, -2147483648 and 0: 4 of 5.
-            "whole": counts(missing=1, distinct=4, rows=6),
+            "whole": counts(missing=1, missing_percent=16.67, distinct=4, distinct_percent=80.0),
             # 2**53 twice, 2**53 + 1, the smallest bigint and 0: 4 of 5, as text keeps 2**53 + 1.
-            "big": counts(missing=1, distinct=4, rows=6),
+            "big": counts(missing=1, missing_percent=16.67, distinct=4, distinct_percent=80.0),
             # 1, 1.0, 1.00, NaN and 0.000: an unscaled numeric keeps the scale it was written with,
-            # so they're 5 of 5, although PostgreSQL finds 1, 1.0 and 1.00 equal (DRIVN-51).
-            "exact": counts(missing=1, distinct=5, rows=6),
+            # so they're 5 of 5, although PostgreSQL finds 1, 1.0 and 1.00 equal.
+            "exact": counts(missing=1, missing_percent=16.67, distinct=5, distinct_percent=100.0),
             # numeric(5, 2) writes 1, 1.0 as 1.00 and rounds 1.005 to 1.01: 1.00 twice, 1.01, NaN
             # and -999.99, 4 of 5.
-            "scaled": counts(missing=1, distinct=4, rows=6),
+            "scaled": counts(missing=1, missing_percent=16.67, distinct=4, distinct_percent=80.0),
             # 0.1 twice, -0, 0, NaN and Infinity. -0 and 0 are equal in PostgreSQL but written
             # apart, so 5 of 6.
-            "single": counts(missing=0, distinct=5, rows=6),
+            "single": counts(missing=0, missing_percent=0.0, distinct=5, distinct_percent=83.33),
             # 0.3 and 0.1 + 0.2 are two doubles, written 0.3 and 0.30000000000000004; then NaN,
             # Infinity and -Infinity: 5 of 5.
-            "double": counts(missing=1, distinct=5, rows=6),
+            "double": counts(missing=1, missing_percent=16.67, distinct=5, distinct_percent=100.0),
         },
     },
     # Booleans, JSON and UUIDs get counts only, of PostgreSQL's text for each value.
     "documents": {
         "rows_read": 6,
         "columns": {
-            "id": counts(missing=0, distinct=6, rows=6),
+            "id": counts(missing=0, missing_percent=0.0, distinct=6, distinct_percent=100.0),
             # yes, on and t are all `true`; off and f are `false`: 2 of 5.
-            "flag": counts(missing=1, distinct=2, rows=6),
+            "flag": counts(missing=1, missing_percent=16.67, distinct=2, distinct_percent=40.0),
             # json keeps what was written, spaces and a repeated key too, so the five are 5 of 5.
             # A JSON null is a value; only row 6's SQL NULL is missing.
-            "doc": counts(missing=1, distinct=5, rows=6),
+            "doc": counts(missing=1, missing_percent=16.67, distinct=5, distinct_percent=100.0),
             # jsonb sorts keys, sets the spaces and keeps a repeated key's last value: rows 1 and 2
             # are {"a": 2, "b": 1}, rows 3 and 6 {"a": 2}, then null and [1, 2.0]: 4 of 6.
-            "doc_binary": counts(missing=0, distinct=4, rows=6),
+            "doc_binary": counts(
+                missing=0, missing_percent=0.0, distinct=4, distinct_percent=66.67
+            ),
             # Upper case, braces and no hyphens are the same UUID: rows 1 to 3, the nil UUID and
             # row 6's, 3 of 5.
-            "ref": counts(missing=1, distinct=3, rows=6),
+            "ref": counts(missing=1, missing_percent=16.67, distinct=3, distinct_percent=60.0),
         },
     },
     # Arrays and bytea get counts only, an array of text too (the spec's Assumptions).
     "collections": {
         "rows_read": 6,
         "columns": {
-            "id": counts(missing=0, distinct=6, rows=6),
+            "id": counts(missing=0, missing_percent=0.0, distinct=6, distinct_percent=100.0),
             # {1,2} twice (spacing isn't kept), {}, {NULL}, [0:1]={1,2}, another value as its
             # bounds differ, and {{1,2},{3,4}}: 5 of 6. An empty array and one holding a NULL are
             # values.
-            "numbers": counts(missing=0, distinct=5, rows=6),
+            "numbers": counts(missing=0, missing_percent=0.0, distinct=5, distinct_percent=83.33),
             # {a,b} twice (quotes aren't kept), {}, {NULL} and {"a b",c}: 4 of 5.
-            "tags": counts(missing=1, distinct=4, rows=6),
+            "tags": counts(missing=1, missing_percent=16.67, distinct=4, distinct_percent=80.0),
             # abc and \x616263 are the same bytes, \x is the empty value, and hex is the same in
             # either case: 3 of 5.
-            "blob": counts(missing=1, distinct=3, rows=6),
+            "blob": counts(missing=1, missing_percent=16.67, distinct=3, distinct_percent=60.0),
         },
     },
     # Rows 1 to 3 are the same row, and so are 6 and 7, but a fast profile saves no count of
@@ -258,16 +264,16 @@ EXPECTED = {
             # Paris 3 times, Lyon twice and Nice, 3 of 6; 2 missing of 8. Lengths 5+5+5+4+4+4 = 27
             # over 6. Lyon and Nice share a pattern, which sorts before Paris's at the same count.
             "city": {
-                **counts(missing=2, distinct=3, rows=8),
+                **counts(missing=2, missing_percent=25.0, distinct=3, distinct_percent=50.0),
                 "shortest_length": 4,
                 "longest_length": 5,
                 "average_length": 4.5,
                 "masked_patterns": [pattern("AAAA", 3), pattern("AAAAA", 3)],
             },
             # 1 three times, 2 and 3: 3 of 5; 3 missing of 8.
-            "visits": counts(missing=3, distinct=3, rows=8),
+            "visits": counts(missing=3, missing_percent=37.5, distinct=3, distinct_percent=60.0),
             # Always missing: no distinct percentage, lengths or patterns, with nothing to measure.
-            "note": counts(missing=8, distinct=0, rows=8),
+            "note": counts(missing=8, missing_percent=100.0, distinct=0, distinct_percent=None),
         },
     },
     # n is 1 to 100,000 and code is `c` and n. By digits: 9 of 1, 90 of 2, 900 of 3, 9,000 of 4,
@@ -276,9 +282,9 @@ EXPECTED = {
     "many": {
         "rows_read": 100_000,
         "columns": {
-            "n": counts(missing=0, distinct=100_000, rows=100_000),
+            "n": counts(missing=0, missing_percent=0.0, distinct=100_000, distinct_percent=100.0),
             "code": {
-                **counts(missing=0, distinct=100_000, rows=100_000),
+                **counts(missing=0, missing_percent=0.0, distinct=100_000, distinct_percent=100.0),
                 "shortest_length": 2,
                 "longest_length": 7,
                 "average_length": 5.89,
@@ -297,9 +303,9 @@ EXPECTED = {
     "visits": {
         "rows_read": 4,
         "columns": {
-            "year": counts(missing=0, distinct=2, rows=4),
+            "year": counts(missing=0, missing_percent=0.0, distinct=2, distinct_percent=50.0),
             "name": {
-                **counts(missing=1, distinct=2, rows=4),
+                **counts(missing=1, missing_percent=25.0, distinct=2, distinct_percent=66.67),
                 "shortest_length": 3,
                 "longest_length": 3,
                 "average_length": 3.0,
@@ -312,14 +318,14 @@ EXPECTED = {
         "rows_read": 3,
         "columns": {
             "name": {
-                **counts(missing=1, distinct=2, rows=3),
+                **counts(missing=1, missing_percent=33.33, distinct=2, distinct_percent=100.0),
                 "shortest_length": 3,
                 "longest_length": 3,
                 "average_length": 3.0,
                 "masked_patterns": [pattern("AAA", 2)],
             },
             # 2, 1 and 1.
-            "seen": counts(missing=0, distinct=2, rows=3),
+            "seen": counts(missing=0, missing_percent=0.0, distinct=2, distinct_percent=66.67),
         },
     },
     # A view is read from the first rows it returns, here all three that have a name: Ann 2023,
@@ -329,18 +335,18 @@ EXPECTED = {
         "rows_read": 3,
         "columns": {
             "name": {
-                **counts(missing=0, distinct=2, rows=3),
+                **counts(missing=0, missing_percent=0.0, distinct=2, distinct_percent=66.67),
                 "shortest_length": 3,
                 "longest_length": 3,
                 "average_length": 3.0,
                 "masked_patterns": [pattern("AAA", 3)],
             },
-            "year": counts(missing=0, distinct=2, rows=3),
+            "year": counts(missing=0, missing_percent=0.0, distinct=2, distinct_percent=66.67),
         },
     },
 }
 # How an object is read when its entry doesn't say (ADR 0005): each above is small, and analysed
-# or never analysed, so whole. Each way gives its metrics' scope (CFX-APP-postgres AC-24).
+# or never analysed, so whole. Each way gives its metrics' scope, as the spec names them.
 READ_WHOLE = "whole"
 SCOPE_OF_READ = {"whole": "full", "view_first_rows": "sample"}
 
