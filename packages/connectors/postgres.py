@@ -225,12 +225,17 @@ class DiscoveredObject:
     populated: bool
     columns: tuple[DiscoveredColumn, ...]
     keys: tuple[DeclaredKey, ...]
+    # What the role could change it with, of `WRITE_PRIVILEGES` (AC-16). DrivnX itself never does.
+    write_privileges: tuple[str, ...]
 
 
 @dataclass(frozen=True)
 class Discovery:
     schemas: tuple[str, ...]
     objects: tuple[DiscoveredObject, ...]
+    # The role DrivnX signed in as, and whether it's a superuser, which can change anything.
+    role: str
+    superuser: bool
 
 
 _KINDS = {"r": "table", "p": "partitioned_table", "v": "view", "m": "materialized_view"}
@@ -274,6 +279,12 @@ _OBJECTS = f"""
         has_schema_privilege(n.oid, 'USAGE') AND has_table_privilege(c.oid, 'SELECT')
             AS readable,
         c.relispopulated AS populated,
+        -- What the role could change the object with, in `WRITE_PRIVILEGES`' order. INSERT or
+        -- UPDATE on any one column is enough to change its rows.
+        has_any_column_privilege(c.oid, 'INSERT') AS can_insert,
+        has_any_column_privilege(c.oid, 'UPDATE') AS can_update,
+        has_table_privilege(c.oid, 'DELETE') AS can_delete,
+        has_table_privilege(c.oid, 'TRUNCATE') AS can_truncate,
         a.attname, format_type(a.atttypid, a.atttypmod) AS physical_type,
         coalesce(b.typname, t.typname) AS base_type, NOT a.attnotnull AS allows_nulls
     FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -283,6 +294,10 @@ _OBJECTS = f"""
     WHERE {_LISTED_OBJECT}
     ORDER BY n.nspname, c.relname, a.attnum
 """
+# The privileges with which a role could change an object's rows (CFX-APP-postgres AC-16).
+WRITE_PRIVILEGES = ("INSERT", "UPDATE", "DELETE", "TRUNCATE")
+# The role DrivnX is signed in as, and whether it's a superuser.
+_ROLE = "SELECT current_user::text, rolsuper FROM pg_roles WHERE rolname = current_user"
 _KEY_KINDS = {"p": "primary_key", "u": "unique", "f": "foreign_key"}
 # Each key's column names in the key's order, as arrays: a name can hold a comma.
 _KEY_COLUMNS = """
@@ -324,7 +339,7 @@ def _key(row: tuple) -> DeclaredKey:
 
 def _object(rows: list[tuple], keys: tuple[DeclaredKey, ...]) -> DiscoveredObject:
     """An object from its rows of `_OBJECTS`."""
-    schema, name, kind, estimate, readable, populated = rows[0][:6]
+    schema, name, kind, estimate, readable, populated, *can = rows[0][:10]
     return DiscoveredObject(
         schema=schema,
         name=name,
@@ -345,6 +360,9 @@ def _object(rows: list[tuple], keys: tuple[DeclaredKey, ...]) -> DiscoveredObjec
             if column is not None
         ),
         keys=keys,
+        write_privileges=tuple(
+            privilege for privilege, granted in zip(WRITE_PRIVILEGES, can, strict=True) if granted
+        ),
     )
 
 
@@ -358,6 +376,7 @@ def discover(details: ConnectionDetails, password: str, temp_directory: Path) ->
             schemas = _on_server(connection, _SCHEMAS)
             objects = _on_server(connection, _OBJECTS)
             keys = _on_server(connection, _KEYS)
+            ((role, superuser),) = _on_server(connection, _ROLE)
             connection.execute("COMMIT")
         except duckdb.Error:
             # Never DuckDB's own text, which repeats the query and the server's error.
@@ -373,6 +392,8 @@ def discover(details: ConnectionDetails, password: str, temp_directory: Path) ->
             _object(list(rows), tuple(keys_of.get(found, ())))
             for found, rows in groupby(objects, key=lambda row: row[:2])
         ),
+        role=role,
+        superuser=superuser,
     )
 
 

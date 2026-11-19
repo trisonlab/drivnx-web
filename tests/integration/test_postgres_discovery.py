@@ -1,4 +1,5 @@
-"""Listing a database's schemas and objects, CFX-APP-postgres AC-08, AC-09 and AC-10 (DRIVN-49)."""
+"""Listing a database's schemas and objects, CFX-APP-postgres AC-08, AC-09 and AC-10 (DRIVN-49),
+and what the role can change in them, AC-16 (DRIVN-52)."""
 
 import traceback
 from collections.abc import Callable, Iterator
@@ -344,3 +345,84 @@ def test_discovery_has_a_30_second_statement_timeout(postgres_server: str, tmp_p
         ).fetchone()
 
     assert timeout == "30s"
+
+
+# Roles that can change some objects, made and dropped by the tests that sign in as them: a role
+# outlives the schema it was granted on.
+WRITER = "drivnx_writer"
+WRITER_PASSWORD = "drivnx-writer"  # pragma: allowlist secret, ai-skills: allow
+SUPERUSER = "drivnx_superuser"
+SUPERUSER_PASSWORD = "drivnx-superuser"  # pragma: allowlist secret, ai-skills: allow
+WRITE_SCHEMA = "drivnx_write_access"
+WRITE_DROP = (
+    f"DROP SCHEMA IF EXISTS {WRITE_SCHEMA} CASCADE",
+    f"DROP ROLE IF EXISTS {WRITER}",
+    f"DROP ROLE IF EXISTS {SUPERUSER}",
+)
+WRITE_OBJECTS = (
+    f"CREATE ROLE {WRITER} LOGIN PASSWORD '{WRITER_PASSWORD}'",
+    f"CREATE ROLE {SUPERUSER} LOGIN SUPERUSER PASSWORD '{SUPERUSER_PASSWORD}'",
+    f"CREATE SCHEMA {WRITE_SCHEMA}",
+    *(
+        f"CREATE TABLE {WRITE_SCHEMA}.{name} (id integer, note text)"
+        for name in ("inserted", "updated", "read", "emptied")
+    ),
+    f"GRANT USAGE ON SCHEMA {WRITE_SCHEMA} TO {WRITER}",
+    f"GRANT SELECT ON ALL TABLES IN SCHEMA {WRITE_SCHEMA} TO {WRITER}",
+    f"GRANT INSERT ON {WRITE_SCHEMA}.inserted TO {WRITER}",
+    # One column only: the role can still change the table's data.
+    f"GRANT UPDATE (note) ON {WRITE_SCHEMA}.updated TO {WRITER}",
+    f"GRANT DELETE, TRUNCATE ON {WRITE_SCHEMA}.emptied TO {WRITER}",
+)
+
+
+@pytest.fixture(scope="module")
+def write_roles(postgres_admin: Callable[[str], None]) -> Iterator[None]:
+    for statement in (*WRITE_DROP, *WRITE_OBJECTS):
+        postgres_admin(statement)
+    try:
+        yield
+    finally:
+        for statement in WRITE_DROP:
+            postgres_admin(statement)
+
+
+def signed_in_as(user: str) -> ConnectionDetails:
+    return ConnectionDetails(
+        host=postgres_fixture.HOST,
+        port=postgres_fixture.PORT,
+        database=postgres_fixture.DATABASE,
+        user=user,
+        tls_mode="prefer",
+    )
+
+
+@pytest.mark.usefixtures("write_roles")
+def test_each_object_says_what_the_role_can_change_in_it(tmp_path: Path) -> None:
+    # CFX-APP-postgres/AC-16: INSERT, UPDATE, DELETE and TRUNCATE, in that order, each as the
+    # server grants it. UPDATE on one column counts, as the role can change the table with it.
+    found = discover(signed_in_as(WRITER), WRITER_PASSWORD, tmp_path)
+
+    listed = objects_in(found, WRITE_SCHEMA)
+    assert {name: listed[name].write_privileges for name in listed} == {
+        "inserted": ("INSERT",),
+        "updated": ("UPDATE",),
+        "read": (),
+        "emptied": ("DELETE", "TRUNCATE"),
+    }
+    assert (found.role, found.superuser) == (WRITER, False)
+
+
+@pytest.mark.usefixtures("write_roles")
+def test_a_superuser_is_said_to_be_one(tmp_path: Path) -> None:
+    # CFX-APP-postgres/AC-16: a superuser can change anything, whatever it's been granted.
+    found = discover(signed_in_as(SUPERUSER), SUPERUSER_PASSWORD, tmp_path)
+
+    assert (found.role, found.superuser) == (SUPERUSER, True)
+
+
+def test_a_role_that_can_only_read_can_change_nothing(discovery: Discovery) -> None:
+    # CFX-APP-postgres/AC-16: the fixture's role is granted SELECT and nothing more, so no object
+    # it lists has a privilege that could change it.
+    assert {found.write_privileges for found in discovery.objects} == {()}
+    assert (discovery.role, discovery.superuser) == (postgres_fixture.USER, False)
