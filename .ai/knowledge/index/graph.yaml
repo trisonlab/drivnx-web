@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-19T02:03:55+00:00'
+updated_at: '2026-11-19T03:20:40+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -34,7 +34,7 @@ sources:
   .ai/knowledge/work/DRIVN-49.md: 18011bfaeb84761c306d7dd3af58379fca8fe10fb7f9dca9795240c38345ffe3
   .ai/knowledge/work/DRIVN-50.md: cbe500cceac8ace383f825fe727b5b53c335a9c3e81370db3792099d9a88011b
   .ai/knowledge/work/DRIVN-51.md: 434e356b943634dc7ba7bc171661f49874d07eb909c88545918e02b74f0be389
-  .ai/knowledge/work/DRIVN-52.md: 180f275cdf9f3393855b75df0302f1cb2ff7a35ece3003ce8ddaffc8e6deee2c
+  .ai/knowledge/work/DRIVN-52.md: 41183802e86d61bd4c7e686871549a5683fd1eb059b601ce1256bd123d5bc76e
   .ai/knowledge/work/DRIVN-53.md: 893bcbfef6f0ef33932d055233ff68a89f8cb889080b19c9cc78a6d040b9ca55
   .ai/knowledge/work/DRIVN-54.md: fd4e5c8949fc00ce6a560af6b9d3516414110c80702d3576193ec0067ec7f564
   .ai/knowledge/work/DRIVN-55.md: 2c66eb4352f58b3a4478fbf78c359cc5a60b91d3f70b45aaa05152e58b2562c0
