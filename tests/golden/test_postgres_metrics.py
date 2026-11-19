@@ -95,6 +95,22 @@ OBJECTS = (
     # the table is read whole: an estimate just above 100,000 would sample it by page instead.
     f"CREATE TABLE {SCHEMA}.many (n integer, code text) WITH (autovacuum_enabled = false)",
     f"INSERT INTO {SCHEMA}.many SELECT n, 'c' || n FROM generate_series(1, 100000) AS n",
+    # The other kinds of object. A partitioned table's rows are in its partitions, which aren't
+    # listed themselves; a materialized view and a view read from it.
+    f"CREATE TABLE {SCHEMA}.visits (year integer, name text) PARTITION BY RANGE (year)",
+    *(
+        f"""CREATE TABLE {SCHEMA}.visits_{year} PARTITION OF {SCHEMA}.visits
+            FOR VALUES FROM ({year}) TO ({year + 1})"""
+        for year in (2023, 2024)
+    ),
+    f"""INSERT INTO {SCHEMA}.visits VALUES
+        (2023, 'Ann'), (2023, 'Bob'), (2024, 'Ann'), (2024, NULL)""",
+    f"ANALYZE {SCHEMA}.visits",
+    f"""CREATE MATERIALIZED VIEW {SCHEMA}.visit_names AS
+        SELECT name, count(*) AS seen FROM {SCHEMA}.visits GROUP BY name""",
+    f"ANALYZE {SCHEMA}.visit_names",
+    f"""CREATE VIEW {SCHEMA}.named_visits AS
+        SELECT name, year FROM {SCHEMA}.visits WHERE name IS NOT NULL""",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -277,7 +293,56 @@ EXPECTED = {
             },
         },
     },
+    # Its two partitions' rows: 2023 Ann and Bob, 2024 Ann and a NULL name.
+    "visits": {
+        "rows_read": 4,
+        "columns": {
+            "year": counts(missing=0, distinct=2, rows=4),
+            "name": {
+                **counts(missing=1, distinct=2, rows=4),
+                "shortest_length": 3,
+                "longest_length": 3,
+                "average_length": 3.0,
+                "masked_patterns": [pattern("AAA", 3)],
+            },
+        },
+    },
+    # A row for each name, the NULL one too: Ann seen 2, Bob 1, NULL 1.
+    "visit_names": {
+        "rows_read": 3,
+        "columns": {
+            "name": {
+                **counts(missing=1, distinct=2, rows=3),
+                "shortest_length": 3,
+                "longest_length": 3,
+                "average_length": 3.0,
+                "masked_patterns": [pattern("AAA", 2)],
+            },
+            # 2, 1 and 1.
+            "seen": counts(missing=0, distinct=2, rows=3),
+        },
+    },
+    # A view is read from the first rows it returns, here all three that have a name: Ann 2023,
+    # Bob 2023, Ann 2024. They're the first rows, not the whole view, so a sample's scope.
+    "named_visits": {
+        "read": "view_first_rows",
+        "rows_read": 3,
+        "columns": {
+            "name": {
+                **counts(missing=0, distinct=2, rows=3),
+                "shortest_length": 3,
+                "longest_length": 3,
+                "average_length": 3.0,
+                "masked_patterns": [pattern("AAA", 3)],
+            },
+            "year": counts(missing=0, distinct=2, rows=3),
+        },
+    },
 }
+# How an object is read when its entry doesn't say (ADR 0005): each above is small, and analysed
+# or never analysed, so whole. Each way gives its metrics' scope (CFX-APP-postgres AC-24).
+READ_WHOLE = "whole"
+SCOPE_OF_READ = {"whole": "full", "view_first_rows": "sample"}
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -316,12 +381,13 @@ def test_every_saved_metric_equals_its_known_value(client: TestClient, name: str
     run = profiled(client, name)
 
     assert run["status"] == "completed", run["failure"]
-    assert run["objects"] == [{"object": f"{SCHEMA}.{name}", "method": "whole"}]
+    read = EXPECTED[name].get("read", READ_WHOLE)
+    assert run["objects"] == [{"object": f"{SCHEMA}.{name}", "method": read}]
     saved: dict[str, dict] = {}
     rows_read = None
     for metric in run["metrics"]:
-        # A small table is read whole, so every metric is exact over all of it.
-        assert (metric["scope"], metric["precision"]) == ("full", "exact")
+        # Every metric is exact over the rows read: all of them, or a view's first rows.
+        assert (metric["scope"], metric["precision"]) == (SCOPE_OF_READ[read], "exact")
         if metric["column"] is None:
             assert metric["metric"] == "rows_read"
             rows_read = metric["value"]
