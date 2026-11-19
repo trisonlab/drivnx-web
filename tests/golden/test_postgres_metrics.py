@@ -16,6 +16,9 @@ from fastapi.testclient import TestClient
 from ..integration.test_postgres_objects_api import DETAILS, objects_in
 
 SCHEMA = "drivnx_golden"
+# The UUID the documents table writes three ways, here without its hyphens: 32 hex digits, which
+# a secret scan takes for a key.
+UUID_BARE = "a0eebc999c0b4ef8bb6d6bb9bd380a11"  # pragma: allowlist secret, ai-skills: allow
 DROP = (f"DROP SCHEMA IF EXISTS {SCHEMA} CASCADE",)
 # Made as the superuser, and read as the fixture's role.
 OBJECTS = (
@@ -69,7 +72,7 @@ OBJECTS = (
     f"""INSERT INTO {SCHEMA}.documents VALUES
         (1, 'yes', '{{"b":1, "a":2}}', '{{"b":1, "a":2}}', 'A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11'),
         (2, 'on', '{{"a":2,"b":1}}', '{{"a":2,"b":1}}', '{{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}}'),
-        (3, 'off', '{{"a":1,"a":2}}', '{{"a":1,"a":2}}', 'a0eebc999c0b4ef8bb6d6bb9bd380a11'),
+        (3, 'off', '{{"a":1,"a":2}}', '{{"a":1,"a":2}}', '{UUID_BARE}'),
         (4, NULL, 'null', 'null', NULL),
         (5, 'f', ' [1, 2.0] ', ' [1, 2.0] ', '00000000-0000-0000-0000-000000000000'),
         (6, 't', NULL, '{{"a": 2}}', 'B0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11')""",
