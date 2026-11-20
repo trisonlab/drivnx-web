@@ -141,9 +141,13 @@ def _failure(error: duckdb.Error) -> ConnectFailure:
 
 
 def attach(
-    connection: duckdb.DuckDBPyConnection, details: ConnectionDetails, password: str
+    connection: duckdb.DuckDBPyConnection,
+    details: ConnectionDetails,
+    password: str,
+    statement_timeout_seconds: int | None = None,
 ) -> None:
-    """Attach the database read-only as `source`.
+    """Attach the database read-only as `source`, each statement limited to
+    `statement_timeout_seconds`, by default `STATEMENT_TIMEOUT_SECONDS`.
 
     The password goes only into a temporary secret, which lives in this connection's memory:
     DuckDB repeats the connection string in its errors, so the password can't be in it.
@@ -164,6 +168,8 @@ def attach(
         )
         """
     )
+    if statement_timeout_seconds is None:
+        statement_timeout_seconds = STATEMENT_TIMEOUT_SECONDS
     settings = {
         "sslmode": details.tls_mode,
         "connect_timeout": str(_PER_ATTEMPT_SECONDS),
@@ -171,7 +177,7 @@ def attach(
         # Read-only on the server's side too, under DuckDB's READ_ONLY (AC-14), and a limit for
         # any one statement.
         "options": "-c default_transaction_read_only=on"
-        f" -c statement_timeout={STATEMENT_TIMEOUT_SECONDS}s",
+        f" -c statement_timeout={int(statement_timeout_seconds)}s",
     }
     if details.ca_path is not None:
         settings["sslrootcert"] = details.ca_path
@@ -563,9 +569,15 @@ def load_whole_object(
     except duckdb.Error as error:
         raise _not_read(error) from None
     finally:
-        connection.execute("RESET pg_numeric_as_varchar")
-        connection.execute("RESET pg_array_as_varchar")
-        connection.execute("RESET threads")
+        reset_whole_read(connection)
+
+
+def reset_whole_read(connection: duckdb.DuckDBPyConnection) -> None:
+    """Put back the settings `load_whole_object` changes for its read. Again after a read that
+    was stopped, as the interrupt that stopped it can also stop these."""
+    connection.execute("RESET pg_numeric_as_varchar")
+    connection.execute("RESET pg_array_as_varchar")
+    connection.execute("RESET threads")
 
 
 def session_pid(connection: duckdb.DuckDBPyConnection) -> int:

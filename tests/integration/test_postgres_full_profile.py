@@ -211,7 +211,9 @@ def test_a_full_runs_detail_says_each_object_was_read_whole(
 
     detail = client.get(f"/api/profile-runs/{run_id}").json()
 
-    assert detail["objects"] == [{"object": f"{SCHEMA}.repeated", "method": "full"}]
+    assert detail["objects"] == [
+        {"object": f"{SCHEMA}.repeated", "method": "full", "stopped_at_time_limit": False}
+    ]
     assert {
         "object": f"{SCHEMA}.repeated",
         "column": None,

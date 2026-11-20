@@ -36,6 +36,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.exc import NoResultFound
 
 from local_api.profile_jobs import (
+    TIME_LIMIT_REACHED,
     Busy,
     Mode,
     cancel_profile,
@@ -130,6 +131,8 @@ class ObjectReadResponse(BaseModel):
 
     object: str
     method: str
+    # A full profile stopped reading it at its time limit, so it has no results (AC-20).
+    stopped_at_time_limit: bool = False
 
 
 class ProfileRunDetail(ProfileRunResponse):
@@ -417,6 +420,9 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             for seen in observations
             if seen.metric == "rows_read" and seen.scope == "sample"
         }
+        stopped = {
+            seen.dataset_id for seen in observations if seen.metric == TIME_LIMIT_REACHED
+        }
 
         def read_as(dataset_id: str, planned: str) -> str:
             if run.mode == "full":
@@ -430,7 +436,9 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             file_changed=None,
             objects=[
                 ObjectReadResponse(
-                    object=named[dataset_id], method=read_as(dataset_id, found["method"])
+                    object=named[dataset_id],
+                    method=read_as(dataset_id, found["method"]),
+                    stopped_at_time_limit=dataset_id in stopped,
                 )
                 for dataset_id, found in objects.items()
             ],

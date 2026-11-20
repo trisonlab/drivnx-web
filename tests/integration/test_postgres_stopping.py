@@ -1,4 +1,5 @@
-"""Stopping a database's run while it reads, CFX-APP-postgres AC-21 and ADR 0009 (DRIVN-53)."""
+"""Stopping a database's run while it reads, CFX-APP-postgres AC-20 and AC-21, and ADR 0009
+(DRIVN-53)."""
 
 import time
 from collections.abc import Callable, Iterator
@@ -7,8 +8,10 @@ from pathlib import Path
 import pytest
 from artifacts.workspace import Workspace
 from connectors.csv_files import duckdb_connection
+from connectors import postgres
 from connectors.postgres import load_postgres
 from fastapi.testclient import TestClient
+from local_api import profile_jobs
 
 from .. import postgres_fixture
 from .test_postgres_objects_api import DETAILS, objects_in
@@ -21,6 +24,8 @@ from .test_postgres_profile_api import ended
 
 # CFX-APP-postgres, Non-functional: "cancelling stops a run within 5 s".
 CANCEL_WITHIN_SECONDS = 5
+# CFX-APP-postgres/AC-20: "its scan stops within 5 s".
+STOP_AT_THE_LIMIT_WITHIN_SECONDS = 5
 # Longer than the cancel's target, and shorter than the 30 s any one statement may run.
 SLEEP_SECONDS = 20
 SCHEMA = "drivnx_stopping"
@@ -39,6 +44,12 @@ OBJECTS = (
     f"CREATE TABLE {SCHEMA}.big (id integer, code text)",
     f"INSERT INTO {SCHEMA}.big SELECT n, 'C-' || n FROM generate_series(1, 3000000) AS n",
     f"ANALYZE {SCHEMA}.big",
+    # As `late_sleepy`, but its whole read takes 3 s.
+    f"CREATE VIEW {SCHEMA}.three_seconds AS SELECT n FROM generate_series(1, 100001) AS n"
+    " WHERE n <= 100000 OR (SELECT true FROM pg_sleep(3))",
+    f"CREATE TABLE {SCHEMA}.small (id integer)",
+    f"INSERT INTO {SCHEMA}.small VALUES (1), (2), (3)",
+    f"ANALYZE {SCHEMA}.small",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -128,3 +139,70 @@ def test_cancelling_a_run_mid_read_stops_the_read_on_the_server(
     assert drivnx_queries() == 0
     assert client.get(f"/api/profile-runs/{run_id}").json()["metrics"] == []
     assert escaped_errors == []
+
+
+@pytest.mark.parametrize("name", ["late_sleepy", "big"])
+def test_an_object_reaching_its_time_limit_is_stopped_and_the_run_goes_on(
+    start_app: StartApp,
+    workspace: Workspace,
+    drivnx_queries: Callable[[str], int],
+    escaped_errors: list[BaseException | None],
+    monkeypatch: pytest.MonkeyPatch,
+    name: str,
+) -> None:
+    # CFX-APP-postgres/AC-20: "its scan stops within 5 s, no query from DrivnX is left running
+    # on the server, the object shows 'stopped at the time limit, no results', the run goes on
+    # to the next object, and the finished run says which objects have no results". A minute
+    # lasts a second here, and each object takes longer than that to read whole.
+    monkeypatch.setattr(profile_jobs, "SECONDS_PER_MINUTE", 1)
+    client = start_app(None)
+    source_id = chosen_source(client, name, "small")
+    stopped, small = f"{SCHEMA}.{name}", f"{SCHEMA}.small"
+
+    started_at = time.monotonic()
+    started = client.post(
+        "/api/profile-runs",
+        json={"source_id": source_id, "mode": "full", "time_limit_minutes": 1},
+    )
+    assert started.status_code == 202, started.text
+    run = ended(client, started.json()["id"])
+    took = time.monotonic() - started_at
+
+    assert (run["status"], run["failure"]) == ("completed", None)
+    assert took < 1 + STOP_AT_THE_LIMIT_WITHIN_SECONDS, took
+    assert drivnx_queries() == 0
+    detail = client.get(f"/api/profile-runs/{run['id']}").json()
+    flagged = {found["object"]: found.get("stopped_at_time_limit") for found in detail["objects"]}
+    assert flagged == {stopped: True, small: False}
+    metrics = {
+        (seen["object"], seen["column"], seen["metric"]): seen["value"]
+        for seen in detail["metrics"]
+    }
+    assert {key: value for key, value in metrics.items() if key[0] == stopped} == {
+        (stopped, None, "time_limit_reached"): 1
+    }
+    assert metrics[(small, None, "rows_read")] == 3
+    assert escaped_errors == []
+
+
+def test_a_full_profiles_read_may_take_longer_than_other_statements_within_its_limit(
+    start_app: StartApp, workspace: Workspace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # ADR 0009 Decision 3: "A full run attaches with a statement_timeout of the time limit and a
+    # margin, as a view's one statement can take longer than the 30 s other reads have". Here
+    # other statements have 1 s, and the limit is 10 "minutes" of a second each.
+    monkeypatch.setattr(postgres, "STATEMENT_TIMEOUT_SECONDS", 1)
+    monkeypatch.setattr(profile_jobs, "SECONDS_PER_MINUTE", 1)
+    client = start_app(None)
+    source_id = chosen_source(client, "three_seconds")
+
+    started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "full"})
+    assert started.status_code == 202, started.text
+    run = ended(client, started.json()["id"])
+
+    assert (run["status"], run["failure"]) == ("completed", None)
+    detail = client.get(f"/api/profile-runs/{run['id']}").json()
+    rows_read = {
+        seen["object"]: seen["value"] for seen in detail["metrics"] if seen["metric"] == "rows_read"
+    }
+    assert rows_read == {f"{SCHEMA}.three_seconds": 100_001}

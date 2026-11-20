@@ -29,12 +29,14 @@ from connectors.csv_files import CsvError, RowNotReadable, duckdb_connection, lo
 from connectors.postgres import (
     SAMPLE_ROWS,
     ConnectFailure,
+    STATEMENT_TIMEOUT_SECONDS,
     ConnectionDetails,
     Reading,
     attach,
     cancel_read,
     load_object_rows,
     load_whole_object,
+    reset_whole_read,
     session_pid,
 )
 from domain.trust import Actor
@@ -53,6 +55,9 @@ SHUTDOWN_WAIT_SECONDS = 5
 PROFILE_MEMORY_LIMIT = "4GB"
 # A database's full profile stops an object at this, unless the run asks for another (DRIVN-53).
 DEFAULT_TIME_LIMIT_MINUTES = 10
+SECONDS_PER_MINUTE = 60
+# Saved for an object a full profile stopped at its time limit, with the limit in minutes.
+TIME_LIMIT_REACHED = "time_limit_reached"
 COLUMNS_CHANGED = "The file's columns no longer match the saved ones."
 FILE_GONE = "DrivnX can't find this file. It may have moved or been deleted."
 FILE_CHANGED = "The file changed while it was being profiled. Profile it again."
@@ -172,6 +177,7 @@ def start_database_profile(
     refresh has replaced one of the objects.
     """
     job = _Job()
+    time_limit_minutes = time_limit_minutes or DEFAULT_TIME_LIMIT_MINUTES
     with _jobs_lock:
         if _values_lock.locked():
             raise Busy
@@ -193,11 +199,7 @@ def start_database_profile(
                 ],
                 # What the role could change in them as the run started (DRIVN-52).
                 "write_access": write_access,
-                **(
-                    {"time_limit_minutes": time_limit_minutes or DEFAULT_TIME_LIMIT_MINUTES}
-                    if mode == "full"
-                    else {}
-                ),
+                **({"time_limit_minutes": time_limit_minutes} if mode == "full" else {}),
             },
             mode=mode,
             sample_size=SAMPLE_ROWS if mode == "fast" else None,
@@ -206,7 +208,18 @@ def start_database_profile(
         )
         job.thread = threading.Thread(
             target=_run_database_profile,
-            args=(workspace, run_id, job, mode, details, password, objects, readings, seed),
+            args=(
+                workspace,
+                run_id,
+                job,
+                mode,
+                details,
+                password,
+                objects,
+                readings,
+                seed,
+                time_limit_minutes,
+            ),
             name=JOB_THREAD_NAME,
             daemon=True,
         )
@@ -225,11 +238,12 @@ def _run_database_profile(
     objects: tuple[ChosenObject, ...],
     readings: dict[str, Reading],
     seed: int,
+    time_limit_minutes: int,
 ) -> None:
     status = "failed"
     try:
         observations = _measure_objects(
-            workspace, job, mode, details, password, objects, readings, seed
+            workspace, job, mode, details, password, objects, readings, seed, time_limit_minutes
         )
         for batch in batched(observations, MAX_OBSERVATIONS_PER_TRANSACTION):
             if job.stop.is_set():
@@ -274,15 +288,26 @@ def _measure_objects(
     objects: tuple[ChosenObject, ...],
     readings: dict[str, Reading],
     seed: int,
+    time_limit_minutes: int,
 ) -> list[NewObservation]:
-    """Each object read as planned and measured, over one connection to the server."""
+    """Each object read as planned and measured, over one connection to the server. On a full
+    profile, an object still being read at its time limit is stopped, and the run goes on."""
     observations: list[NewObservation] = []
     with duckdb_connection(workspace.temp_directory) as connection:
         with _jobs_lock:
             job.connection = connection
         try:
             connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
-            attach(connection, details, password)
+            # A full read is one statement, a view's or a table's chunk, that DrivnX stops at
+            # its time limit. The server's limit is a margin past that (ADR 0009 Decision 3).
+            attach(
+                connection,
+                details,
+                password,
+                None
+                if mode == "fast"
+                else time_limit_minutes * SECONDS_PER_MINUTE + STATEMENT_TIMEOUT_SECONDS,
+            )
             for found in objects:
                 job.object_name = f"{found.schema}.{found.name}"
                 # For each object, as the extension replaces a connection left idle for a minute.
@@ -291,25 +316,83 @@ def _measure_objects(
                     job.cancel_on_server = functools.partial(
                         cancel_read, details, password, pid, workspace.temp_directory
                     )
-                name = (found.schema, found.name)
-                columns = tuple(field.name for field in found.dataset.fields)
-                types = [field.normalised_type for field in found.dataset.fields]
-                fast = load_object_rows(
-                    connection, name, columns, readings[found.dataset.id], seed, ROWS_TABLE
-                )
-                sampled = _measure_loaded(connection, types, fast)
                 if mode == "fast":
-                    observations += _object_observations(found, sampled, fast)
-                    continue
-                # A full profile's masked patterns are its fast reading's (decided for DRIVN-53).
-                load_whole_object(connection, name, columns, ROWS_TABLE)
-                measured = _measure_loaded(connection, types, "full")
-                observations += _object_observations(found, measured, "full", (sampled, fast))
+                    observations += _read_object(connection, mode, found, readings, seed)
+                else:
+                    observations += _read_within_time_limit(
+                        connection, job, found, readings, seed, time_limit_minutes
+                    )
         finally:
             with _jobs_lock:
                 job.connection = None
                 job.cancel_on_server = None
     return observations
+
+
+def _read_object(
+    connection: duckdb.DuckDBPyConnection,
+    mode: Mode,
+    found: ChosenObject,
+    readings: dict[str, Reading],
+    seed: int,
+) -> list[NewObservation]:
+    """An object read as `mode` says, and what's saved for it."""
+    name = (found.schema, found.name)
+    columns = tuple(field.name for field in found.dataset.fields)
+    types = [field.normalised_type for field in found.dataset.fields]
+    fast = load_object_rows(connection, name, columns, readings[found.dataset.id], seed, ROWS_TABLE)
+    sampled = _measure_loaded(connection, types, fast)
+    if mode == "fast":
+        return _object_observations(found, sampled, fast)
+    # A full profile's masked patterns are its fast reading's (decided for DRIVN-53).
+    load_whole_object(connection, name, columns, ROWS_TABLE)
+    measured = _measure_loaded(connection, types, "full")
+    return _object_observations(found, measured, "full", (sampled, fast))
+
+
+def _read_within_time_limit(
+    connection: duckdb.DuckDBPyConnection,
+    job: _Job,
+    found: ChosenObject,
+    readings: dict[str, Reading],
+    seed: int,
+    time_limit_minutes: int,
+) -> list[NewObservation]:
+    """An object's full profile, or only that it was stopped at its time limit (AC-20)."""
+    reached = threading.Event()
+    read_over = threading.Event()
+    timer = threading.Timer(
+        time_limit_minutes * SECONDS_PER_MINUTE,
+        _stop_at_time_limit,
+        args=(job, reached, read_over),
+    )
+    timer.name, timer.daemon = INTERRUPTING_THREAD_NAME, True
+    timer.start()
+    try:
+        return _read_object(connection, "full", found, readings, seed)
+    except (ConnectFailure, duckdb.Error):
+        if job.stop.is_set() or not reached.is_set():
+            raise
+        # No results for it, only that it was stopped (ADR 0009 Decision 5).
+        return [
+            NewObservation(
+                found.dataset.id,
+                None,
+                TIME_LIMIT_REACHED,
+                time_limit_minutes,
+                "full",
+                "count",
+                "exact",
+            )
+        ]
+    finally:
+        timer.cancel()
+        read_over.set()
+        timer.join()
+        if reached.is_set() and not job.stop.is_set():
+            # Only once no interrupt can stop these: what the stopped read left behind.
+            reset_whole_read(connection)
+            connection.execute(f"DROP TABLE IF EXISTS {ROWS_TABLE}")
 
 
 def _measure_loaded(
@@ -412,14 +495,21 @@ def stop_jobs() -> None:
 
 def _interrupt(job: _Job) -> None:
     threading.Thread(
-        target=_interrupt_until_ended, args=(job,), name=INTERRUPTING_THREAD_NAME, daemon=True
+        target=_stop_read, args=(job, job.ended), name=INTERRUPTING_THREAD_NAME, daemon=True
     ).start()
 
 
-def _interrupt_until_ended(job: _Job) -> None:
+def _stop_at_time_limit(job: _Job, reached: threading.Event, read_over: threading.Event) -> None:
+    reached.set()
+    _stop_read(job, read_over)
+
+
+def _stop_read(job: _Job, until: threading.Event) -> None:
+    """Interrupt the job's read until `until` is set, and cancel it on the server once if that
+    takes longer than `STOP_GRACE_SECONDS` (ADR 0009)."""
     cancel_after = time.monotonic() + STOP_GRACE_SECONDS
     cancelled = False
-    while not job.ended.is_set():
+    while not until.is_set():
         cancel = None
         with _jobs_lock:
             # Under the lock, so the job can't close the connection meanwhile.
@@ -435,7 +525,7 @@ def _interrupt_until_ended(job: _Job) -> None:
             except (ConnectFailure, duckdb.Error, OSError):
                 # The read still ends at its statement timeout, and the run as asked.
                 pass
-        job.ended.wait(INTERRUPT_EVERY_SECONDS)
+        until.wait(INTERRUPT_EVERY_SECONDS)
 
 
 class FileChanged(CsvError):

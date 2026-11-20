@@ -355,8 +355,8 @@ def test_a_database_runs_results_say_how_each_object_was_read(client: TestClient
     assert response.status_code == 200, response.text
     detail = response.json()
     assert detail["objects"] == [
-        {"object": f"{SCHEMA}.names", "method": "view_first_rows"},
-        {"object": f"{SCHEMA}.people", "method": "whole"},
+        {"object": f"{SCHEMA}.names", "method": "view_first_rows", "stopped_at_time_limit": False},
+        {"object": f"{SCHEMA}.people", "method": "whole", "stopped_at_time_limit": False},
     ]
     assert detail["file_changed"] is None
     assert {
@@ -390,7 +390,9 @@ def test_an_object_larger_than_its_estimate_is_labelled_as_its_first_rows(
 
     detail = client.get(f"/api/profile-runs/{run_id}").json()
 
-    assert detail["objects"] == [{"object": f"{SCHEMA}.misestimated", "method": "first_rows"}]
+    assert detail["objects"] == [
+        {"object": f"{SCHEMA}.misestimated", "method": "first_rows", "stopped_at_time_limit": False}
+    ]
     (rows_read,) = [metric for metric in detail["metrics"] if metric["metric"] == "rows_read"]
     assert (rows_read["value"], rows_read["scope"]) == (100_000, "sample")
 
