@@ -109,6 +109,17 @@ _TIMED_OUT = (
     f"The database took longer than {STATEMENT_TIMEOUT_SECONDS} seconds to read this page."
     " Try again."
 )
+_OBJECT_TIMED_OUT = (
+    "The database took too long to read this object, and stopped. Try again when it's less busy."
+)
+_NOT_ALLOWED_TO_READ = (
+    "This connection's user isn't allowed to read this object any more. Ask the database's"
+    " administrator for SELECT on it, or leave it out."
+)
+_LOST = (
+    "DrivnX lost its connection to the database, as when the server restarts or an"
+    " administrator ends the session. Profile again once it's back."
+)
 # What libpq says, in English, in the order to look for it: a TLS failure can also mention
 # pg_hba.conf. A server set to another language gets the general message instead.
 _FAILURES = (
@@ -440,12 +451,18 @@ def _as_text(object_name: tuple[str, str], columns: tuple[str, ...]) -> str:
     return f"SELECT {shown} FROM {_identifier(schema)}.{_identifier(name)}"
 
 
-def _not_read(error: duckdb.Error) -> ConnectFailure:
-    """Why an object's rows couldn't be read. Never DuckDB's own text, which repeats the query
-    and the server's error: only whether the server stopped it for taking too long, in its
-    English text."""
-    if "canceling statement due to statement timeout" in str(error):
-        return ConnectFailure("timeout", _TIMED_OUT)
+def _not_read(error: duckdb.Error, timed_out: str = _TIMED_OUT) -> ConnectFailure:
+    """Why an object's rows couldn't be read, with `timed_out` for a statement timeout. Never
+    DuckDB's own text, which repeats the query and the server's error: only which of these the
+    server said, in its English text."""
+    text = str(error)
+    if "canceling statement due to statement timeout" in text:
+        return ConnectFailure("timeout", timed_out)
+    # Ended by an administrator, or by a restart's fast shutdown, which says the same.
+    if "terminating connection due to administrator command" in text:
+        return ConnectFailure("lost", _LOST)
+    if "permission denied for" in text:
+        return ConnectFailure("not_allowed", _NOT_ALLOWED_TO_READ)
     return ConnectFailure("changed", _NOT_READ)
 
 
@@ -526,7 +543,7 @@ def load_object_rows(
             f"CREATE TABLE {table} AS SELECT * FROM postgres_query('{NAME}', {_sql(sql)})"
         )
     except duckdb.Error as error:
-        raise _not_read(error) from None
+        raise _not_read(error, _OBJECT_TIMED_OUT) from None
     if reading.method == "whole":
         (loaded,) = connection.execute(f"SELECT count(*) FROM {table}").fetchone()
         if loaded > SAMPLE_ROWS:
@@ -567,7 +584,7 @@ def load_whole_object(
         shown = ", ".join(f"{as_text(column)} AS c{n}" for n, column in enumerate(columns))
         connection.execute(f"CREATE TABLE {table} AS SELECT {shown} FROM {source}")
     except duckdb.Error as error:
-        raise _not_read(error) from None
+        raise _not_read(error, _OBJECT_TIMED_OUT) from None
     finally:
         reset_whole_read(connection)
 

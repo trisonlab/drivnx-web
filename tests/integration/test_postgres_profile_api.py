@@ -216,9 +216,9 @@ def test_each_objects_columns_get_the_metrics_for_their_type_and_only_null_is_mi
 def test_a_run_that_cant_read_an_object_fails_and_says_which(
     start_app: StartApp, workspace: Workspace, postgres_admin: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-18: the run reads each object, and one it can't read ends it `failed`,
-    # with the object and DrivnX's reason, never DuckDB's or the server's text. Its columns are
-    # as listed, so the start doesn't refuse it.
+    # CFX-APP-postgres/AC-18 and AC-22: the run reads each object, and one it can't read ends it
+    # `failed`, with the object and DrivnX's reason, never DuckDB's or the server's text. Its
+    # columns are as listed, so the start doesn't refuse it.
     client = start_app(None)
     source_id = chosen_source(client, "people", "revoked")
     postgres_admin(f"REVOKE SELECT ON {SCHEMA}.revoked FROM drivnx_fixture")
@@ -232,8 +232,8 @@ def test_a_run_that_cant_read_an_object_fails_and_says_which(
 
     assert (run["status"], run["failure"]) == (
         "failed",
-        f"{SCHEMA}.revoked: DrivnX couldn't read this object. It may have changed since it was"
-        " listed: refresh the list.",
+        f"{SCHEMA}.revoked: This connection's user isn't allowed to read this object any more."
+        " Ask the database's administrator for SELECT on it, or leave it out.",
     )
     assert read_observations(workspace.engine, run_id) == []
 

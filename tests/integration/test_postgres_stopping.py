@@ -1,5 +1,5 @@
-"""Stopping a database's run while it reads, CFX-APP-postgres AC-20 and AC-21, and ADR 0009
-(DRIVN-53)."""
+"""A database's run stopped while it reads: by the user, at its time limit, or by the server.
+CFX-APP-postgres AC-20, AC-21 and AC-22, and ADR 0009 (DRIVN-53)."""
 
 import time
 from collections.abc import Callable, Iterator
@@ -47,6 +47,10 @@ OBJECTS = (
     # As `late_sleepy`, but its whole read takes 3 s.
     f"CREATE VIEW {SCHEMA}.three_seconds AS SELECT n FROM generate_series(1, 100001) AS n"
     " WHERE n <= 100000 OR (SELECT true FROM pg_sleep(3))",
+    # Read in about 2 s by a fast reading, and again by a full read.
+    f"CREATE VIEW {SCHEMA}.two_seconds AS SELECT 1 AS n FROM pg_sleep(2)",
+    # Only the test that revokes it chooses it.
+    f"CREATE TABLE {SCHEMA}.withdrawn (id integer)",
     f"CREATE TABLE {SCHEMA}.small (id integer)",
     f"INSERT INTO {SCHEMA}.small VALUES (1), (2), (3)",
     f"ANALYZE {SCHEMA}.small",
@@ -206,3 +210,104 @@ def test_a_full_profiles_read_may_take_longer_than_other_statements_within_its_l
         seen["object"]: seen["value"] for seen in detail["metrics"] if seen["metric"] == "rows_read"
     }
     assert rows_read == {f"{SCHEMA}.three_seconds": 100_001}
+
+
+# How each read of a slow view reaches the server, as in the cancel's test.
+SLOW_READS = [
+    ("fast", "sleepy", f'COPY (SELECT "n"::text AS c0 FROM "{SCHEMA}"."sleepy"%'),
+    ("full", "late_sleepy", f'COPY (SELECT "n" FROM "{SCHEMA}"."late_sleepy"%'),
+]
+
+
+def reading(drivnx_queries: Callable[[str], int], read: str) -> None:
+    """Wait until DrivnX is running this read on the server."""
+    deadline = time.monotonic() + 30
+    while not drivnx_queries(read) and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert drivnx_queries(read) == 1, "The read never started on the server."
+
+
+@pytest.mark.parametrize(("mode", "name", "read"), SLOW_READS)
+def test_a_run_whose_session_the_server_ends_mid_read_fails_naming_the_object_and_why(
+    start_app: StartApp,
+    workspace: Workspace,
+    postgres_admin: Callable[[str], None],
+    drivnx_queries: Callable[[str], int],
+    mode: str,
+    name: str,
+    read: str,
+) -> None:
+    # CFX-APP-postgres/AC-22: "Given a connection lost, a server restart ... during a run, then
+    # the run ends `failed`, the message names the object and the reason, and its results don't
+    # appear as current". A restart's fast shutdown ends each session as this does (decided for
+    # DRIVN-53), and the server says the same.
+    client = start_app(None)
+    source_id = chosen_source(client, name)
+    started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": mode})
+    assert started.status_code == 202, started.text
+    reading(drivnx_queries, read)
+
+    postgres_admin(
+        "SELECT pg_terminate_backend(pid) FROM pg_stat_activity"
+        " WHERE application_name = 'DrivnX' AND state = 'active'"
+    )
+    run = ended(client, started.json()["id"])
+
+    assert (run["status"], run["failure"]) == (
+        "failed",
+        f"{SCHEMA}.{name}: DrivnX lost its connection to the database, as when the server"
+        " restarts or an administrator ends the session. Profile again once it's back.",
+    )
+    assert client.get(f"/api/profile-runs/{run['id']}").json()["metrics"] == []
+
+
+@pytest.mark.parametrize("mode", ["fast", "full"])
+def test_a_run_whose_next_object_is_revoked_mid_run_fails_naming_it_and_why(
+    start_app: StartApp,
+    workspace: Workspace,
+    postgres_admin: Callable[[str], None],
+    drivnx_queries: Callable[[str], int],
+    mode: str,
+) -> None:
+    # CFX-APP-postgres/AC-22: "Given ... a privilege revoked during a run, then the run ends
+    # `failed`, the message names the object and the reason, and its results don't appear as
+    # current". Revoked while the object before it is read.
+    client = start_app(None)
+    source_id = chosen_source(client, "two_seconds", "withdrawn")
+    started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": mode})
+    assert started.status_code == 202, started.text
+    reading(drivnx_queries, f'COPY (SELECT "n"::text AS c0 FROM "{SCHEMA}"."two_seconds"%')
+
+    postgres_admin(f"REVOKE SELECT ON {SCHEMA}.withdrawn FROM drivnx_fixture")
+    try:
+        run = ended(client, started.json()["id"])
+    finally:
+        postgres_admin(f"GRANT SELECT ON {SCHEMA}.withdrawn TO drivnx_fixture")
+
+    assert (run["status"], run["failure"]) == (
+        "failed",
+        f"{SCHEMA}.withdrawn: This connection's user isn't allowed to read this object any more."
+        " Ask the database's administrator for SELECT on it, or leave it out.",
+    )
+    assert client.get(f"/api/profile-runs/{run['id']}").json()["metrics"] == []
+
+
+def test_a_profile_read_the_server_stops_for_taking_too_long_fails_naming_the_object(
+    start_app: StartApp, workspace: Workspace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # CFX-APP-postgres/AC-22 with ADR 0009 Decision 6: a statement timeout is told apart from a
+    # lost connection and a revoked privilege, and is about the object, not a preview's page.
+    # Other statements have 1 s here, and a fast reading of the view takes 2 s.
+    monkeypatch.setattr(postgres, "STATEMENT_TIMEOUT_SECONDS", 1)
+    client = start_app(None)
+    source_id = chosen_source(client, "two_seconds")
+
+    started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "fast"})
+    assert started.status_code == 202, started.text
+    run = ended(client, started.json()["id"])
+
+    assert (run["status"], run["failure"]) == (
+        "failed",
+        f"{SCHEMA}.two_seconds: The database took too long to read this object, and stopped."
+        " Try again when it's less busy.",
+    )
