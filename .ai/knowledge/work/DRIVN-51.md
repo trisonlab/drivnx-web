@@ -72,7 +72,7 @@ job's connection at `SET threads = 1`, so the server sees one DrivnX session (AC
 - **Metrics:** missing and distinct counts and percentages for every column; text lengths and masked patterns for text
   columns (`text`, `character varying`, `character`, `citext`, `name`, not arrays); never "values that don't fit the
   type". Distinct values are counted on PostgreSQL's text form, so `1.0` and `1.00` in an unscaled `numeric` are two.
-- **Not yet:** a database's full profile (DRIVN-54), findings (DRIVN-55) and values on request (DRIVN-56) are refused
+- **Not yet:** a database's full profile (DRIVN-53), findings (DRIVN-55) and values on request (DRIVN-56) are refused
   as not available yet, and the screen says so.
 
 Steps:

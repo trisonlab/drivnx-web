@@ -76,3 +76,43 @@ Steps:
 
 Not in this ticket: findings (DRIVN-55), values on request after a full run (DRIVN-56), runs interrupted by a restart
 (DRIVN-57), the write warning (DRIVN-52), the golden metrics (DRIVN-54).
+
+## Measured (step 8)
+On 2026-11-20, against the fixture (PostgreSQL 17) on the development machine: Linux, 8 cores, 15 GB, DuckDB 2.0.0
+with the bundled extension, no network between them. The table is `big` from `tests/measure_postgres_sample.py`:
+10 million rows, 5 columns, about 790 MB.
+
+`tests/measure_postgres_sample.py`, DuckDB's own reads as in spike 2 (ADR 0005):
+
+| What | Seconds |
+|---|---|
+| Every row, one pass of the profile's aggregates | 3.64, 3.34 |
+| The same on one thread, as DrivnX reads | 5.21, 4.98 |
+| Duplicate rows counted | 4.14 |
+| Cancel during that pass: the read returned / nothing left on the server | 0.18 / 0.25 |
+| A 2 s `statement_timeout` during that pass | didn't stop it; 4.12 |
+
+DrivnX's own runs through `POST /api/profile-runs`, on a copy of `big` and a view over it (`WHERE amount >= 0`), timed
+from the start request until the run ended, by a temporary test that isn't kept:
+
+| What | Seconds |
+|---|---|
+| Fast profile of the table | 0.81, 0.90 |
+| Full profile of the table: fast reading, whole read, measured, saved | 8.45, 8.53 (7.31, 7.39 in an earlier run) |
+| Full profile of the view | 9.03 (7.79 in an earlier run) |
+| Cancel 3 s into a full run of the table: run `cancelled`, nothing left on the server | 1.17, 1.14 |
+| The same for the view | 1.14, 1.16 |
+| A 3 s time limit (`SECONDS_PER_MINUTE` patched), table and view: object stopped, run `completed` | 4.38, 4.39 |
+
+What these show:
+- A full profile of 10 million rows takes 7–9 s here, 1.4 to 1.7 times DuckDB's one-thread pass, as it copies
+  every column as text into the job's table before measuring it. INFERRED, scaling linearly: the default 10-minute limit
+  covers roughly 700 million rows like these on this machine. Over a network, moving the table bounds it.
+- A cancel ends in about 1.2 s, for a table too: on one thread the interrupt didn't stop the table's read within 1 s,
+  and the `pg_cancel_backend` sent after 1 s did (ADR 0009 Decision 1). Spike 2's 0.10–0.14 s was a scan on every
+  thread. An object stopped at its limit ended about 1.4 s after it, the run's start included.
+- On that pass, `statement_timeout` limited each statement the scanner sent, not the table's whole read, which it
+  split. INFERRED for DrivnX's one-thread read, not measured: the per-object timer is what bounds a full read, and the
+  timeout is a backstop.
+
+Not measured: a network between DrivnX and the server, a cold disk, other machines.
