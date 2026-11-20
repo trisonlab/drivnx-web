@@ -97,6 +97,14 @@ export function profileStatus(
   return STATUS_LABELS[newest.status];
 }
 
+const MINUTES_NEEDED = "Enter a whole number of minutes from 1 to 120.";
+
+/** A full profile's time limit as the API keeps it, 1 to 120 whole minutes, or null. */
+function timeLimit(typed: string): number | null {
+  const minutes = Number(typed);
+  return /^\d+$/.test(typed.trim()) && minutes >= 1 && minutes <= 120 ? minutes : null;
+}
+
 function startFailure(error: Error): string {
   return error instanceof RunRefusedError ? error.message : "DrivnX couldn't start this profile. Start DrivnX again.";
 }
@@ -113,7 +121,7 @@ function Patterns({ patterns, measuredOn }: { patterns: MaskedPattern[]; measure
   const count = patterns.length === 1 ? "1 pattern" : `${patterns.length} patterns`;
   return (
     <details>
-      <summary>{measuredOn ? `${count}, from the ${measuredOn}` : count}</summary>
+      <summary>{measuredOn ? `${count}, from ${measuredOn}` : count}</summary>
       <ul className="masked-patterns">
         {patterns.map((found) => (
           <li key={`${found.pattern}|${found.cut}`}>
@@ -165,7 +173,9 @@ function ColumnRow({
         {Array.isArray(patterns) ? (
           <Patterns
             patterns={patterns}
-            measuredOn={patternsScope && patternsScope !== metrics[0].scope ? SCOPE_LABELS[patternsScope] : undefined}
+            measuredOn={
+              patternsScope && patternsScope !== metrics[0].scope ? `the ${SCOPE_LABELS[patternsScope]}` : undefined
+            }
           />
         ) : (
           NOT_SAVED
@@ -571,7 +581,10 @@ const READ_AS: Record<NonNullable<ProfileRunDetail["objects"]>[number]["method"]
   whole: (rows) => `the whole object, ${rows} rows`,
   first_rows: (rows) => `the first ${rows} rows returned, not random`,
   view_first_rows: (rows) => `the first ${rows} rows the view returned, not random`,
+  full: (rows) => `every row, ${rows} rows`,
 };
+// A full profile's masked patterns are its fast reading's (CFX-APP-postgres, the Assumptions).
+const FULL_RUNS_PATTERNS = "a sample of about 100,000 rows";
 
 /** A database run's results: one table per object, with how its rows were read. No values that
  * don't fit, which a typed column can't hold, and no values on request yet (DRIVN-56). */
@@ -584,12 +597,20 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
     return null;
   }
   const { metrics, objects = [] } = results.data;
+  // A full profile stopped these at their time limit, so they have no results (AC-20).
+  const stopped = objects.filter((found) => found.stopped_at_time_limit).map((found) => found.object);
   return (
     <>
       <p>
         Run {run.id}, finished {new Date(run.ended_at ?? run.started_at).toLocaleString()}
       </p>
-      {objects.map(({ object, method }) => {
+      {stopped.length > 0 && (
+        <p>No results for these objects, stopped at the time limit: {stopped.join(", ")}.</p>
+      )}
+      {objects.map(({ object, method, stopped_at_time_limit }) => {
+        if (stopped_at_time_limit) {
+          return <p key={object}>{object}: stopped at the time limit, no results</p>;
+        }
         const own = metrics.filter((metric) => metric.object === object);
         const rows = own.find((metric) => metric.column === null && metric.metric === "rows_read")?.value;
         const columns = [...new Set(own.flatMap((metric) => metric.column ?? []))];
@@ -616,6 +637,8 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
                   const ofColumn = own.filter((metric) => metric.column === column);
                   const value = (name: string) => ofColumn.find((metric) => metric.metric === name)?.value;
                   const patterns = value("masked_patterns");
+                  const patternsScope = ofColumn.find((metric) => metric.metric === "masked_patterns")?.scope;
+                  const fromSample = method === "full" && patternsScope === "sample";
                   return (
                     <tr key={column}>
                       <th scope="row">{column}</th>
@@ -625,7 +648,16 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
                       <td>{shown(value("shortest_length"))}</td>
                       <td>{shown(value("longest_length"))}</td>
                       <td>{shown(value("average_length"))}</td>
-                      <td>{Array.isArray(patterns) ? <Patterns patterns={patterns} /> : NOT_SAVED}</td>
+                      <td>
+                        {Array.isArray(patterns) ? (
+                          <Patterns
+                            patterns={patterns}
+                            measuredOn={fromSample ? FULL_RUNS_PATTERNS : undefined}
+                          />
+                        ) : (
+                          NOT_SAVED
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -650,21 +682,48 @@ export function ProfileTab({
   const headingId = useId();
   const queryClient = useQueryClient();
   const runs = useProfileRuns();
+  // A database's full profile stops each object at this many minutes (CFX-APP-postgres AC-20).
+  const [minutes, setMinutes] = useState("10");
+  // Said once a full profile is asked for with minutes it can't take, until they're put right.
+  const [triedMinutes, setTriedMinutes] = useState(false);
+  const minutesInvalid = triedMinutes && timeLimit(minutes) === null;
+  const minutesId = useId();
+  const minutesErrorId = useId();
+  const minutesField = useRef<HTMLInputElement>(null);
   const start = useMutation({
-    mutationFn: ({ mode, writeAccess }: { mode: ProfileRun["mode"]; writeAccess?: WriteAccess }) =>
-      startProfile(source.id, mode, writeAccess),
+    mutationFn: ({
+      mode,
+      writeAccess,
+      timeLimitMinutes,
+    }: {
+      mode: ProfileRun["mode"];
+      writeAccess?: WriteAccess;
+      timeLimitMinutes?: number;
+    }) => startProfile(source.id, mode, writeAccess, timeLimitMinutes),
     // The new run's results are what the user asked for, once it completes.
     onSuccess: () => onOpenRun(null),
     // Also after a refusal, which can come from a run this page hasn't heard of.
     onSettled: () => queryClient.invalidateQueries({ queryKey: PROFILE_RUNS_QUERY }),
   });
+  const startFull = () => {
+    const limit = timeLimit(minutes);
+    setTriedMinutes(true);
+    if (limit === null) {
+      minutesField.current?.focus();
+      return;
+    }
+    start.mutate({ mode: "full", timeLimitMinutes: limit });
+  };
   const cancel = useMutation({
     mutationFn: cancelProfile,
     onSettled: () => queryClient.invalidateQueries({ queryKey: PROFILE_RUNS_QUERY }),
   });
   const { reset: forgetRefusal } = start;
-  // Where focus goes back to when the user doesn't confirm a write warning.
+  // Where focus goes back to once a write warning is answered: the button that started it.
   const fastProfile = useRef<HTMLButtonElement>(null);
+  const fullProfile = useRef<HTMLButtonElement>(null);
+  const backToStart = () =>
+    (start.variables?.mode === "full" ? fullProfile : fastProfile).current?.focus();
   // A database's write access the user is asked to confirm before its run starts (AC-16).
   const confirming = start.error instanceof WriteAccessError ? start.error.writeAccess : undefined;
   const running = runs.data?.find((run) => run.status === "running");
@@ -692,10 +751,30 @@ export function ProfileTab({
           Fast profile
         </button>{" "}
         {source.kind === "postgres" ? (
-          // A database's full profile comes with its time limit and cancel (DRIVN-54).
-          <button type="button" disabled>
-            Full profile <span className="unavailable">Not available yet</span>
-          </button>
+          <>
+            <button type="button" ref={fullProfile} onClick={startFull}>
+              Full profile
+            </button>{" "}
+            <label htmlFor={minutesId}>Time limit per object, in minutes</label>{" "}
+            <input
+              id={minutesId}
+              ref={minutesField}
+              type="number"
+              min={1}
+              max={120}
+              step={1}
+              value={minutes}
+              aria-invalid={minutesInvalid}
+              aria-describedby={minutesInvalid ? minutesErrorId : undefined}
+              onChange={(event) => setMinutes(event.target.value)}
+            />
+            {minutesInvalid && (
+              <span id={minutesErrorId} role="alert">
+                {" "}
+                {MINUTES_NEEDED}
+              </span>
+            )}
+          </>
         ) : (
           <button type="button" onClick={() => start.mutate({ mode: "full" })}>
             Full profile
@@ -708,11 +787,11 @@ export function ProfileTab({
           onProfile={() => {
             // The same start, everything it asked for, with the access the user was shown.
             start.mutate({ mode: "fast", ...start.variables, writeAccess: confirming });
-            fastProfile.current?.focus();
+            backToStart();
           }}
           onCancel={() => {
+            backToStart();
             start.reset();
-            fastProfile.current?.focus();
           }}
         />
       ) : (

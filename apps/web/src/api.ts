@@ -378,7 +378,12 @@ export type ProfileRunDetail = ProfileRun & {
   // the file can't be looked at.
   file_changed: boolean | null;
   // A database run's objects, each with how its rows were read (CFX-APP-postgres AC-18).
-  objects?: { object: string; method: "page_sample" | "whole" | "first_rows" | "view_first_rows" }[];
+  objects?: {
+    object: string;
+    method: "page_sample" | "whole" | "first_rows" | "view_first_rows" | "full";
+    // A full profile stopped reading it at its time limit, so it has no results (CFX-APP-postgres AC-20).
+    stopped_at_time_limit?: boolean;
+  }[];
 };
 
 const PROFILE_RUNS_PATH = "/api/profile-runs";
@@ -486,11 +491,18 @@ export async function startProfile(
   sourceId: string,
   mode: ProfileRun["mode"],
   writeAccess?: WriteAccess,
+  // A database's full profile: each object's limit (CFX-APP-postgres AC-20).
+  timeLimitMinutes?: number,
 ): Promise<ProfileRun> {
   const response = await fetch(PROFILE_RUNS_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ source_id: sourceId, mode, ...(writeAccess && { write_access: writeAccess }) }),
+    body: JSON.stringify({
+      source_id: sourceId,
+      mode,
+      ...(writeAccess && { write_access: writeAccess }),
+      ...(timeLimitMinutes !== undefined && { time_limit_minutes: timeLimitMinutes }),
+    }),
   });
   if (response.status === 409 || response.status === 503) {
     const { detail } = await response.json();

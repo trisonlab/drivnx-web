@@ -493,18 +493,16 @@ test("a server that answers again when its tables are listed no longer says it c
   expect(within(details).queryByRole("alert")).not.toBeInTheDocument();
 });
 
-test("a database source offers a fast profile, its rows are previewed by object, and nothing asks for them", async () => {
-  // CFX-APP-postgres/AC-18: a fast profile of its chosen objects; a full one comes with DRIVN-54.
-  // AC-12: a chosen object's preview is in its details (DatabaseObjects.test.tsx), so the source has
-  // none of its own.
+test("a database source offers a fast and a full profile, its rows are previewed by object, and nothing asks for them", async () => {
+  // CFX-APP-postgres/AC-18 and AC-19: a fast or a full profile of its chosen objects. AC-12: a chosen
+  // object's preview is in its details (DatabaseObjects.test.tsx), so the source has none of its own.
   sources = [fixture];
   renderApp();
 
   await screen.findByRole("region", { name: "drivnx_fixture" });
   const tab = screen.getByRole("tabpanel", { name: "Profile" });
   expect(await within(tab).findByRole("button", { name: "Fast profile" })).toBeEnabled();
-  expect(within(tab).getByRole("button", { name: /Full profile/ })).toBeDisabled();
-  expect(tab).toHaveTextContent("Full profile Not available yet");
+  expect(within(tab).getByRole("button", { name: "Full profile" })).toBeEnabled();
   expect(screen.queryByRole("region", { name: "Preview" })).not.toBeInTheDocument();
   const review = screen.getByRole("complementary", { name: "Intelligence & Review" });
   expect(review).not.toHaveTextContent(/profile this file/i);
@@ -573,6 +571,54 @@ test("a password the server refuses when an object is previewed asks for it, say
     "The server refused this user name and password. Enter the password for drivnx_reader to connect again.",
   );
 });
+
+test("a database's full profile is started with its time limit per object, 10 minutes unless changed", async () => {
+  // CFX-APP-postgres/AC-19 and AC-20: "Given a full profile and a per-table time limit"; the API keeps 1 to
+  // 120 minutes, 10 by default (DRIVN-53).
+  sources = [fixture];
+  answers["/api/profile-runs"] = () =>
+    Response.json({ ...databaseRun, mode: "full", status: "running" }, { status: 202 });
+  const user = userEvent.setup();
+  renderApp();
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  const full = await within(tab).findByRole("button", { name: "Full profile" });
+  expect(full).toBeEnabled();
+  const minutes = within(tab).getByRole("spinbutton", { name: "Time limit per object, in minutes" });
+  expect(minutes).toHaveValue(10);
+
+  await user.click(full);
+  await user.clear(minutes);
+  await user.type(minutes, "25");
+  await user.click(full);
+
+  expect(posted("/api/profile-runs")).toEqual([
+    { source_id: "p1", mode: "full", time_limit_minutes: 10 },
+    { source_id: "p1", mode: "full", time_limit_minutes: 25 },
+  ]);
+});
+
+test.each(["0", "121", "2.5", ""])(
+  "a time limit of %j minutes starts nothing and says what it takes",
+  async (typed) => {
+    // CFX-APP-postgres/AC-20 with the API's 1 to 120 minutes; WCAG 3.3.1, the error is named in text and
+    // tied to its field.
+    sources = [fixture];
+    const user = userEvent.setup();
+    renderApp();
+    const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+    const minutes = await within(tab).findByRole("spinbutton", { name: "Time limit per object, in minutes" });
+
+    await user.clear(minutes);
+    if (typed) {
+      await user.type(minutes, typed);
+    }
+    await user.click(within(tab).getByRole("button", { name: "Full profile" }));
+
+    expect(posted("/api/profile-runs")).toEqual([]);
+    expect(minutes).toHaveAttribute("aria-invalid", "true");
+    expect(minutes).toHaveAccessibleDescription("Enter a whole number of minutes from 1 to 120.");
+  },
+);
 
 function metric(object: string, column: string | null, name: string, value: unknown, scope = "sample") {
   return { object, column, metric: name, value, scope, precision: "exact" };
@@ -652,6 +698,93 @@ test("a database run's results show each object with how its rows were read, the
   ]);
 });
 
+const fullRun = { ...databaseRun, id: "r2", mode: "full" };
+
+test("a full run's results say each object was read row by row, with patterns from its sample", async () => {
+  // CFX-APP-postgres/AC-19: "every row of each object is read, with exact results and each object's exact
+  // row count"; the Assumptions: "masked patterns always come from the fast profile's sample rows, even on
+  // a full profile, and are labelled that way" (about 100,000 rows, ADR 0005).
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([fullRun]);
+  gets["/api/findings?profile_run_id=r2"] = () => Response.json([]);
+  gets["/api/profile-runs/r2"] = () =>
+    Response.json({
+      ...fullRun,
+      file_changed: null,
+      objects: [{ object: "sales.orders", method: "full", stopped_at_time_limit: false }],
+      metrics: [
+        metric("sales.orders", null, "rows_read", 1234567, "full"),
+        metric("sales.orders", "region", "distinct_count", 4, "full"),
+        metric("sales.orders", "region", "masked_patterns", [
+          { pattern: "AAAA", count: 90000, cut: false },
+          { pattern: "AAAAA", count: 10000, cut: false },
+        ]),
+      ],
+    });
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  const orders = await within(tab).findByRole("table");
+
+  expect(orders.querySelector("caption")).toHaveTextContent("sales.orders: every row, 1,234,567 rows");
+  expect(within(orders).getByRole("row", { name: /region/ })).toHaveTextContent(
+    "2 patterns, from a sample of about 100,000 rows",
+  );
+});
+
+test("an object stopped at its time limit shows it has no results, and the run names each such object", async () => {
+  // CFX-APP-postgres/AC-20: "the object shows 'stopped at the time limit, no results', the run goes on to
+  // the next object, and the finished run says which objects have no results".
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([fullRun]);
+  gets["/api/findings?profile_run_id=r2"] = () => Response.json([]);
+  gets["/api/profile-runs/r2"] = () =>
+    Response.json({
+      ...fullRun,
+      file_changed: null,
+      objects: [
+        { object: "sales.big", method: "full", stopped_at_time_limit: true },
+        { object: "sales.orders", method: "full", stopped_at_time_limit: false },
+        { object: "sales.slow_view", method: "full", stopped_at_time_limit: true },
+      ],
+      metrics: [
+        metric("sales.big", null, "time_limit_reached", 10, "full"),
+        metric("sales.orders", null, "rows_read", 3, "full"),
+        metric("sales.orders", "region", "distinct_count", 2, "full"),
+        metric("sales.slow_view", null, "time_limit_reached", 10, "full"),
+      ],
+    });
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+
+  expect(await within(tab).findByText("No results for these objects, stopped at the time limit: sales.big, sales.slow_view.")).toBeInTheDocument();
+  expect(within(tab).getByText("sales.big: stopped at the time limit, no results")).toBeInTheDocument();
+  expect(within(tab).getByText("sales.slow_view: stopped at the time limit, no results")).toBeInTheDocument();
+  expect(within(tab).getAllByRole("table").map((table) => table.querySelector("caption")?.textContent)).toEqual([
+    "sales.orders: every row, 3 rows",
+  ]);
+});
+
+test("a running database run can be cancelled from the Profile tab", async () => {
+  // CFX-APP-postgres/AC-21: "Given a run in progress, when the user cancels it".
+  sources = [fixture];
+  gets["/api/profile-runs"] = () =>
+    Response.json([{ ...fullRun, status: "running", ended_at: null, current_object: "sales.orders" }]);
+  answers["/api/profile-runs/r2/cancel"] = () =>
+    Response.json({ ...fullRun, status: "running", ended_at: null }, { status: 202 });
+  const user = userEvent.setup();
+  renderApp();
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+
+  await user.click(await within(tab).findByRole("button", { name: "Cancel profile" }));
+
+  // A cancel has no body, so it's counted rather than read.
+  expect(
+    fetchMock.mock.calls.filter(([url, init]) => url === "/api/profile-runs/r2/cancel" && init?.method === "POST"),
+  ).toHaveLength(1);
+});
+
 test("a running database run says which object it is on, in the header and the Profile tab", async () => {
   // CFX-APP-postgres/AC-17
   sources = [fixture];
@@ -728,6 +861,32 @@ test("profiling anyway starts the run with the write access the user was shown",
   expect(within(tab).queryByRole("alertdialog")).not.toBeInTheDocument();
   // WCAG 2.4.3: the dialog closes with focus in it, so focus goes back to where the user started.
   expect(within(tab).getByRole("button", { name: "Fast profile" })).toHaveFocus();
+});
+
+test("profiling anyway after a full profile's warning starts it with its time limit, back on Full profile", async () => {
+  // CFX-APP-postgres/AC-16 with AC-20: the run the user asked for, as they asked for it; WCAG 2.4.3,
+  // focus goes back to where the user started.
+  sources = [fixture];
+  let starts = 0;
+  answers["/api/profile-runs"] = () =>
+    starts++ === 0
+      ? refusedFor(writerAccess)()
+      : Response.json({ ...databaseRun, mode: "full", status: "running" }, { status: 202 });
+  const user = userEvent.setup();
+  renderApp();
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  const minutes = await within(tab).findByRole("spinbutton", { name: "Time limit per object, in minutes" });
+  await user.clear(minutes);
+  await user.type(minutes, "30");
+  await user.click(within(tab).getByRole("button", { name: "Full profile" }));
+
+  await user.click(within(await within(tab).findByRole("alertdialog")).getByRole("button", { name: "Profile anyway" }));
+
+  expect(posted("/api/profile-runs")).toEqual([
+    { source_id: "p1", mode: "full", time_limit_minutes: 30 },
+    { source_id: "p1", mode: "full", time_limit_minutes: 30, write_access: writerAccess },
+  ]);
+  expect(within(tab).getByRole("button", { name: "Full profile" })).toHaveFocus();
 });
 
 test("cancelling the write warning starts nothing and returns to Fast profile", async () => {
