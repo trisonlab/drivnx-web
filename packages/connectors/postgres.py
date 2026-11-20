@@ -566,3 +566,23 @@ def load_whole_object(
         connection.execute("RESET pg_numeric_as_varchar")
         connection.execute("RESET pg_array_as_varchar")
         connection.execute("RESET threads")
+
+
+def session_pid(connection: duckdb.DuckDBPyConnection) -> int:
+    """The server's process for the session this connection reads over (ADR 0009)."""
+    ((pid,),) = _on_server(connection, "SELECT pg_backend_pid()")
+    return pid
+
+
+def cancel_read(
+    details: ConnectionDetails, password: str, pid: int, temp_directory: Path
+) -> None:
+    """Cancel the query a session `pid` is running, from a second connection closed at once.
+
+    DuckDB's interrupt stops a table's scan, not a view's read nor a `postgres_query`, which return
+    only once the server has sent every row (ADR 0009). The server lets a role cancel its own
+    sessions. If it refuses, the read still ends at its statement timeout.
+    """
+    with duckdb_connection(temp_directory) as connection:
+        attach(connection, details, password)
+        _on_server(connection, f"SELECT pg_cancel_backend({int(pid)})")

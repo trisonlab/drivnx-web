@@ -1,11 +1,13 @@
 """A profile run's work, done in the background."""
 
 import dataclasses
+import functools
 import os
 import re
 import secrets
 import threading
 import time
+from collections.abc import Callable
 from itertools import batched
 from pathlib import Path
 from typing import Any, Literal
@@ -30,8 +32,10 @@ from connectors.postgres import (
     ConnectionDetails,
     Reading,
     attach,
+    cancel_read,
     load_object_rows,
     load_whole_object,
+    session_pid,
 )
 from domain.trust import Actor
 from profiling.findings import findings_for
@@ -64,6 +68,9 @@ ROW_NOT_READABLE = (
 _failures: dict[str, str] = {}
 # An interrupt between two queries is lost, so a cancel repeats it this often until the job ends.
 INTERRUPT_EVERY_SECONDS = 0.05
+# How long a database's read has to return after an interrupt before it's cancelled on the
+# server, as a view's read and a `postgres_query` ignore the interrupt (ADR 0009).
+STOP_GRACE_SECONDS = 1
 
 
 @dataclasses.dataclass
@@ -79,6 +86,9 @@ class _Job:
     # The object a database's run is reading, as `schema.object` (DRIVN-51). Written by the job
     # alone, and read without the lock (`object_of`).
     object_name: str | None = None
+    # Cancels the read a database's job has running on the server (ADR 0009). Set only under
+    # `_jobs_lock`, while the job's connection is attached.
+    cancel_on_server: Callable[[], None] | None = None
 
 
 # The jobs that haven't ended, by run ID.
@@ -275,6 +285,12 @@ def _measure_objects(
             attach(connection, details, password)
             for found in objects:
                 job.object_name = f"{found.schema}.{found.name}"
+                # For each object, as the extension replaces a connection left idle for a minute.
+                pid = session_pid(connection)
+                with _jobs_lock:
+                    job.cancel_on_server = functools.partial(
+                        cancel_read, details, password, pid, workspace.temp_directory
+                    )
                 name = (found.schema, found.name)
                 columns = tuple(field.name for field in found.dataset.fields)
                 types = [field.normalised_type for field in found.dataset.fields]
@@ -292,6 +308,7 @@ def _measure_objects(
         finally:
             with _jobs_lock:
                 job.connection = None
+                job.cancel_on_server = None
     return observations
 
 
@@ -400,11 +417,24 @@ def _interrupt(job: _Job) -> None:
 
 
 def _interrupt_until_ended(job: _Job) -> None:
+    cancel_after = time.monotonic() + STOP_GRACE_SECONDS
+    cancelled = False
     while not job.ended.is_set():
+        cancel = None
         with _jobs_lock:
             # Under the lock, so the job can't close the connection meanwhile.
             if job.connection is not None:
                 job.connection.interrupt()
+            if not cancelled and time.monotonic() >= cancel_after:
+                cancel = job.cancel_on_server
+        if cancel is not None:
+            # Once, and not under the lock, as it connects to the server.
+            cancelled = True
+            try:
+                cancel()
+            except (ConnectFailure, duckdb.Error, OSError):
+                # The read still ends at its statement timeout, and the run as asked.
+                pass
         job.ended.wait(INTERRUPT_EVERY_SECONDS)
 
 
