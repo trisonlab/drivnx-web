@@ -428,13 +428,14 @@ def drivnx_sessions(tmp_path: Path) -> Iterator[Callable[[], int]]:
         yield lambda: connection.execute(SESSIONS).fetchone()[0]
 
 
+@pytest.mark.parametrize("mode", ["fast", "full"])
 def test_a_run_holds_at_most_one_connection_to_the_server(
-    client: TestClient, drivnx_sessions: Callable[[], int]
+    client: TestClient, drivnx_sessions: Callable[[], int], mode: str
 ) -> None:
-    # CFX-APP-postgres/AC-23: "DrivnX holds at most one connection to the server for it". A table
-    # large enough that DuckDB's own scanner would read it over several (ADR 0005), and a view
-    # slow enough to watch.
-    source_id = chosen_source(client, "misestimated", "slow")
+    # CFX-APP-postgres/AC-23: "DrivnX reads the server over at most one connection for it, on a
+    # full profile too". Tables large enough that DuckDB's own scanner would read them over
+    # several (ADR 0005), `wide` at about 14,000 pages, and a view slow enough to watch.
+    source_id = chosen_source(client, "misestimated", "wide", "slow")
     seen: list[int] = []
     watching = threading.Event()
 
@@ -447,7 +448,7 @@ def test_a_run_holds_at_most_one_connection_to_the_server(
     watcher.start()
     try:
         run_id = client.post(
-            "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+            "/api/profile-runs", json={"source_id": source_id, "mode": mode}
         ).json()["id"]
         run = ended(client, run_id)
     finally:
@@ -458,11 +459,17 @@ def test_a_run_holds_at_most_one_connection_to_the_server(
     assert max(seen) == 1, seen
 
 
+@pytest.mark.parametrize("mode", ["fast", "full"])
 def test_a_run_creates_nothing_in_the_current_directory_and_spills_inside_the_workspace(
-    client: TestClient, workspace_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    client: TestClient,
+    workspace_dir: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mode: str,
 ) -> None:
     # CFX-APP-postgres/AC-23: "it creates nothing in the current directory, any spill files are
-    # inside <workspace>/duckdb-tmp/". A memory limit small enough that the rows spill.
+    # inside <workspace>/duckdb-tmp/", on a full profile too. A memory limit small enough that
+    # the rows spill.
     current = tmp_path / "current"
     current.mkdir()
     monkeypatch.chdir(current)
@@ -478,7 +485,7 @@ def test_a_run_creates_nothing_in_the_current_directory_and_spills_inside_the_wo
     monkeypatch.setattr(profile_jobs, "PROFILE_MEMORY_LIMIT", "100MB")
 
     run_id = client.post(
-        "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+        "/api/profile-runs", json={"source_id": source_id, "mode": mode}
     ).json()["id"]
 
     assert ended(client, run_id)["status"] == "completed"

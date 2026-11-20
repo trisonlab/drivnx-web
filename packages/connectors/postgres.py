@@ -542,6 +542,9 @@ def load_whole_object(
     # double's or DuckDB's list's. Elsewhere `postgres_query` must still return arrays as lists.
     connection.execute("SET pg_numeric_as_varchar = true")
     connection.execute("SET pg_array_as_varchar = true")
+    # One thread, so the scanner reads over one session, not one per thread (AC-23, ADR 0005).
+    # Measuring the rows afterwards is local and keeps every thread.
+    connection.execute("SET threads = 1")
     try:
         blobs = {
             column
@@ -562,3 +565,4 @@ def load_whole_object(
     finally:
         connection.execute("RESET pg_numeric_as_varchar")
         connection.execute("RESET pg_array_as_varchar")
+        connection.execute("RESET threads")
