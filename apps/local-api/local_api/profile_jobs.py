@@ -308,6 +308,7 @@ def _measure_objects(
                 None
                 if mode == "fast"
                 else time_limit_minutes * SECONDS_PER_MINUTE + STATEMENT_TIMEOUT_SECONDS,
+                one_session=True,
             )
 
             def aim_cancel() -> None:

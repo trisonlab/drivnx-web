@@ -156,9 +156,12 @@ def attach(
     details: ConnectionDetails,
     password: str,
     statement_timeout_seconds: int | None = None,
+    *,
+    one_session: bool = False,
 ) -> None:
     """Attach the database read-only as `source`, each statement limited to
-    `statement_timeout_seconds`, by default `STATEMENT_TIMEOUT_SECONDS`.
+    `statement_timeout_seconds`, by default `STATEMENT_TIMEOUT_SECONDS`, and with `one_session`
+    over a single session, which each read waits for (ADR 0009 Decision 2).
 
     The password goes only into a temporary secret, which lives in this connection's memory:
     DuckDB repeats the connection string in its errors, so the password can't be in it.
@@ -170,6 +173,10 @@ def attach(
             "unavailable_platform",
             f"PostgreSQL isn't available on this platform ({error.platform}).",
         ) from None
+    if one_session:
+        # The extension's settings, so only once it's loaded, and before the pool is made.
+        connection.execute("SET pg_pool_max_connections = 1")
+        connection.execute("SET pg_pool_acquire_mode = 'wait'")
     connection.execute(
         f"""
         CREATE TEMPORARY SECRET {NAME} (
