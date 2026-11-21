@@ -35,6 +35,10 @@ OBJECTS = (
     f"INSERT INTO {SCHEMA}.ordered SELECT CASE WHEN n <= 100000 THEN 'C-' || n ELSE '#' || n END"
     " FROM generate_series(1, 150000) AS n",
     f"ANALYZE {SCHEMA}.ordered",
+    # PostgreSQL allows a table with no columns; its rows are still rows.
+    f"CREATE TABLE {SCHEMA}.no_columns ()",
+    f"INSERT INTO {SCHEMA}.no_columns DEFAULT VALUES",
+    f"INSERT INTO {SCHEMA}.no_columns DEFAULT VALUES",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -97,6 +101,20 @@ def test_a_full_profile_reads_every_row_and_counts_them_exactly(
     measured = saved(workspace, source_id, run_id)
     assert measured[("repeated", None, "rows_read")] == (150_000, "full")
     assert measured[("repeated", "id", "distinct_count")] == (50_000, "full")
+
+
+def test_a_full_profile_counts_the_rows_of_a_table_with_no_columns(
+    start_app: StartApp, workspace: Workspace, postgres_server: str
+) -> None:
+    # CFX-APP-postgres/AC-19: "each object's exact row count", for a table with no columns too
+    # (found in review).
+    client = start_app(None)
+    source_id = chosen_source(client, "no_columns")
+
+    run_id = full_run(client, source_id)
+
+    assert ended(client, run_id)["status"] == "completed"
+    assert saved(workspace, source_id, run_id)[("no_columns", None, "rows_read")] == (2, "full")
 
 
 def test_a_full_profile_counts_the_rows_that_copy_an_earlier_one(

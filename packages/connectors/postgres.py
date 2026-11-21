@@ -559,6 +559,16 @@ def load_whole_object(
 ) -> None:
     """Load every row of an object for a full profile into `table`, as text columns `c0`, `c1`,
     …, through DuckDB's scanner, each value as PostgreSQL's text (ADR 0009)."""
+    if not columns:
+        # DuckDB's catalog leaves out a table with no columns, whose rows the server still reads.
+        sql = _as_text(object_name, columns)
+        try:
+            connection.execute(
+                f"CREATE TABLE {table} AS SELECT * FROM postgres_query('{NAME}', {_sql(sql)})"
+            )
+        except duckdb.Error as error:
+            raise _not_read(error, _OBJECT_TIMED_OUT) from None
+        return
     schema, name = object_name
     source = f"{NAME}.{_identifier(schema)}.{_identifier(name)}"
     # Only for this read: an unscaled or wide numeric and an array keep PostgreSQL's text, not a
@@ -569,20 +579,27 @@ def load_whole_object(
     # Measuring the rows afterwards is local and keeps every thread.
     connection.execute("SET threads = 1")
     try:
+        # By position: DuckDB's names don't tell `"A"` from `a`, which it calls `a_1`.
         blobs = {
-            column
-            for column, column_type, *_ in connection.execute(f"DESCRIBE {source}").fetchall()
+            n
+            for n, (_, column_type, *_) in enumerate(
+                connection.execute(f"DESCRIBE {source}").fetchall()
+            )
             if column_type == "BLOB"
         }
 
-        def as_text(column: str) -> str:
+        def as_text(n: int) -> str:
             # `bytea` as PostgreSQL writes it, `\x` and lowercase hex, not DuckDB's `\xDE\xAD`.
-            if column in blobs:
-                return f"'\\x' || lower(hex({_identifier(column)}))"
-            return f"CAST({_identifier(column)} AS VARCHAR)"
+            if n in blobs:
+                return f"'\\x' || lower(hex(c{n}))"
+            return f"CAST(c{n} AS VARCHAR)"
 
-        shown = ", ".join(f"{as_text(column)} AS c{n}" for n, column in enumerate(columns))
-        connection.execute(f"CREATE TABLE {table} AS SELECT {shown} FROM {source}")
+        positions = range(len(columns))
+        shown = ", ".join(f"{as_text(n)} AS c{n}" for n in positions)
+        named = ", ".join(f"c{n}" for n in positions)
+        connection.execute(
+            f"CREATE TABLE {table} AS SELECT {shown} FROM {source} AS listed({named})"
+        )
     except duckdb.Error as error:
         raise _not_read(error, _OBJECT_TIMED_OUT) from None
     finally:

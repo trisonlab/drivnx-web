@@ -52,6 +52,13 @@ OBJECTS = (
          '{{"x y",z,NULL,"a,b"}}', '\\xdeadbeef', '{{"a": 1}}', '{{"a": 1}}',
          '2024-03-25 10:00:00.123456+02', '10:00+02', '1 day 02:00', 12.5),
         (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)""",
+    # Two columns whose names differ only in case, which DuckDB's own names can't tell apart.
+    f'CREATE TABLE {SCHEMA}.two_cases ("A" text, a text)',
+    f"INSERT INTO {SCHEMA}.two_cases VALUES ('upper', 'lower')",
+    # PostgreSQL allows a table with no columns; its rows are still rows.
+    f"CREATE TABLE {SCHEMA}.no_columns ()",
+    f"INSERT INTO {SCHEMA}.no_columns DEFAULT VALUES",
+    f"INSERT INTO {SCHEMA}.no_columns DEFAULT VALUES",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -190,3 +197,23 @@ def test_a_whole_read_gives_each_value_as_postgresqls_text(
     assert count(attached, "rows") == 2
     assert attached.execute("SELECT * FROM rows EXCEPT ALL SELECT * FROM expected").fetchall() == []
     assert same_rows(attached, "rows", "expected")
+
+
+def test_a_whole_read_keeps_columns_whose_names_differ_only_in_case_apart(
+    attached: duckdb.DuckDBPyConnection,
+) -> None:
+    # CFX-APP-postgres/AC-19: "exact results" for each column, `"A"` and `a` being two
+    # (found in review). PostgreSQL's quoted names are case-sensitive; DuckDB's aren't.
+    load_whole_object(attached, (SCHEMA, "two_cases"), ("A", "a"), "rows")
+
+    assert attached.execute("SELECT * FROM rows").fetchall() == [("upper", "lower")]
+
+
+def test_a_whole_read_counts_the_rows_of_a_table_with_no_columns(
+    attached: duckdb.DuckDBPyConnection,
+) -> None:
+    # CFX-APP-postgres/AC-19: "each object's exact row count", for a table with no columns too,
+    # as a fast reading counts them (found in review).
+    load_whole_object(attached, (SCHEMA, "no_columns"), (), "rows")
+
+    assert count(attached, "rows") == 2
