@@ -89,6 +89,10 @@ def attached(tmp_path: Path) -> Iterator[duckdb.DuckDBPyConnection]:
 # `timezone` would set it, so the fixture's role keeps the server's.
 ZONED_USER = "drivnx_zoned"
 ZONED_PASSWORD = "drivnx-zoned"  # pragma: allowlist secret, ai-skills: allow
+# A zone every PostgreSQL takes, a POSIX one it parses itself, 3 hours east, and DuckDB refuses.
+# Not `localtime`, which only a PostgreSQL using the system's zone files takes: Debian's, not
+# Homebrew's or the Windows runner's.
+REFUSED_ZONE = "<+03>-03"
 
 
 @pytest.fixture(scope="module")
@@ -269,9 +273,9 @@ def test_a_whole_read_without_zoned_times_ignores_a_time_zone_duckdb_cant_read(
     attached_in_zone: Callable[[str], duckdb.DuckDBPyConnection],
 ) -> None:
     # CFX-APP-postgres/AC-19: an object with no `timestamptz` is read whole whatever the server's
-    # time zone. PostgreSQL takes `localtime`, its system's zone, and DuckDB refuses it (found in
-    # the second review).
-    connection = attached_in_zone("localtime")
+    # time zone. Every PostgreSQL takes a POSIX zone with a quoted name, and DuckDB refuses it
+    # (found in the second review).
+    connection = attached_in_zone(REFUSED_ZONE)
 
     load_whole_object(connection, (SCHEMA, "small"), ("id", "label"), "rows")
 
@@ -281,7 +285,7 @@ def test_a_whole_read_without_zoned_times_ignores_a_time_zone_duckdb_cant_read(
 # The zones PostgreSQL takes and DuckDB can't write its times in: one it refuses, and a POSIX one
 # whose sign it reads the other way, so `UTC+3` would write -03:00's times as +03:00 (found in the
 # second review).
-@pytest.mark.parametrize("zone", ["localtime", "UTC+3"])
+@pytest.mark.parametrize("zone", [REFUSED_ZONE, "UTC+3"])
 def test_a_whole_read_of_zoned_times_in_a_zone_duckdb_cant_write_says_so(
     attached_in_zone: Callable[[str], duckdb.DuckDBPyConnection], zone: str
 ) -> None:
