@@ -311,3 +311,30 @@ def test_a_profile_read_the_server_stops_for_taking_too_long_fails_naming_the_ob
         f"{SCHEMA}.two_seconds: The database took too long to read this object, and stopped."
         " Try again when it's less busy.",
     )
+
+
+def test_a_running_jobs_password_stays_out_of_its_repr(
+    start_app: StartApp, workspace: Workspace
+) -> None:
+    # CFX-APP-postgres, Non-functional "No secret is saved outside the OS credential store", and
+    # ADR 0007: the job holds the password to cancel its read on the server (ADR 0009), and a
+    # debugger or a test's failure shows the jobs as their repr (found in review).
+    client = start_app(None)
+    source_id = chosen_source(client, "sleepy")
+    started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "fast"})
+    assert started.status_code == 202, started.text
+    run_id = started.json()["id"]
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        job = profile_jobs._jobs.get(run_id)
+        if job is not None and job.cancel_on_server is not None:
+            break
+        time.sleep(0.01)
+    else:
+        raise AssertionError("The job never held a way to cancel its read.")
+
+    shown = repr(profile_jobs._jobs)
+
+    client.post(f"/api/profile-runs/{run_id}/cancel")
+    assert ended(client, run_id)["status"] == "cancelled"
+    assert postgres_fixture.PASSWORD not in shown

@@ -92,8 +92,9 @@ class _Job:
     # alone, and read without the lock (`object_of`).
     object_name: str | None = None
     # Cancels the read a database's job has running on the server (ADR 0009). Set only under
-    # `_jobs_lock`, while the job's connection is attached.
-    cancel_on_server: Callable[[], None] | None = None
+    # `_jobs_lock`, while the job's connection is attached. It holds the password, so it's left
+    # out of the job's repr.
+    cancel_on_server: Callable[[], None] | None = dataclasses.field(default=None, repr=False)
 
 
 # The jobs that haven't ended, by run ID.
