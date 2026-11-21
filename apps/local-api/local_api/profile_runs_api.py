@@ -36,6 +36,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.exc import NoResultFound
 
 from local_api.profile_jobs import (
+    SAMPLE_ROWS_READ,
     TIME_LIMIT_REACHED,
     Busy,
     Mode,
@@ -125,6 +126,13 @@ class MetricResponse(BaseModel):
     precision: str
 
 
+class PatternsReadResponse(BaseModel):
+    """How a full profile's fast reading read the rows its masked patterns are from."""
+
+    method: str
+    rows: int
+
+
 class ObjectReadResponse(BaseModel):
     """How a database run read an object (AC-18, AC-19): `page_sample`, `whole`, `first_rows`
     (read whole, but larger than its estimate), `view_first_rows`, or `full` on a full profile."""
@@ -133,6 +141,8 @@ class ObjectReadResponse(BaseModel):
     method: str
     # A full profile stopped reading it at its time limit, so it has no results (AC-20).
     stopped_at_time_limit: bool = False
+    # On a full profile, its fast reading, as its masked patterns come from it (the Assumptions).
+    patterns_from: PatternsReadResponse | None = None
 
 
 class ProfileRunDetail(ProfileRunResponse):
@@ -423,6 +433,17 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         stopped = {
             seen.dataset_id for seen in observations if seen.metric == TIME_LIMIT_REACHED
         }
+        fast_readings = {
+            seen.dataset_id: seen for seen in observations if seen.metric == SAMPLE_ROWS_READ
+        }
+
+        def patterns_from(dataset_id: str, planned: str) -> PatternsReadResponse | None:
+            seen = fast_readings.get(dataset_id)
+            if seen is None:
+                return None
+            # As for a fast run: read whole, but larger than its estimate, so its first rows.
+            method = "first_rows" if planned == "whole" and seen.scope == "sample" else planned
+            return PatternsReadResponse(method=method, rows=seen.value)
 
         def read_as(dataset_id: str, planned: str) -> str:
             if run.mode == "full":
@@ -439,6 +460,7 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
                     object=named[dataset_id],
                     method=read_as(dataset_id, found["method"]),
                     stopped_at_time_limit=dataset_id in stopped,
+                    patterns_from=patterns_from(dataset_id, found["method"]),
                 )
                 for dataset_id, found in objects.items()
             ],

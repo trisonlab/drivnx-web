@@ -97,9 +97,11 @@ def test_a_full_profile_reads_every_row_within_a_time_limit_the_user_sets(
 
     whole = profile.get_by_role("table", name=f"{SCHEMA}.customers: every row, 3 rows")
     expect(whole.get_by_role("row", name=re.compile("^name"))).to_contain_text("1 (33.33%)")
-    expect(
-        profile.get_by_role("table", name=f"{SCHEMA}.customer_names: every row, 3 rows")
-    ).to_be_visible()
+    view = profile.get_by_role("table", name=f"{SCHEMA}.customer_names: every row, 3 rows")
+    # Its masked patterns are its fast reading's, the view's first rows (the spec's Assumptions).
+    expect(view.get_by_role("row", name=re.compile("^name"))).to_contain_text(
+        "from the first 3 rows the view returned, not random"
+    )
     expect(page.get_by_text("Profile status: Completed")).to_be_visible()
     assert violations(page) == []
 

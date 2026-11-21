@@ -383,6 +383,8 @@ export type ProfileRunDetail = ProfileRun & {
     method: "page_sample" | "whole" | "first_rows" | "view_first_rows" | "full";
     // A full profile stopped reading it at its time limit, so it has no results (CFX-APP-postgres AC-20).
     stopped_at_time_limit?: boolean;
+    // On a full profile, how its fast reading read the rows its masked patterns are from.
+    patterns_from?: { method: "page_sample" | "whole" | "first_rows" | "view_first_rows"; rows: number } | null;
   }[];
 };
 

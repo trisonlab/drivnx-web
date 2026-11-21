@@ -58,6 +58,8 @@ DEFAULT_TIME_LIMIT_MINUTES = 10
 SECONDS_PER_MINUTE = 60
 # Saved for an object a full profile stopped at its time limit, with the limit in minutes.
 TIME_LIMIT_REACHED = "time_limit_reached"
+# Saved on a full profile for the rows its fast reading took, which its masked patterns are from.
+SAMPLE_ROWS_READ = "sample_rows_read"
 COLUMNS_CHANGED = "The file's columns no longer match the saved ones."
 FILE_GONE = "DrivnX can't find this file. It may have moved or been deleted."
 FILE_CHANGED = "The file changed while it was being profiled. Profile it again."
@@ -457,11 +459,17 @@ def _object_observations(
         )
 
     def observation(field_id: str | None, metric: str, value: Any) -> NewObservation:
-        scope = _read_scope(patterns_method if metric == "masked_patterns" else method)
+        from_patterns_rows = metric in ("masked_patterns", SAMPLE_ROWS_READ)
+        scope = _read_scope(patterns_method if from_patterns_rows else method)
         return NewObservation(found.dataset.id, field_id, metric, value, scope, "count", "exact")
 
     return [
         observation(None, "rows_read", measured.rows_read),
+        *(
+            [observation(None, SAMPLE_ROWS_READ, patterns_from[0].rows_read)]
+            if patterns_from is not None
+            else []
+        ),
         *(
             [observation(None, "duplicate_rows", measured.duplicate_rows)]
             if measured.duplicate_rows is not None

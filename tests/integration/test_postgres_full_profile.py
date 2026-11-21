@@ -35,6 +35,8 @@ OBJECTS = (
     f"INSERT INTO {SCHEMA}.ordered SELECT CASE WHEN n <= 100000 THEN 'C-' || n ELSE '#' || n END"
     " FROM generate_series(1, 150000) AS n",
     f"ANALYZE {SCHEMA}.ordered",
+    # Its 150,000 rows, of which a fast reading takes the first 100,000.
+    f"CREATE VIEW {SCHEMA}.ordered_view AS SELECT code FROM {SCHEMA}.ordered",
     # PostgreSQL allows a table with no columns; its rows are still rows.
     f"CREATE TABLE {SCHEMA}.no_columns ()",
     f"INSERT INTO {SCHEMA}.no_columns DEFAULT VALUES",
@@ -229,9 +231,13 @@ def test_a_full_runs_detail_says_each_object_was_read_whole(
 
     detail = client.get(f"/api/profile-runs/{run_id}").json()
 
-    assert detail["objects"] == [
-        {"object": f"{SCHEMA}.repeated", "method": "full", "stopped_at_time_limit": False}
-    ]
+    # Its patterns' rows, from a page sample, are another test's.
+    (read,) = detail["objects"]
+    assert {key: value for key, value in read.items() if key != "patterns_from"} == {
+        "object": f"{SCHEMA}.repeated",
+        "method": "full",
+        "stopped_at_time_limit": False,
+    }
     assert {
         "object": f"{SCHEMA}.repeated",
         "column": None,
@@ -240,3 +246,28 @@ def test_a_full_runs_detail_says_each_object_was_read_whole(
         "scope": "full",
         "precision": "exact",
     } in detail["metrics"]
+
+
+def test_a_full_runs_detail_says_how_each_objects_patterns_were_read(
+    start_app: StartApp, postgres_server: str
+) -> None:
+    # CFX-APP-postgres/AC-24 and the Assumptions: "masked patterns always come from the fast
+    # profile's sample rows, even on a full profile, and are labelled that way": a view's from its
+    # first rows, a table's from a page sample (found in review).
+    client = start_app(None)
+    source_id = chosen_source(client, "ordered", "ordered_view")
+    run_id = full_run(client, source_id)
+    assert ended(client, run_id)["status"] == "completed"
+
+    objects = {
+        found["object"]: found for found in client.get(f"/api/profile-runs/{run_id}").json()["objects"]
+    }
+
+    assert objects[f"{SCHEMA}.ordered_view"]["patterns_from"] == {
+        "method": "view_first_rows",
+        "rows": 100_000,
+    }
+    sample = objects[f"{SCHEMA}.ordered"]["patterns_from"]
+    # 100,000 ÷ 150,000 of the pages, so about 100,000 rows.
+    assert sample["method"] == "page_sample"
+    assert 90_000 < sample["rows"] < 110_000, sample

@@ -583,8 +583,6 @@ const READ_AS: Record<NonNullable<ProfileRunDetail["objects"]>[number]["method"]
   view_first_rows: (rows) => `the first ${rows} rows the view returned, not random`,
   full: (rows) => `every row, ${rows} rows`,
 };
-// A full profile's masked patterns are its fast reading's (CFX-APP-postgres, the Assumptions).
-const FULL_RUNS_PATTERNS = "a sample of about 100,000 rows";
 
 /** A database run's results: one table per object, with how its rows were read. No values that
  * don't fit, which a typed column can't hold, and no values on request yet (DRIVN-56). */
@@ -607,13 +605,15 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
       {stopped.length > 0 && (
         <p>No results for these objects, stopped at the time limit: {stopped.join(", ")}.</p>
       )}
-      {objects.map(({ object, method, stopped_at_time_limit }) => {
+      {objects.map(({ object, method, stopped_at_time_limit, patterns_from }) => {
         if (stopped_at_time_limit) {
           return <p key={object}>{object}: stopped at the time limit, no results</p>;
         }
         const own = metrics.filter((metric) => metric.object === object);
         const rows = own.find((metric) => metric.column === null && metric.metric === "rows_read")?.value;
         const columns = [...new Set(own.flatMap((metric) => metric.column ?? []))];
+        // A full profile's masked patterns are its fast reading's (CFX-APP-postgres, the Assumptions).
+        const patternsReadAs = patterns_from ? READ_AS[patterns_from.method](shown(patterns_from.rows)) : undefined;
         return (
           <div className="table-scroll" key={object}>
             <table className="column-table">
@@ -652,7 +652,7 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
                         {Array.isArray(patterns) ? (
                           <Patterns
                             patterns={patterns}
-                            measuredOn={fromSample ? FULL_RUNS_PATTERNS : undefined}
+                            measuredOn={fromSample ? patternsReadAs : undefined}
                           />
                         ) : (
                           NOT_SAVED

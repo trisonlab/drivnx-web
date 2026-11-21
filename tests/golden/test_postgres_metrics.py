@@ -414,7 +414,12 @@ def test_every_saved_metric_equals_its_known_value(client: TestClient, name: str
     assert run["status"] == "completed", run["failure"]
     read = EXPECTED[name].get("read", READ_WHOLE)
     assert run["objects"] == [
-        {"object": f"{SCHEMA}.{name}", "method": read, "stopped_at_time_limit": False}
+        {
+            "object": f"{SCHEMA}.{name}",
+            "method": read,
+            "stopped_at_time_limit": False,
+            "patterns_from": None,
+        }
     ]
     saved: dict[str, dict] = {}
     rows_read = None

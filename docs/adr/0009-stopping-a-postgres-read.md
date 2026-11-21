@@ -43,7 +43,9 @@ measured there, as a CSV's full profile is, since measuring sends several querie
 have.
 
 **4. A full profile's masked patterns come from the object's fast reading.** Before the full read, the job reads the
-object as a fast profile would (ADR 0005 Decisions 1 to 3) and keeps only its patterns, saved with scope `sample`.
+object as a fast profile would (ADR 0005 Decisions 1 to 3) and keeps only its patterns, saved with scope `sample`,
+and how many rows it read, `sample_rows_read`, so the patterns are labelled by how their rows were read (found in
+DRIVN-53's review).
 Everything else is measured on every row, including copies of a row, as a CSV's full profile counts them.
 
 **5. An object stopped at its time limit is a write-once observation,** `time_limit_reached` on its dataset, so the

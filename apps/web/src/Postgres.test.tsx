@@ -700,10 +700,17 @@ test("a database run's results show each object with how its rows were read, the
 
 const fullRun = { ...databaseRun, id: "r2", mode: "full" };
 
-test("a full run's results say each object was read row by row, with patterns from its sample", async () => {
+test.each([
+  [{ method: "page_sample", rows: 98765 }, "2 patterns, from about 98,765 rows, sampled by page"],
+  [{ method: "view_first_rows", rows: 3 }, "2 patterns, from the first 3 rows the view returned, not random"],
+  [{ method: "first_rows", rows: 100000 }, "2 patterns, from the first 100,000 rows returned, not random"],
+])("a full run's results say each object was read row by row, with patterns from its fast reading: %o", async (
+  patternsFrom,
+  label,
+) => {
   // CFX-APP-postgres/AC-19: "every row of each object is read, with exact results and each object's exact
   // row count"; the Assumptions: "masked patterns always come from the fast profile's sample rows, even on
-  // a full profile, and are labelled that way" (about 100,000 rows, ADR 0005).
+  // a full profile, and are labelled that way", as AC-24 labels a fast reading (found in review).
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([fullRun]);
   gets["/api/findings?profile_run_id=r2"] = () => Response.json([]);
@@ -711,7 +718,9 @@ test("a full run's results say each object was read row by row, with patterns fr
     Response.json({
       ...fullRun,
       file_changed: null,
-      objects: [{ object: "sales.orders", method: "full", stopped_at_time_limit: false }],
+      objects: [
+        { object: "sales.orders", method: "full", stopped_at_time_limit: false, patterns_from: patternsFrom },
+      ],
       metrics: [
         metric("sales.orders", null, "rows_read", 1234567, "full"),
         metric("sales.orders", "region", "distinct_count", 4, "full"),
@@ -727,9 +736,7 @@ test("a full run's results say each object was read row by row, with patterns fr
   const orders = await within(tab).findByRole("table");
 
   expect(orders.querySelector("caption")).toHaveTextContent("sales.orders: every row, 1,234,567 rows");
-  expect(within(orders).getByRole("row", { name: /region/ })).toHaveTextContent(
-    "2 patterns, from a sample of about 100,000 rows",
-  );
+  expect(within(orders).getByRole("row", { name: /region/ })).toHaveTextContent(label);
 });
 
 test("an object stopped at its time limit shows it has no results, and the run names each such object", async () => {
