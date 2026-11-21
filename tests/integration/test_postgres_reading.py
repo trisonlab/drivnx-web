@@ -180,12 +180,16 @@ TYPED_COLUMNS = (
 )
 
 
+# DrivnX's own time zone, which DuckDB takes from the machine's: UTC, as CI's runners, or not.
+@pytest.mark.parametrize("zone", ["UTC", "Asia/Tokyo"])
 def test_a_whole_read_gives_each_value_as_postgresqls_text(
-    attached: duckdb.DuckDBPyConnection,
+    attached: duckdb.DuckDBPyConnection, zone: str
 ) -> None:
     # CFX-APP-postgres/AC-19 and ADR 0009: a full profile measures the same text a fast profile
     # does, so `1.00` stays `1.00`, an array `{1,2}` and `bytea` `\xdeadbeef`, as the server
-    # writes them. The expected text is the server's own `::text`.
+    # writes them, and a `timestamptz` in the server's time zone, wherever DrivnX runs (found in
+    # review). The expected text is the server's own `::text`.
+    attached.execute(f"SET TimeZone = '{zone}'")
     as_text = ", ".join(f'"{column}"::text AS c{n}' for n, column in enumerate(TYPED_COLUMNS))
     attached.execute(
         "CREATE TABLE expected AS SELECT * FROM postgres_query('source', "

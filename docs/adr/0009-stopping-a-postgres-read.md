@@ -95,6 +95,8 @@ the repository:
   one- and two-dimensional arrays with quoted values and NULL, and `bytea`. Without them, `1.00` read as `1.0`, `{1,2}`
   as `[1, 2]` and `\xdeadbeef` as `\xDE\xAD\xBE\xEF`. Every other type tried was already equal: double, real, bigint,
   boolean, timestamp, timestamptz, date, time, timetz, interval, json, jsonb, uuid, money, inet, text and char.
+  `timestamptz` only while DuckDB's time zone, the machine's, was the server's (UTC): in another, the scanner wrote it in
+  DuckDB's, so the whole read sets DuckDB's `TimeZone` to the server's for its read (found in DRIVN-53's review).
 
 Not measured: a network between DrivnX and the server, enums, ranges, domains and xml (DRIVN-54's golden fixture), and
 a role in a cluster that restricts `pg_cancel_backend`.

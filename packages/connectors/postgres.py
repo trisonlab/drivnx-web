@@ -579,6 +579,9 @@ def load_whole_object(
     # Measuring the rows afterwards is local and keeps every thread.
     connection.execute("SET threads = 1")
     try:
+        # A `timestamptz` as the server writes it, in its zone, not in this machine's.
+        ((zone,),) = _on_server(connection, "SELECT current_setting('TimeZone')")
+        connection.execute(f"SET TimeZone = {_sql(zone)}")
         # By position: DuckDB's names don't tell `"A"` from `a`, which it calls `a_1`.
         blobs = {
             n
@@ -611,6 +614,7 @@ def reset_whole_read(connection: duckdb.DuckDBPyConnection) -> None:
     was stopped, as the interrupt that stopped it can also stop these."""
     connection.execute("RESET pg_numeric_as_varchar")
     connection.execute("RESET pg_array_as_varchar")
+    connection.execute("RESET TimeZone")
     connection.execute("RESET threads")
 
 
