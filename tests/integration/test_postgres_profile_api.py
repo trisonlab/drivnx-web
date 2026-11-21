@@ -11,7 +11,7 @@ from artifacts.profiles import read_findings, read_observations, read_profile_ru
 from artifacts.sources import StoredPostgresSource, find_source, read_chosen_objects
 from artifacts.workspace import Workspace
 from connectors.csv_files import duckdb_connection
-from connectors.postgres import load_postgres, reading_for
+from connectors.postgres import ConnectionDetails, attach, load_postgres, reading_for
 from fastapi.testclient import TestClient
 from local_api import profile_jobs
 from local_api.postgres_api import details_of
@@ -443,6 +443,28 @@ def drivnx_sessions(tmp_path: Path) -> Iterator[Callable[[], int]]:
         load_postgres(connection)
         connection.execute(f"ATTACH '{admin}' AS admin (TYPE postgres)")
         yield lambda: connection.execute(SESSIONS).fetchone()[0]
+
+
+def test_a_jobs_attach_holds_even_a_read_on_every_thread_to_one_session(
+    tmp_path: Path, drivnx_sessions: Callable[[], int]
+) -> None:
+    # CFX-APP-postgres/AC-23 and ADR 0009 Decision 2: the job's pool has one session, which each
+    # read waits for, as well as `threads = 1` on its reads. Here a read on 4 threads, which the
+    # scanner would spread over 4 sessions of `wide`'s 14,000 pages, and its pool keeps them open.
+    details = ConnectionDetails(
+        host=postgres_fixture.HOST,
+        port=postgres_fixture.PORT,
+        database=postgres_fixture.DATABASE,
+        user=postgres_fixture.USER,
+        tls_mode="prefer",
+    )
+    with duckdb_connection(tmp_path / "job") as connection:
+        attach(connection, details, postgres_fixture.PASSWORD, one_session=True)
+        connection.execute("SET threads = 4")
+
+        connection.execute(f"SELECT count(*) FROM source.{SCHEMA}.wide").fetchall()
+
+        assert drivnx_sessions() == 1
 
 
 @pytest.mark.parametrize("mode", ["fast", "full"])
