@@ -54,5 +54,9 @@ Steps:
 5. e2e: a finding on a fast profile, its evidence link, the accessibility check.
 6. The threat register where it covers the sensitive-field rules, the ticket and the knowledge index.
 
+Step 6, the threat register: no row covers the sensitive-field rules, and DRIVN-29 added none for a CSV. The nearest,
+R3 (values not saved), is proved for PostgreSQL by DRIVN-58's planted-value scan (AC-29); a database run's saved
+findings hold no name or value, as a CSV's don't. So the register is unchanged.
+
 Not in this ticket: values on request and their confirmation for a database (DRIVN-56), earlier runs (DRIVN-57),
 new kinds of finding or sensitive-field rules, ranking findings across objects (M5).
