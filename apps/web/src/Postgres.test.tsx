@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { App } from "./App";
@@ -983,4 +983,196 @@ test("a write warning shows even when a run elsewhere ends as the start is refus
   await user.click(within(tab).getByRole("button", { name: "Fast profile" }));
 
   expect(await within(tab).findByRole("alertdialog")).toBeInTheDocument();
+});
+
+// A database run's finding, with the saved texts the server sends.
+function databaseFinding(kind: string, evidence: object[]) {
+  return {
+    id: `f-${kind}`,
+    profile_run_id: "r1",
+    kind,
+    interpretation: `Saved interpretation of ${kind}`,
+    why_it_matters: `Saved reason for ${kind}`,
+    recommended_action: `Saved action for ${kind}`,
+    state: "inferred",
+    object: (evidence[0] as { object: string }).object,
+    evidence,
+  };
+}
+
+// The orders table read whole, so no finding says it's from some rows only.
+const wholeOrders = {
+  ...databaseRun,
+  file_changed: null,
+  objects: [{ object: "sales.orders", method: "whole" }],
+  metrics: [
+    metric("sales.orders", null, "rows_read", 2500, "full"),
+    metric("sales.orders", "region", "missing_count", 0, "full"),
+    metric("sales.orders", "region", "distinct_count", 2500, "full"),
+    metric("sales.orders", "region", "distinct_percent", 100, "full"),
+  ],
+};
+
+async function findingsPanel() {
+  const panel = await screen.findByRole("complementary", { name: "Intelligence & Review" });
+  return within(panel).findByRole("region", { name: "Findings" });
+}
+
+test("a database run's finding says which object it was observed in", async () => {
+  // CFX-APP-postgres/AC-26: "the CSV profile's findings appear", each of one object.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/profile-runs/r1"] = () => Response.json(wholeOrders);
+  gets["/api/findings?profile_run_id=r1"] = () =>
+    Response.json([
+      databaseFinding("possible_identifier", [
+        metric("sales.orders", "region", "distinct_count", 2500, "full"),
+        metric("sales.orders", "region", "distinct_percent", 100, "full"),
+      ]),
+    ]);
+  renderApp();
+
+  const shown = await within(await findingsPanel()).findByRole("article");
+
+  expect(shown).toHaveTextContent("Saved interpretation of possible_identifier");
+  expect(within(shown).getByText(/^Observed/).textContent).toBe(
+    "Observed in sales.orders: region has 2,500 distinct values (100%).",
+  );
+});
+
+test("before any profile of a database, the findings say what to do", async () => {
+  // CFX-APP-postgres/AC-26, as CFX-APP-csv-profile/AC-21 says it for a file.
+  sources = [fixture];
+  renderApp();
+
+  expect(
+    await within(await findingsPanel()).findByText("Profile this database to see what it finds."),
+  ).toBeInTheDocument();
+});
+
+const ORDER_PATTERNS = [{ pattern: "AAAA@AAAA.AAA", count: 40, cut: false }];
+
+test.each([
+  [
+    "a page sample",
+    { mode: "fast", objects: [{ object: "sales.orders", method: "page_sample" }], rows: 98412 },
+    [
+      metric("sales.orders", "region", "distinct_count", 98412),
+      metric("sales.orders", "region", "distinct_percent", 100),
+    ],
+    "possible_identifier",
+    "region has 98,412 distinct values (100%) in about 98,412 rows, sampled by page",
+  ],
+  [
+    "a table's first rows",
+    { mode: "fast", objects: [{ object: "sales.orders", method: "first_rows" }], rows: 100000 },
+    [metric("sales.orders", "region", "distinct_count", 1)],
+    "single_value",
+    "every value in region is the same in the first 100,000 rows returned, not random",
+  ],
+  [
+    "a view's first rows",
+    { mode: "fast", objects: [{ object: "sales.orders", method: "view_first_rows" }], rows: 3 },
+    [metric("sales.orders", "region", "distinct_count", 1)],
+    "single_value",
+    "every value in region is the same in the first 3 rows the view returned, not random",
+  ],
+  [
+    "a full profile's patterns, from its fast reading",
+    {
+      mode: "full",
+      objects: [
+        { object: "sales.orders", method: "full", patterns_from: { method: "page_sample", rows: 98765 } },
+      ],
+      rows: 1234567,
+    },
+    [metric("sales.orders", "region", "masked_patterns", ORDER_PATTERNS)],
+    "possibly_sensitive",
+    "region has a value of this shape among its most common masked patterns in about 98,765 rows, sampled by page",
+  ],
+])("a database finding from %s says how its object was read", async (_, reading, evidence, kind, said) => {
+  // CFX-APP-postgres/AC-24 and AC-26: a finding is "observed in" its object's reading, as
+  // CFX-APP-csv-profile/AC-24 says a file's first rows; a full profile's patterns are its fast reading's.
+  const shownRun = { ...databaseRun, mode: reading.mode };
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([shownRun]);
+  gets["/api/profile-runs/r1"] = () =>
+    Response.json({
+      ...shownRun,
+      file_changed: null,
+      objects: reading.objects,
+      metrics: [metric("sales.orders", null, "rows_read", reading.rows, reading.mode === "full" ? "full" : "sample")],
+    });
+  gets["/api/findings?profile_run_id=r1"] = () => Response.json([databaseFinding(kind, evidence)]);
+  renderApp();
+
+  const shown = await within(await findingsPanel()).findByRole("article");
+
+  await waitFor(() =>
+    expect(within(shown).getByText(/^Observed/).textContent).toBe(`Observed in sales.orders: ${said}.`),
+  );
+});
+
+// Two objects with a column of the same name, so a link can only find its own object's cell.
+function twoObjects(object: string) {
+  return [
+    metric(object, null, "rows_read", 2500, "full"),
+    metric(object, null, "duplicate_rows", object === "sales.orders" ? 3 : 0, "full"),
+    metric(object, "region", "missing_count", object === "sales.orders" ? 12 : 0, "full"),
+    metric(object, "region", "missing_percent", object === "sales.orders" ? 0.48 : 0, "full"),
+    metric(object, "region", "distinct_count", object === "sales.orders" ? 2500 : 4, "full"),
+    metric(object, "region", "distinct_percent", object === "sales.orders" ? 100 : 0.16, "full"),
+    metric(object, "region", "masked_patterns", ORDER_PATTERNS),
+  ];
+}
+
+test.each([
+  ["possible_identifier", [metric("sales.orders", "region", "distinct_count", 2500, "full")], "2,500 (100%)"],
+  ["missing_values", [metric("sales.orders", "region", "missing_count", 12, "full")], "12 (0.48%)"],
+  ["possibly_sensitive", [metric("sales.orders", "region", "masked_patterns", ORDER_PATTERNS)], "1 pattern"],
+  ["duplicate_rows", [metric("sales.orders", null, "duplicate_rows", 3, "full")], "3 rows are exact copies of another row."],
+])("a database %s finding's evidence link goes to its own object's metric", async (kind, evidence, shownAs) => {
+  // CFX-APP-postgres/AC-26: "with their evidence links", to the cell of the object it's of.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([fullRun]);
+  gets["/api/profile-runs/r2"] = () =>
+    Response.json({
+      ...fullRun,
+      file_changed: null,
+      objects: ["sales.orders", "sales.returns"].map((object) => ({
+        object,
+        method: "full",
+        stopped_at_time_limit: false,
+        patterns_from: { method: "whole", rows: 2500 },
+      })),
+      metrics: [...twoObjects("sales.orders"), ...twoObjects("sales.returns")],
+    });
+  gets["/api/findings?profile_run_id=r2"] = () =>
+    Response.json([{ ...databaseFinding(kind, evidence), profile_run_id: "r2" }]);
+  renderApp();
+  const shown = await within(await findingsPanel()).findByRole("article");
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  const [orders] = await within(tab).findAllByRole("table");
+
+  await userEvent.click(within(shown).getByRole("button", { name: /evidence/i }));
+
+  const focused = document.activeElement as HTMLElement;
+  expect(focused.textContent).toContain(shownAs);
+  // The object's own section: its table, or what's said under it.
+  expect(focused.closest(".table-scroll")).toBe(orders.closest(".table-scroll"));
+});
+
+test("a database run's findings say having no flag doesn't mean no personal data", async () => {
+  // CFX-APP-postgres/AC-27: "the screen says that no flag doesn't mean a column has no personal data",
+  // as CFX-APP-csv-profile/AC-28 does for a file.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/profile-runs/r1"] = () => Response.json(wholeOrders);
+  gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
+  renderApp();
+
+  const panel = await findingsPanel();
+
+  expect(await within(panel).findByText("This profile found nothing to point out.")).toBeInTheDocument();
+  expect(panel).toHaveTextContent("Having no possibly-sensitive flag doesn't mean a column has no personal data.");
 });

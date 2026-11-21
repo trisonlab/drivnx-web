@@ -468,6 +468,8 @@ export type Finding = {
   why_it_matters: string;
   recommended_action: string;
   state: "inferred";
+  // A database run's finding is of one object, as `schema.object`; null for a file's run.
+  object?: string | null;
   // The observations it cites, with the column's current name.
   evidence: Metric[];
 };
