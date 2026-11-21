@@ -316,3 +316,26 @@ def test_a_whole_read_of_zoned_times_writes_them_in_the_servers_named_zone(
     read = "SELECT c9, c10 FROM rows"
     assert connection.execute(f"{read} EXCEPT ALL SELECT * FROM expected").fetchall() == []
     assert connection.execute(f"{read} WHERE c9 LIKE '%+05:30'").fetchall() != []
+
+
+@pytest.mark.parametrize(
+    "listed",
+    [
+        # `label` renamed `name` since the object was listed.
+        ("id", "name"),
+        # `label` dropped and `name` added, so as many columns as listed.
+        ("id", "label", "name"),
+        # The same names in another order, as dropping and adding them would leave them.
+        ("label", "id"),
+    ],
+)
+def test_a_whole_read_of_an_object_whose_columns_changed_since_it_was_listed_says_so(
+    attached: duckdb.DuckDBPyConnection, listed: tuple[str, ...]
+) -> None:
+    # CFX-APP-postgres/AC-19: each column's results are its own. Read by position, a column the
+    # server has under another name or place would be measured as the listed one (found in the
+    # second review).
+    with pytest.raises(ConnectFailure) as failed:
+        load_whole_object(attached, (SCHEMA, "small"), listed, "rows")
+
+    assert failed.value.reason == "changed"

@@ -593,6 +593,16 @@ def load_whole_object(
     connection.execute("SET threads = 1")
     try:
         # By position: DuckDB's names don't tell `"A"` from `a`, which it calls `a_1`.
+        # Its columns as listed, in the server's order, which the scanner reads them in. A column
+        # added after them isn't read.
+        on_server = _on_server(
+            connection,
+            "SELECT attname FROM pg_attribute WHERE attnum > 0 AND NOT attisdropped"
+            f" AND attrelid = {_sql(f'{_identifier(schema)}.{_identifier(name)}')}::regclass"
+            " ORDER BY attnum",
+        )
+        if tuple(column for (column,) in on_server)[: len(columns)] != tuple(columns):
+            raise ConnectFailure("changed", _NOT_READ)
         described = connection.execute(f"DESCRIBE {source}").fetchall()
         types = [column_type for _, column_type, *_ in described]
         blobs = {n for n, column_type in enumerate(types) if column_type == "BLOB"}
