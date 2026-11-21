@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-21T04:16:42+00:00'
+updated_at: '2026-11-21T05:35:46+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -37,7 +37,7 @@ sources:
   .ai/knowledge/work/DRIVN-52.md: 9ed89f7ffb088dc0c5c56cdd167e6326880ddf14027878fb7c391374d384c4ed
   .ai/knowledge/work/DRIVN-53.md: b61ae72f48df18374eec9d3f9fe49647f86a7d1f1132a2d491c135faa8165fb1
   .ai/knowledge/work/DRIVN-54.md: e32740839d7587470a47fc66bdfb95d3179a0d40ecf564d67dbb126f60eb674c
-  .ai/knowledge/work/DRIVN-55.md: d7d8f48e6a5c88c559f0872b39b4f50438a8904cfe6edbb597e2a0e32e641941
+  .ai/knowledge/work/DRIVN-55.md: 2fa0f050983392d78bad3f992e59eef78738484d6167ccc0f645c8543d9aa8d1
   .ai/knowledge/work/DRIVN-56.md: 6d4791b654ba4986ca0010eb9c15e72514503a30a4ed3b6a0d0c2dba3870e442
   .ai/knowledge/work/DRIVN-57.md: 5c6c18594ce2d7ab2208a7ad5c4026f72ff4d8de5c2bd9938cd6b11313d47a48
   .ai/knowledge/work/DRIVN-58.md: 4540f05479a72c05f5cbd0de04fa5342bbcb5b2fd003227ef443728d3365c3e8
@@ -2056,7 +2056,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-55.md
   title: Findings and sensitive fields
-  state: blocked
+  state: ready
   external_key: DRIVN-55
 - id: ticket:DRIVN-56
   kind: ticket

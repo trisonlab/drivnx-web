@@ -7,7 +7,7 @@ feature_revision: 3
 stories: [US-05]
 criteria: [AC-26, AC-27]
 blocked_by: [DRIVN-53, DRIVN-54]
-state: blocked
+state: ready
 external_key: DRIVN-55
 status: CONFIRMED
 ---
@@ -28,3 +28,31 @@ Integration tests for each finding kind on the fixture, a declared key, and each
 
 ## Blocked by
 DRIVN-53, DRIVN-54
+
+## Plan agreed with the user
+Approved in chat, 2026-11-21, with four decisions:
+1. **Keys:** a column gets no possible-identifier finding when it is, alone, the primary key or a unique constraint
+   (the spec's "a declared primary key or unique constraint ... on its column"). A column of a composite key can.
+2. **AC-27's extra confirmation:** this ticket saves the possibly-sensitive flag, which the values route already checks
+   before answering. A database's values on request come with DRIVN-56, which proves the confirmation.
+3. **Wording:** the duplicate-rows and single-value texts say nothing of a file, for a CSV too. Saved findings keep theirs.
+4. **Order:** a database run's findings by object in the run's order, each object's in the fixed order by kind.
+
+Approach: the CSV profile's rules (`profiling.findings.findings_for`) applied to each object of a database run, from
+its saved observations, as a CSV's are. No migration: the kinds are in `0006_finding_kind.py`'s list.
+
+Steps:
+1. `findings_for(observations, names, *, keyed=frozenset())`: no possible identifier for a field in `keyed`; values that
+   don't fit only where that metric is saved; nothing for an object with no `rows_read` (stopped at its time limit);
+   the two texts neutral. Tests in `test_finding_rules.py`.
+2. `ChosenObject.keys`, read by `read_chosen_objects`; the database job saves each object's findings with a completed
+   run, none with a cancelled or failed one. Tests in `test_postgres_findings.py` on the fixture: each kind, a primary
+   key, a unique constraint, each sensitive-field rule, duplicate rows on a full profile only, a stopped object.
+3. `/api/findings` for a database run: each cited observation named by its own object's columns, with `object`.
+4. The findings panel for a database: each finding's object, "observed in" by that object's reading, evidence links to
+   that object's cells, the database's empty text, the personal-data note. Vitest.
+5. e2e: a finding on a fast profile, its evidence link, the accessibility check.
+6. The threat register where it covers the sensitive-field rules, the ticket and the knowledge index.
+
+Not in this ticket: values on request and their confirmation for a database (DRIVN-56), earlier runs (DRIVN-57),
+new kinds of finding or sensitive-field rules, ranking findings across objects (M5).
