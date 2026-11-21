@@ -159,8 +159,9 @@ def test_an_object_reaching_its_time_limit_is_stopped_and_the_run_goes_on(
     # CFX-APP-postgres/AC-20: "its scan stops within 5 s, no query from DrivnX is left running
     # on the server, the object shows 'stopped at the time limit, no results', the run goes on
     # to the next object, and the finished run says which objects have no results". A minute
-    # lasts a second here, and each object takes longer than that to read whole.
-    monkeypatch.setattr(profile_jobs, "SECONDS_PER_MINUTE", 1)
+    # lasts a quarter of a second here, and each object takes longer than that to read whole, even
+    # on macOS's CI runner, which read `big` whole within a second.
+    monkeypatch.setattr(profile_jobs, "SECONDS_PER_MINUTE", 0.25)
     client = start_app(None)
     source_id = chosen_source(client, name, "small")
     stopped, small = f"{SCHEMA}.{name}", f"{SCHEMA}.small"
@@ -175,7 +176,7 @@ def test_an_object_reaching_its_time_limit_is_stopped_and_the_run_goes_on(
     took = time.monotonic() - started_at
 
     assert (run["status"], run["failure"]) == ("completed", None)
-    assert took < 1 + STOP_AT_THE_LIMIT_WITHIN_SECONDS, took
+    assert took < profile_jobs.SECONDS_PER_MINUTE + STOP_AT_THE_LIMIT_WITHIN_SECONDS, took
     assert drivnx_queries() == 0
     detail = client.get(f"/api/profile-runs/{run['id']}").json()
     flagged = {found["object"]: found.get("stopped_at_time_limit") for found in detail["objects"]}

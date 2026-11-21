@@ -130,7 +130,7 @@ The independent review found these, each fixed test-first and seen failing witho
 Decided with the user: the extension reconnects without a word, so a server restart between two reads, or while one is
 measured locally, doesn't fail the run, which completes over the new session. AC-22's restart is one during a read.
 
-Known limits, not fixed: a cancel that lands between two reads; libpq's network-loss texts aren't told apart; no test
+Known limits, not fixed: a cancel that lands between two reads; no test
 bounds the cancel connection's lifetime, and its attach against a server that doesn't answer may take two 5 s attempts;
 `time_limit_minutes` accepts `true` and `"7"` as Pydantic's lax integers.
 
@@ -142,3 +142,10 @@ Second review (2026-11-21), fixed test-first:
 
 Known limit added: before about 1900, a zone with a local mean time writes a `timestamptz` otherwise in DuckDB, which
 isn't detected (ADR 0009, Measured).
+
+CI on PR #28 (2026-11-21), fixed:
+- macOS and Windows' PostgreSQL refuse `localtime` as a role's zone; the tests use the POSIX zone `<+03>-03`.
+- Windows: a session the server ended sometimes reached DrivnX as libpq's own network-loss text, which said "changed".
+  Decided with the user: libpq's connection-loss texts mean a lost connection, tested through a proxy that drops the
+  network mid-read, over TLS and without. Windows' exact text wasn't visible (INFERRED: one of libpq's listed ones).
+- macOS: its runner read the 3-million-row table whole within the test's 1 s limit; the test's minute is now 0.25 s.
