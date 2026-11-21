@@ -464,6 +464,21 @@ def _as_text(object_name: tuple[str, str], columns: tuple[str, ...]) -> str:
     return f"SELECT {shown} FROM {_identifier(schema)}.{_identifier(name)}"
 
 
+# How a lost connection reads: the server's word for a session it ends, by an administrator or a
+# restart's fast shutdown, or libpq's own when that word never arrives, as when the network fails
+# or the socket closes first, which Windows' CI saw (DRIVN-53).
+_CONNECTION_LOST = (
+    "terminating connection due to administrator command",
+    "server closed the connection unexpectedly",
+    "could not receive data from server",
+    "could not send data to server",
+    "no connection to the server",
+    "SSL error: unexpected eof",
+    "SSL SYSCALL error",
+    "SSL connection has been closed unexpectedly",
+)
+
+
 def _not_read(error: duckdb.Error, timed_out: str = _TIMED_OUT) -> ConnectFailure:
     """Why an object's rows couldn't be read, with `timed_out` for a statement timeout. Never
     DuckDB's own text, which repeats the query and the server's error: only which of these the
@@ -471,8 +486,7 @@ def _not_read(error: duckdb.Error, timed_out: str = _TIMED_OUT) -> ConnectFailur
     text = str(error)
     if "canceling statement due to statement timeout" in text:
         return ConnectFailure("timeout", timed_out)
-    # Ended by an administrator, or by a restart's fast shutdown, which says the same.
-    if "terminating connection due to administrator command" in text:
+    if any(said in text for said in _CONNECTION_LOST):
         return ConnectFailure("lost", _LOST)
     if "permission denied for" in text:
         return ConnectFailure("not_allowed", _NOT_ALLOWED_TO_READ)

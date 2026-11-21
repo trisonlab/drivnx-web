@@ -1,6 +1,8 @@
 """A database's run stopped while it reads: by the user, at its time limit, or by the server.
 CFX-APP-postgres AC-20, AC-21 and AC-22, and ADR 0009 (DRIVN-53)."""
 
+import socket
+import threading
 import time
 from collections.abc import Callable, Iterator
 from pathlib import Path
@@ -374,3 +376,82 @@ def test_a_read_after_the_server_replaced_the_jobs_session_is_still_stopped_on_t
 
     assert (run["status"], took < CANCEL_WITHIN_SECONDS) == ("cancelled", True), took
     assert drivnx_queries() == 0
+
+
+class DroppingProxy:
+    """Forwards TCP to the fixture's server until `drop`, which closes every connection at once,
+    as a network that fails does: libpq then sees no word from the server."""
+
+    def __init__(self) -> None:
+        self.listener = socket.create_server(("127.0.0.1", 0))
+        self.port = self.listener.getsockname()[1]
+        self.sockets: list[socket.socket] = []
+        threading.Thread(target=self._accept, daemon=True).start()
+
+    def _accept(self) -> None:
+        while True:
+            try:
+                client, _ = self.listener.accept()
+            except OSError:
+                return
+            server = socket.create_connection((postgres_fixture.HOST, postgres_fixture.PORT))
+            self.sockets += [client, server]
+            for one, other in ((client, server), (server, client)):
+                threading.Thread(target=self._pipe, args=(one, other), daemon=True).start()
+
+    @staticmethod
+    def _pipe(source: socket.socket, sink: socket.socket) -> None:
+        try:
+            while data := source.recv(65536):
+                sink.sendall(data)
+        except OSError:
+            pass
+
+    def drop(self) -> None:
+        self.listener.close()
+        for one in self.sockets:
+            try:
+                one.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+            one.close()
+
+
+# Over TLS libpq hears of it from OpenSSL, and without from the socket.
+@pytest.mark.parametrize("tls_mode", ["prefer", "disable"])
+def test_a_read_whose_network_fails_says_the_connection_was_lost(
+    tmp_path: Path, drivnx_queries: Callable[[str], int], tls_mode: str
+) -> None:
+    # CFX-APP-postgres/AC-22: "Given a connection lost ... during a run, then ... the message names
+    # the object and the reason". A network that fails says nothing from the server, so libpq
+    # writes its own text for it, which a session the server ends can also give, as Windows' CI
+    # showed (decided with the user for DRIVN-53).
+    proxy = DroppingProxy()
+    details = postgres.ConnectionDetails(
+        host="127.0.0.1",
+        port=proxy.port,
+        database=postgres_fixture.DATABASE,
+        user=postgres_fixture.USER,
+        tls_mode=tls_mode,
+    )
+    failures: list[BaseException] = []
+    with duckdb_connection(tmp_path) as connection:
+        postgres.attach(connection, details, postgres_fixture.PASSWORD)
+
+        def read() -> None:
+            try:
+                postgres.load_whole_object(connection, (SCHEMA, "late_sleepy"), ("n",), "rows")
+            except BaseException as error:  # noqa: BLE001 (what the read raised, to check)
+                failures.append(error)
+
+        reader = threading.Thread(target=read)
+        reader.start()
+        reading(drivnx_queries, f'COPY (SELECT "n" FROM "{SCHEMA}"."late_sleepy"%')
+
+        proxy.drop()
+        reader.join(CANCEL_WITHIN_SECONDS)
+
+    assert not reader.is_alive(), "The read went on after the network failed."
+    (failed,) = failures
+    assert isinstance(failed, postgres.ConnectFailure), failed
+    assert failed.reason == "lost", str(failed)
