@@ -109,6 +109,23 @@ _TIMED_OUT = (
     f"The database took longer than {STATEMENT_TIMEOUT_SECONDS} seconds to read this page."
     " Try again."
 )
+_OBJECT_TIMED_OUT = (
+    "The database took too long to read this object, and stopped. Try again when it's less busy."
+)
+# A moment written as a `timestamptz` in the server's zone and in DuckDB's, to compare (ADR 0009).
+_KNOWN_MOMENT = "2000-07-01 12:00:00+00"
+_UNREADABLE_ZONE = (
+    "DrivnX can't read times in this server's time zone, {zone}. Set the connection's user to a"
+    " named zone such as UTC, or leave this object out."
+)
+_NOT_ALLOWED_TO_READ = (
+    "This connection's user isn't allowed to read this object any more. Ask the database's"
+    " administrator for SELECT on it, or leave it out."
+)
+_LOST = (
+    "DrivnX lost its connection to the database, as when the server restarts or an"
+    " administrator ends the session. Profile again once it's back."
+)
 # What libpq says, in English, in the order to look for it: a TLS failure can also mention
 # pg_hba.conf. A server set to another language gets the general message instead.
 _FAILURES = (
@@ -141,9 +158,16 @@ def _failure(error: duckdb.Error) -> ConnectFailure:
 
 
 def attach(
-    connection: duckdb.DuckDBPyConnection, details: ConnectionDetails, password: str
+    connection: duckdb.DuckDBPyConnection,
+    details: ConnectionDetails,
+    password: str,
+    statement_timeout_seconds: int | None = None,
+    *,
+    one_session: bool = False,
 ) -> None:
-    """Attach the database read-only as `source`.
+    """Attach the database read-only as `source`, each statement limited to
+    `statement_timeout_seconds`, by default `STATEMENT_TIMEOUT_SECONDS`, and with `one_session`
+    over a single session, which each read waits for (ADR 0009 Decision 2).
 
     The password goes only into a temporary secret, which lives in this connection's memory:
     DuckDB repeats the connection string in its errors, so the password can't be in it.
@@ -155,6 +179,10 @@ def attach(
             "unavailable_platform",
             f"PostgreSQL isn't available on this platform ({error.platform}).",
         ) from None
+    if one_session:
+        # The extension's settings, so only once it's loaded, and before the pool is made.
+        connection.execute("SET pg_pool_max_connections = 1")
+        connection.execute("SET pg_pool_acquire_mode = 'wait'")
     connection.execute(
         f"""
         CREATE TEMPORARY SECRET {NAME} (
@@ -164,6 +192,8 @@ def attach(
         )
         """
     )
+    if statement_timeout_seconds is None:
+        statement_timeout_seconds = STATEMENT_TIMEOUT_SECONDS
     settings = {
         "sslmode": details.tls_mode,
         "connect_timeout": str(_PER_ATTEMPT_SECONDS),
@@ -171,7 +201,7 @@ def attach(
         # Read-only on the server's side too, under DuckDB's READ_ONLY (AC-14), and a limit for
         # any one statement.
         "options": "-c default_transaction_read_only=on"
-        f" -c statement_timeout={STATEMENT_TIMEOUT_SECONDS}s",
+        f" -c statement_timeout={int(statement_timeout_seconds)}s",
     }
     if details.ca_path is not None:
         settings["sslrootcert"] = details.ca_path
@@ -434,12 +464,32 @@ def _as_text(object_name: tuple[str, str], columns: tuple[str, ...]) -> str:
     return f"SELECT {shown} FROM {_identifier(schema)}.{_identifier(name)}"
 
 
-def _not_read(error: duckdb.Error) -> ConnectFailure:
-    """Why an object's rows couldn't be read. Never DuckDB's own text, which repeats the query
-    and the server's error: only whether the server stopped it for taking too long, in its
-    English text."""
-    if "canceling statement due to statement timeout" in str(error):
-        return ConnectFailure("timeout", _TIMED_OUT)
+# How a lost connection reads: the server's word for a session it ends, by an administrator or a
+# restart's fast shutdown, or libpq's own when that word never arrives, as when the network fails
+# or the socket closes first, which Windows' CI saw (DRIVN-53).
+_CONNECTION_LOST = (
+    "terminating connection due to administrator command",
+    "server closed the connection unexpectedly",
+    "could not receive data from server",
+    "could not send data to server",
+    "no connection to the server",
+    "SSL error: unexpected eof",
+    "SSL SYSCALL error",
+    "SSL connection has been closed unexpectedly",
+)
+
+
+def _not_read(error: duckdb.Error, timed_out: str = _TIMED_OUT) -> ConnectFailure:
+    """Why an object's rows couldn't be read, with `timed_out` for a statement timeout. Never
+    DuckDB's own text, which repeats the query and the server's error: only which of these the
+    server said, in its English text."""
+    text = str(error)
+    if "canceling statement due to statement timeout" in text:
+        return ConnectFailure("timeout", timed_out)
+    if any(said in text for said in _CONNECTION_LOST):
+        return ConnectFailure("lost", _LOST)
+    if "permission denied for" in text:
+        return ConnectFailure("not_allowed", _NOT_ALLOWED_TO_READ)
     return ConnectFailure("changed", _NOT_READ)
 
 
@@ -520,9 +570,120 @@ def load_object_rows(
             f"CREATE TABLE {table} AS SELECT * FROM postgres_query('{NAME}', {_sql(sql)})"
         )
     except duckdb.Error as error:
-        raise _not_read(error) from None
+        raise _not_read(error, _OBJECT_TIMED_OUT) from None
     if reading.method == "whole":
         (loaded,) = connection.execute(f"SELECT count(*) FROM {table}").fetchone()
         if loaded > SAMPLE_ROWS:
             return "first_rows"
     return reading.method
+
+
+def load_whole_object(
+    connection: duckdb.DuckDBPyConnection,
+    object_name: tuple[str, str],
+    columns: tuple[str, ...],
+    table: str,
+) -> None:
+    """Load every row of an object for a full profile into `table`, as text columns `c0`, `c1`,
+    …, through DuckDB's scanner, each value as PostgreSQL's text (ADR 0009)."""
+    if not columns:
+        # DuckDB's catalog leaves out a table with no columns, whose rows the server still reads.
+        sql = _as_text(object_name, columns)
+        try:
+            connection.execute(
+                f"CREATE TABLE {table} AS SELECT * FROM postgres_query('{NAME}', {_sql(sql)})"
+            )
+        except duckdb.Error as error:
+            raise _not_read(error, _OBJECT_TIMED_OUT) from None
+        return
+    schema, name = object_name
+    source = f"{NAME}.{_identifier(schema)}.{_identifier(name)}"
+    # Only for this read: an unscaled or wide numeric and an array keep PostgreSQL's text, not a
+    # double's or DuckDB's list's. Elsewhere `postgres_query` must still return arrays as lists.
+    connection.execute("SET pg_numeric_as_varchar = true")
+    connection.execute("SET pg_array_as_varchar = true")
+    # One thread, so the scanner reads over one session, not one per thread (AC-23, ADR 0005).
+    # Measuring the rows afterwards is local and keeps every thread.
+    connection.execute("SET threads = 1")
+    try:
+        # By position: DuckDB's names don't tell `"A"` from `a`, which it calls `a_1`.
+        # Its columns as listed, in the server's order, which the scanner reads them in. A column
+        # added after them isn't read.
+        on_server = _on_server(
+            connection,
+            "SELECT attname FROM pg_attribute WHERE attnum > 0 AND NOT attisdropped"
+            f" AND attrelid = {_sql(f'{_identifier(schema)}.{_identifier(name)}')}::regclass"
+            " ORDER BY attnum",
+        )
+        if tuple(column for (column,) in on_server)[: len(columns)] != tuple(columns):
+            raise ConnectFailure("changed", _NOT_READ)
+        described = connection.execute(f"DESCRIBE {source}").fetchall()
+        types = [column_type for _, column_type, *_ in described]
+        blobs = {n for n, column_type in enumerate(types) if column_type == "BLOB"}
+        if "TIMESTAMP WITH TIME ZONE" in types:
+            _write_times_as_the_server(connection)
+
+        def as_text(n: int) -> str:
+            # `bytea` as PostgreSQL writes it, `\x` and lowercase hex, not DuckDB's `\xDE\xAD`.
+            if n in blobs:
+                return f"'\\x' || lower(hex(c{n}))"
+            return f"CAST(c{n} AS VARCHAR)"
+
+        positions = range(len(columns))
+        shown = ", ".join(f"{as_text(n)} AS c{n}" for n in positions)
+        named = ", ".join(f"c{n}" for n in positions)
+        connection.execute(
+            f"CREATE TABLE {table} AS SELECT {shown} FROM {source} AS listed({named})"
+        )
+    except duckdb.Error as error:
+        raise _not_read(error, _OBJECT_TIMED_OUT) from None
+    finally:
+        reset_whole_read(connection)
+
+
+def _write_times_as_the_server(connection: duckdb.DuckDBPyConnection) -> None:
+    """Write a `timestamptz` as the server does, in its time zone, not this machine's. Some zones
+    PostgreSQL takes DuckDB refuses (`localtime`) or reads otherwise (`UTC+3`), so a moment is
+    written both ways and compared."""
+    ((zone, theirs),) = _on_server(
+        connection,
+        f"SELECT current_setting('TimeZone'), {_sql(_KNOWN_MOMENT)}::timestamptz::text",
+    )
+    try:
+        connection.execute(f"SET TimeZone = {_sql(zone)}")
+    except duckdb.NotImplementedException:
+        raise ConnectFailure("time_zone", _UNREADABLE_ZONE.format(zone=zone)) from None
+    ((ours,),) = connection.execute(
+        f"SELECT CAST(TIMESTAMPTZ {_sql(_KNOWN_MOMENT)} AS VARCHAR)"
+    ).fetchall()
+    if ours != theirs:
+        raise ConnectFailure("time_zone", _UNREADABLE_ZONE.format(zone=zone))
+
+
+def reset_whole_read(connection: duckdb.DuckDBPyConnection) -> None:
+    """Put back the settings `load_whole_object` changes for its read. Again after a read that
+    was stopped, as the interrupt that stopped it can also stop these."""
+    connection.execute("RESET pg_numeric_as_varchar")
+    connection.execute("RESET pg_array_as_varchar")
+    connection.execute("RESET TimeZone")
+    connection.execute("RESET threads")
+
+
+def session_pid(connection: duckdb.DuckDBPyConnection) -> int:
+    """The server's process for the session this connection reads over (ADR 0009)."""
+    ((pid,),) = _on_server(connection, "SELECT pg_backend_pid()")
+    return pid
+
+
+def cancel_read(
+    details: ConnectionDetails, password: str, pid: int, temp_directory: Path
+) -> None:
+    """Cancel the query a session `pid` is running, from a second connection closed at once.
+
+    DuckDB's interrupt stops a table's scan, not a view's read nor a `postgres_query`, which return
+    only once the server has sent every row (ADR 0009). The server lets a role cancel its own
+    sessions. If it refuses, the read still ends at its statement timeout.
+    """
+    with duckdb_connection(temp_directory) as connection:
+        attach(connection, details, password)
+        _on_server(connection, f"SELECT pg_cancel_backend({int(pid)})")

@@ -3,7 +3,7 @@ id: DRIVN-49
 legacy_id: CFX-APP-postgres-T04
 title: "Discover and choose objects"
 feature: CFX-APP-postgres
-feature_revision: 2
+feature_revision: 3
 stories: [US-02]
 criteria: [AC-08, AC-09, AC-10, AC-11, AC-13]
 blocked_by: [DRIVN-47]

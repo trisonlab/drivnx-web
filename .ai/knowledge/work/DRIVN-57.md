@@ -3,7 +3,7 @@ id: DRIVN-57
 legacy_id: CFX-APP-postgres-T12
 title: "Earlier runs and restarts"
 feature: CFX-APP-postgres
-feature_revision: 2
+feature_revision: 3
 stories: [US-06]
 criteria: [AC-31, AC-32, AC-33]
 blocked_by: [DRIVN-53]

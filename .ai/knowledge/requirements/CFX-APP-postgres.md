@@ -6,10 +6,10 @@ title: "Connect a PostgreSQL database read-only, choose its tables and profile t
 summary: "Connect PostgreSQL read-only with the password in the OS credential store, discover schemas and tables, choose what to profile, and get the CSV profile's metrics, findings and values on request for each table."
 owner: drivnx-web
 lifecycle: approved
-revision: 2
-approved_revision: 2
-approval_evidence: "user approved revision 2 in chat, 2026-11-13"
-updated: "2026-11-13"
+revision: 3
+approved_revision: 3
+approval_evidence: "user approved revision 3's decisions in chat, 2026-11-17 (DRIVN-53)"
+updated: "2026-11-17"
 related: [CFX-APP-first-slice, CFX-APP-csv-profile]
 status: CONFIRMED
 ---
@@ -63,11 +63,11 @@ Decided with the user in chat, 2026-11-13:
 - **No OS credential store:** the password is kept in memory until DrivnX stops, and asked for again after a restart. The screen says so. The `keyring` library reaches Keychain, Windows Credential Manager and Secret Service.
 - **Sampling (ADR 0005, from spike 2):** a fast profile of a table, partitioned table or materialized view reads `TABLESAMPLE SYSTEM` with `REPEATABLE`, at 100,000 ÷ the server's row estimate, with the seed saved in the run. It took 0.034–0.039 s on 10 million rows, drew from across the whole table and repeated exactly. A table estimated at 100,000 rows or fewer, or never analysed, is read whole, with a guard at 100,001 rows. A view reads the first 100,000 rows it returns, because PostgreSQL refuses `TABLESAMPLE` on a view. `LIMIT` for tables was rejected: two runs on an unchanged table gave different rows, all from the oldest 30%. `BERNOULLI` was rejected because the server reads every page.
 - **Values on request after a fast profile** use the run's method and seed. They're the same rows only while the table hasn't changed, and the label says so. Detecting changes from the server's counters was rejected.
-- **A full profile uses one connection,** so a database administrator sees one DrivnX session. It took 4.0–4.2 s on 10 million rows, against 2.5–2.8 s with DuckDB's 7 or 8 parallel connections.
+- **A full profile uses one connection,** so a database administrator sees one DrivnX session. It took 4.0–4.2 s on 10 million rows, against 2.5–2.8 s with DuckDB's 7 or 8 parallel connections. Stopping a read the scan can't interrupt opens a second session for under a second, to cancel it on the server (ADR 0009, decided 2026-11-17).
 - **Read-only:** every session is read-only on DrivnX's side (`ATTACH ... (READ_ONLY)` and `default_transaction_read_only`). When the role can write to a chosen object, DrivnX names the objects and the user confirms before profiling. This is the "confirm read-only" step of the guided intake (Section 9). Refusing such roles was rejected because many users only have their application's account.
 - **Objects:** ordinary tables, partitioned tables (the parent, as one table, with its partitions hidden), views and materialized views. Foreign tables are left out, because reading them queries another server. `pg_catalog`, `information_schema`, `pg_toast` and temporary schemas are always left out.
 - **TLS:** libpq's `sslmode=prefer` by default, so a local database without TLS works. The screen shows whether the connection is encrypted, and the user can choose `require`, or `verify-full` with a CA certificate file.
-- **Full profile limits:** a time limit per table. A table that reaches it is marked "stopped at the time limit, no results", the run goes on to the next table, and Cancel stops the whole run. DrivnX times each table and interrupts the scan itself, because DuckDB splits a scan into short `COPY` statements that `statement_timeout` never stops (ADR 0005).
+- **Full profile limits:** a time limit per table. A table that reaches it is marked "stopped at the time limit, no results", the run goes on to the next table, and Cancel stops the whole run. DrivnX times each table and stops the scan itself, because DuckDB splits a scan into short `COPY` statements that `statement_timeout` never stops (ADR 0005). It interrupts the read, and when the read doesn't return within 1 s, as a view's or a fast profile's doesn't, cancels it on the server (ADR 0009).
 
 Binding from earlier:
 - The R3 rule (ADR 0004): only counts, percentages, text lengths and masked patterns are saved. Values are computed on request and never saved. Table, column and connection names aren't values from the data.
@@ -112,7 +112,7 @@ API, following the Section 12 outline: `/api/sources` to add, test and discover 
 - AC-20 (US-04): Given a full profile and a per-table time limit, when an object's profile reaches the limit, then its scan stops within 5 s, no query from DrivnX is left running on the server, the object shows "stopped at the time limit, no results", the run goes on to the next object, and the finished run says which objects have no results.
 - AC-21 (US-04): Given a run in progress, when the user cancels it, then it stops within the target under Non-functional, no query from DrivnX is left running on the server, its status is `cancelled`, and none of its results or findings appear as current.
 - AC-22 (US-04): Given a connection lost, a server restart or a privilege revoked during a run, then the run ends `failed`, the message names the object and the reason, and its results don't appear as current.
-- AC-23 (US-04): Given a profile job, then it creates nothing in the current directory, any spill files are inside `<workspace>/duckdb-tmp/`, and DrivnX holds at most one connection to the server for it, on a full profile too.
+- AC-23 (US-04): Given a profile job, then it creates nothing in the current directory, any spill files are inside `<workspace>/duckdb-tmp/`, and DrivnX reads the server over at most one connection for it, on a full profile too. Stopping a read may open one more connection for under a second, to cancel the read on the server.
 - AC-24 (US-05): Given a completed run, then for each column the Profile tab shows the metrics in the Assumptions, and each metric's scope (about N rows sampled by page, the first rows returned, or the whole object), its precision, and its run's time and ID. An estimated row count is never shown as exact.
 - AC-25 (US-05): Given the synthetic fixture database, covering missing values, duplicates, dates and times with time zones, Unicode, numeric and decimal, boolean, JSON, UUID, arrays, `bytea`, high cardinality, a partitioned table, a view and a materialized view, when each object is profiled, then every saved metric equals its known expected value.
 - AC-26 (US-05): Given a run that meets a finding's condition, then the CSV profile's findings appear (possible identifier, significant missing values, single-value column, possibly sensitive field, and on a full profile duplicate rows) with their evidence links, and a column with a declared primary key or unique constraint gets no possible-identifier finding.
@@ -165,3 +165,4 @@ None blocks approval.
 ## Revision History
 - Revision 1: Initial draft from the user's decisions on 2026-11-13; not approved. AC-18 waits for spike 2.
 - Revision 2: Spike 2 done and ADR 0005 recorded, from the user's decisions on 2026-11-13. AC-18 is completed: page samples with a seed for tables, the first rows for views. AC-20 says the scan stops within 5 s, as DrivnX enforces the limit itself. AC-23 holds a full profile to one connection too. AC-24 names the new scopes. AC-28 says values on request repeat the run's rows only while the object is unchanged. The extension's size is corrected to a 19 MB download and 57 MB installed. Approved by the user in chat, 2026-11-13.
+- Revision 3: DRIVN-53's probes found that DuckDB's interrupt doesn't stop a view's read or a fast profile's `postgres_query`, so a stop also cancels the read on the server from a second connection held for under a second (ADR 0009). AC-23 says so. Decisions and Contracts record it for the one connection and the full profile's limits. Approved by the user in chat, 2026-11-17.

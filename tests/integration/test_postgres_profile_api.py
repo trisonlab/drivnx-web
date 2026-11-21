@@ -11,7 +11,7 @@ from artifacts.profiles import read_findings, read_observations, read_profile_ru
 from artifacts.sources import StoredPostgresSource, find_source, read_chosen_objects
 from artifacts.workspace import Workspace
 from connectors.csv_files import duckdb_connection
-from connectors.postgres import load_postgres, reading_for
+from connectors.postgres import ConnectionDetails, attach, load_postgres, reading_for
 from fastapi.testclient import TestClient
 from local_api import profile_jobs
 from local_api.postgres_api import details_of
@@ -74,18 +74,6 @@ def chosen_source(client: TestClient, *names: str) -> str:
     )
     assert response.status_code == 200, response.text
     return source_id
-
-
-def test_a_full_profile_of_a_database_isnt_available_yet(client: TestClient) -> None:
-    # CFX-APP-postgres AC-19 comes with DRIVN-54; a fast profile is this ticket's.
-    source_id = chosen_source(client, "people")
-
-    response = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "full"})
-
-    assert (response.status_code, response.json()) == (
-        409,
-        {"detail": "A full profile of a database isn't available yet."},
-    )
 
 
 def test_after_a_restart_a_run_waits_for_the_password(
@@ -228,9 +216,9 @@ def test_each_objects_columns_get_the_metrics_for_their_type_and_only_null_is_mi
 def test_a_run_that_cant_read_an_object_fails_and_says_which(
     start_app: StartApp, workspace: Workspace, postgres_admin: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-18: the run reads each object, and one it can't read ends it `failed`,
-    # with the object and DrivnX's reason, never DuckDB's or the server's text. Its columns are
-    # as listed, so the start doesn't refuse it.
+    # CFX-APP-postgres/AC-18 and AC-22: the run reads each object, and one it can't read ends it
+    # `failed`, with the object and DrivnX's reason, never DuckDB's or the server's text. Its
+    # columns are as listed, so the start doesn't refuse it.
     client = start_app(None)
     source_id = chosen_source(client, "people", "revoked")
     postgres_admin(f"REVOKE SELECT ON {SCHEMA}.revoked FROM drivnx_fixture")
@@ -244,8 +232,8 @@ def test_a_run_that_cant_read_an_object_fails_and_says_which(
 
     assert (run["status"], run["failure"]) == (
         "failed",
-        f"{SCHEMA}.revoked: DrivnX couldn't read this object. It may have changed since it was"
-        " listed: refresh the list.",
+        f"{SCHEMA}.revoked: This connection's user isn't allowed to read this object any more."
+        " Ask the database's administrator for SELECT on it, or leave it out.",
     )
     assert read_observations(workspace.engine, run_id) == []
 
@@ -264,6 +252,7 @@ def test_a_run_whose_connection_is_refused_says_why_without_naming_an_object(
 
     run_id = profile_jobs.start_database_profile(
         workspace,
+        "fast",
         details_of(source),
         source,
         "not-the-password",  # pragma: allowlist secret
@@ -366,8 +355,18 @@ def test_a_database_runs_results_say_how_each_object_was_read(client: TestClient
     assert response.status_code == 200, response.text
     detail = response.json()
     assert detail["objects"] == [
-        {"object": f"{SCHEMA}.names", "method": "view_first_rows"},
-        {"object": f"{SCHEMA}.people", "method": "whole"},
+        {
+            "object": f"{SCHEMA}.names",
+            "method": "view_first_rows",
+            "stopped_at_time_limit": False,
+            "patterns_from": None,
+        },
+        {
+            "object": f"{SCHEMA}.people",
+            "method": "whole",
+            "stopped_at_time_limit": False,
+            "patterns_from": None,
+        },
     ]
     assert detail["file_changed"] is None
     assert {
@@ -401,7 +400,14 @@ def test_an_object_larger_than_its_estimate_is_labelled_as_its_first_rows(
 
     detail = client.get(f"/api/profile-runs/{run_id}").json()
 
-    assert detail["objects"] == [{"object": f"{SCHEMA}.misestimated", "method": "first_rows"}]
+    assert detail["objects"] == [
+        {
+            "object": f"{SCHEMA}.misestimated",
+            "method": "first_rows",
+            "stopped_at_time_limit": False,
+            "patterns_from": None,
+        }
+    ]
     (rows_read,) = [metric for metric in detail["metrics"] if metric["metric"] == "rows_read"]
     assert (rows_read["value"], rows_read["scope"]) == (100_000, "sample")
 
@@ -439,13 +445,36 @@ def drivnx_sessions(tmp_path: Path) -> Iterator[Callable[[], int]]:
         yield lambda: connection.execute(SESSIONS).fetchone()[0]
 
 
-def test_a_run_holds_at_most_one_connection_to_the_server(
-    client: TestClient, drivnx_sessions: Callable[[], int]
+def test_a_jobs_attach_holds_even_a_read_on_every_thread_to_one_session(
+    tmp_path: Path, drivnx_sessions: Callable[[], int]
 ) -> None:
-    # CFX-APP-postgres/AC-23: "DrivnX holds at most one connection to the server for it". A table
-    # large enough that DuckDB's own scanner would read it over several (ADR 0005), and a view
-    # slow enough to watch.
-    source_id = chosen_source(client, "misestimated", "slow")
+    # CFX-APP-postgres/AC-23 and ADR 0009 Decision 2: the job's pool has one session, which each
+    # read waits for, as well as `threads = 1` on its reads. Here a read on 4 threads, which the
+    # scanner would spread over 4 sessions of `wide`'s 14,000 pages, and its pool keeps them open.
+    details = ConnectionDetails(
+        host=postgres_fixture.HOST,
+        port=postgres_fixture.PORT,
+        database=postgres_fixture.DATABASE,
+        user=postgres_fixture.USER,
+        tls_mode="prefer",
+    )
+    with duckdb_connection(tmp_path / "job") as connection:
+        attach(connection, details, postgres_fixture.PASSWORD, one_session=True)
+        connection.execute("SET threads = 4")
+
+        connection.execute(f"SELECT count(*) FROM source.{SCHEMA}.wide").fetchall()
+
+        assert drivnx_sessions() == 1
+
+
+@pytest.mark.parametrize("mode", ["fast", "full"])
+def test_a_run_holds_at_most_one_connection_to_the_server(
+    client: TestClient, drivnx_sessions: Callable[[], int], mode: str
+) -> None:
+    # CFX-APP-postgres/AC-23: "DrivnX reads the server over at most one connection for it, on a
+    # full profile too". Tables large enough that DuckDB's own scanner would read them over
+    # several (ADR 0005), `wide` at about 14,000 pages, and a view slow enough to watch.
+    source_id = chosen_source(client, "misestimated", "wide", "slow")
     seen: list[int] = []
     watching = threading.Event()
 
@@ -458,7 +487,7 @@ def test_a_run_holds_at_most_one_connection_to_the_server(
     watcher.start()
     try:
         run_id = client.post(
-            "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+            "/api/profile-runs", json={"source_id": source_id, "mode": mode}
         ).json()["id"]
         run = ended(client, run_id)
     finally:
@@ -469,11 +498,17 @@ def test_a_run_holds_at_most_one_connection_to_the_server(
     assert max(seen) == 1, seen
 
 
+@pytest.mark.parametrize("mode", ["fast", "full"])
 def test_a_run_creates_nothing_in_the_current_directory_and_spills_inside_the_workspace(
-    client: TestClient, workspace_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    client: TestClient,
+    workspace_dir: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mode: str,
 ) -> None:
     # CFX-APP-postgres/AC-23: "it creates nothing in the current directory, any spill files are
-    # inside <workspace>/duckdb-tmp/". A memory limit small enough that the rows spill.
+    # inside <workspace>/duckdb-tmp/", on a full profile too. A memory limit small enough that
+    # the rows spill.
     current = tmp_path / "current"
     current.mkdir()
     monkeypatch.chdir(current)
@@ -489,7 +524,7 @@ def test_a_run_creates_nothing_in_the_current_directory_and_spills_inside_the_wo
     monkeypatch.setattr(profile_jobs, "PROFILE_MEMORY_LIMIT", "100MB")
 
     run_id = client.post(
-        "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
+        "/api/profile-runs", json={"source_id": source_id, "mode": mode}
     ).json()["id"]
 
     assert ended(client, run_id)["status"] == "completed"

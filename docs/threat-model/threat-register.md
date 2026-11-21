@@ -1,8 +1,8 @@
 # Threat register — Phase 1
 
-The one-page register required by the direction doc (§7, §12). **Only the first row has code and tests in full; the
-input limits row and R3 are built and tested for CSV only, the two PostgreSQL rows in part, and the other mitigations
-are still planned.** Update a row when its test ships. The product claims in §7 stay off-limits until then.
+The one-page register required by the direction doc (§7, §12). **Only the first row and the connected-database row
+have code and tests in full; the input limits row is built and tested for CSV and PostgreSQL, R3 for CSV only, the key
+leaks row in part, and the other mitigations are still planned.** Update a row when its test ships. The product claims in §7 stay off-limits until then.
 
 ## Threats
 
@@ -10,10 +10,10 @@ are still planned.** Update a row when its test ships. The product claims in §7
 |---|---|---|---|
 | Malicious web page calls the local API | Loopback binding; exact Host and Origin checks; per-launch token in an `HttpOnly` cookie; GET routes have no side effects; a Content-Security-Policy stops other pages framing the UI | §7, ADR 0001 | Implemented and tested (T02). First spike 6 pass 2026-11-01, Chromium only |
 | Database or API key leaks | OS credential store; masking; never in SQLite, URLs, browser storage, logs or exports | §7, ADR 0007 | Partly implemented for PostgreSQL passwords (DRIVN-47): kept only in memory and a temporary DuckDB secret, never in the connection string or DuckDB's errors; tests scan `workspace.db`, its WAL and the logs at trace level for a planted right and wrong password. Planned: the OS credential store and the scan of browser storage and exports (DRIVN-48, AC-30) |
-| DrivnX changes a connected database | Read-only sessions; no writes; bounded queries; cancellation | §7, ADR 0007 | Read-only sessions implemented and tested (DRIVN-47, `CFX-APP-postgres` AC-14): DuckDB attaches read-only and the server starts every transaction read-only, and a write through either alone is refused by the server. Bounded queries and cancellation planned with profiling (ADR 0005) |
+| DrivnX changes a connected database | Read-only sessions; no writes; bounded queries; cancellation | §7, ADR 0007 | Read-only sessions implemented and tested (DRIVN-47, `CFX-APP-postgres` AC-14): DuckDB attaches read-only and the server starts every transaction read-only, and a write through either alone is refused by the server. Bounded queries and cancellation implemented and tested (DRIVN-53, AC-20 to AC-22, ADR 0009): every statement has a server-side `statement_timeout`, 30 s by default and on a full profile the per-object time limit (1 to 120 minutes) plus 30 s, and a per-object timer stops a full read at its limit. A cancel or a limit interrupts DuckDB, and if the read hasn't returned within 1 s a second connection sends `pg_cancel_backend` for the job's session and closes; tests check `pg_stat_activity` has no DrivnX query left running within 5 s, for a table, a view and a fast reading. A session ended or a privilege revoked mid-read fails the run with the object and the reason |
 | Sensitive data sent to AI unintentionally | AI off by default; context preview; explicit approval; audit record | §6, §7 | Planned (M8) |
 | Workspace copied or stolen | Owner-only permissions; no credentials in the workspace; raw data not copied by default | §7, ADR 0002 | Planned; see R3 and R4 |
-| Huge or malformed input exhausts resources | Sampling; size warnings; limits; cancellation | §5, §7 | Implemented and tested for CSV (`CFX-APP-csv-profile`): a fast profile reads only the first 100,000 rows, a full profile runs only on request and cancels within 5 s (AC-10), and a file over 100 MB in an encoding that must be decoded in memory is refused (AC-03). No size warnings yet, and the number of columns isn't capped. Planned for XLSX and Parquet (M2) and PostgreSQL (M4) |
+| Huge or malformed input exhausts resources | Sampling; size warnings; limits; cancellation | §5, §7 | Implemented and tested for CSV (`CFX-APP-csv-profile`): a fast profile reads only the first 100,000 rows, a full profile runs only on request and cancels within 5 s (AC-10), and a file over 100 MB in an encoding that must be decoded in memory is refused (AC-03). No size warnings yet, and the number of columns isn't capped. Implemented and tested for PostgreSQL (`CFX-APP-postgres`): a fast profile samples about 100,000 rows of a table and reads a view's first rows (DRIVN-51, ADR 0005), and a full profile runs only on request, each object within its time limit, and cancels within 5 s (DRIVN-53). Planned for XLSX and Parquet (M2) |
 | AI produces incorrect documentation | Inferred state; human review | §3, §12 | Planned (M1, M8) |
 
 ## Residual risks

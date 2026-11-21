@@ -32,10 +32,12 @@ from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, read_page, sniffed_columns
 from connectors.postgres import ConnectFailure, discover, reading_for
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.exc import NoResultFound
 
 from local_api.profile_jobs import (
+    SAMPLE_ROWS_READ,
+    TIME_LIMIT_REACHED,
     Busy,
     Mode,
     cancel_profile,
@@ -62,9 +64,8 @@ from local_api.sources_api import (
 from local_api.write_access import can_write, refusal, write_access
 
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
-# A database's full profile comes with its time limit and cancel (DRIVN-54).
-NO_FULL_DATABASE_PROFILE_YET = "A full profile of a database isn't available yet."
 NOTHING_CHOSEN = "Choose the objects to profile first."
+TIME_LIMIT_NOT_HERE = "A time limit applies only to a database's full profile."
 # Values on request from a database come with DRIVN-56.
 NO_DATABASE_VALUES_YET = "Values on request for a database aren't available yet."
 OBJECTS_CHANGED = "{} changed since the list was refreshed. Refresh the list, then profile again."
@@ -89,6 +90,8 @@ class ProfileRunRequest(BaseModel):
     mode: Mode
     # A database's write access as a refusal gave it, which the user confirmed (AC-16).
     write_access: dict | None = None
+    # A database's full profile: each object's limit, in minutes (DRIVN-53).
+    time_limit_minutes: int | None = Field(None, ge=1, le=120)
 
 
 class ProfileRunResponse(BaseModel):
@@ -123,12 +126,23 @@ class MetricResponse(BaseModel):
     precision: str
 
 
+class PatternsReadResponse(BaseModel):
+    """How a full profile's fast reading read the rows its masked patterns are from."""
+
+    method: str
+    rows: int
+
+
 class ObjectReadResponse(BaseModel):
-    """How a database run read an object (AC-18): `page_sample`, `whole`, `first_rows` (read
-    whole, but larger than its estimate) or `view_first_rows`."""
+    """How a database run read an object (AC-18, AC-19): `page_sample`, `whole`, `first_rows`
+    (read whole, but larger than its estimate), `view_first_rows`, or `full` on a full profile."""
 
     object: str
     method: str
+    # A full profile stopped reading it at its time limit, so it has no results (AC-20).
+    stopped_at_time_limit: bool = False
+    # On a full profile, its fast reading, as its masked patterns come from it (the Assumptions).
+    patterns_from: PatternsReadResponse | None = None
 
 
 class ProfileRunDetail(ProfileRunResponse):
@@ -249,11 +263,15 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         return run
 
     def start_database_run(
-        database: StoredPostgresSource, mode: Mode, confirmed: dict | None
+        database: StoredPostgresSource,
+        mode: Mode,
+        confirmed: dict | None,
+        time_limit_minutes: int | None,
     ) -> str:
-        """A fast profile of the database's chosen objects (DRIVN-51). Returns its ID."""
-        if mode == "full":
-            raise HTTPException(status_code=409, detail=NO_FULL_DATABASE_PROFILE_YET)
+        """A fast or full profile of the database's chosen objects (DRIVN-51, DRIVN-53). Returns
+        its ID."""
+        if time_limit_minutes is not None and mode != "full":
+            raise HTTPException(status_code=422, detail=TIME_LIMIT_NOT_HERE)
         # Only chosen objects are profiled (AC-11).
         objects = read_chosen_objects(workspace.engine, database.id)
         if not objects:
@@ -291,12 +309,14 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         try:
             run_id = start_database_profile(
                 workspace,
+                mode,
                 details_of(database),
                 database,
                 known.password,
                 objects,
                 readings,
                 write_access=access,
+                time_limit_minutes=time_limit_minutes,
             )
         except RunInProgress:
             raise HTTPException(status_code=409, detail=RUN_IN_PROGRESS) from None
@@ -312,7 +332,11 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         database = find_source(workspace.engine, body.source_id)
         if isinstance(database, StoredPostgresSource):
             return _response(
-                existing_run(start_database_run(database, body.mode, body.write_access))
+                existing_run(
+                    start_database_run(
+                        database, body.mode, body.write_access, body.time_limit_minutes
+                    )
+                )
             )
         try:
             # Before the settings, so a correction saved after either replaces this dataset, and
@@ -323,6 +347,8 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         source = find_source(workspace.engine, body.source_id)
         if source is None:
             raise no_such_source
+        if body.time_limit_minutes is not None:
+            raise HTTPException(status_code=422, detail=TIME_LIMIT_NOT_HERE)
         if not is_available(source.path):
             raise cannot_read(FILE_GONE)
         with _reading():
@@ -404,15 +430,37 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             for seen in observations
             if seen.metric == "rows_read" and seen.scope == "sample"
         }
+        stopped = {
+            seen.dataset_id for seen in observations if seen.metric == TIME_LIMIT_REACHED
+        }
+        fast_readings = {
+            seen.dataset_id: seen for seen in observations if seen.metric == SAMPLE_ROWS_READ
+        }
+
+        def patterns_from(dataset_id: str, planned: str) -> PatternsReadResponse | None:
+            seen = fast_readings.get(dataset_id)
+            if seen is None:
+                return None
+            # As for a fast run: read whole, but larger than its estimate, so its first rows.
+            method = "first_rows" if planned == "whole" and seen.scope == "sample" else planned
+            return PatternsReadResponse(method=method, rows=seen.value)
+
+        def read_as(dataset_id: str, planned: str) -> str:
+            if run.mode == "full":
+                # Every row, whatever its fast reading (DRIVN-53).
+                return "full"
+            if planned == "whole" and dataset_id in sampled:
+                return "first_rows"
+            return planned
         return ProfileRunDetail(
             **_response(run).model_dump(),
             file_changed=None,
             objects=[
                 ObjectReadResponse(
                     object=named[dataset_id],
-                    method="first_rows"
-                    if found["method"] == "whole" and dataset_id in sampled
-                    else found["method"],
+                    method=read_as(dataset_id, found["method"]),
+                    stopped_at_time_limit=dataset_id in stopped,
+                    patterns_from=patterns_from(dataset_id, found["method"]),
                 )
                 for dataset_id, found in objects.items()
             ],
