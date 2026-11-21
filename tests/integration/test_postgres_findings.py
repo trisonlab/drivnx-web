@@ -293,3 +293,39 @@ def test_a_runs_findings_are_by_object_in_its_order_then_by_kind(
         ("gaps", "status", "single_value"),
         ("keyed", "code", "possible_identifier"),
     ]
+
+
+def test_a_database_runs_findings_say_their_object_and_cite_its_columns(
+    start_app: StartApp, workspace: Workspace, postgres_server: str
+) -> None:
+    # CFX-APP-postgres/AC-26: the findings "with their evidence links", each of an object, so
+    # each says which, and its evidence names that object's column.
+    client = start_app(None)
+    source_id = chosen_source(client, "keyed", "gaps")
+    run_id = run(client, source_id)
+    assert ended(client, run_id)["status"] == "completed"
+
+    response = client.get("/api/findings", params={"profile_run_id": run_id})
+
+    assert response.status_code == 200, response.text
+    gaps, keyed = f"{SCHEMA}.gaps", f"{SCHEMA}.keyed"
+    assert [
+        (
+            finding.get("object"),
+            finding["kind"],
+            [(cited["object"], cited["column"], cited["metric"]) for cited in finding["evidence"]],
+        )
+        for finding in response.json()
+    ] == [
+        (
+            gaps,
+            "missing_values",
+            [(gaps, "note", "missing_count"), (gaps, "note", "missing_percent")],
+        ),
+        (gaps, "single_value", [(gaps, "status", "distinct_count")]),
+        (
+            keyed,
+            "possible_identifier",
+            [(keyed, "code", "distinct_count"), (keyed, "code", "distinct_percent")],
+        ),
+    ]

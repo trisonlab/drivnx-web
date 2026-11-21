@@ -253,6 +253,23 @@ def columns_now(
     )
 
 
+def database_run_names(
+    workspace: Workspace, scope: dict
+) -> tuple[dict[str, str], dict[str, str]]:
+    """A database run's objects by dataset ID, as `schema.object`, and their columns by field
+    ID, from what its scope says it read."""
+    objects = {found["dataset_id"]: found for found in scope["objects"]}
+    named = {
+        dataset_id: f"{found['schema']}.{found['name']}" for dataset_id, found in objects.items()
+    }
+    columns = {
+        field_id: name
+        for dataset_id in objects
+        for field_id, name in read_field_names(workspace.engine, dataset_id).items()
+    }
+    return named, columns
+
+
 def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
     router = APIRouter(prefix="/api/profile-runs")
 
@@ -416,14 +433,7 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
     ) -> ProfileRunDetail:
         """Each metric with its object, and how each object was read (AC-24)."""
         objects = {found["dataset_id"]: found for found in scope["objects"]}
-        named = {
-            dataset_id: f"{found['schema']}.{found['name']}" for dataset_id, found in objects.items()
-        }
-        columns = {
-            field_id: name
-            for dataset_id in objects
-            for field_id, name in read_field_names(workspace.engine, dataset_id).items()
-        }
+        named, columns = database_run_names(workspace, scope)
         # A whole read that came back larger than its estimate was measured on its first rows.
         sampled = {
             seen.dataset_id
