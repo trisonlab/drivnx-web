@@ -98,7 +98,14 @@ the repository:
   as `[1, 2]` and `\xdeadbeef` as `\xDE\xAD\xBE\xEF`. Every other type tried was already equal: double, real, bigint,
   boolean, timestamp, timestamptz, date, time, timetz, interval, json, jsonb, uuid, money, inet, text and char.
   `timestamptz` only while DuckDB's time zone, the machine's, was the server's (UTC): in another, the scanner wrote it in
-  DuckDB's, so the whole read sets DuckDB's `TimeZone` to the server's for its read (found in DRIVN-53's review).
+  DuckDB's. So for an object with a `timestamptz`, the whole read sets DuckDB's `TimeZone` to the server's, and writes
+  one moment (2000-07-01 12:00 UTC) both ways; if DuckDB refuses the zone or writes it otherwise, the object fails,
+  naming the zone (found in DRIVN-53's reviews, 2026-11-21). DuckDB refuses some zones PostgreSQL takes, `localtime`
+  and `<+03>-03`, and reads a POSIX zone's sign the other way: `UTC+3` is -03:00 to PostgreSQL and +03:00 to DuckDB.
+  Named zones agree for that moment, UTC, Asia/Kolkata, Europe/Amsterdam and EST5EDT among them, but not before about
+  1900, where PostgreSQL writes a local mean time's seconds: 1890-01-01 00:00 UTC is `05:21:10+05:21:10` in
+  Asia/Kolkata and `05:21:10+05:21` in DuckDB, and in Europe/Amsterdam `00:19:32+00:19:32` and `00:17:30+00:17`.
+  Those aren't detected.
 
 Not measured: a network between DrivnX and the server, enums, ranges, domains and xml (DRIVN-54's golden fixture), and
 a role in a cluster that restricts `pg_cancel_backend`.

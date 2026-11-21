@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-21T01:54:42+00:00'
+updated_at: '2026-11-21T03:08:35+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -35,7 +35,7 @@ sources:
   .ai/knowledge/work/DRIVN-50.md: a34558f2a41f0b8565c1b8c28d3f7bcf30d10f625f4cf3d251725b3bf9f364de
   .ai/knowledge/work/DRIVN-51.md: 15de5a51e6051fb4b48eda8034f6e1eab02919e7177d5b375e86124034b8ce2a
   .ai/knowledge/work/DRIVN-52.md: 9ed89f7ffb088dc0c5c56cdd167e6326880ddf14027878fb7c391374d384c4ed
-  .ai/knowledge/work/DRIVN-53.md: 199d098c05cdf0a2b5516ffb2d0814c86ea3b2004f727510d9a3d921cf9505b7
+  .ai/knowledge/work/DRIVN-53.md: 065580f52874f95011755448bc4eee7357d3c50607b2cc21e589415b640be606
   .ai/knowledge/work/DRIVN-54.md: e32740839d7587470a47fc66bdfb95d3179a0d40ecf564d67dbb126f60eb674c
   .ai/knowledge/work/DRIVN-55.md: d7d8f48e6a5c88c559f0872b39b4f50438a8904cfe6edbb597e2a0e32e641941
   .ai/knowledge/work/DRIVN-56.md: 6d4791b654ba4986ca0010eb9c15e72514503a30a4ed3b6a0d0c2dba3870e442
@@ -100,7 +100,7 @@ sources:
   packages/artifacts/store.py: 342da5f8686ec2f8672e296a7c51b803e9617a5e25b9e413d87028715a65c352
   packages/artifacts/workspace.py: 5eb2e1c2ea6fcc8a9d8bbec8b9c5245b5a12038714d6d32321c71b7d6d2513a0
   packages/connectors/csv_files.py: c9261f73242606e3a0907157f8c6f6c003b81e692cc8e2281b4f605d3c9c6a39
-  packages/connectors/postgres.py: 63599343320307cf500872a7e91d13b810b579164edcdb9ad1ffcf2c30b0a362
+  packages/connectors/postgres.py: 743f32f03846554631e28811cb1beec8ebf02e2374958dc32c9b4b54db3b2e83
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
   packages/profiling/findings.py: 60e9053ec8d2a80e29cfacb8fcf8f48b66ec22347e9d9a113b03ddda06bb51ee
@@ -155,8 +155,8 @@ sources:
   tests/integration/test_postgres_objects_store.py: a09119286abd9bbbc17fc90c9f0f0eea238181a32d35c8a1a8b5015e4efb0862
   tests/integration/test_postgres_password_store.py: 8eebbead2dc4b70ed2ea865c7d37455dae4e7d6951435be20454dc3094dbbb5d
   tests/integration/test_postgres_preview_api.py: ed158df845b8269ea758d3ea7d4e8fe9e9cddaaea8f12eb27e21f678ff5d50e0
-  tests/integration/test_postgres_profile_api.py: ba180f2bc595e62945110fe55d71a981d3b68255ee4b13475e2b2d9edf1d796d
-  tests/integration/test_postgres_reading.py: 3cf7e2623bfad6d783f5e65e737e413a62bf1f8274403ade6abaa4e87d63ad20
+  tests/integration/test_postgres_profile_api.py: c347c079db32938c0646e92abf440dbba6ed74fd91633393cb2399910b002e3d
+  tests/integration/test_postgres_reading.py: 34e37ccb7303187112289bf3c672950e8488b58b14b1808a8a5f3eee551947aa
   tests/integration/test_postgres_sources.py: bcd8768eb12410263580b4c86587aee6f54bd86997bfd37a7ed65a58d0c966d2
   tests/integration/test_postgres_sources_api.py: 7176a00b5d7fe0f494afa3b59ff5c847784ba29486f87649c175832087a9989f
   tests/integration/test_postgres_stopping.py: 0b6f7b90c168d747cc2b533e39d3af3be3d12e107002af82d226517d45791f97
@@ -4623,13 +4623,13 @@ edges:
   to: criterion:CFX-APP-postgres/AC-16
   status: CONFIRMED
   evidence:
-  - packages/connectors/postgres.py:336
+  - packages/connectors/postgres.py:342
 - from: module:packages/connectors/postgres.py
   rel: implements
   to: ticket:DRIVN-50
   status: CONFIRMED
   evidence:
-  - packages/connectors/postgres.py:488
+  - packages/connectors/postgres.py:494
 - from: module:packages/connectors/postgres.py
   rel: imports
   to: module:packages/connectors/csv_files.py
@@ -6766,8 +6766,9 @@ edges:
   to: criterion:CFX-APP-postgres/AC-23
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_profile_api.py:452
-  - tests/integration/test_postgres_profile_api.py:487
+  - tests/integration/test_postgres_profile_api.py:451
+  - tests/integration/test_postgres_profile_api.py:474
+  - tests/integration/test_postgres_profile_api.py:509
 - from: module:tests/integration/test_postgres_profile_api.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-24
@@ -6799,33 +6800,43 @@ edges:
   to: module:tests/postgres_fixture.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_reading.py:18
+  - tests/integration/test_postgres_reading.py:20
 - from: module:tests/integration/test_postgres_reading.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-18
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_reading.py:1
-  - tests/integration/test_postgres_reading.py:115
-  - tests/integration/test_postgres_reading.py:122
-  - tests/integration/test_postgres_reading.py:140
   - tests/integration/test_postgres_reading.py:157
-  - tests/integration/test_postgres_reading.py:168
+  - tests/integration/test_postgres_reading.py:164
+  - tests/integration/test_postgres_reading.py:182
+  - tests/integration/test_postgres_reading.py:199
+  - tests/integration/test_postgres_reading.py:210
 - from: module:tests/integration/test_postgres_reading.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-19
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_reading.py:188
-  - tests/integration/test_postgres_reading.py:209
-  - tests/integration/test_postgres_reading.py:219
+  - tests/integration/test_postgres_reading.py:230
+  - tests/integration/test_postgres_reading.py:251
+  - tests/integration/test_postgres_reading.py:261
+  - tests/integration/test_postgres_reading.py:271
+  - tests/integration/test_postgres_reading.py:288
+  - tests/integration/test_postgres_reading.py:305
+  - tests/integration/test_postgres_reading.py:335
 - from: module:tests/integration/test_postgres_reading.py
   rel: verifies
   to: ticket:DRIVN-51
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_reading.py:1
-  - tests/integration/test_postgres_reading.py:141
+  - tests/integration/test_postgres_reading.py:183
+- from: module:tests/integration/test_postgres_reading.py
+  rel: verifies
+  to: ticket:DRIVN-53
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_reading.py:289
 - from: module:tests/integration/test_postgres_sources.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-01

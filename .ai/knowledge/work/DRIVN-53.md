@@ -133,3 +133,12 @@ measured locally, doesn't fail the run, which completes over the new session. AC
 Known limits, not fixed: a cancel that lands between two reads; libpq's network-loss texts aren't told apart; no test
 bounds the cancel connection's lifetime, and its attach against a server that doesn't answer may take two 5 s attempts;
 `time_limit_minutes` accepts `true` and `"7"` as Pydantic's lax integers.
+
+Second review (2026-11-21), fixed test-first:
+- The zone is set only for an object with a `timestamptz`, and checked on one moment; in a zone DuckDB refuses or
+  writes otherwise (`localtime`, `UTC+3`) the object fails naming the zone, as decided with the user.
+- A whole read compares the server's column names, in its order, with the listed ones, and says the object changed.
+- A test holds a job's pool to one session on a read on 4 threads.
+
+Known limit added: before about 1900, a zone with a local mean time writes a `timestamptz` otherwise in DuckDB, which
+isn't detected (ADR 0009, Measured).
