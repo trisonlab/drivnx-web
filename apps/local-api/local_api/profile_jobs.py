@@ -309,19 +309,24 @@ def _measure_objects(
                 if mode == "fast"
                 else time_limit_minutes * SECONDS_PER_MINUTE + STATEMENT_TIMEOUT_SECONDS,
             )
-            for found in objects:
-                job.object_name = f"{found.schema}.{found.name}"
-                # For each object, as the extension replaces a connection left idle for a minute.
+
+            def aim_cancel() -> None:
+                """Point the server's cancel at the session about to read. The extension
+                replaces one that has ended or been left idle a minute, without a word."""
                 pid = session_pid(connection)
                 with _jobs_lock:
                     job.cancel_on_server = functools.partial(
                         cancel_read, details, password, pid, workspace.temp_directory
                     )
+
+            for found in objects:
+                job.object_name = f"{found.schema}.{found.name}"
+                aim_cancel()
                 if mode == "fast":
                     observations += _read_object(connection, mode, found, readings, seed)
                 else:
                     observations += _read_within_time_limit(
-                        connection, job, found, readings, seed, time_limit_minutes
+                        connection, job, found, readings, seed, time_limit_minutes, aim_cancel
                     )
         finally:
             with _jobs_lock:
@@ -336,6 +341,7 @@ def _read_object(
     found: ChosenObject,
     readings: dict[str, Reading],
     seed: int,
+    before_whole_read: Callable[[], None] = lambda: None,
 ) -> list[NewObservation]:
     """An object read as `mode` says, and what's saved for it."""
     name = (found.schema, found.name)
@@ -346,6 +352,7 @@ def _read_object(
     if mode == "fast":
         return _object_observations(found, sampled, fast)
     # A full profile's masked patterns are its fast reading's (decided for DRIVN-53).
+    before_whole_read()
     load_whole_object(connection, name, columns, ROWS_TABLE)
     measured = _measure_loaded(connection, types, "full")
     return _object_observations(found, measured, "full", (sampled, fast))
@@ -358,6 +365,7 @@ def _read_within_time_limit(
     readings: dict[str, Reading],
     seed: int,
     time_limit_minutes: int,
+    before_whole_read: Callable[[], None],
 ) -> list[NewObservation]:
     """An object's full profile, or only that it was stopped at its time limit (AC-20)."""
     reached = threading.Event()
@@ -370,7 +378,7 @@ def _read_within_time_limit(
     timer.name, timer.daemon = INTERRUPTING_THREAD_NAME, True
     timer.start()
     try:
-        return _read_object(connection, "full", found, readings, seed)
+        return _read_object(connection, "full", found, readings, seed, before_whole_read)
     except (ConnectFailure, duckdb.Error):
         if job.stop.is_set() or not reached.is_set():
             raise

@@ -338,3 +338,39 @@ def test_a_running_jobs_password_stays_out_of_its_repr(
     client.post(f"/api/profile-runs/{run_id}/cancel")
     assert ended(client, run_id)["status"] == "cancelled"
     assert postgres_fixture.PASSWORD not in shown
+
+
+def test_a_read_after_the_server_replaced_the_jobs_session_is_still_stopped_on_the_server(
+    start_app: StartApp,
+    workspace: Workspace,
+    postgres_admin: Callable[[str], None],
+    drivnx_queries: Callable[[str], int],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # CFX-APP-postgres/AC-21 and ADR 0009 Decision 1: the extension replaces a session that has
+    # ended, or been left idle a minute, without a word, so the server's cancel must name the
+    # session that reads (found in review). Here the session ends once the object's fast reading
+    # is in, while it's measured, before its whole read, as a restart or an administrator could.
+    fast_reading = profile_jobs.load_object_rows
+
+    def then_the_session_ends(connection, *args, **kwargs):
+        method = fast_reading(connection, *args, **kwargs)
+        postgres_admin(f"SELECT pg_terminate_backend({postgres.session_pid(connection)})")
+        time.sleep(0.5)
+        return method
+
+    monkeypatch.setattr(profile_jobs, "load_object_rows", then_the_session_ends)
+    client = start_app(None)
+    source_id = chosen_source(client, "late_sleepy")
+    started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "full"})
+    assert started.status_code == 202, started.text
+    run_id = started.json()["id"]
+    reading(drivnx_queries, f'COPY (SELECT "n" FROM "{SCHEMA}"."late_sleepy"%')
+
+    cancelled_at = time.monotonic()
+    client.post(f"/api/profile-runs/{run_id}/cancel")
+    run = ended(client, run_id)
+    took = time.monotonic() - cancelled_at
+
+    assert (run["status"], took < CANCEL_WITHIN_SECONDS) == ("cancelled", True), took
+    assert drivnx_queries() == 0
