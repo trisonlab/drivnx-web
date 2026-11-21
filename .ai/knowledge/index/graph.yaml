@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-21T03:08:35+00:00'
+updated_at: '2026-11-21T03:23:19+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -35,7 +35,7 @@ sources:
   .ai/knowledge/work/DRIVN-50.md: a34558f2a41f0b8565c1b8c28d3f7bcf30d10f625f4cf3d251725b3bf9f364de
   .ai/knowledge/work/DRIVN-51.md: 15de5a51e6051fb4b48eda8034f6e1eab02919e7177d5b375e86124034b8ce2a
   .ai/knowledge/work/DRIVN-52.md: 9ed89f7ffb088dc0c5c56cdd167e6326880ddf14027878fb7c391374d384c4ed
-  .ai/knowledge/work/DRIVN-53.md: 065580f52874f95011755448bc4eee7357d3c50607b2cc21e589415b640be606
+  .ai/knowledge/work/DRIVN-53.md: 1a59ec27721daf6793db6c1a37c3ce66fa73fb141068edd9da15b8aeb308e6da
   .ai/knowledge/work/DRIVN-54.md: e32740839d7587470a47fc66bdfb95d3179a0d40ecf564d67dbb126f60eb674c
   .ai/knowledge/work/DRIVN-55.md: d7d8f48e6a5c88c559f0872b39b4f50438a8904cfe6edbb597e2a0e32e641941
   .ai/knowledge/work/DRIVN-56.md: 6d4791b654ba4986ca0010eb9c15e72514503a30a4ed3b6a0d0c2dba3870e442
@@ -2042,7 +2042,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-53.md
   title: Full profile, time limit and cancel
-  state: ready
+  state: done
   external_key: DRIVN-53
 - id: ticket:DRIVN-54
   kind: ticket
