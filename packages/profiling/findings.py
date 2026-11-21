@@ -1,4 +1,4 @@
-"""Rule-based findings from a run's saved observations. Nothing here reads the file again."""
+"""Rule-based findings from a run's saved observations. Nothing here reads the source again."""
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
@@ -55,7 +55,7 @@ _TEXTS = {
     "duplicate_rows": (
         "Rows that are exact copies of another row",
         "Copies can count the same thing twice in totals and averages.",
-        "Check whether the copies are expected, and remove them where the file comes from if not.",
+        "Check whether the copies are expected, and remove them where the data comes from if not.",
     ),
     "missing_values": (
         "Significant missing values",
@@ -70,7 +70,7 @@ _TEXTS = {
     "single_value": (
         "Single-value column",
         "A column with one value tells rows apart by nothing, and may be left from a filter.",
-        "Check whether the column is needed, or whether the file was filtered.",
+        "Check whether the column is needed, or whether the data was filtered.",
     ),
 }
 
@@ -103,27 +103,35 @@ def _possibly_sensitive(name: str, metrics: dict[str, Evidence]) -> DraftFinding
 
 
 def findings_for(
-    observations: Sequence[Evidence], names: Mapping[str, str]
+    observations: Sequence[Evidence],
+    names: Mapping[str, str],
+    *,
+    keyed: frozenset[str] = frozenset(),
 ) -> list[DraftFinding]:
     """Findings in the fixed order by kind, then in the order their columns were saved. `names`
-    gives each column's name by its field ID."""
-    of_the_file = {e.metric: e for e in observations if e.field_id is None}
-    rows_read = of_the_file["rows_read"].value
+    gives each column's name by its field ID, and `keyed` the columns a declared key of their own
+    already identifies, which are no possible identifier (CFX-APP-postgres AC-26)."""
+    of_the_whole = {e.metric: e for e in observations if e.field_id is None}
+    # An object a full profile stopped at its time limit has no results to find from (AC-20).
+    if "rows_read" not in of_the_whole:
+        return []
+    rows_read = of_the_whole["rows_read"].value
     columns: dict[str, dict[str, Evidence]] = {}
     for evidence in observations:
         if evidence.field_id is not None:
             columns.setdefault(evidence.field_id, {})[evidence.metric] = evidence
     found = []
     # Only a full profile counts them.
-    duplicates = of_the_file.get("duplicate_rows")
+    duplicates = of_the_whole.get("duplicate_rows")
     if duplicates is not None and duplicates.value >= 1:
         found.append(_draft("duplicate_rows", [duplicates]))
     for field_id, metrics in columns.items():
         sensitive = _possibly_sensitive(names[field_id], metrics)
         if sensitive is not None:
             found.append(sensitive)
-        not_fitting = metrics["not_fitting_count"]
-        if not_fitting.value >= 1:
+        # A database's typed column saves none, as no value can fail to fit it.
+        not_fitting = metrics.get("not_fitting_count")
+        if not_fitting is not None and not_fitting.value >= 1:
             found.append(_draft("not_fitting", [not_fitting]))
         missing = metrics["missing_count"]
         if rows_read >= 1 and missing.value * 100 >= rows_read * 20:
@@ -131,7 +139,7 @@ def findings_for(
         present = rows_read - missing.value
         distinct = metrics["distinct_count"]
         # At least two values (spec revision 4), as one alone is always 100% distinct.
-        if present >= 2 and distinct.value * 100 >= present * 99:
+        if field_id not in keyed and present >= 2 and distinct.value * 100 >= present * 99:
             found.append(_draft("possible_identifier", [distinct, metrics["distinct_percent"]]))
         # At least two, as one value alone says nothing about the rest.
         if present >= 2 and distinct.value == 1:
