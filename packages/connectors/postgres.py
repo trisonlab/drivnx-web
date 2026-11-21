@@ -112,6 +112,12 @@ _TIMED_OUT = (
 _OBJECT_TIMED_OUT = (
     "The database took too long to read this object, and stopped. Try again when it's less busy."
 )
+# A moment written as a `timestamptz` in the server's zone and in DuckDB's, to compare (ADR 0009).
+_KNOWN_MOMENT = "2000-07-01 12:00:00+00"
+_UNREADABLE_ZONE = (
+    "DrivnX can't read times in this server's time zone, {zone}. Set the connection's user to a"
+    " named zone such as UTC, or leave this object out."
+)
 _NOT_ALLOWED_TO_READ = (
     "This connection's user isn't allowed to read this object any more. Ask the database's"
     " administrator for SELECT on it, or leave it out."
@@ -586,17 +592,12 @@ def load_whole_object(
     # Measuring the rows afterwards is local and keeps every thread.
     connection.execute("SET threads = 1")
     try:
-        # A `timestamptz` as the server writes it, in its zone, not in this machine's.
-        ((zone,),) = _on_server(connection, "SELECT current_setting('TimeZone')")
-        connection.execute(f"SET TimeZone = {_sql(zone)}")
         # By position: DuckDB's names don't tell `"A"` from `a`, which it calls `a_1`.
-        blobs = {
-            n
-            for n, (_, column_type, *_) in enumerate(
-                connection.execute(f"DESCRIBE {source}").fetchall()
-            )
-            if column_type == "BLOB"
-        }
+        described = connection.execute(f"DESCRIBE {source}").fetchall()
+        types = [column_type for _, column_type, *_ in described]
+        blobs = {n for n, column_type in enumerate(types) if column_type == "BLOB"}
+        if "TIMESTAMP WITH TIME ZONE" in types:
+            _write_times_as_the_server(connection)
 
         def as_text(n: int) -> str:
             # `bytea` as PostgreSQL writes it, `\x` and lowercase hex, not DuckDB's `\xDE\xAD`.
@@ -614,6 +615,25 @@ def load_whole_object(
         raise _not_read(error, _OBJECT_TIMED_OUT) from None
     finally:
         reset_whole_read(connection)
+
+
+def _write_times_as_the_server(connection: duckdb.DuckDBPyConnection) -> None:
+    """Write a `timestamptz` as the server does, in its time zone, not this machine's. Some zones
+    PostgreSQL takes DuckDB refuses (`localtime`) or reads otherwise (`UTC+3`), so a moment is
+    written both ways and compared."""
+    ((zone, theirs),) = _on_server(
+        connection,
+        f"SELECT current_setting('TimeZone'), {_sql(_KNOWN_MOMENT)}::timestamptz::text",
+    )
+    try:
+        connection.execute(f"SET TimeZone = {_sql(zone)}")
+    except duckdb.NotImplementedException:
+        raise ConnectFailure("time_zone", _UNREADABLE_ZONE.format(zone=zone)) from None
+    ((ours,),) = connection.execute(
+        f"SELECT CAST(TIMESTAMPTZ {_sql(_KNOWN_MOMENT)} AS VARCHAR)"
+    ).fetchall()
+    if ours != theirs:
+        raise ConnectFailure("time_zone", _UNREADABLE_ZONE.format(zone=zone))
 
 
 def reset_whole_read(connection: duckdb.DuckDBPyConnection) -> None:

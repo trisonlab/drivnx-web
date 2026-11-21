@@ -1,12 +1,14 @@
 """How a fast profile reads each chosen object, CFX-APP-postgres AC-18 and ADR 0005 (DRIVN-51)."""
 
 from collections.abc import Callable, Iterator
+from dataclasses import replace
 from pathlib import Path
 
 import duckdb
 import pytest
 from connectors.csv_files import duckdb_connection
 from connectors.postgres import (
+    ConnectFailure,
     ConnectionDetails,
     Reading,
     attach,
@@ -81,6 +83,46 @@ def attached(tmp_path: Path) -> Iterator[duckdb.DuckDBPyConnection]:
     with duckdb_connection(tmp_path) as connection:
         attach(connection, FIXTURE, postgres_fixture.PASSWORD)
         yield connection
+
+
+# A role of its own whose sessions are in a time zone a test sets, as a server's or a role's
+# `timezone` would set it, so the fixture's role keeps the server's.
+ZONED_USER = "drivnx_zoned"
+ZONED_PASSWORD = "drivnx-zoned"  # pragma: allowlist secret, ai-skills: allow
+
+
+@pytest.fixture(scope="module")
+def zoned_role(
+    objects: None, postgres_admin: Callable[[str], None]
+) -> Iterator[Callable[[str], None]]:
+    """Set the time zone the zoned role's next sessions are in."""
+    for statement in (
+        f"DROP ROLE IF EXISTS {ZONED_USER}",
+        f"CREATE ROLE {ZONED_USER} LOGIN PASSWORD '{ZONED_PASSWORD}'",
+        f"GRANT USAGE ON SCHEMA {SCHEMA} TO {ZONED_USER}",
+        f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO {ZONED_USER}",
+    ):
+        postgres_admin(statement)
+    try:
+        yield lambda zone: postgres_admin(f"ALTER ROLE {ZONED_USER} SET timezone = '{zone}'")
+    finally:
+        postgres_admin(f"DROP OWNED BY {ZONED_USER}")
+        postgres_admin(f"DROP ROLE {ZONED_USER}")
+
+
+@pytest.fixture
+def attached_in_zone(
+    tmp_path: Path, zoned_role: Callable[[str], None]
+) -> Iterator[Callable[[str], duckdb.DuckDBPyConnection]]:
+    """A connection attached as the zoned role, its sessions in the zone given."""
+    with duckdb_connection(tmp_path) as connection:
+
+        def attached(zone: str) -> duckdb.DuckDBPyConnection:
+            zoned_role(zone)
+            attach(connection, replace(FIXTURE, user=ZONED_USER), ZONED_PASSWORD)
+            return connection
+
+        yield attached
 
 
 def count(connection: duckdb.DuckDBPyConnection, table: str) -> int:
@@ -221,3 +263,56 @@ def test_a_whole_read_counts_the_rows_of_a_table_with_no_columns(
     load_whole_object(attached, (SCHEMA, "no_columns"), (), "rows")
 
     assert count(attached, "rows") == 2
+
+
+def test_a_whole_read_without_zoned_times_ignores_a_time_zone_duckdb_cant_read(
+    attached_in_zone: Callable[[str], duckdb.DuckDBPyConnection],
+) -> None:
+    # CFX-APP-postgres/AC-19: an object with no `timestamptz` is read whole whatever the server's
+    # time zone. PostgreSQL takes `localtime`, its system's zone, and DuckDB refuses it (found in
+    # the second review).
+    connection = attached_in_zone("localtime")
+
+    load_whole_object(connection, (SCHEMA, "small"), ("id", "label"), "rows")
+
+    assert count(connection, "rows") == 3
+
+
+# The zones PostgreSQL takes and DuckDB can't write its times in: one it refuses, and a POSIX one
+# whose sign it reads the other way, so `UTC+3` would write -03:00's times as +03:00 (found in the
+# second review).
+@pytest.mark.parametrize("zone", ["localtime", "UTC+3"])
+def test_a_whole_read_of_zoned_times_in_a_zone_duckdb_cant_write_says_so(
+    attached_in_zone: Callable[[str], duckdb.DuckDBPyConnection], zone: str
+) -> None:
+    # CFX-APP-postgres/AC-19: exact results or none. No other text for a `timestamptz` than the
+    # server's, and a reason the user can act on (decided with the user for DRIVN-53).
+    connection = attached_in_zone(zone)
+
+    with pytest.raises(ConnectFailure) as failed:
+        load_whole_object(connection, (SCHEMA, "typed"), TYPED_COLUMNS, "rows")
+
+    assert (failed.value.reason, str(failed.value)) == (
+        "time_zone",
+        f"DrivnX can't read times in this server's time zone, {zone}. Set the connection's user to"
+        " a named zone such as UTC, or leave this object out.",
+    )
+
+
+def test_a_whole_read_of_zoned_times_writes_them_in_the_servers_named_zone(
+    attached_in_zone: Callable[[str], duckdb.DuckDBPyConnection],
+) -> None:
+    # CFX-APP-postgres/AC-19 and ADR 0009: in a server zone DuckDB can write, other than UTC and
+    # this machine's, a `timestamptz` reads whole as the server's own `::text`.
+    connection = attached_in_zone("Asia/Kolkata")
+    connection.execute(
+        "CREATE TABLE expected AS SELECT * FROM postgres_query('source', "
+        f"'SELECT moment::text AS c0, clock::text AS c1 FROM {SCHEMA}.typed')"
+    )
+
+    load_whole_object(connection, (SCHEMA, "typed"), TYPED_COLUMNS, "rows")
+
+    # `moment` and `clock`, the 10th and 11th of `TYPED_COLUMNS`.
+    read = "SELECT c9, c10 FROM rows"
+    assert connection.execute(f"{read} EXCEPT ALL SELECT * FROM expected").fetchall() == []
+    assert connection.execute(f"{read} WHERE c9 LIKE '%+05:30'").fetchall() != []
