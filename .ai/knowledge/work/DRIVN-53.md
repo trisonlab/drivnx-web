@@ -116,3 +116,20 @@ What these show:
   timeout is a backstop.
 
 Not measured: a network between DrivnX and the server, a cold disk, other machines.
+
+## Review fixes (2026-11-21)
+The independent review found these, each fixed test-first and seen failing without its fix:
+- A whole read named columns through DuckDB, which doesn't tell `"A"` from `a`; it now reads them by position.
+- A table with no columns failed a full run as "changed", as DuckDB's catalog leaves it out; it's read on the server.
+- A `timestamptz` was read in the machine's time zone; the whole read uses the server's.
+- The cancel's pid is taken again right before an object's whole read, as the extension replaces a session that ended.
+- `pg_pool_max_connections = 1` and `pg_pool_acquire_mode = 'wait'` are set, as ADR 0009 Decision 2 says.
+- A full run's patterns are labelled by how their rows were read, from the saved `sample_rows_read`.
+- The password is out of a running job's `repr`.
+
+Decided with the user: the extension reconnects without a word, so a server restart between two reads, or while one is
+measured locally, doesn't fail the run, which completes over the new session. AC-22's restart is one during a read.
+
+Known limits, not fixed: a cancel that lands between two reads; libpq's network-loss texts aren't told apart; no test
+bounds the cancel connection's lifetime, and its attach against a server that doesn't answer may take two 5 s attempts;
+`time_limit_minutes` accepts `true` and `"7"` as Pydantic's lax integers.

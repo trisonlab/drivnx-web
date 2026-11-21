@@ -20,7 +20,7 @@ evidence:
 - path: docs/adr/0008-postgres-password-in-the-os-credential-store.md
   sha256: 30731e7174126249d49711b9795e357c6eb3b66e42ab50d51f75ce76e44769c3
 - path: docs/adr/0009-stopping-a-postgres-read.md
-  sha256: c08d66c35115cab13711db6a10b1b238d40e734c0d121b6f5877825a6a9fa233
+  sha256: f0879fdcf5caf6df99c2d1c88b877c5f444fbd44867ac21d04e17dc7dd972fef
 ---
 # Architecture decisions
 
