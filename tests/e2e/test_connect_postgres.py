@@ -34,13 +34,15 @@ def database_form(page: Page):
     return page.get_by_role("form", name="PostgreSQL database")
 
 
-def fill_in(page: Page, password: str = postgres_fixture.PASSWORD) -> None:
+def fill_in(
+    page: Page, password: str = postgres_fixture.PASSWORD, user: str = postgres_fixture.USER
+) -> None:
     page.get_by_role("button", name="Add a PostgreSQL database").click()
     form = database_form(page)
     form.get_by_role("textbox", name="Host").fill(postgres_fixture.HOST)
     form.get_by_role("spinbutton", name="Port").fill(str(postgres_fixture.PORT))
     form.get_by_role("textbox", name="Database").fill(postgres_fixture.DATABASE)
-    form.get_by_role("textbox", name="User").fill(postgres_fixture.USER)
+    form.get_by_role("textbox", name="User").fill(user)
     form.get_by_label("Password").fill(password)
 
 
