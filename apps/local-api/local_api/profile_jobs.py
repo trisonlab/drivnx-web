@@ -170,11 +170,13 @@ def start_database_profile(
     *,
     write_access: dict,
     time_limit_minutes: int | None = None,
+    check_connection: bool = False,
 ) -> str:
     """Record a profile of a database's chosen objects, then work in the background. Returns its ID.
 
     A fast profile reads each as `readings` says by its dataset's id (DRIVN-51), a full one every
-    row (DRIVN-53).
+    row (DRIVN-53). With `check_connection`, the server ends its read if DrivnX is killed
+    (DRIVN-57), for a server whose discovery `checks_closed_connections`.
 
     Raises `RunInProgress`, `Busy` while values are being worked out, or `SettingsChanged` if a
     refresh has replaced one of the objects.
@@ -222,6 +224,7 @@ def start_database_profile(
                 readings,
                 seed,
                 time_limit_minutes,
+                check_connection,
             ),
             name=JOB_THREAD_NAME,
             daemon=True,
@@ -242,12 +245,22 @@ def _run_database_profile(
     readings: dict[str, Reading],
     seed: int,
     time_limit_minutes: int,
+    check_connection: bool,
 ) -> None:
     status = "failed"
     findings: list[NewFinding] = []
     try:
         observations = _measure_objects(
-            workspace, job, mode, details, password, objects, readings, seed, time_limit_minutes
+            workspace,
+            job,
+            mode,
+            details,
+            password,
+            objects,
+            readings,
+            seed,
+            time_limit_minutes,
+            check_connection,
         )
         for batch in batched(observations, MAX_OBSERVATIONS_PER_TRANSACTION):
             if job.stop.is_set():
@@ -342,6 +355,7 @@ def _measure_objects(
     readings: dict[str, Reading],
     seed: int,
     time_limit_minutes: int,
+    check_connection: bool,
 ) -> list[NewObservation]:
     """Each object read as planned and measured, over one connection to the server. On a full
     profile, an object still being read at its time limit is stopped, and the run goes on."""
@@ -361,6 +375,7 @@ def _measure_objects(
                 if mode == "fast"
                 else time_limit_minutes * SECONDS_PER_MINUTE + STATEMENT_TIMEOUT_SECONDS,
                 one_session=True,
+                check_connection=check_connection,
             )
 
             def aim_cancel() -> None:

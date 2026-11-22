@@ -773,6 +773,142 @@ test("an object stopped at its time limit shows it has no results, and the run n
   ]);
 });
 
+// A run one of whose objects a refresh has since replaced (DRIVN-57).
+const changedRun = { ...databaseRun, id: "r3", current_settings: false, object_names: ["sales.orders", "sales.small"] };
+const changedDetail = {
+  ...changedRun,
+  file_changed: null,
+  objects: [
+    { object: "sales.orders", method: "page_sample", stopped_at_time_limit: false, out_of_date: true },
+    { object: "sales.small", method: "whole", stopped_at_time_limit: false, out_of_date: false },
+  ],
+  metrics: [
+    metric("sales.orders", null, "rows_read", 98412),
+    metric("sales.orders", "region", "distinct_count", 4),
+    metric("sales.small", null, "rows_read", 3, "full"),
+    metric("sales.small", "id", "distinct_count", 3, "full"),
+  ],
+};
+
+test("a database's newest completed run is shown even once a refresh has changed one of its objects", async () => {
+  // CFX-APP-postgres/AC-31: "the newest completed run is shown by default", unlike a file's, which must
+  // have the current settings (CFX-APP-csv-profile AC-35); AC-32 says its results are out of date.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () =>
+    Response.json([changedRun, { ...databaseRun, object_names: ["sales.orders", "sales.small"] }]);
+  gets["/api/findings?profile_run_id=r3"] = () => Response.json([]);
+  gets["/api/profile-runs/r3"] = () => Response.json(changedDetail);
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+
+  expect(await within(tab).findByText(`Run r3, finished ${new Date(changedRun.ended_at).toLocaleString()}`)).toBeInTheDocument();
+  expect(within(screen.getByRole("banner")).getByText("Profile status: Completed")).toBeInTheDocument();
+  expect(tab).not.toHaveTextContent("No profile has been run with these settings yet.");
+});
+
+test("a database's runs list names each run's objects, and says which runs are out of date", async () => {
+  // CFX-APP-postgres/AC-31: "list them with mode, status, time and objects"; AC-32.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () =>
+    Response.json([changedRun, { ...databaseRun, current_settings: true, object_names: ["sales.small"] }]);
+  gets["/api/findings?profile_run_id=r3"] = () => Response.json([]);
+  gets["/api/profile-runs/r3"] = () => Response.json(changedDetail);
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  const runs = within(await within(tab).findByRole("list", { name: "Runs of this database" })).getAllByRole("listitem");
+
+  const started = new Date(databaseRun.started_at).toLocaleString();
+  expect(runs.map((run) => run.textContent)).toEqual([
+    `Fast profile, Completed, started ${started}, of sales.orders, sales.small · Out of date · Shown`,
+    `Fast profile, Completed, started ${started}, of sales.small Open`,
+  ]);
+});
+
+test("a database run's results say they describe each object as it was when the run read it", async () => {
+  // CFX-APP-postgres/AC-32: "Given results, then they say they describe the object at the run's time."
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([{ ...changedRun, current_settings: true }]);
+  gets["/api/findings?profile_run_id=r3"] = () => Response.json([]);
+  gets["/api/profile-runs/r3"] = () =>
+    Response.json({
+      ...changedDetail,
+      current_settings: true,
+      objects: changedDetail.objects.map((found) => ({ ...found, out_of_date: false })),
+    });
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+
+  expect(
+    await within(tab).findByText(
+      `These results describe each object as it was when this run read it, on ${new Date(changedRun.started_at).toLocaleString()}.`,
+    ),
+  ).toBeInTheDocument();
+  expect(tab).not.toHaveTextContent("out of date");
+});
+
+test.each([
+  [
+    ["sales.orders"],
+    "sales.orders has changed or is gone since this run, so its results are out of date and this run's findings aren't current. Profile again to see it as it is now.",
+  ],
+  [
+    ["sales.orders", "sales.small"],
+    "sales.orders, sales.small have changed or are gone since this run, so their results are out of date and this run's findings aren't current. Profile again to see them as they are now.",
+  ],
+])("a database run whose objects have changed since says their results are out of date: %o", async (changed, note) => {
+  // CFX-APP-postgres/AC-32: "Given an object whose columns or types differ from the run's, then the Profile
+  // tab says the results are out of date."
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([changedRun]);
+  gets["/api/findings?profile_run_id=r3"] = () => Response.json([]);
+  gets["/api/profile-runs/r3"] = () =>
+    Response.json({
+      ...changedDetail,
+      objects: changedDetail.objects.map((found) => ({ ...found, out_of_date: changed.includes(found.object) })),
+    });
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+
+  expect(await within(tab).findByText(note)).toBeInTheDocument();
+  expect(within(tab).getAllByRole("table").map((table) => table.querySelector("caption")?.textContent)).toEqual([
+    "sales.orders: about 98,412 rows, sampled by page (out of date)",
+    changed.includes("sales.small") ? "sales.small: the whole object, 3 rows (out of date)" : "sales.small: the whole object, 3 rows",
+  ]);
+});
+
+test("refreshing a database's objects shows at once which of the shown run's results are out of date", async () => {
+  // CFX-APP-postgres/AC-32: the refresh is what finds an object's columns changed (decided for DRIVN-57).
+  const user = userEvent.setup();
+  let refreshed = false;
+  sources = [fixture];
+  gets["/api/sources/p1/objects"] = () => Response.json({ discovered_at: "2026-11-17T08:00:00+00:00", schemas: [] });
+  answers["/api/sources/p1/discover"] = () => {
+    refreshed = true;
+    return Response.json({ discovered_at: "2026-11-17T10:00:00+00:00", schemas: [] });
+  };
+  gets["/api/profile-runs"] = () => Response.json([{ ...changedRun, current_settings: !refreshed }]);
+  gets["/api/findings?profile_run_id=r3"] = () => Response.json([]);
+  gets["/api/profile-runs/r3"] = () =>
+    Response.json({
+      ...changedDetail,
+      current_settings: !refreshed,
+      objects: changedDetail.objects.map((found) => ({ ...found, out_of_date: refreshed && found.object === "sales.orders" })),
+    });
+  renderApp();
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  await within(tab).findByText(/^These results describe each object/);
+  expect(tab).not.toHaveTextContent("out of date");
+
+  await user.click(await screen.findByRole("button", { name: "Refresh" }));
+
+  expect(await within(tab).findByText(/^sales\.orders has changed or is gone since this run/)).toBeInTheDocument();
+  expect(within(tab).getByRole("list", { name: "Runs of this database" })).toHaveTextContent("Out of date");
+});
+
 test("a running database run can be cancelled from the Profile tab", async () => {
   // CFX-APP-postgres/AC-21: "Given a run in progress, when the user cancels it".
   sources = [fixture];
@@ -1192,4 +1328,47 @@ test("when a database run's results don't load, its findings say so", async () =
 
   expect(await within(panel).findByRole("alert")).toHaveTextContent("DrivnX couldn't load the findings.");
   expect(within(panel).queryByRole("article")).not.toBeInTheDocument();
+});
+
+test("the findings of a database run whose objects have changed since say why they aren't current", async () => {
+  // CFX-APP-postgres/AC-32: its results are out of date, and so are its findings; a database has no
+  // settings, which a file's run says it used (CFX-APP-csv-profile AC-36).
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([changedRun]);
+  gets["/api/findings?profile_run_id=r3"] = () => Response.json([]);
+  gets["/api/profile-runs/r3"] = () => Response.json(changedDetail);
+  renderApp();
+
+  const findings = await findingsPanel();
+
+  expect(
+    await within(findings).findByText(
+      "These findings are from a profile some of whose objects have changed or gone since, so they aren't current.",
+    ),
+  ).toBeInTheDocument();
+  expect(findings).not.toHaveTextContent("used earlier settings");
+});
+
+test.each([
+  [["s.a", "s.b", "s.c"], "of s.a, s.b, s.c"],
+  [["s.a", "s.b", "s.c", "s.d"], "of s.a, s.b, s.c and 1 more"],
+  [["s.a", "s.b", "s.c", "s.d", "s.e"], "of s.a, s.b, s.c and 2 more"],
+])("a database run in the runs list names its first 3 objects, then how many more: %o", async (names, shownAs) => {
+  // CFX-APP-postgres/AC-31: "list them with ... objects"; the first 3, then "and N more" (decided for
+  // DRIVN-57). The run's results name every one.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () =>
+    Response.json([{ ...databaseRun, current_settings: true, object_names: names }]);
+  gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
+  gets["/api/profile-runs/r1"] = () => Response.json({ ...databaseRun, file_changed: null, objects: [], metrics: [] });
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  const list = await within(tab).findByRole("list", { name: "Runs of this database" });
+
+  const started = new Date(databaseRun.started_at).toLocaleString();
+  expect(within(list).getByRole("listitem")).toHaveTextContent(
+    `Fast profile, Completed, started ${started}, ${shownAs} · Shown`,
+    { normalizeWhitespace: true },
+  );
 });

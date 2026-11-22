@@ -358,6 +358,9 @@ export type ProfileRun = {
   // Whether a database run's role could only read its objects (CFX-APP-postgres AC-16); null for a
   // file's run.
   read_only?: boolean | null;
+  // A database run's objects as `schema.object`, in the order it read them (CFX-APP-postgres AC-31);
+  // null for a file's run.
+  object_names?: string[] | null;
 };
 
 export type MaskedPattern = { pattern: string; count: number; cut: boolean };
@@ -385,6 +388,9 @@ export type ProfileRunDetail = ProfileRun & {
     stopped_at_time_limit?: boolean;
     // On a full profile, how its fast reading read the rows its masked patterns are from.
     patterns_from?: { method: "page_sample" | "whole" | "first_rows" | "view_first_rows"; rows: number } | null;
+    // A refresh has since found it gone, or with other columns, so its results are out of date
+    // (CFX-APP-postgres AC-32).
+    out_of_date?: boolean;
   }[];
 };
 

@@ -210,6 +210,9 @@ class ListedProfileRun:
     # What a database run's role could change in its objects as it started (DRIVN-52); None for
     # a file's run, or a database run from before.
     write_access: dict | None
+    # A database run's objects as `schema.object`, in the order it read them (DRIVN-57); None for
+    # a file's run.
+    objects: tuple[str, ...] | None
 
 
 # A database's run names its source and its objects' datasets in its scope (DRIVN-51), and is
@@ -226,7 +229,8 @@ _SELECT_LISTED_RUNS = """
                     JOIN dataset AS read ON read.id = json_extract(run_object.value, '$.dataset_id')
                     WHERE read.replaced_at IS NOT NULL
                 ) END AS current_settings,
-           json_extract(profile_run.scope, '$.write_access') AS write_access
+           json_extract(profile_run.scope, '$.write_access') AS write_access,
+           json_extract(profile_run.scope, '$.objects') AS objects
     FROM profile_run
     LEFT JOIN dataset ON dataset.id = json_extract(profile_run.scope, '$.dataset_id')
     WHERE (dataset.id IS NOT NULL OR json_extract(profile_run.scope, '$.source_id') IS NOT NULL)
@@ -244,6 +248,9 @@ def _listed(row: Row) -> ListedProfileRun:
         row.ended_at,
         bool(row.current_settings),
         json.loads(row.write_access) if row.write_access is not None else None,
+        None
+        if row.objects is None
+        else tuple(f"{found['schema']}.{found['name']}" for found in json.loads(row.objects)),
     )
 
 

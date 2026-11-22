@@ -359,12 +359,14 @@ def test_a_database_runs_results_say_how_each_object_was_read(client: TestClient
             "method": "view_first_rows",
             "stopped_at_time_limit": False,
             "patterns_from": None,
+            "out_of_date": False,
         },
         {
             "object": f"{SCHEMA}.people",
             "method": "whole",
             "stopped_at_time_limit": False,
             "patterns_from": None,
+            "out_of_date": False,
         },
     ]
     assert detail["file_changed"] is None
@@ -405,6 +407,7 @@ def test_an_object_larger_than_its_estimate_is_labelled_as_its_first_rows(
             "method": "first_rows",
             "stopped_at_time_limit": False,
             "patterns_from": None,
+            "out_of_date": False,
         }
     ]
     (rows_read,) = [metric for metric in detail["metrics"] if metric["metric"] == "rows_read"]

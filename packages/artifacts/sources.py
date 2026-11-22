@@ -240,6 +240,21 @@ def read_field_names(engine: Engine, dataset_id: str) -> dict[str, str]:
     return {row.id: row.name for row in rows}
 
 
+def replaced_datasets(engine: Engine, dataset_ids: list[str]) -> set[str]:
+    """Of these datasets, the ones a refresh or a correction has replaced since (ADR 0002)."""
+    with engine.connect() as connection:
+        rows = connection.execute(
+            text(
+                """
+                SELECT id FROM dataset
+                WHERE replaced_at IS NOT NULL AND id IN (SELECT value FROM json_each(:ids))
+                """
+            ),
+            {"ids": json.dumps(dataset_ids)},
+        ).all()
+    return {row.id for row in rows}
+
+
 def _insert_dataset(connection: Connection, source: StoredSource) -> None:
     dataset_id = uuid.uuid4().hex
     connection.execute(

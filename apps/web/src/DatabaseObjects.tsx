@@ -11,6 +11,7 @@ import {
 } from "./api";
 import { connectQuery, SOURCES_QUERY } from "./DataExplorer";
 import { ObjectDetails, objectQuery } from "./ObjectDetails";
+import { PROFILE_RUNS_QUERY } from "./ProfileTab";
 import { failureMessage } from "./PostgresForm";
 
 const KINDS: Record<ObjectKind, string> = {
@@ -169,6 +170,9 @@ export function DatabaseObjects({
       setOpenedId(null);
       // The server answered, so a connection that failed on opening is asked again (AC-06).
       void queryClient.invalidateQueries({ queryKey: connectQuery(source.id) });
+      // It may have found a run's objects changed, so their results out of date (CFX-APP-postgres AC-32).
+      void queryClient.invalidateQueries({ queryKey: PROFILE_RUNS_QUERY });
+      void queryClient.invalidateQueries({ queryKey: ["profile-run"] });
     },
     onError: (error: Error) => {
       onFailed(failureMessage(error));

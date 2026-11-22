@@ -759,14 +759,24 @@ def test_a_database_run_is_listed_under_its_source_and_current_until_an_object_i
     # CFX-APP-postgres/AC-17 and AC-24: one run covers the source's chosen objects; a refresh that
     # replaces one of them makes the run's results no longer current.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
-    ids = [object_id(workspace, "sales", name) for name in ("order_view", "orders")]
+    names = ("order_view", "orders")
+    ids = [object_id(workspace, "sales", name) for name in names]
     save_selection(workspace.engine, SOURCE.id, frozenset(ids))
-    scope = {"source_id": SOURCE.id, "objects": [{"dataset_id": each} for each in ids]}
+    # As a database run's scope names each object (DRIVN-51).
+    scope = {
+        "source_id": SOURCE.id,
+        "objects": [
+            {"dataset_id": each, "schema": "sales", "name": name}
+            for each, name in zip(ids, names, strict=True)
+        ],
+    }
 
     run_id = start_only_profile_run(workspace.engine, scope=scope, mode="fast")
 
     (listed,) = list_profile_runs(workspace.engine)
     assert (listed.id, listed.source_id, listed.dataset_id) == (run_id, SOURCE.id, None)
+    # CFX-APP-postgres/AC-31: in the order the run reads them.
+    assert listed.objects == ("sales.order_view", "sales.orders")
     assert listed.current_settings is True
     assert find_listed_profile_run(workspace.engine, run_id) == listed
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, without_orders("a new column"))

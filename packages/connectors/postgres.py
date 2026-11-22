@@ -105,6 +105,9 @@ _NOT_READ = (
 )
 # The longest any one statement may run, as the spec assumes for discovery, preview and values.
 STATEMENT_TIMEOUT_SECONDS = 30
+# How often a profile's session has the server check that DrivnX is still there, so a query of a
+# DrivnX that was killed ends within about this (CFX-APP-postgres AC-33, ADR 0009).
+CHECK_CONNECTION_EVERY = "1s"
 _TIMED_OUT = (
     f"The database took longer than {STATEMENT_TIMEOUT_SECONDS} seconds to read this page."
     " Try again."
@@ -164,10 +167,13 @@ def attach(
     statement_timeout_seconds: int | None = None,
     *,
     one_session: bool = False,
+    check_connection: bool = False,
 ) -> None:
     """Attach the database read-only as `source`, each statement limited to
     `statement_timeout_seconds`, by default `STATEMENT_TIMEOUT_SECONDS`, and with `one_session`
-    over a single session, which each read waits for (ADR 0009 Decision 2).
+    over a single session, which each read waits for (ADR 0009 Decision 2). With
+    `check_connection`, which only a server whose discovery `checks_closed_connections` takes, the
+    server ends a query once DrivnX's session is gone, as when DrivnX is killed (ADR 0009).
 
     The password goes only into a temporary secret, which lives in this connection's memory:
     DuckDB repeats the connection string in its errors, so the password can't be in it.
@@ -201,7 +207,9 @@ def attach(
         # Read-only on the server's side too, under DuckDB's READ_ONLY (AC-14), and a limit for
         # any one statement.
         "options": "-c default_transaction_read_only=on"
-        f" -c statement_timeout={int(statement_timeout_seconds)}s",
+        f" -c statement_timeout={int(statement_timeout_seconds)}s"
+        # As the session starts: one the extension opens again has it too.
+        + (f" -c client_connection_check_interval={CHECK_CONNECTION_EVERY}" if check_connection else ""),
     }
     if details.ca_path is not None:
         settings["sslrootcert"] = details.ca_path
@@ -266,6 +274,9 @@ class Discovery:
     # The role DrivnX signed in as, and whether it's a superuser, which can change anything.
     role: str
     superuser: bool
+    # Whether the server can check that DrivnX's session is still there while a query runs, and
+    # end the query once it isn't (`client_connection_check_interval`, ADR 0009).
+    checks_closed_connections: bool
 
 
 _KINDS = {"r": "table", "p": "partitioned_table", "v": "view", "m": "materialized_view"}
@@ -426,6 +437,7 @@ def discover(details: ConnectionDetails, password: str, temp_directory: Path) ->
         except duckdb.Error:
             # Never DuckDB's own text, which repeats the query and the server's error.
             raise ConnectFailure("other", _NOT_LISTED) from None
+        checks_closed_connections = _checks_closed_connections(connection)
     # By schema and object name, the first two columns of both queries.
     keys_of: dict[tuple, list[DeclaredKey]] = {}
     for row in keys:
@@ -439,7 +451,22 @@ def discover(details: ConnectionDetails, password: str, temp_directory: Path) ->
         ),
         role=role,
         superuser=superuser,
+        checks_closed_connections=checks_closed_connections,
     )
+
+
+def _checks_closed_connections(connection: duckdb.DuckDBPyConnection) -> bool:
+    """Whether the server takes `client_connection_check_interval`, which it refuses on a system
+    that can't tell it a connection closed, such as Windows (ADR 0009). Set for its own
+    transaction only, after the catalog's, which a refusal mustn't end."""
+    try:
+        _on_server(
+            connection,
+            f"SELECT set_config('client_connection_check_interval', '{CHECK_CONNECTION_EVERY}', true)",
+        )
+    except duckdb.Error:
+        return False
+    return True
 
 
 def check(details: ConnectionDetails, password: str, temp_directory: Path) -> ServerFacts:
