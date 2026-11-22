@@ -416,6 +416,8 @@ def test_every_saved_metric_equals_its_known_value(client: TestClient, name: str
     assert run["objects"] == [
         {
             "object": f"{SCHEMA}.{name}",
+            "schema": SCHEMA,
+            "name": name,
             "method": read,
             "stopped_at_time_limit": False,
             "patterns_from": None,

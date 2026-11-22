@@ -31,19 +31,24 @@ from artifacts.sources import (
 )
 from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, read_page, sniffed_columns
-from connectors.postgres import ConnectFailure, discover, reading_for
+from connectors.postgres import ConnectFailure, Reading, discover, reading_for
 from fastapi import APIRouter, HTTPException
+from profiling.on_request import ColumnValues
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import NoResultFound
 
 from local_api.profile_jobs import (
+    DEFAULT_TIME_LIMIT_MINUTES,
     SAMPLE_ROWS_READ,
     TIME_LIMIT_REACHED,
     Busy,
     Mode,
+    TimeLimitReached,
     cancel_profile,
     failure_of,
     object_of,
+    object_values_of,
+    read_scope,
     start_database_profile,
     start_profile,
     values_of,
@@ -67,8 +72,6 @@ from local_api.write_access import can_write, refusal, write_access
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
 NOTHING_CHOSEN = "Choose the objects to profile first."
 TIME_LIMIT_NOT_HERE = "A time limit applies only to a database's full profile."
-# Values on request from a database come with DRIVN-56.
-NO_DATABASE_VALUES_YET = "Values on request for a database aren't available yet."
 OBJECTS_CHANGED = "{} changed since the list was refreshed. Refresh the list, then profile again."
 OBJECTS_CHANGED_JUST_NOW = "The list was refreshed just now. Start the profile again."
 ALREADY_FINISHED = "This profile has already finished."
@@ -84,6 +87,14 @@ POSSIBLY_SENSITIVE = (
     "This column may hold personal data. Confirm that you want to see its values."
 )
 BUSY = "DrivnX is already reading a file. Wait for it to finish, then try again."
+NO_SUCH_OBJECT = "There's no such object in this profile."
+NO_SUCH_COLUMN = "There's no such column in this profile."
+OUT_OF_DATE = "{} changed since this run. Profile it again to see its values."
+NO_LONGER_CHOSEN = "{} is no longer chosen. Choose it again to see its values."
+TOO_LONG = "Reading {} took longer than this run's time limit of {} minute{}."
+STOPPED_AT_TIME_LIMIT = (
+    "{} was stopped at this run's time limit, so it has no values to show."
+)
 
 
 class ProfileRunRequest(BaseModel):
@@ -142,6 +153,10 @@ class ObjectReadResponse(BaseModel):
     (read whole, but larger than its estimate), `view_first_rows`, or `full` on a full profile."""
 
     object: str
+    # Its schema and name apart, which its values are asked for by (DRIVN-56), as `object`
+    # can't tell `"a.b".c` from `a."b.c"`.
+    schema: str
+    name: str
     method: str
     # A full profile stopped reading it at its time limit, so it has no results (AC-20).
     stopped_at_time_limit: bool = False
@@ -179,8 +194,13 @@ class ValuesResponse(BaseModel):
 
     profile_run_id: str
     column: str
-    # The part of the file read, as a metric's scope says it.
+    # The part of the file or the object read, as a metric's scope says it.
     scope: str
+    # A database run's object, as `schema.object`, its kind, and how its rows were read, as
+    # `ObjectReadResponse.method` says it (DRIVN-56); None for a file's run.
+    object: str | None = None
+    kind: str | None = None
+    method: str | None = None
     rows_read: int
     computed_at: str
     minimum: CellResponse | None
@@ -194,6 +214,36 @@ class ValuesResponse(BaseModel):
 
 def _shown(value: str | None) -> CellResponse | None:
     return None if value is None else shown_cell(value)
+
+
+def _values_response(
+    run_id: str, column: str, scope: str, found: ColumnValues, **database: str
+) -> ValuesResponse:
+    return ValuesResponse(
+        profile_run_id=run_id,
+        column=column,
+        scope=scope,
+        **database,
+        rows_read=found.rows_read,
+        computed_at=now(),
+        minimum=_shown(found.minimum),
+        maximum=_shown(found.maximum),
+        frequent=[
+            FrequentResponse(value=shown_cell(frequent.value), count=frequent.count)
+            for frequent in found.frequent
+        ],
+        histogram=None
+        if found.histogram is None
+        else [
+            BucketResponse(
+                low=shown_cell(bucket.low), high=shown_cell(bucket.high), count=bucket.count
+            )
+            for bucket in found.histogram
+        ],
+        mean=_shown(found.mean),
+        median=_shown(found.median),
+        standard_deviation=_shown(found.standard_deviation),
+    )
 
 
 @contextmanager
@@ -479,6 +529,8 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             objects=[
                 ObjectReadResponse(
                     object=named[dataset_id],
+                    schema=found["schema"],
+                    name=found["name"],
                     method=read_as(dataset_id, found["method"]),
                     stopped_at_time_limit=dataset_id in stopped,
                     patterns_from=patterns_from(dataset_id, found["method"]),
@@ -509,14 +561,110 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             for cited in finding.observation_ids
         )
 
+    def database_values(
+        run: ListedProfileRun,
+        schema: str | None,
+        name: str | None,
+        column: str,
+        confirmed: bool,
+    ) -> ValuesResponse:
+        """A database column's values, read again as the run read its object (DRIVN-56)."""
+        saved = read_profile_run(workspace.engine, run.id)
+        # By schema and name, as `schema.object` can't tell `"a.b".c` from `a."b.c"`.
+        planned = next(
+            (
+                found
+                for found in saved.scope["objects"]
+                if (found["schema"], found["name"]) == (schema, name)
+            ),
+            None,
+        )
+        if planned is None:
+            raise HTTPException(status_code=404, detail=NO_SUCH_OBJECT)
+        shown = f"{schema}.{name}"
+        # Its rows can't be read again as the run read them (decision B, AC-32).
+        if replaced_datasets(workspace.engine, [planned["dataset_id"]]):
+            raise HTTPException(status_code=409, detail=OUT_OF_DATE.format(shown))
+        chosen = next(
+            (
+                found
+                for found in read_chosen_objects(workspace.engine, run.source_id)
+                if found.dataset.id == planned["dataset_id"]
+            ),
+            None,
+        )
+        # Only chosen objects are read (AC-11).
+        if chosen is None:
+            raise HTTPException(status_code=409, detail=NO_LONGER_CHOSEN.format(shown))
+        # No results, so no rows to read again (AC-20).
+        if any(
+            seen.dataset_id == chosen.dataset.id and seen.metric == TIME_LIMIT_REACHED
+            for seen in read_observations(workspace.engine, run.id)
+        ):
+            raise HTTPException(status_code=409, detail=STOPPED_AT_TIME_LIMIT.format(shown))
+        position = next(
+            (at for at, field in enumerate(chosen.dataset.fields) if field.name == column), None
+        )
+        if position is None:
+            raise HTTPException(status_code=404, detail=NO_SUCH_COLUMN)
+        # Before the database is read, so a refusal shows nothing (AC-27).
+        if not confirmed and flagged(run.id, chosen.dataset.fields[position].id):
+            raise HTTPException(status_code=409, detail=POSSIBLY_SENSITIVE)
+        database = find_source(workspace.engine, run.source_id)
+        assert isinstance(database, StoredPostgresSource)
+        known = password_for(kept, database)
+        try:
+            method, found = object_values_of(
+                workspace,
+                details_of(database),
+                known.password,
+                chosen,
+                position,
+                run.mode,
+                Reading(planned["method"], planned["percent"]),
+                # A database's run always saves one.
+                saved.seed,
+                # A full run saves its limit; a fast one has none.
+                time_limit_minutes=saved.scope.get(
+                    "time_limit_minutes", DEFAULT_TIME_LIMIT_MINUTES
+                ),
+            )
+        except Busy:
+            raise HTTPException(status_code=409, detail=BUSY) from None
+        except ConnectFailure as failure:
+            # The saved metrics still show (AC-28): only this request failed.
+            raise read_failed(kept, database.id, known, failure) from None
+        except TimeLimitReached as reached:
+            minutes = reached.minutes
+            raise HTTPException(
+                status_code=422,
+                detail=TOO_LONG.format(shown, minutes, "" if minutes == 1 else "s"),
+            ) from None
+        return _values_response(
+            run.id,
+            column,
+            read_scope(method),
+            found,
+            object=shown,
+            kind=planned["kind"],
+            method=method,
+        )
+
     @router.get("/{run_id}/values")
-    def get_values(run_id: str, column: str, confirmed: bool = False) -> ValuesResponse:
-        """A column's values from the part of the file the run read (AC-30), computed now."""
+    def get_values(
+        run_id: str,
+        column: str,
+        confirmed: bool = False,
+        schema: str | None = None,
+        object: str | None = None,
+    ) -> ValuesResponse:
+        """A column's values from the part of the file, or the object, the run read (AC-30,
+        DRIVN-45 AC-28), computed now."""
         run = existing_run(run_id)
-        if run.dataset_id is None:
-            raise HTTPException(status_code=409, detail=NO_DATABASE_VALUES_YET)
         if run.status != "completed":
             raise HTTPException(status_code=409, detail=NOT_COMPLETED)
+        if run.dataset_id is None:
+            return database_values(run, schema, object, column, confirmed)
         # Its columns may have been renamed since, and its settings no longer read the file.
         if not run.current_settings:
             raise HTTPException(status_code=409, detail=EARLIER_SETTINGS)
@@ -525,7 +673,7 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             (at for at, field in enumerate(dataset.fields) if field.name == column), None
         )
         if position is None:
-            raise HTTPException(status_code=404, detail="There's no such column in this profile.")
+            raise HTTPException(status_code=404, detail=NO_SUCH_COLUMN)
         # Before the file is read, so a refusal shows nothing (AC-29).
         if not confirmed and flagged(run.id, dataset.fields[position].id):
             raise HTTPException(status_code=409, detail=POSSIBLY_SENSITIVE)
@@ -543,29 +691,8 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
                 )
             except Busy:
                 raise HTTPException(status_code=409, detail=BUSY) from None
-        return ValuesResponse(
-            profile_run_id=run.id,
-            column=column,
-            scope="full" if found.whole_file else "sample",
-            rows_read=found.rows_read,
-            computed_at=now(),
-            minimum=_shown(found.minimum),
-            maximum=_shown(found.maximum),
-            frequent=[
-                FrequentResponse(value=shown_cell(frequent.value), count=frequent.count)
-                for frequent in found.frequent
-            ],
-            histogram=None
-            if found.histogram is None
-            else [
-                BucketResponse(
-                    low=shown_cell(bucket.low), high=shown_cell(bucket.high), count=bucket.count
-                )
-                for bucket in found.histogram
-            ],
-            mean=_shown(found.mean),
-            median=_shown(found.median),
-            standard_deviation=_shown(found.standard_deviation),
+        return _values_response(
+            run.id, column, "full" if found.whole_file else "sample", found
         )
 
     return router
