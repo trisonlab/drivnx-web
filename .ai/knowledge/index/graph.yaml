@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-22T02:21:02+00:00'
+updated_at: '2026-11-22T02:31:08+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -39,7 +39,7 @@ sources:
   .ai/knowledge/work/DRIVN-54.md: e32740839d7587470a47fc66bdfb95d3179a0d40ecf564d67dbb126f60eb674c
   .ai/knowledge/work/DRIVN-55.md: 4a06fd16627410d65c2bdd273fcd1cac08a5f8e81f9e3794f3b5c24bcb79baf4
   .ai/knowledge/work/DRIVN-56.md: 4aba846894b265e974f487f98bdf2edba9db959d5fcede7022b23aa3458c8eb5
-  .ai/knowledge/work/DRIVN-57.md: 3f24bc219d2d005ac6bb95b02a63ea1084a471d2a5f9ca80136c394f21b949af
+  .ai/knowledge/work/DRIVN-57.md: 1eb593c4b60788c6e064d250528dbd7ed834c4c5021cc4af6a49de15f5b0bdd5
   .ai/knowledge/work/DRIVN-58.md: 4540f05479a72c05f5cbd0de04fa5342bbcb5b2fd003227ef443728d3365c3e8
   .ai/knowledge/work/DRIVN-59.md: 65b3c5978e379de092ebf3b6344a9c2d866bcf3ca4e2c4137ffdf17d627f0dbd
   .github/workflows/ci.yml: 9f8319efa25c8cb3151f4df567b61c4c32af1d66b22909a8f683a4a3a71b2cd7

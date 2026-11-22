@@ -91,17 +91,17 @@ Not in this ticket: a live check when a run is opened, ending sessions at the ne
 - **The check is 1 s, set in the session's startup options** (ADR 0009 Decision 7); discovery asks the server with
   `set_config(..., true)` after its catalog's transaction. Preview, values and discovery sessions don't set it.
 
-## Verification (2026-11-22, `c8f6f0f`, rebased on `a0349e5`)
+## Verification (2026-11-22, `7233a33`, on `a0349e5`, after the review's fixes)
 | Criterion | Evidence | Result |
 |---|---|---|
-| AC-31 | `test_postgres_earlier_runs.py`: names its objects, every run newest first and any completed one opens, a file's run names none; `test_postgres_objects_store.py`; Vitest: newest completed shown after a refresh, list names objects; e2e: an earlier run opens | PASS |
+| AC-31 | `test_postgres_earlier_runs.py`: names its objects, every run newest first and any completed one opens, a file's run names none; `test_postgres_objects_store.py`; Vitest: newest completed shown after a refresh, list names a run's first 3 objects, then how many more; e2e: an earlier run opens | PASS |
 | AC-32 | `test_postgres_earlier_runs.py`: column added, type changed, dropped are out of date after the refresh and not before; an unchanged refresh leaves all current; Vitest: "as it was when this run read it", the note for one and two objects, a refresh shows it at once, the findings panel's reason; e2e: the note after a refresh and on the earlier run, with the accessibility check | PASS |
-| AC-33 | `test_postgres_earlier_runs.py`: a stop mid-read (table everywhere, computing view off Windows) keeps the completed run's detail and findings, marks the run `interrupted`, nothing in `pg_stat_activity` within 5 s; a SIGKILL mid-read the same off Windows; `test_postgres_discovery.py`: the server's check and the session's setting | PASS (Linux); Windows NOT RUN |
+| AC-33 | `test_postgres_earlier_runs.py`: a stop mid-read (table everywhere, computing view off Windows) keeps the completed run's detail and findings, marks the run `interrupted`, nothing in `pg_stat_activity` within 5 s; `stop_jobs()` in a process that goes on cancels a computing read within 5 s; a SIGKILL mid-read leaves nothing on a server that checks; `test_postgres_discovery.py`: the server's check and the session's setting | PASS (Linux); Windows NOT RUN |
 
-Checks run: `uv run pytest tests/integration tests/golden` 2587 passed, 8 skipped (on `7216cd6`; only web files
-changed since); `uv run pytest tests/e2e` 84 passed (`c8f6f0f`); `pnpm exec vitest run` 253 passed;
-`pnpm exec tsc --noEmit` clean; CI's detect-secrets clean; pip-audit and `pnpm audit` no known vulnerabilities;
-`ai-skills knowledge check` consistent.
+Checks run on `7233a33`: `uv run pytest tests/integration tests/golden` 2589 passed, 8 skipped;
+`uv run pytest tests/e2e` 84 passed; `pnpm exec vitest run` 256 passed; `pnpm exec tsc --noEmit` clean;
+`ai-skills knowledge check` consistent. On `c8f6f0f`: CI's detect-secrets clean; pip-audit and `pnpm audit` no
+known vulnerabilities. The in-process stop test fails when shutdown doesn't interrupt and cancel the read.
 
 Not verified: a Windows server, where discovery should say `False` and the kill test is skipped (CI's Windows job);
 macOS (CI); a network between DrivnX and the server.
