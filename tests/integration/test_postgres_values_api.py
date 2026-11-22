@@ -4,6 +4,7 @@ AC-28)."""
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
 
+import duckdb
 import httpx
 import pytest
 from artifacts.profiles import read_profile_run
@@ -383,3 +384,30 @@ def test_after_a_restart_values_wait_for_the_password(start_app: StartApp) -> No
         409,
         {"detail": "Enter the password for this database first."},
     )
+
+# DuckDB's text can quote a value it read, so it must never travel (DRIVN-45 AC-29).
+PLANTED = "Ann-7731-planted"
+
+
+@pytest.mark.parametrize(
+    ("error", "detail"),
+    [
+        (duckdb.OutOfMemoryException, "DrivnX ran out of memory working out these values."),
+        (duckdb.ConversionException, "DrivnX couldn't work out these values."),
+    ],
+)
+def test_values_duckdb_cant_work_out_say_why_in_drivnxs_words(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, error: type, detail: str
+) -> None:
+    # DRIVN-45 AC-28: "a clear message shows" when the values can't be had (found in review).
+    run_id = completed(client, chosen_source(client, "people"))
+
+    def failing(*_args: object, **_kwargs: object) -> None:
+        raise error(f"Could not work out {PLANTED}")
+
+    monkeypatch.setattr(profile_jobs, "values_for", failing)
+
+    response = values_of(client, run_id, "people", "city")
+
+    assert (response.status_code, response.json()) == (422, {"detail": detail})
+    assert PLANTED not in response.text

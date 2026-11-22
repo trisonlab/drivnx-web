@@ -91,6 +91,8 @@ NO_SUCH_OBJECT = "There's no such object in this profile."
 NO_SUCH_COLUMN = "There's no such column in this profile."
 OUT_OF_DATE = "{} changed since this run. Profile it again to see its values."
 NO_LONGER_CHOSEN = "{} is no longer chosen. Choose it again to see its values."
+VALUES_OUT_OF_MEMORY = "DrivnX ran out of memory working out these values."
+VALUES_FAILED = "DrivnX couldn't work out these values."
 TOO_LONG = "Reading {} took longer than this run's time limit of {} minute{}."
 STOPPED_AT_TIME_LIMIT = (
     "{} was stopped at this run's time limit, so it has no values to show."
@@ -640,6 +642,11 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
                 status_code=422,
                 detail=TOO_LONG.format(shown, minutes, "" if minutes == 1 else "s"),
             ) from None
+        # Never DuckDB's text, which can quote a value it read (AC-29).
+        except duckdb.OutOfMemoryException:
+            raise HTTPException(status_code=422, detail=VALUES_OUT_OF_MEMORY) from None
+        except duckdb.Error:
+            raise HTTPException(status_code=422, detail=VALUES_FAILED) from None
         return _values_response(
             run.id,
             column,
