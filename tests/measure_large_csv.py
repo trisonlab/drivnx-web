@@ -4,8 +4,8 @@
 1 GB for each encoding, one at a time, and should be on the disk being measured, as a RAM disk
 flatters the figures. Everything is removed afterwards, also after a failure. Not a test: pytest doesn't collect this, as the figures depend on the machine.
 
-It times connecting and paging (CFX-APP-first-slice), then a fast profile, a full profile and a
-cancel 2 s into a full one (CFX-APP-csv-profile), each from the click until the page shows the
+It times connecting and paging (DRIVN-8), then a fast profile, a full profile and a
+cancel 2 s into a full one (DRIVN-9), each from the click until the page shows the
 result. The page polls a running profile once a second, so a profile's time includes up to 1 s of
 waiting, as it does for the user.
 """

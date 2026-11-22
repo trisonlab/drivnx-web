@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-22T02:31:06+00:00'
+updated_at: '2026-11-22T07:31:18+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -12,7 +12,7 @@ facts:
 - id: ci:github-actions
   status: CONFIRMED
   evidence: .github/workflows/ci.yml
-  sha256: 9f8319efa25c8cb3151f4df567b61c4c32af1d66b22909a8f683a4a3a71b2cd7
+  sha256: 2b422ab2802952f88c49aeb9a34c7a32659f1579b1f29183b3f2e87d29a74dd8
   source: detector
 - id: cloud:aws
   status: INFERRED
@@ -41,7 +41,7 @@ facts:
 - id: database:sql
   status: CONFIRMED
   evidence: testdata/postgres/fixture.sql
-  sha256: 5e4beab467a00824c7ddcacdae6cd8cf75d4d427a0373061a7924daaff0039d1
+  sha256: 141056ef2f7990c21aff06cf311fb13cda2950ad4d5c49cf8193f2aa61157d77
   source: detector
 - id: framework:fastapi
   status: CONFIRMED
@@ -59,8 +59,8 @@ facts:
   planned_in: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md:155
 - id: language:javascript
   status: CONFIRMED
-  evidence: apps/web/package.json
-  sha256: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
+  evidence: package.json
+  sha256: 0fccfac7f0eaa7d34ebea892b1f2bdfa14808f62e25fc47e362e271a3c4165f6
   source: detector
 - id: language:python
   status: CONFIRMED
@@ -82,8 +82,8 @@ facts:
   source: detector
 - id: pm:pnpm
   status: CONFIRMED
-  evidence: apps/web/pnpm-lock.yaml
-  sha256: c9140539e3622a70d6a0d272593b22dc12a51e3ea75a816bfd33f52a89a2708b
+  evidence: pnpm-lock.yaml
+  sha256: 17c814b167307942d3609c7b9d916ceddb85839573ab39baa114e30edb132a1a
   source: detector
 - id: pm:uv
   status: CONFIRMED
@@ -105,13 +105,13 @@ facts:
 - id: tool:docker
   status: CONFIRMED
   evidence: testdata/postgres/compose.yaml
-  sha256: 5fd10c92c88abb01b713c9693d293369fed1d440a3ce7545e1935445755c1d82
+  sha256: 641e17820963193fb501b4318955e133ad43ac8d6f1e251dd58d54dc3cad3883
   source: detector
   planned_in: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md:201
 - id: tool:docker-compose
   status: CONFIRMED
   evidence: testdata/postgres/compose.yaml
-  sha256: 5fd10c92c88abb01b713c9693d293369fed1d440a3ce7545e1935445755c1d82
+  sha256: 641e17820963193fb501b4318955e133ad43ac8d6f1e251dd58d54dc3cad3883
   source: detector
 requirements:
 - path: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md

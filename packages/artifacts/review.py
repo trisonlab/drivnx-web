@@ -299,7 +299,7 @@ def _check_slot_is_free(
     rule_type: str,
     fields: Sequence[tuple[str, str]],
 ) -> None:
-    """CFX-APP-first-slice/AC-46 and ADR 0003 point 4, so an export never has to choose."""
+    """DRIVN-8/AC-46 and ADR 0003 point 4, so an export never has to choose."""
     wanted = slot(rule_type, fields)
     for holder in _defined_rules_of_type(connection, contract_id, rule_type):
         if slot(rule_type, _rule_subject(connection, holder).fields) == wanted:
@@ -328,7 +328,7 @@ def _check_logical_types_agree(
 
 
 def _check_field_has_no_confirmed_entry(connection: Connection, field_id: str) -> None:
-    """CFX-APP-first-slice/AC-55. Call this holding the write lock, so two can't both pass."""
+    """DRIVN-8/AC-55. Call this holding the write lock, so two can't both pass."""
     confirmed = connection.execute(
         text(
             """

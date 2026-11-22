@@ -2,7 +2,7 @@
 id: DRIVN-28
 legacy_id: CFX-APP-csv-profile-T08
 title: "Findings with evidence"
-feature: CFX-APP-csv-profile
+feature: DRIVN-9
 feature_revision: 5
 stories: [US-04]
 criteria: [AC-21, AC-22, AC-23, AC-24, AC-25, AC-26]

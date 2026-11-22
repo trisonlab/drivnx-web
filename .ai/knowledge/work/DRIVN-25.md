@@ -2,7 +2,7 @@
 id: DRIVN-25
 legacy_id: CFX-APP-csv-profile-T05
 title: "All the metrics"
-feature: CFX-APP-csv-profile
+feature: DRIVN-9
 feature_revision: 5
 stories: [US-03, US-08]
 criteria: [AC-14, AC-19, AC-20, AC-39]

@@ -1,4 +1,4 @@
-"""A full profile through the API, CFX-APP-csv-profile AC-08, AC-10 and AC-18."""
+"""A full profile through the API, DRIVN-9 AC-08, AC-10 and AC-18."""
 
 import signal
 import threading
@@ -53,7 +53,7 @@ def planted_missing(path: Path) -> Path:
 def test_a_full_profile_reads_every_row_and_counts_exactly(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-08
+    # DRIVN-9/AC-08
     source = connect(client, planted_missing(tmp_path / "notes.csv"))
 
     run = finished(client, start(client, source, "full"))
@@ -68,7 +68,7 @@ def test_a_full_profile_reads_every_row_and_counts_exactly(
 def test_a_full_run_is_recorded_as_reading_every_row(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-08: a full run has no sample, so no sample size or strategy.
+    # DRIVN-9/AC-08: a full run has no sample, so no sample size or strategy.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     run = finished(client, start(client, connect(client, path), "full"))
@@ -81,7 +81,7 @@ def test_a_full_run_is_recorded_as_reading_every_row(
 def test_a_quote_never_closed_after_the_first_rows_fails_a_full_run(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-08: found planning T07. DuckDB drops every row after it with no error,
+    # DRIVN-9/AC-08: found planning T07. DuckDB drops every row after it with no error,
     # which a fast run never reaches but a full one would report as the whole file.
     path = tmp_path / "late_quote.csv"
     path.write_text(
@@ -112,7 +112,7 @@ def scopes(run: dict) -> dict[str, set[str]]:
 def test_a_full_profile_takes_patterns_from_the_first_rows_only(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-18
+    # DRIVN-9/AC-18
     source = connect(client, planted_missing(tmp_path / "notes.csv"))
 
     run = finished(client, start(client, source, "full"))
@@ -143,7 +143,7 @@ def cancel(client: TestClient, run: dict):
 def test_cancelling_a_run_stops_its_read_and_it_ends_cancelled(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-10
+    # DRIVN-9/AC-10
     source = connect(client, large_csv(tmp_path / "large.csv"))
     reading = threading.Event()
     raised: list[type[BaseException]] = []
@@ -176,7 +176,7 @@ def test_cancelling_a_run_stops_its_read_and_it_ends_cancelled(
 def test_a_run_that_has_ended_or_doesnt_exist_cant_be_cancelled(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-10
+    # DRIVN-9/AC-10
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     run = finished(client, start(client, connect(client, path), "full"))
@@ -195,7 +195,7 @@ def test_a_run_that_has_ended_or_doesnt_exist_cant_be_cancelled(
 def test_a_cancel_between_two_queries_still_stops_the_run(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-10: an interrupt while no query runs is lost, so this one lands after
+    # DRIVN-9/AC-10: an interrupt while no query runs is lost, so this one lands after
     # the read and before measuring starts.
     source = connect(client, large_csv(tmp_path / "large.csv"))
     between, cancelled = threading.Event(), threading.Event()
@@ -227,7 +227,7 @@ def test_a_cancel_between_two_queries_still_stops_the_run(
 def test_a_cancel_arriving_as_a_run_finishes_is_refused(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-10: from planning. A run's status changes once, so a cancel that's
+    # DRIVN-9/AC-10: from planning. A run's status changes once, so a cancel that's
     # accepted must be what the run ends as. This one arrives once the run has chosen `completed`,
     # and waits for it to be saved.
     path = tmp_path / "people.csv"
@@ -254,7 +254,7 @@ def test_a_cancel_arriving_as_a_run_finishes_is_refused(
 def test_a_cancel_while_saving_saves_no_more(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-10: a wide file saves in several transactions, which could take longer
+    # DRIVN-9/AC-10: a wide file saves in several transactions, which could take longer
     # than the target.
     path = tmp_path / "wide.csv"
     columns = 300
@@ -330,7 +330,7 @@ def test_shutting_down_stops_a_run_and_leaves_it_to_be_marked_interrupted(
 
     assert (still_running, raised) == ([], [duckdb.InterruptException])
     assert (left_as, marked_as) == ("running", "interrupted")
-    # CFX-APP-csv-profile/AC-26
+    # DRIVN-9/AC-26
     assert findings == 0
 
 
@@ -401,7 +401,7 @@ def test_a_cancel_as_a_run_starts_waits_for_its_job(
     monkeypatch: pytest.MonkeyPatch,
     escaped_errors: list[BaseException | None],
 ) -> None:
-    # CFX-APP-csv-profile/AC-10: found reviewing T06. The run is visible once it's saved, so a
+    # DRIVN-9/AC-10: found reviewing T06. The run is visible once it's saved, so a
     # cancel can come before its job is known.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
@@ -444,7 +444,7 @@ def with_copies(path: Path) -> Path:
 def test_a_full_profile_counts_rows_that_copy_another(
     client: TestClient, tmp_path: Path, mode: str, counted: int | None
 ) -> None:
-    # CFX-APP-csv-profile/AC-22: three copies of one row are 3 duplicates. Only a full profile
+    # DRIVN-9/AC-22: three copies of one row are 3 duplicates. Only a full profile
     # reads every row, so a fast one counts none.
     source = connect(client, with_copies(tmp_path / "copies.csv"))
 
@@ -483,7 +483,7 @@ def found_in(client: TestClient, run: dict) -> list[tuple[str, str | None]]:
 def test_a_completed_run_saves_a_finding_for_each_column_or_file_concerned(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-21 and CFX-APP-csv-profile/AC-22
+    # DRIVN-9/AC-21 and DRIVN-9/AC-22
     source = connect(client, meeting_every_kind(tmp_path / "every_kind.csv"))
 
     run = finished(client, start(client, source, "full"))
@@ -509,7 +509,7 @@ def finding_rows(client: TestClient, run: dict) -> int:
 def test_a_run_that_doesnt_complete_saves_no_findings_and_earlier_ones_stay(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, ending: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-26
+    # DRIVN-9/AC-26
     source = connect(client, meeting_every_kind(tmp_path / "every_kind.csv"))
     earlier = finished(client, start(client, source, "full"))
     before = found_in(client, earlier)
@@ -539,7 +539,7 @@ def test_a_run_that_doesnt_complete_saves_no_findings_and_earlier_ones_stay(
 def test_a_cancel_after_findings_are_worked_out_still_saves_none(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-26: the run has its findings ready, but ends as `cancelled`.
+    # DRIVN-9/AC-26: the run has its findings ready, but ends as `cancelled`.
     source = connect(client, meeting_every_kind(tmp_path / "every_kind.csv"))
     ready, cancelled = threading.Event(), threading.Event()
     findings_for = profile_jobs.findings_for
@@ -563,7 +563,7 @@ def test_a_cancel_after_findings_are_worked_out_still_saves_none(
 def test_saved_findings_hold_no_column_name_or_value_and_cite_evidence(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-25: the names and values are planted to be found if they leak.
+    # DRIVN-9/AC-25: the names and values are planted to be found if they leak.
     path = tmp_path / "planted.csv"
     rows = [
         f"Zebulon{row},{'' if row % 3 == 0 else 'Quokkaland'},{row % 9},Wilhelmina@Quixotic.org"

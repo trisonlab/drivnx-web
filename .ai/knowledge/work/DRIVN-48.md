@@ -2,7 +2,7 @@
 id: DRIVN-48
 legacy_id: CFX-APP-postgres-T03
 title: "Password in the OS credential store"
-feature: CFX-APP-postgres
+feature: DRIVN-45
 feature_revision: 3
 stories: [US-01]
 criteria: [AC-04, AC-06, AC-30]

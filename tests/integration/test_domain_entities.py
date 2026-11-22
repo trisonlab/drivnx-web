@@ -1,4 +1,4 @@
-"""Every M1 entity saved and read back through the artifact service, CFX-APP-first-slice AC-35."""
+"""Every M1 entity saved and read back through the artifact service, DRIVN-8 AC-35."""
 
 import os
 import subprocess
@@ -58,7 +58,7 @@ def dataset_id(workspace: Workspace) -> str:
 
 
 def test_workspace_settings_read_back(workspace: Workspace) -> None:
-    # CFX-APP-first-slice/AC-35: Workspace.
+    # DRIVN-8/AC-35: Workspace.
     save_settings(workspace.engine, WorkspaceSettings("Sales", "local"))
 
     assert read_settings(workspace.engine) == WorkspaceSettings("Sales", "local")
@@ -67,7 +67,7 @@ def test_workspace_settings_read_back(workspace: Workspace) -> None:
 def test_a_dataset_and_its_fields_read_back(
     workspace: Workspace, dataset_id: str
 ) -> None:
-    # CFX-APP-first-slice/AC-35: Source, Dataset and Field.
+    # DRIVN-8/AC-35: Source, Dataset and Field.
     dataset = read_dataset(workspace.engine, "source-1")
 
     assert dataset.id == dataset_id
@@ -84,7 +84,7 @@ def test_a_dataset_and_its_fields_read_back(
 
 
 def test_a_profile_run_reads_back(workspace: Workspace, dataset_id: str) -> None:
-    # CFX-APP-first-slice/AC-35: ProfileRun.
+    # DRIVN-8/AC-35: ProfileRun.
     run_id = start_profile_run(
         workspace.engine,
         scope={"datasets": [dataset_id]},
@@ -109,7 +109,7 @@ def test_a_profile_run_reads_back(workspace: Workspace, dataset_id: str) -> None
 def test_an_observation_reads_back_with_how_it_was_measured(
     workspace: Workspace, dataset_id: str
 ) -> None:
-    # CFX-APP-first-slice/AC-35: Observation, with the example record in Section 12.
+    # DRIVN-8/AC-35: Observation, with the example record in Section 12.
     field = read_dataset(workspace.engine, "source-1").fields[0]
     run_id = start_profile_run(workspace.engine, scope={}, mode="sample")
 
@@ -144,7 +144,7 @@ def test_an_observation_reads_back_with_how_it_was_measured(
 def test_a_finding_reads_back_with_its_observations(
     workspace: Workspace, dataset_id: str
 ) -> None:
-    # CFX-APP-first-slice/AC-35: Finding.
+    # DRIVN-8/AC-35: Finding.
     run_id = start_profile_run(workspace.engine, scope={}, mode="full")
     add_observations(
         workspace.engine,
@@ -175,7 +175,7 @@ def test_a_finding_reads_back_with_its_observations(
 
 
 def test_a_contract_reads_back(workspace: Workspace, dataset_id: str) -> None:
-    # CFX-APP-first-slice/AC-35: Contract, which has no state of its own (ADR 0003 point 2).
+    # DRIVN-8/AC-35: Contract, which has no state of its own (ADR 0003 point 2).
     contract_id = add_contract(
         workspace.engine, dataset_id, purpose="Billing", limitations="EU only"
     )

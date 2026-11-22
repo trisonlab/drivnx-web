@@ -1,4 +1,4 @@
-"""A full profile and cancelling, in a real browser against the installed wheel, CFX-APP-csv-profile
+"""A full profile and cancelling, in a real browser against the installed wheel, DRIVN-9
 AC-08, AC-10 and AC-18."""
 
 import time
@@ -25,7 +25,7 @@ def app(start_drivnx: StartDrivnX, page: Page) -> Page:
 def test_a_full_profile_counts_every_row_and_labels_its_patterns(
     app: Page, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-08 and CFX-APP-csv-profile/AC-18
+    # DRIVN-9/AC-08 and DRIVN-9/AC-18
     path = planted_missing(tmp_path / "notes.csv")
     connect(app, path)
     expect(details_of(app, path.name)).to_be_visible()
@@ -41,7 +41,7 @@ def test_a_full_profile_counts_every_row_and_labels_its_patterns(
 
 
 def test_a_full_profile_can_be_cancelled(app: Page, tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-10
+    # DRIVN-9/AC-10
     path = large_csv(tmp_path / "large.csv", rows=20_000_000)
     connect(app, path)
     expect(details_of(app, path.name)).to_be_visible()

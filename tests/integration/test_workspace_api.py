@@ -1,4 +1,4 @@
-"""Workspace setup over the API, CFX-APP-first-slice AC-14, AC-15 and AC-16."""
+"""Workspace setup over the API, DRIVN-8 AC-14, AC-15 and AC-16."""
 
 import socket
 import sqlite3
@@ -17,7 +17,7 @@ VALID = {"name": "Customer data", "ai_mode": "off"}
 def test_a_new_workspace_reports_its_location_and_that_setup_is_needed(
     client: TestClient, workspace_dir: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-14
+    # DRIVN-8/AC-14
     response = client.get("/api/workspace")
 
     assert response.status_code == 200
@@ -31,7 +31,7 @@ def test_a_new_workspace_reports_its_location_and_that_setup_is_needed(
 
 @pytest.mark.parametrize("ai_mode", ["off", "external", "local"])
 def test_setup_saves_the_name_and_ai_mode(client: TestClient, ai_mode: str) -> None:
-    # CFX-APP-first-slice/AC-14
+    # DRIVN-8/AC-14
     saved = client.put(
         "/api/workspace", json={"name": "Customer data", "ai_mode": ai_mode}
     )
@@ -93,7 +93,7 @@ def test_a_name_with_html_or_quotes_is_stored_as_it_is(client: TestClient) -> No
 
 
 def test_the_workspace_api_needs_a_session(client: TestClient) -> None:
-    # CFX-APP-first-slice/AC-08
+    # DRIVN-8/AC-08
     client.cookies.clear()
 
     assert client.get("/api/workspace").status_code == 401
@@ -103,7 +103,7 @@ def test_the_workspace_api_needs_a_session(client: TestClient) -> None:
 def test_settings_are_in_the_workspace_database_after_reopening(
     client: TestClient, workspace_dir: Path, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-15
+    # DRIVN-8/AC-15
     client.put("/api/workspace", json={"name": "Kept", "ai_mode": "local"})
 
     connection = sqlite3.connect(workspace_dir / "workspace.db")
@@ -114,7 +114,7 @@ def test_settings_are_in_the_workspace_database_after_reopening(
 
 
 def test_a_real_older_workspace_is_backed_up_and_upgraded(workspace_dir: Path) -> None:
-    # CFX-APP-first-slice/AC-19, with the product's own migrations: 0001 is what T03 shipped.
+    # DRIVN-8/AC-19, with the product's own migrations: 0001 is what T03 shipped.
     workspace_dir.mkdir(mode=0o700)
     database = workspace_dir / "workspace.db"
     connection = sqlite3.connect(database)
@@ -140,7 +140,7 @@ def test_a_real_older_workspace_is_backed_up_and_upgraded(workspace_dir: Path) -
 def test_no_ai_mode_opens_a_network_connection(
     client: TestClient, ai_mode: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-first-slice/AC-16: Python reports every outgoing connection to an audit hook.
+    # DRIVN-8/AC-16: Python reports every outgoing connection to an audit hook.
     # On Windows, socket.socketpair() makes asyncio's wake-up pair by connecting the process to
     # itself on loopback. That never leaves the process, so it isn't counted.
     connections: list[object] = []

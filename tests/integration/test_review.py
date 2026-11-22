@@ -1,4 +1,4 @@
-"""Trust-state transitions, CFX-APP-first-slice AC-35 to AC-41 and AC-55."""
+"""Trust-state transitions, DRIVN-8 AC-35 to AC-41 and AC-55."""
 
 import sqlite3
 import threading
@@ -184,7 +184,7 @@ REVIEWABLE = [ItemKind.DICTIONARY_ENTRY, ItemKind.CONTRACT_RULE]
 
 
 def test_a_dictionary_entry_reads_back(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-35: DictionaryEntry.
+    # DRIVN-8/AC-35: DictionaryEntry.
     content = EntryContent(
         description="The customer",
         business_definition="Who bought it",
@@ -211,7 +211,7 @@ def test_a_dictionary_entry_reads_back(catalogue: Catalogue) -> None:
 
 
 def test_a_contract_rule_reads_back_with_its_fields(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-35: ContractRule, in the shape in ADR 0003 point 2.
+    # DRIVN-8/AC-35: ContractRule, in the shape in ADR 0003 point 2.
     ref = create_rule(
         catalogue.engine,
         Actor.USER,
@@ -235,7 +235,7 @@ def test_a_contract_rule_reads_back_with_its_fields(catalogue: Catalogue) -> Non
 def test_a_provenance_event_holds_everything_section_12_lists(
     catalogue: Catalogue,
 ) -> None:
-    # CFX-APP-first-slice/AC-35: ProvenanceEvent.
+    # DRIVN-8/AC-35: ProvenanceEvent.
     ref = create_entry(
         catalogue.engine,
         Actor.AI,
@@ -263,7 +263,7 @@ def test_a_provenance_event_holds_everything_section_12_lists(
 
 
 def test_recording_an_observation_records_its_event(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-36: New -> Observed.
+    # DRIVN-8/AC-36: New -> Observed.
     run = start_profile_run(catalogue.engine, scope={}, mode="full")
 
     add_observations(catalogue.engine, Actor.SYSTEM, run, catalogue.observation())
@@ -279,7 +279,7 @@ def test_recording_an_observation_records_its_event(catalogue: Catalogue) -> Non
 def test_creating_an_item_records_its_event(
     catalogue: Catalogue, kind: ItemKind, state: TrustState
 ) -> None:
-    # CFX-APP-first-slice/AC-36: New -> Inferred and New -> Confirmed.
+    # DRIVN-8/AC-36: New -> Inferred and New -> Confirmed.
     ref = catalogue.item(kind, state)
 
     assert read_item(catalogue.engine, ref).state is state
@@ -292,7 +292,7 @@ def test_creating_an_item_records_its_event(
 def test_accepting_confirms_an_item_in_a_new_revision(
     catalogue: Catalogue, kind: ItemKind
 ) -> None:
-    # CFX-APP-first-slice/AC-36: Inferred -> Confirmed, by Accept.
+    # DRIVN-8/AC-36: Inferred -> Confirmed, by Accept.
     ref = catalogue.item(kind)
 
     accept(catalogue.engine, Actor.USER, ref, EventDetails(reviewer="me"))
@@ -312,7 +312,7 @@ def test_accepting_confirms_an_item_in_a_new_revision(
 
 
 def test_editing_an_inferred_item_confirms_it(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-36: Inferred -> Confirmed, by Edit.
+    # DRIVN-8/AC-36: Inferred -> Confirmed, by Edit.
     ref = catalogue.entry()
 
     edit(catalogue.engine, Actor.USER, ref, SECOND)
@@ -334,7 +334,7 @@ def test_editing_an_inferred_item_confirms_it(catalogue: Catalogue) -> None:
 def test_editing_keeps_the_state_and_the_earlier_revision(
     catalogue: Catalogue, kind: ItemKind, state: TrustState, content
 ) -> None:
-    # CFX-APP-first-slice/AC-36: edits.
+    # DRIVN-8/AC-36: edits.
     ref = catalogue.item(kind, state)
     before = read_item(catalogue.engine, ref)
 
@@ -358,7 +358,7 @@ def test_editing_keeps_the_state_and_the_earlier_revision(
 
 
 def test_promoting_makes_a_rule_defined(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-36: Confirmed -> Defined.
+    # DRIVN-8/AC-36: Confirmed -> Defined.
     ref = catalogue.rule(TrustState.CONFIRMED)
 
     promote(catalogue.engine, Actor.USER, ref)
@@ -383,7 +383,7 @@ def test_promoting_makes_a_rule_defined(catalogue: Catalogue) -> None:
 def test_both_demotions(
     catalogue: Catalogue, kind: ItemKind, start: TrustState, end: TrustState
 ) -> None:
-    # CFX-APP-first-slice/AC-36: Confirmed -> Inferred and Defined -> Confirmed.
+    # DRIVN-8/AC-36: Confirmed -> Inferred and Defined -> Confirmed.
     ref = catalogue.item(kind, start)
     before = read_item(catalogue.engine, ref)
 
@@ -414,7 +414,7 @@ ATTEMPTS = {
 def test_ai_and_system_are_rejected_and_nothing_is_written(
     catalogue: Catalogue, actor: Actor, attempt: str, kind: ItemKind
 ) -> None:
-    # CFX-APP-first-slice/AC-37
+    # DRIVN-8/AC-37
     ref = catalogue.item(kind)
     before = catalogue.everything()
 
@@ -429,7 +429,7 @@ def test_ai_and_system_are_rejected_and_nothing_is_written(
 def test_ai_and_system_cannot_write_an_item_as_confirmed_or_defined(
     catalogue: Catalogue, actor: Actor, state: TrustState
 ) -> None:
-    # CFX-APP-first-slice/AC-37: AI output always lands as Inferred.
+    # DRIVN-8/AC-37: AI output always lands as Inferred.
     before = catalogue.everything()
 
     with pytest.raises(Rejected):
@@ -449,7 +449,7 @@ def test_ai_and_system_cannot_write_an_item_as_confirmed_or_defined(
 
 
 def test_ai_cannot_record_an_observation(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-37: only the profiling engine observes.
+    # DRIVN-8/AC-37: only the profiling engine observes.
     run = start_profile_run(catalogue.engine, scope={}, mode="full")
     before = catalogue.everything()
 
@@ -460,7 +460,7 @@ def test_ai_cannot_record_an_observation(catalogue: Catalogue) -> None:
 
 
 def test_a_user_cannot_skip_a_step_and_nothing_is_written(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-36: Inferred -> Defined isn't in the table for anyone.
+    # DRIVN-8/AC-36: Inferred -> Defined isn't in the table for anyone.
     inferred = catalogue.rule()
     confirmed_entry = catalogue.entry(TrustState.CONFIRMED)
     before = catalogue.everything()
@@ -488,7 +488,7 @@ def test_an_unknown_item_is_not_found(catalogue: Catalogue) -> None:
 def test_an_inferred_item_is_in_the_review_inbox(
     catalogue: Catalogue, kind: ItemKind
 ) -> None:
-    # CFX-APP-first-slice/AC-38
+    # DRIVN-8/AC-38
     ref = catalogue.item(kind)
     catalogue.item(kind, TrustState.CONFIRMED)
 
@@ -502,7 +502,7 @@ def test_an_inferred_item_is_in_the_review_inbox(
 def test_rejecting_or_deferring_keeps_it_inferred_and_leaves_the_inbox(
     catalogue: Catalogue, kind: ItemKind, act, action: Action
 ) -> None:
-    # CFX-APP-first-slice/AC-38
+    # DRIVN-8/AC-38
     ref = catalogue.item(kind)
 
     act(catalogue.engine, Actor.USER, ref)
@@ -520,7 +520,7 @@ def test_rejecting_or_deferring_keeps_it_inferred_and_leaves_the_inbox(
 
 
 def test_a_deferred_item_can_return_to_the_inbox(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-38
+    # DRIVN-8/AC-38
     ref = catalogue.entry()
     defer(catalogue.engine, Actor.USER, ref)
 
@@ -543,7 +543,7 @@ def test_a_deferred_item_can_return_to_the_inbox(catalogue: Catalogue) -> None:
     ],
 )
 def test_only_a_deferred_item_can_return(catalogue: Catalogue, steps: list) -> None:
-    # CFX-APP-first-slice/AC-38: Section 12 only says Deferred items return.
+    # DRIVN-8/AC-38: Section 12 only says Deferred items return.
     ref = catalogue.entry()
     for step in steps:
         step(catalogue.engine, Actor.USER, ref)
@@ -560,7 +560,7 @@ def test_only_a_deferred_item_can_return(catalogue: Catalogue, steps: list) -> N
 def test_an_item_that_left_the_inbox_cannot_leave_it_again(
     catalogue: Catalogue, first, second
 ) -> None:
-    # CFX-APP-first-slice/AC-38: a second outcome would misstate what the user decided.
+    # DRIVN-8/AC-38: a second outcome would misstate what the user decided.
     ref = catalogue.entry()
     first(catalogue.engine, Actor.USER, ref)
     before = catalogue.everything()
@@ -575,7 +575,7 @@ def test_an_item_that_left_the_inbox_cannot_leave_it_again(
 def test_an_item_that_left_the_inbox_can_still_be_accepted(
     catalogue: Catalogue, left_by
 ) -> None:
-    # CFX-APP-first-slice/AC-38: it stays Inferred, and Inferred -> Confirmed is always a user's call.
+    # DRIVN-8/AC-38: it stays Inferred, and Inferred -> Confirmed is always a user's call.
     ref = catalogue.entry()
     left_by(catalogue.engine, Actor.USER, ref)
 
@@ -585,7 +585,7 @@ def test_an_item_that_left_the_inbox_can_still_be_accepted(
 
 
 def test_a_demoted_item_returns_to_the_inbox(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-38: it is Inferred again, and no outcome has been decided for it.
+    # DRIVN-8/AC-38: it is Inferred again, and no outcome has been decided for it.
     ref = catalogue.entry(TrustState.CONFIRMED)
 
     demote(catalogue.engine, Actor.USER, ref)
@@ -647,7 +647,7 @@ def stop_failing(catalogue: Catalogue) -> None:
 def test_a_failure_halfway_saves_neither_the_change_nor_its_event(
     catalogue: Catalogue, operation: str
 ) -> None:
-    # CFX-APP-first-slice/AC-40
+    # DRIVN-8/AC-40
     ref = catalogue.entry()
     catalogue.run, catalogue.observation_id = catalogue.run_with_observation()
     fail_when_writing_an_event(catalogue)
@@ -670,7 +670,7 @@ def test_a_failure_halfway_saves_neither_the_change_nor_its_event(
 def test_a_failure_halfway_leaves_a_rule_as_it_was(
     catalogue: Catalogue, start: TrustState, act
 ) -> None:
-    # CFX-APP-first-slice/AC-40
+    # DRIVN-8/AC-40
     ref = catalogue.rule(start)
     fail_when_writing_an_event(catalogue)
     before = catalogue.everything()
@@ -683,7 +683,7 @@ def test_a_failure_halfway_leaves_a_rule_as_it_was(
 
 
 def test_a_failure_halfway_saves_no_observation(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-40: all of a batch or none of it.
+    # DRIVN-8/AC-40: all of a batch or none of it.
     run = start_profile_run(catalogue.engine, scope={}, mode="full")
     fail_when_writing_an_event(catalogue)
     before = catalogue.everything()
@@ -697,7 +697,7 @@ def test_a_failure_halfway_saves_no_observation(catalogue: Catalogue) -> None:
 def test_the_workspace_keeps_working_after_a_failure_halfway(
     catalogue: Catalogue,
 ) -> None:
-    # CFX-APP-first-slice/AC-40: the write lock must not stay held.
+    # DRIVN-8/AC-40: the write lock must not stay held.
     ref = catalogue.entry()
     fail_when_writing_an_event(catalogue)
     with pytest.raises(DBAPIError, match="forced failure"):
@@ -741,7 +741,7 @@ def run_at_once(count: int, job) -> list[Exception | None]:
 def test_of_many_accepts_at_once_one_succeeds_and_the_rest_are_rejected(
     catalogue: Catalogue, attempt: int
 ) -> None:
-    # CFX-APP-first-slice/AC-41: repeated, because a race only shows up some of the time.
+    # DRIVN-8/AC-41: repeated, because a race only shows up some of the time.
     ref = catalogue.entry()
 
     results = run_at_once(8, lambda: accept(catalogue.engine, Actor.USER, ref))
@@ -757,7 +757,7 @@ def test_of_many_accepts_at_once_one_succeeds_and_the_rest_are_rejected(
 def test_accepts_on_different_items_at_once_all_succeed(
     catalogue: Catalogue,
 ) -> None:
-    # CFX-APP-first-slice/AC-41: each one reads, then writes, which is what makes a deferred
+    # DRIVN-8/AC-41: each one reads, then writes, which is what makes a deferred
     # transaction get SQLITE_BUSY.
     refs = [catalogue.entry() for _ in range(40)]
 
@@ -783,7 +783,7 @@ def test_accepts_on_different_items_at_once_all_succeed(
 def test_a_review_finishes_within_busy_timeout_during_a_profile_run(
     catalogue: Catalogue,
 ) -> None:
-    # CFX-APP-first-slice/AC-41
+    # DRIVN-8/AC-41
     run = start_profile_run(catalogue.engine, scope={}, mode="full")
     refs = [catalogue.entry() for _ in range(15)]
     stop = threading.Event()
@@ -884,7 +884,7 @@ def test_the_wrong_kind_of_content_is_refused(catalogue: Catalogue, write) -> No
 def test_what_is_written_once_cannot_be_reviewed(
     catalogue: Catalogue, attempt: str, kind: ItemKind
 ) -> None:
-    # CFX-APP-first-slice/AC-37: refused like anything else the rules don't allow.
+    # DRIVN-8/AC-37: refused like anything else the rules don't allow.
     ref = (
         catalogue.finding()
         if kind is ItemKind.FINDING
@@ -969,7 +969,7 @@ def test_an_ai_event_must_say_where_it_came_from(
 
 
 def test_a_finding_records_who_wrote_it_as_inferred(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-36: Section 5 labels a finding's interpretation as Inferred.
+    # DRIVN-8/AC-36: Section 5 labels a finding's interpretation as Inferred.
     ref = catalogue.finding(Actor.AI, AI_DETAILS)
 
     event = history(catalogue.engine, ref)[0]
@@ -982,7 +982,7 @@ def test_a_finding_records_who_wrote_it_as_inferred(catalogue: Catalogue) -> Non
 
 
 def test_a_user_cannot_write_a_finding(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-37: a finding comes from a heuristic or AI.
+    # DRIVN-8/AC-37: a finding comes from a heuristic or AI.
     run = start_profile_run(catalogue.engine, scope={}, mode="full")
     before = catalogue.everything()
 
@@ -1030,7 +1030,7 @@ def entry_for_field(catalogue: Catalogue, state: TrustState) -> ItemRef:
     ],
 )
 def test_a_field_has_at_most_one_confirmed_entry(catalogue: Catalogue, second) -> None:
-    # CFX-APP-first-slice/AC-55
+    # DRIVN-8/AC-55
     entry_for_field(catalogue, TrustState.CONFIRMED)
 
     with pytest.raises(Rejected, match="already has a Confirmed"):
@@ -1046,7 +1046,7 @@ def test_a_field_has_at_most_one_confirmed_entry(catalogue: Catalogue, second) -
 
 
 def test_a_refused_second_entry_writes_nothing(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-55
+    # DRIVN-8/AC-55
     entry_for_field(catalogue, TrustState.CONFIRMED)
     candidate = entry_for_field(catalogue, TrustState.INFERRED)
     before = catalogue.everything()
@@ -1062,7 +1062,7 @@ def test_a_refused_second_entry_writes_nothing(catalogue: Catalogue) -> None:
 def test_candidates_are_allowed_and_demoting_frees_the_field(
     catalogue: Catalogue,
 ) -> None:
-    # CFX-APP-first-slice/AC-55
+    # DRIVN-8/AC-55
     first = entry_for_field(catalogue, TrustState.CONFIRMED)
     candidate = entry_for_field(catalogue, TrustState.INFERRED)
     assert review_inbox(catalogue.engine) == [candidate]
@@ -1074,7 +1074,7 @@ def test_candidates_are_allowed_and_demoting_frees_the_field(
 
 
 def test_editing_the_confirmed_entry_is_not_a_second_one(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-55
+    # DRIVN-8/AC-55
     ref = entry_for_field(catalogue, TrustState.CONFIRMED)
 
     edit(catalogue.engine, Actor.USER, ref, SECOND)
@@ -1085,7 +1085,7 @@ def test_editing_the_confirmed_entry_is_not_a_second_one(catalogue: Catalogue) -
 def test_a_different_field_can_have_its_own_confirmed_entry(
     catalogue: Catalogue,
 ) -> None:
-    # CFX-APP-first-slice/AC-55
+    # DRIVN-8/AC-55
     entry_for_field(catalogue, TrustState.CONFIRMED)
     other_field = catalogue.another_dataset_field()
 
@@ -1102,7 +1102,7 @@ def test_a_different_field_can_have_its_own_confirmed_entry(
 
 
 def test_entries_for_a_whole_dataset_are_not_limited(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-55 is about a field, and these aren't about one.
+    # DRIVN-8/AC-55 is about a field, and these aren't about one.
     entry_for_field(catalogue, TrustState.CONFIRMED)
 
     catalogue.entry(TrustState.CONFIRMED)
@@ -1110,7 +1110,7 @@ def test_entries_for_a_whole_dataset_are_not_limited(catalogue: Catalogue) -> No
 
 
 def test_two_entries_confirmed_at_once_cannot_both_win(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-55: the check and the write share one write lock.
+    # DRIVN-8/AC-55: the check and the write share one write lock.
     candidates = [entry_for_field(catalogue, TrustState.INFERRED) for _ in range(8)]
     remaining = iter(candidates)
 
@@ -1214,7 +1214,7 @@ def test_observations_are_gathered_before_the_write_lock(catalogue: Catalogue) -
 def test_one_transaction_holds_a_limited_number_of_observations(
     catalogue: Catalogue,
 ) -> None:
-    # CFX-APP-first-slice/AC-41: 40,000 in one transaction made a review time out at 5 s. 1,000 took
+    # DRIVN-8/AC-41: 40,000 in one transaction made a review time out at 5 s. 1,000 took
     # 0.5 s on a workspace already holding many rows. A caller with more commits them in batches.
     run = start_profile_run(catalogue.engine, scope={}, mode="full")
     largest = catalogue.observation(MAX_OBSERVATIONS_PER_TRANSACTION)
@@ -1329,7 +1329,7 @@ FLAGGABLE = [
 def test_a_contradicted_item_is_flagged_and_keeps_its_state(
     catalogue: Catalogue, kind: ItemKind, state: TrustState
 ) -> None:
-    # CFX-APP-first-slice/AC-39
+    # DRIVN-8/AC-39
     ref = catalogue.item(kind, state)
     before = read_item(catalogue.engine, ref)
 
@@ -1340,7 +1340,7 @@ def test_a_contradicted_item_is_flagged_and_keeps_its_state(
 
 
 def test_the_flag_is_a_provenance_event_naming_the_run(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39: the user's decision in spec revision 9.
+    # DRIVN-8/AC-39: the user's decision in spec revision 9.
     ref = catalogue.entry(TrustState.CONFIRMED)
     run = completed_run(catalogue)
 
@@ -1355,7 +1355,7 @@ def test_the_flag_is_a_provenance_event_naming_the_run(catalogue: Catalogue) -> 
 
 
 def test_a_flag_keeps_the_evidence_it_was_given(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39: found reviewing T08, nothing checked this.
+    # DRIVN-8/AC-39: found reviewing T08, nothing checked this.
     ref = catalogue.entry(TrustState.CONFIRMED)
     run = completed_run(catalogue)
 
@@ -1374,7 +1374,7 @@ def test_a_flag_keeps_the_evidence_it_was_given(catalogue: Catalogue) -> None:
 
 
 def test_nothing_is_flagged_until_a_run_contradicts_it(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39
+    # DRIVN-8/AC-39
     catalogue.entry(TrustState.CONFIRMED)
     catalogue.rule(TrustState.DEFINED)
     completed_run(catalogue)
@@ -1384,7 +1384,7 @@ def test_nothing_is_flagged_until_a_run_contradicts_it(catalogue: Catalogue) -> 
 
 @pytest.mark.parametrize("actor", [Actor.AI, Actor.USER])
 def test_only_the_system_can_flag(catalogue: Catalogue, actor: Actor) -> None:
-    # CFX-APP-first-slice/AC-39: Section 12 gives this row to the system.
+    # DRIVN-8/AC-39: Section 12 gives this row to the system.
     ref = catalogue.entry(TrustState.CONFIRMED)
     run = completed_run(catalogue)
     before = catalogue.everything()
@@ -1397,7 +1397,7 @@ def test_only_the_system_can_flag(catalogue: Catalogue, actor: Actor) -> None:
 
 @pytest.mark.parametrize("ending", ["running", "cancelled", "failed", "interrupted"])
 def test_only_a_completed_run_can_flag(catalogue: Catalogue, ending: str) -> None:
-    # CFX-APP-first-slice/AC-39: ADR 0002 point 3, checks read only completed runs.
+    # DRIVN-8/AC-39: ADR 0002 point 3, checks read only completed runs.
     ref = catalogue.entry(TrustState.CONFIRMED)
     run = start_profile_run(catalogue.engine, scope={}, mode="full")
     if ending == "interrupted":
@@ -1413,7 +1413,7 @@ def test_only_a_completed_run_can_flag(catalogue: Catalogue, ending: str) -> Non
 
 
 def test_an_unknown_run_cannot_flag(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39
+    # DRIVN-8/AC-39
     ref = catalogue.entry(TrustState.CONFIRMED)
 
     with pytest.raises(Rejected, match="completed"):
@@ -1423,7 +1423,7 @@ def test_an_unknown_run_cannot_flag(catalogue: Catalogue) -> None:
 def test_a_run_older_than_the_items_latest_event_cannot_flag(
     catalogue: Catalogue,
 ) -> None:
-    # CFX-APP-first-slice/AC-39 says a newer run. The user reviewed this after that run ended.
+    # DRIVN-8/AC-39 says a newer run. The user reviewed this after that run ended.
     run = completed_run(catalogue)
     ref = catalogue.entry(TrustState.CONFIRMED)
     before = catalogue.everything()
@@ -1437,7 +1437,7 @@ def test_a_run_older_than_the_items_latest_event_cannot_flag(
 def test_a_run_ending_at_the_same_moment_is_not_newer(
     catalogue: Catalogue, clock: RisingClock
 ) -> None:
-    # CFX-APP-first-slice/AC-39: found reviewing T08. It has to have ended after the latest event.
+    # DRIVN-8/AC-39: found reviewing T08. It has to have ended after the latest event.
     ref = catalogue.entry(TrustState.CONFIRMED)
     clock.stopped = True
     run = completed_run(catalogue)
@@ -1450,7 +1450,7 @@ def test_a_run_ending_at_the_same_moment_is_not_newer(
 
 
 def test_the_same_run_cannot_flag_an_item_twice(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39: found reviewing T08. A flag is an event like any other.
+    # DRIVN-8/AC-39: found reviewing T08. A flag is an event like any other.
     ref = catalogue.entry(TrustState.CONFIRMED)
     run = completed_run(catalogue)
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, run)
@@ -1463,7 +1463,7 @@ def test_the_same_run_cannot_flag_an_item_twice(catalogue: Catalogue) -> None:
 
 
 def test_an_older_run_cannot_flag_after_a_newer_one(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39: found reviewing T08.
+    # DRIVN-8/AC-39: found reviewing T08.
     ref = catalogue.entry(TrustState.CONFIRMED)
     older = completed_run(catalogue)
     newer = completed_run(catalogue)
@@ -1492,7 +1492,7 @@ REVIEWS_OF_CONFIRMED = {
 def test_reviewing_an_inferred_item_clears_the_flag(
     catalogue: Catalogue, review: str
 ) -> None:
-    # CFX-APP-first-slice/AC-39
+    # DRIVN-8/AC-39
     ref = catalogue.entry()
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
 
@@ -1502,7 +1502,7 @@ def test_reviewing_an_inferred_item_clears_the_flag(
 
 
 def test_deferring_or_returning_an_item_keeps_its_flag(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39 says until a user reviews it: found reviewing T08. Neither is one.
+    # DRIVN-8/AC-39 says until a user reviews it: found reviewing T08. Neither is one.
     ref = catalogue.entry()
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
 
@@ -1519,7 +1519,7 @@ def test_deferring_or_returning_an_item_keeps_its_flag(catalogue: Catalogue) -> 
 def test_a_review_after_returning_an_item_clears_its_flag(
     catalogue: Catalogue, review: str
 ) -> None:
-    # CFX-APP-first-slice/AC-39: keeping the flag through a deferral mustn't leave it stuck.
+    # DRIVN-8/AC-39: keeping the flag through a deferral mustn't leave it stuck.
     ref = catalogue.entry()
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
     defer(catalogue.engine, Actor.USER, ref)
@@ -1534,7 +1534,7 @@ def test_a_review_after_returning_an_item_clears_its_flag(
 def test_reviewing_a_confirmed_item_clears_the_flag(
     catalogue: Catalogue, review: str
 ) -> None:
-    # CFX-APP-first-slice/AC-39
+    # DRIVN-8/AC-39
     ref = catalogue.entry(TrustState.CONFIRMED)
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
 
@@ -1544,7 +1544,7 @@ def test_reviewing_a_confirmed_item_clears_the_flag(
 
 
 def test_promoting_a_rule_clears_the_flag(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39
+    # DRIVN-8/AC-39
     ref = catalogue.rule(TrustState.CONFIRMED)
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
 
@@ -1564,7 +1564,7 @@ def test_promoting_a_rule_clears_the_flag(catalogue: Catalogue) -> None:
 def test_keep_as_is_changes_nothing_but_the_flag(
     catalogue: Catalogue, kind: ItemKind, state: TrustState
 ) -> None:
-    # CFX-APP-first-slice/AC-39: a Defined rule stays in the contract, so no new revision.
+    # DRIVN-8/AC-39: a Defined rule stays in the contract, so no new revision.
     ref = catalogue.item(kind, state)
     before = read_item(catalogue.engine, ref)
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
@@ -1580,7 +1580,7 @@ def test_keep_as_is_changes_nothing_but_the_flag(
 
 
 def test_keep_as_is_needs_a_flag(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39: otherwise it would record a review of nothing.
+    # DRIVN-8/AC-39: otherwise it would record a review of nothing.
     ref = catalogue.entry(TrustState.CONFIRMED)
     before = catalogue.everything()
 
@@ -1594,7 +1594,7 @@ def test_keep_as_is_needs_a_flag(catalogue: Catalogue) -> None:
 def test_only_a_person_can_keep_an_item_as_it_is(
     catalogue: Catalogue, actor: Actor
 ) -> None:
-    # CFX-APP-first-slice/AC-37: clearing the flag is a review.
+    # DRIVN-8/AC-37: clearing the flag is a review.
     ref = catalogue.entry(TrustState.CONFIRMED)
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
     before = catalogue.everything()
@@ -1609,7 +1609,7 @@ def test_only_a_person_can_keep_an_item_as_it_is(
 def test_a_later_run_can_flag_again_and_one_review_clears_it(
     catalogue: Catalogue,
 ) -> None:
-    # CFX-APP-first-slice/AC-39
+    # DRIVN-8/AC-39
     ref = catalogue.entry(TrustState.CONFIRMED)
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
@@ -1622,7 +1622,7 @@ def test_a_later_run_can_flag_again_and_one_review_clears_it(
 
 
 def test_a_flag_after_a_review_is_a_new_flag(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39: clearing it once doesn't silence later runs.
+    # DRIVN-8/AC-39: clearing it once doesn't silence later runs.
     ref = catalogue.entry(TrustState.CONFIRMED)
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
     keep_as_is(catalogue.engine, Actor.USER, ref)
@@ -1633,7 +1633,7 @@ def test_a_flag_after_a_review_is_a_new_flag(catalogue: Catalogue) -> None:
 
 
 def test_a_flag_leaves_an_inferred_item_in_the_inbox(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-38 and CFX-APP-first-slice/AC-39.
+    # DRIVN-8/AC-38 and DRIVN-8/AC-39.
     ref = catalogue.entry()
 
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
@@ -1644,7 +1644,7 @@ def test_a_flag_leaves_an_inferred_item_in_the_inbox(catalogue: Catalogue) -> No
 def test_a_flag_does_not_bring_a_deferred_item_back_to_the_inbox(
     catalogue: Catalogue,
 ) -> None:
-    # CFX-APP-first-slice/AC-38: found writing this. The inbox looks at an item's latest event, and
+    # DRIVN-8/AC-38: found writing this. The inbox looks at an item's latest event, and
     # a flag isn't the user's decision. The user can still return it, or defer can't be undone.
     ref = catalogue.entry()
     defer(catalogue.engine, Actor.USER, ref)
@@ -1659,7 +1659,7 @@ def test_a_flag_does_not_bring_a_deferred_item_back_to_the_inbox(
 
 
 def test_a_rejected_item_cannot_be_flagged(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-39: the user has already said no, and a rejected item has nothing that
+    # DRIVN-8/AC-39: the user has already said no, and a rejected item has nothing that
     # could clear the flag but Accept or Edit.
     ref = catalogue.entry()
     reject(catalogue.engine, Actor.USER, ref)
@@ -1690,7 +1690,7 @@ def test_a_rejected_item_cannot_be_flagged(catalogue: Catalogue) -> None:
 def test_a_failure_while_flagging_or_keeping_saves_nothing(
     catalogue: Catalogue, operation
 ) -> None:
-    # CFX-APP-first-slice/AC-40
+    # DRIVN-8/AC-40
     ref = catalogue.entry(TrustState.CONFIRMED)
     flag_for_re_review(catalogue.engine, Actor.SYSTEM, ref, completed_run(catalogue))
     run = completed_run(catalogue)
@@ -1704,7 +1704,7 @@ def test_a_failure_while_flagging_or_keeping_saves_nothing(
 
 
 def test_a_finding_or_observation_cannot_be_flagged(catalogue: Catalogue) -> None:
-    # CFX-APP-first-slice/AC-37: they're written once and nothing reviews them.
+    # DRIVN-8/AC-37: they're written once and nothing reviews them.
     finding = catalogue.finding()
     run = start_profile_run(catalogue.engine, scope={}, mode="full")
     add_observations(catalogue.engine, Actor.SYSTEM, run, catalogue.observation())
@@ -1728,7 +1728,7 @@ def test_a_finding_or_observation_cannot_be_flagged(catalogue: Catalogue) -> Non
 def test_a_wide_file_saves_in_short_transactions_and_reviews_finish_during_the_run(
     catalogue: Catalogue, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-39, with the real job. 400 columns of 9 metrics each, plus the row
+    # DRIVN-9/AC-39, with the real job. 400 columns of 9 metrics each, plus the row
     # count, don't fit in one transaction's limit of 1,000.
     columns = 400
     path = tmp_path / "wide.csv"

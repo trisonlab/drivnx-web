@@ -1,4 +1,4 @@
-"""The PostgreSQL fixture tests run against, CFX-APP-postgres AC-34 and AC-07."""
+"""The PostgreSQL fixture tests run against, DRIVN-45 AC-34 and AC-07."""
 
 import re
 from datetime import date
@@ -20,19 +20,19 @@ START = "uv run --frozen python tests/postgres_fixture.py start"
 def test_a_test_needing_postgres_is_skipped_with_the_command_to_start_it(
     free_port: int,
 ) -> None:
-    # CFX-APP-postgres/AC-34: tests that need the fixture say so when it isn't running.
+    # DRIVN-45/AC-34: tests that need the fixture say so when it isn't running.
     with pytest.raises(pytest.skip.Exception, match=START):
         find_postgres(port=free_port, required=False)
 
 
 def test_a_missing_fixture_fails_instead_where_it_is_required(free_port: int) -> None:
-    # CFX-APP-postgres/AC-34: in CI a missing server must not turn the PostgreSQL tests into skips.
+    # DRIVN-45/AC-34: in CI a missing server must not turn the PostgreSQL tests into skips.
     with pytest.raises(pytest.fail.Exception, match=START):
         find_postgres(port=free_port, required=True)
 
 
 def test_the_compose_fixture_pins_its_image_and_listens_on_loopback_only() -> None:
-    # CFX-APP-postgres/AC-34: a tag can be moved to another image, and a digest can't.
+    # DRIVN-45/AC-34: a tag can be moved to another image, and a digest can't.
     compose = COMPOSE.read_text(encoding="utf-8") if COMPOSE.exists() else ""
 
     assert re.search(r"image: postgres:\d+\.\d+@sha256:[0-9a-f]{64}\n", compose)
@@ -44,7 +44,7 @@ def test_the_compose_fixture_pins_its_image_and_listens_on_loopback_only() -> No
 def test_the_fixture_holds_exactly_what_its_sql_built(
     postgres_server: str, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-34: its database is built by a committed script from synthetic data.
+    # DRIVN-45/AC-34: its database is built by a committed script from synthetic data.
     with duckdb_connection(tmp_path) as connection:
         load_postgres(connection)
         connection.execute(f"ATTACH '{postgres_server}' AS fixture (TYPE postgres, READ_ONLY)")
@@ -72,7 +72,7 @@ def encrypted(dsn: str, tmp_path: Path) -> bool:
 def test_the_fixture_encrypts_a_connection_its_own_ca_verifies(
     postgres_server: str, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-02 (DRIVN-47): "encrypted" and verify-full need a server with TLS.
+    # DRIVN-45/AC-02 (DRIVN-47): "encrypted" and verify-full need a server with TLS.
     ca = postgres_fixture.CA_CERTIFICATE.as_posix()
 
     assert encrypted(f"{postgres_server} sslmode=verify-full sslrootcert='{ca}'", tmp_path)
@@ -81,7 +81,7 @@ def test_the_fixture_encrypts_a_connection_its_own_ca_verifies(
 def test_the_fixture_signs_in_its_plain_account_only_without_tls(
     postgres_server: str, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-02 and AC-03 (DRIVN-47): with it, "prefer" falls back to a connection
+    # DRIVN-45/AC-02 and AC-03 (DRIVN-47): with it, "prefer" falls back to a connection
     # that isn't encrypted, and TLS required is refused.
     plain = postgres_fixture.dsn(postgres_fixture.PLAIN_USER, postgres_fixture.PLAIN_PASSWORD)
 

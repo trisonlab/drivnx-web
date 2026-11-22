@@ -1,4 +1,4 @@
-"""Writing to the workspace, CFX-APP-first-slice AC-41 and AC-48 (ADR 0002 point 3)."""
+"""Writing to the workspace, DRIVN-8 AC-41 and AC-48 (ADR 0002 point 3)."""
 
 import sqlite3
 import threading
@@ -134,12 +134,12 @@ def test_existing_writes_use_the_write_lock(workspace: Workspace, write) -> None
     ],
 )
 def test_the_scan_recognises_credential_shaped_values(value: bytes, shape: str) -> None:
-    # CFX-APP-first-slice/AC-48: the scan at the end of every run is only as good as this.
+    # DRIVN-8/AC-48: the scan at the end of every run is only as good as this.
     assert shape in credential_shaped_values(b"padding " + value + b" padding")
 
 
 def test_the_scan_finds_nothing_in_ordinary_workspace_values() -> None:
-    # CFX-APP-first-slice/AC-48: a false alarm would fail every run.
+    # DRIVN-8/AC-48: a false alarm would fail every run.
     ordinary = (
         b"/data/secret-name.csv customer_id token_count password_changed_at "
         b"https://example.com/docs 2024-01-15T10:00:00+00:00 " + b"a1b2c3d4" * 4
@@ -149,7 +149,7 @@ def test_the_scan_finds_nothing_in_ordinary_workspace_values() -> None:
 
 
 def test_the_scan_finds_a_value_inside_a_real_sqlite_file(tmp_path: Path) -> None:
-    # CFX-APP-first-slice/AC-48: not named workspace.db, or the end-of-run scan would rightly fail.
+    # DRIVN-8/AC-48: not named workspace.db, or the end-of-run scan would rightly fail.
     planted = tmp_path / "planted.sqlite"
     connection = sqlite3.connect(planted)
     with connection:
@@ -161,7 +161,7 @@ def test_the_scan_finds_a_value_inside_a_real_sqlite_file(tmp_path: Path) -> Non
 
 
 def test_writers_take_turns_in_the_order_they_arrived(workspace: Workspace) -> None:
-    # CFX-APP-first-slice/AC-41: found building T07. SQLite's waiters poll, and can miss every gap
+    # DRIVN-8/AC-41: found building T07. SQLite's waiters poll, and can miss every gap
     # left by a busy writer until busy_timeout runs out, so a review could fail during a profile run.
     finished: list[int] = []
 
@@ -183,7 +183,7 @@ def test_writers_take_turns_in_the_order_they_arrived(workspace: Workspace) -> N
 def test_a_writer_gives_up_if_its_turn_never_comes(
     workspace: Workspace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-first-slice/AC-41: a stuck write must give an error, not hang every other request.
+    # DRIVN-8/AC-41: a stuck write must give an error, not hang every other request.
     monkeypatch.setattr(store, "BUSY_TIMEOUT_MILLISECONDS", 50)
     errors: list[Exception] = []
 
@@ -205,7 +205,7 @@ def test_a_writer_gives_up_if_its_turn_never_comes(
 def test_a_writer_that_gave_up_does_not_take_a_later_turn(
     workspace: Workspace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-first-slice/AC-41: its place in the queue must not block whoever is behind it.
+    # DRIVN-8/AC-41: its place in the queue must not block whoever is behind it.
     monkeypatch.setattr(store, "BUSY_TIMEOUT_MILLISECONDS", 50)
 
     def writer() -> None:
@@ -225,7 +225,7 @@ def test_a_writer_that_gave_up_does_not_take_a_later_turn(
 def test_a_writer_handed_its_turn_as_its_wait_runs_out_keeps_it(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # CFX-APP-first-slice/AC-41: if that turn were dropped, no writer could ever go again. Holding
+    # DRIVN-8/AC-41: if that turn were dropped, no writer could ever go again. Holding
     # the guard makes `finish` land between the writer's wait running out and its check of the queue.
     monkeypatch.setattr(store, "BUSY_TIMEOUT_MILLISECONDS", 500)
     turns = store._Turns()
@@ -367,7 +367,7 @@ def changes_seen(
 def test_the_history_watch_sees_a_change_to_written_history(
     workspace: Workspace, history_changes: list[str], statement: str
 ) -> None:
-    # CFX-APP-first-slice/AC-42: the watch over the whole test run is only as good as this.
+    # DRIVN-8/AC-42: the watch over the whole test run is only as good as this.
     assert changes_seen(workspace, history_changes, statement)
 
 
@@ -391,5 +391,5 @@ def test_the_history_watch_sees_a_change_to_written_history(
 def test_the_history_watch_allows_everything_else(
     workspace: Workspace, history_changes: list[str], statement: str
 ) -> None:
-    # CFX-APP-first-slice/AC-42: a false alarm would fail every run.
+    # DRIVN-8/AC-42: a false alarm would fail every run.
     assert changes_seen(workspace, history_changes, statement) == []

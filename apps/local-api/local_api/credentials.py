@@ -1,4 +1,4 @@
-"""The OS credential store that keeps a database's password (CFX-APP-postgres AC-04, ADR 0008)."""
+"""The OS credential store that keeps a database's password (DRIVN-45 AC-04, ADR 0008)."""
 
 import keyring
 from artifacts.sources import StoredPostgresSource

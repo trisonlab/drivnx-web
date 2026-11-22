@@ -134,7 +134,7 @@ export function Findings({ source, openedRunId }: { source: Source | undefined; 
       {(runs.isError || findings.isError || detail.isError) && (
         <p role="alert">DrivnX couldn't load the findings. Start DrivnX again.</p>
       )}
-      {/* AC-36; a database run's objects have changed since instead (CFX-APP-postgres AC-32). */}
+      {/* AC-36; a database run's objects have changed since instead (DRIVN-45 AC-32). */}
       {run && !run.current_settings && (
         <p>
           {database

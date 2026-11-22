@@ -1,4 +1,4 @@
-"""`GET /api/profile-runs/{run_id}/values`, CFX-APP-csv-profile AC-29 to AC-32."""
+"""`GET /api/profile-runs/{run_id}/values`, DRIVN-9 AC-29 to AC-32."""
 
 import threading
 from datetime import UTC, datetime, timedelta
@@ -49,7 +49,7 @@ def profiled(client: TestClient, path: Path, text: str, mode: str = "fast") -> d
 def test_a_columns_values_are_shown_labelled_with_the_part_of_the_file_and_when(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-30
+    # DRIVN-9/AC-30
     run = profiled(client, tmp_path / "sales.csv", "region,amount\nNorth,10\nSouth,2.5\nNorth,7\n")
     before = datetime.now(UTC)
 
@@ -78,7 +78,7 @@ def test_a_columns_values_are_shown_labelled_with_the_part_of_the_file_and_when(
 def test_values_come_from_the_part_of_the_file_the_run_read(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-30: the first 100,000 rows after a fast profile, every row after a
+    # DRIVN-9/AC-30: the first 100,000 rows after a fast profile, every row after a
     # full one.
     text = "id\n" + "".join(f"{number}\n" for number in range(FIRST_ROWS + 5))
     path = tmp_path / "numbers.csv"
@@ -98,7 +98,7 @@ def test_values_come_from_the_part_of_the_file_the_run_read(
 def test_values_are_cut_at_1000_characters_and_never_kept_by_the_browser(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-31: as in the preview.
+    # DRIVN-9/AC-31: as in the preview.
     long, longer = "a" * 1000, "b" * 1001
     run = profiled(client, tmp_path / "notes.csv", f"note\n{long}\n{longer}\n{longer}\n")
 
@@ -117,7 +117,7 @@ def test_values_are_cut_at_1000_characters_and_never_kept_by_the_browser(
 def test_a_number_columns_histogram_and_statistics_are_cut_too(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-31: a bucket's edge is a value from the file as much as the rest.
+    # DRIVN-9/AC-31: a bucket's edge is a value from the file as much as the rest.
     run = profiled(client, tmp_path / "levels.csv", "level\n1\n5\n9\n")
 
     found = shown(client, run, "level")
@@ -129,7 +129,7 @@ def test_a_number_columns_histogram_and_statistics_are_cut_too(
 def test_a_file_that_has_gone_gives_a_clear_message_and_the_saved_metrics_still_show(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-32
+    # DRIVN-9/AC-32
     path = tmp_path / "people.csv"
     run = profiled(client, path, "id,city\n1,Oslo\n2,Bergen\n")
     path.unlink()
@@ -147,7 +147,7 @@ def test_a_file_that_has_gone_gives_a_clear_message_and_the_saved_metrics_still_
 def test_a_file_that_cant_be_read_gives_a_clear_message(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-32
+    # DRIVN-9/AC-32
     path = tmp_path / "people.csv"
     run = profiled(client, path, "id,city\n1,Oslo\n2,Bergen\n")
     path.chmod(0)
@@ -164,7 +164,7 @@ def test_a_file_that_cant_be_read_gives_a_clear_message(
 def test_a_file_whose_columns_changed_points_to_its_settings(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-32: as a run's start is (AC-12).
+    # DRIVN-9/AC-32: as a run's start is (AC-12).
     path = tmp_path / "people.csv"
     run = profiled(client, path, "id,city\n1,Oslo\n2,Bergen\n")
     path.write_text("id,town\n1,Oslo\n2,Bergen\n", encoding="utf-8", newline="")
@@ -184,7 +184,7 @@ SENSITIVE = "This column may hold personal data. Confirm that you want to see it
 def test_a_possibly_sensitive_columns_values_need_the_extra_confirmation(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-29: refused with no values without it, shown with it.
+    # DRIVN-9/AC-29: refused with no values without it, shown with it.
     run = profiled(
         client, tmp_path / "people.csv", "id,email\n1,ann@example.com\n2,bob@example.com\n"
     )
@@ -198,7 +198,7 @@ def test_a_possibly_sensitive_columns_values_need_the_extra_confirmation(
 
 
 def test_a_column_not_flagged_needs_no_confirmation(client: TestClient, tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-29
+    # DRIVN-9/AC-29
     run = profiled(
         client, tmp_path / "people.csv", "id,email\n1,ann@example.com\n2,bob@example.com\n"
     )
@@ -209,7 +209,7 @@ def test_a_column_not_flagged_needs_no_confirmation(client: TestClient, tmp_path
 def test_a_confirmation_not_given_as_true_is_no_confirmation(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-29
+    # DRIVN-9/AC-29
     run = profiled(client, tmp_path / "people.csv", "email\nann@example.com\n")
 
     assert values_of(client, run, "email", confirmed="false").json() == {"detail": SENSITIVE}
@@ -353,7 +353,7 @@ def test_values_of_no_such_run_or_column_are_not_found(
 def test_the_values_route_keeps_the_session_host_and_origin_checks(
     client: TestClient, tmp_path: Path, change: dict, status: int
 ) -> None:
-    # CFX-APP-csv-profile/AC-34, as CFX-APP-first-slice/AC-08 and AC-09 ask of every route
+    # DRIVN-9/AC-34, as DRIVN-8/AC-08 and AC-09 ask of every route
     run = profiled(client, tmp_path / "people.csv", "id,city\n1,Oslo\n")
     if change.get("cookies") == "none":
         client.cookies.clear()
@@ -374,7 +374,7 @@ def test_values_spill_only_inside_the_workspace_and_stay_within_the_memory_limit
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # CFX-APP-csv-profile/AC-34, with CFX-APP-csv-profile/AC-13: nothing in the current directory.
+    # DRIVN-9/AC-34, with DRIVN-9/AC-13: nothing in the current directory.
     current = tmp_path / "current"
     current.mkdir()
     monkeypatch.chdir(current)

@@ -1,6 +1,6 @@
 """Adding a PostgreSQL connection in a real browser, against the installed wheel and the fixture.
 
-CFX-APP-postgres AC-01, AC-02, AC-03, AC-05 and AC-30, with an automated accessibility check on
+DRIVN-45 AC-01, AC-02, AC-03, AC-05 and AC-30, with an automated accessibility check on
 each new state.
 """
 
@@ -51,7 +51,7 @@ def app(start_drivnx: StartDrivnX, page: Page, postgres_server: str) -> Page:
 
 
 def test_testing_a_connection_shows_the_server_and_that_it_is_encrypted(app: Page) -> None:
-    # CFX-APP-postgres/AC-01 and CFX-APP-postgres/AC-02
+    # DRIVN-45/AC-01 and DRIVN-45/AC-02
     fill_in(app)
     form = database_form(app)
     expect(form.get_by_role("spinbutton", name="Port")).to_have_value(str(postgres_fixture.PORT))
@@ -66,7 +66,7 @@ def test_testing_a_connection_shows_the_server_and_that_it_is_encrypted(app: Pag
 
 
 def test_a_wrong_password_says_so_and_saves_nothing(app: Page) -> None:
-    # CFX-APP-postgres/AC-03
+    # DRIVN-45/AC-03
     fill_in(app, password="not-the-password")  # pragma: allowlist secret, ai-skills: allow
 
     database_form(app).get_by_role("button", name="Save").click()
@@ -82,7 +82,7 @@ def test_a_wrong_password_says_so_and_saves_nothing(app: Page) -> None:
 def test_a_saved_connection_asks_for_its_password_after_a_restart(
     page: Page, start_drivnx: StartDrivnX, tmp_path: Path, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-02 and CFX-APP-postgres/AC-05
+    # DRIVN-45/AC-02 and DRIVN-45/AC-05
     workspace = tmp_path / "workspace"
     first = start_drivnx("--no-browser", env=NO_STORE, workspace=workspace)
     open_set_up_app(page, first.wait_for_launch().url)
@@ -114,7 +114,7 @@ def test_a_saved_connection_asks_for_its_password_after_a_restart(
 
 
 def test_verify_full_connects_with_the_servers_ca(app: Page) -> None:
-    # CFX-APP-postgres/AC-01 and CFX-APP-postgres/AC-02
+    # DRIVN-45/AC-01 and DRIVN-45/AC-02
     fill_in(app)
     form = database_form(app)
     form.get_by_role("combobox", name="TLS mode").select_option("verify-full")
@@ -157,7 +157,7 @@ def test_no_part_of_a_password_reaches_the_workspace_logs_browser_storage_or_a_u
     postgres_server: str,
     request: pytest.FixtureRequest,
 ) -> None:
-    # CFX-APP-postgres/AC-30 in the browser: a refused password, the right one saved, a restart,
+    # DRIVN-45/AC-30 in the browser: a refused password, the right one saved, a restart,
     # a stored password the server now refuses (AC-06), a wrong one and the right one again.
     # With this computer's store where it has one, else with the password in memory (AC-05).
     store = this_computers_store

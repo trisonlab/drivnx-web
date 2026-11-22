@@ -72,7 +72,7 @@ def create_app(
     credential_store: KeyringBackend | None = None,
 ) -> FastAPI:
     """Build the app. In development Vite serves the UI, so `ui_dir` is None. Without a
-    `credential_store`, a database's password lasts until DrivnX stops (CFX-APP-postgres AC-05)."""
+    `credential_store`, a database's password lasts until DrivnX stops (DRIVN-45 AC-05)."""
     if ui_dir is not None and not (ui_dir / "index.html").is_file():
         raise MissingUiBundleError(
             f"The UI bundle is missing from {ui_dir}. Reinstall DrivnX."
@@ -145,7 +145,7 @@ def create_app(
         return workspace_response(settings)
 
     app.state.workspace = workspace
-    # In the OS credential store if there is one, else until DrivnX stops (CFX-APP-postgres AC-04,
+    # In the OS credential store if there is one, else until DrivnX stops (DRIVN-45 AC-04,
     # AC-05).
     kept = KeptPasswords(credential_store)
     app.include_router(sources_router(workspace, kept))

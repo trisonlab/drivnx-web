@@ -1,5 +1,5 @@
 """A fast and a full profile of a database's chosen objects in the browser, a full one cancelled,
-and earlier runs, CFX-APP-postgres AC-17 to AC-21, AC-24, AC-31 and AC-32 (DRIVN-51, DRIVN-53,
+and earlier runs, DRIVN-45 AC-17 to AC-21, AC-24, AC-31 and AC-32 (DRIVN-51, DRIVN-53,
 DRIVN-57), against the installed wheel and the PostgreSQL fixture."""
 
 import re
@@ -42,7 +42,7 @@ def objects(postgres_admin: Callable[[str], None]) -> Iterator[None]:
 def test_a_fast_profile_of_the_chosen_objects_shows_how_each_was_read(
     start_drivnx: StartDrivnX, page: Page, objects: None
 ) -> None:
-    # CFX-APP-postgres/AC-18 and AC-24: one run over the chosen objects, each labelled with how its
+    # DRIVN-45/AC-18 and AC-24: one run over the chosen objects, each labelled with how its
     # rows were read, with the run's ID and time; the screens pass the accessibility check.
     open_set_up_app(page, start_drivnx("--no-browser", env=NO_STORE).wait_for_launch().url)
     listed = save_connection(page)
@@ -79,7 +79,7 @@ def chosen_schema(page: Page, schema: str):
 def test_a_full_profile_reads_every_row_within_a_time_limit_the_user_sets(
     start_drivnx: StartDrivnX, page: Page, objects: None
 ) -> None:
-    # CFX-APP-postgres/AC-19 and AC-20: every row of each chosen object, with each object's exact
+    # DRIVN-45/AC-19 and AC-20: every row of each chosen object, with each object's exact
     # row count, under a per-object time limit of 1 to 120 minutes; the screens, the limit's error
     # among them, pass the accessibility check.
     open_set_up_app(page, start_drivnx("--no-browser", env=NO_STORE).wait_for_launch().url)
@@ -112,7 +112,7 @@ def test_an_earlier_run_opens_and_says_which_objects_are_out_of_date_since(
     objects: None,
     postgres_admin: Callable[[str], None],
 ) -> None:
-    # CFX-APP-postgres/AC-31 and AC-32: the runs list names each run's objects, any completed one
+    # DRIVN-45/AC-31 and AC-32: the runs list names each run's objects, any completed one
     # opens, and once a refresh finds an object's columns changed, its results say they're out of
     # date; the screens pass the accessibility check.
     open_set_up_app(page, start_drivnx("--no-browser", env=NO_STORE).wait_for_launch().url)
@@ -172,7 +172,7 @@ def slow_objects(postgres_admin: Callable[[str], None]) -> Iterator[None]:
 def test_a_full_profile_cancelled_while_it_reads_ends_cancelled_within_5_seconds(
     start_drivnx: StartDrivnX, page: Page, slow_objects: None
 ) -> None:
-    # CFX-APP-postgres/AC-21: "Given a run in progress, when the user cancels it, then it stops
+    # DRIVN-45/AC-21: "Given a run in progress, when the user cancels it, then it stops
     # within the target under Non-functional (5 s) ... its status is `cancelled`"; the running
     # and the cancelled screens pass the accessibility check.
     open_set_up_app(page, start_drivnx("--no-browser", env=NO_STORE).wait_for_launch().url)

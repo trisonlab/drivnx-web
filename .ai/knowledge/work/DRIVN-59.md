@@ -1,7 +1,7 @@
 ---
 id: DRIVN-59
 title: "Scan a running workspace without SQLite's shared-memory index"
-feature: CFX-APP-csv-profile
+feature: DRIVN-9
 feature_revision: 5
 stories: [US-06]
 criteria: [AC-33]

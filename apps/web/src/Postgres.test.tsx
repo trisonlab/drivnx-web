@@ -107,7 +107,7 @@ async function fillIn(user: ReturnType<typeof userEvent.setup>, form: HTMLElemen
 }
 
 test("the form asks for each detail, with port 5432 and TLS prefer by default", async () => {
-  // CFX-APP-postgres/AC-01
+  // DRIVN-45/AC-01
   const { form } = await openForm();
 
   expect(within(form).getByRole("textbox", { name: "Host" })).toHaveValue("");
@@ -125,7 +125,7 @@ test("the form asks for each detail, with port 5432 and TLS prefer by default", 
 });
 
 test("there's no field for a connection string or URL", async () => {
-  // CFX-APP-postgres/AC-01
+  // DRIVN-45/AC-01
   const { form } = await openForm();
 
   const names = [...form.querySelectorAll("input, select, textarea")].map(
@@ -135,7 +135,7 @@ test("there's no field for a connection string or URL", async () => {
 });
 
 test("a CA certificate file is asked for only with verify-full", async () => {
-  // CFX-APP-postgres/AC-01
+  // DRIVN-45/AC-01
   const { user, form } = await openForm();
   const tls = within(form).getByRole("combobox", { name: "TLS mode" });
 
@@ -147,7 +147,7 @@ test("a CA certificate file is asked for only with verify-full", async () => {
 });
 
 test("testing a connection shows the server's version and that it's encrypted", async () => {
-  // CFX-APP-postgres/AC-02
+  // DRIVN-45/AC-02
   const { user, form } = await openForm();
   await fillIn(user, form);
 
@@ -169,7 +169,7 @@ test("testing a connection shows the server's version and that it's encrypted", 
 });
 
 test("a connection that isn't encrypted says so", async () => {
-  // CFX-APP-postgres/AC-02
+  // DRIVN-45/AC-02
   answers["/api/sources/postgres/test"] = () => Response.json({ server_version: "16.4", encrypted: false });
   const { user, form } = await openForm();
   await fillIn(user, form);
@@ -182,7 +182,7 @@ test("a connection that isn't encrypted says so", async () => {
 });
 
 test("verify-full sends the CA certificate file, and another mode doesn't", async () => {
-  // CFX-APP-postgres/AC-01
+  // DRIVN-45/AC-01
   const { user, form } = await openForm();
   await fillIn(user, form);
   const tls = within(form).getByRole("combobox", { name: "TLS mode" });
@@ -208,7 +208,7 @@ test.each([
   ["TLS is required and fails", "The server doesn't offer encrypted connections, and the TLS mode requires one."],
   ["the platform has no PostgreSQL", "PostgreSQL isn't available on this platform (linux_arm64)."],
 ])("when %s, testing shows the server's message and keeps what was typed", async (_case, message) => {
-  // CFX-APP-postgres/AC-03 and CFX-APP-postgres/AC-07
+  // DRIVN-45/AC-03 and DRIVN-45/AC-07
   answers["/api/sources/postgres/test"] = () => Response.json({ detail: message }, { status: 422 });
   const { user, form } = await openForm();
   await fillIn(user, form);
@@ -255,7 +255,7 @@ test.each([
 });
 
 test("a saved connection is listed under its database name and opened", async () => {
-  // CFX-APP-postgres/AC-02
+  // DRIVN-45/AC-02
   const { user, form } = await openForm();
   await fillIn(user, form);
 
@@ -289,7 +289,7 @@ test("a saved connection is listed under its database name and opened", async ()
 });
 
 test("with no credential store, a saved connection says its password is kept only until DrivnX stops", async () => {
-  // CFX-APP-postgres/AC-05
+  // DRIVN-45/AC-05
   sources = [fixture];
   renderApp();
 
@@ -300,7 +300,7 @@ test("with no credential store, a saved connection says its password is kept onl
 });
 
 test("a connection that fails isn't saved, and saving shows why", async () => {
-  // CFX-APP-postgres/AC-03
+  // DRIVN-45/AC-03
   answers["/api/sources/postgres"] = () =>
     Response.json({ detail: "The server refused this user name and password." }, { status: 422 });
   const { user, form } = await openForm();
@@ -335,7 +335,7 @@ test("only the last attempt's answer is shown", async () => {
 const afterRestart = { ...fixture, password_needed: true, server_version: null, encrypted: null };
 
 test("after a restart, opening the source asks for its password before anything is read", async () => {
-  // CFX-APP-postgres/AC-05
+  // DRIVN-45/AC-05
   const user = userEvent.setup();
   sources = [afterRestart];
   answers["/api/sources/p1/password"] = () => {
@@ -358,7 +358,7 @@ test("after a restart, opening the source asks for its password before anything 
 });
 
 test("after a restart, a password the server refuses isn't kept, and the prompt says why", async () => {
-  // CFX-APP-postgres/AC-05
+  // DRIVN-45/AC-05
   const user = userEvent.setup();
   sources = [afterRestart];
   answers["/api/sources/p1/password"] = () =>
@@ -385,7 +385,7 @@ function connects(): number {
 }
 
 test("after a restart, opening the source connects with the password from the credential store", async () => {
-  // CFX-APP-postgres/AC-04: "DrivnX reads it from there after a restart", without asking.
+  // DRIVN-45/AC-04: "DrivnX reads it from there after a restart", without asking.
   const connected = { ...stored, server_version: fixture.server_version, encrypted: true };
   sources = [stored];
   answers["/api/sources/p1/connect"] = () => {
@@ -403,7 +403,7 @@ test("after a restart, opening the source connects with the password from the cr
 });
 
 test("a stored password the server now refuses asks for the password, says why, and a new one connects", async () => {
-  // CFX-APP-postgres/AC-06: "when the source is opened, then the user is asked for the password".
+  // DRIVN-45/AC-06: "when the source is opened, then the user is asked for the password".
   const user = userEvent.setup();
   const connected = { ...stored, server_version: fixture.server_version, encrypted: true };
   sources = [stored];
@@ -436,7 +436,7 @@ test("a stored password the server now refuses asks for the password, says why, 
 });
 
 test("a password the server refuses when the tables are listed asks for it, saying why", async () => {
-  // CFX-APP-postgres/AC-06 when listing is the read that finds it: the server dropped the password.
+  // DRIVN-45/AC-06 when listing is the read that finds it: the server dropped the password.
   const user = userEvent.setup();
   sources = [{ ...fixture, password_kept: CREDENTIAL_STORE }];
   answers["/api/sources/p1/discover"] = () => {
@@ -456,7 +456,7 @@ test("a password the server refuses when the tables are listed asks for it, sayi
 });
 
 test("a server that doesn't answer on opening says so, and the password isn't asked for", async () => {
-  // CFX-APP-postgres/AC-06 asks again only when the server refuses the password; AC-03's reason.
+  // DRIVN-45/AC-06 asks again only when the server refuses the password; AC-03's reason.
   sources = [stored];
   answers["/api/sources/p1/connect"] = () =>
     Response.json({ detail: "DrivnX couldn't reach this host. Check the host and port." }, { status: 422 });
@@ -469,7 +469,7 @@ test("a server that doesn't answer on opening says so, and the password isn't as
 });
 
 test("a server that answers again when its tables are listed no longer says it can't be reached", async () => {
-  // CFX-APP-postgres/AC-06: the password was kept, so listing the tables connects again.
+  // DRIVN-45/AC-06: the password was kept, so listing the tables connects again.
   const connected = { ...stored, server_version: fixture.server_version, encrypted: true };
   sources = [stored];
   let reachable = false;
@@ -494,7 +494,7 @@ test("a server that answers again when its tables are listed no longer says it c
 });
 
 test("a database source offers a fast and a full profile, its rows are previewed by object, and nothing asks for them", async () => {
-  // CFX-APP-postgres/AC-18 and AC-19: a fast or a full profile of its chosen objects. AC-12: a chosen
+  // DRIVN-45/AC-18 and AC-19: a fast or a full profile of its chosen objects. AC-12: a chosen
   // object's preview is in its details (DatabaseObjects.test.tsx), so the source has none of its own.
   sources = [fixture];
   renderApp();
@@ -550,7 +550,7 @@ test("changing a detail after a test clears its result, which was for the old de
 });
 
 test("a password the server refuses when an object is previewed asks for it, saying why", async () => {
-  // CFX-APP-postgres/AC-12 with AC-06: the preview is the read that finds the password refused.
+  // DRIVN-45/AC-12 with AC-06: the preview is the read that finds the password refused.
   const user = userEvent.setup();
   sources = [fixture];
   const orders = { id: "o1", name: "orders", kind: "table", estimated_rows: 3, readable: true, populated: true, chosen: true };
@@ -573,7 +573,7 @@ test("a password the server refuses when an object is previewed asks for it, say
 });
 
 test("a database's full profile is started with its time limit per object, 10 minutes unless changed", async () => {
-  // CFX-APP-postgres/AC-19 and AC-20: "Given a full profile and a per-table time limit"; the API keeps 1 to
+  // DRIVN-45/AC-19 and AC-20: "Given a full profile and a per-table time limit"; the API keeps 1 to
   // 120 minutes, 10 by default (DRIVN-53).
   sources = [fixture];
   answers["/api/profile-runs"] = () =>
@@ -600,7 +600,7 @@ test("a database's full profile is started with its time limit per object, 10 mi
 test.each(["0", "121", "2.5", ""])(
   "a time limit of %j minutes starts nothing and says what it takes",
   async (typed) => {
-    // CFX-APP-postgres/AC-20 with the API's 1 to 120 minutes; WCAG 3.3.1, the error is named in text and
+    // DRIVN-45/AC-20 with the API's 1 to 120 minutes; WCAG 3.3.1, the error is named in text and
     // tied to its field.
     sources = [fixture];
     const user = userEvent.setup();
@@ -637,7 +637,7 @@ const databaseRun = {
 };
 
 test("a database run's results show each object with how its rows were read, the run's ID and time", async () => {
-  // CFX-APP-postgres/AC-18 and AC-24: each object's scope (about N rows sampled by page, the first rows
+  // DRIVN-45/AC-18 and AC-24: each object's scope (about N rows sampled by page, the first rows
   // returned, or the whole object), each metric's precision, and the run's time and ID; no "values that
   // don't fit" in a typed column, and no values on request yet (DRIVN-56).
   sources = [fixture];
@@ -708,7 +708,7 @@ test.each([
   patternsFrom,
   label,
 ) => {
-  // CFX-APP-postgres/AC-19: "every row of each object is read, with exact results and each object's exact
+  // DRIVN-45/AC-19: "every row of each object is read, with exact results and each object's exact
   // row count"; the Assumptions: "masked patterns always come from the fast profile's sample rows, even on
   // a full profile, and are labelled that way", as AC-24 labels a fast reading (found in review).
   sources = [fixture];
@@ -740,7 +740,7 @@ test.each([
 });
 
 test("an object stopped at its time limit shows it has no results, and the run names each such object", async () => {
-  // CFX-APP-postgres/AC-20: "the object shows 'stopped at the time limit, no results', the run goes on to
+  // DRIVN-45/AC-20: "the object shows 'stopped at the time limit, no results', the run goes on to
   // the next object, and the finished run says which objects have no results".
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([fullRun]);
@@ -791,8 +791,8 @@ const changedDetail = {
 };
 
 test("a database's newest completed run is shown even once a refresh has changed one of its objects", async () => {
-  // CFX-APP-postgres/AC-31: "the newest completed run is shown by default", unlike a file's, which must
-  // have the current settings (CFX-APP-csv-profile AC-35); AC-32 says its results are out of date.
+  // DRIVN-45/AC-31: "the newest completed run is shown by default", unlike a file's, which must
+  // have the current settings (DRIVN-9 AC-35); AC-32 says its results are out of date.
   sources = [fixture];
   gets["/api/profile-runs"] = () =>
     Response.json([changedRun, { ...databaseRun, object_names: ["sales.orders", "sales.small"] }]);
@@ -808,7 +808,7 @@ test("a database's newest completed run is shown even once a refresh has changed
 });
 
 test("a database's runs list names each run's objects, and says which runs are out of date", async () => {
-  // CFX-APP-postgres/AC-31: "list them with mode, status, time and objects"; AC-32.
+  // DRIVN-45/AC-31: "list them with mode, status, time and objects"; AC-32.
   sources = [fixture];
   gets["/api/profile-runs"] = () =>
     Response.json([changedRun, { ...databaseRun, current_settings: true, object_names: ["sales.small"] }]);
@@ -827,7 +827,7 @@ test("a database's runs list names each run's objects, and says which runs are o
 });
 
 test("a database run's results say they describe each object as it was when the run read it", async () => {
-  // CFX-APP-postgres/AC-32: "Given results, then they say they describe the object at the run's time."
+  // DRIVN-45/AC-32: "Given results, then they say they describe the object at the run's time."
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([{ ...changedRun, current_settings: true }]);
   gets["/api/findings?profile_run_id=r3"] = () => Response.json([]);
@@ -859,7 +859,7 @@ test.each([
     "sales.orders, sales.small have changed or are gone since this run, so their results are out of date and this run's findings aren't current. Profile again to see them as they are now.",
   ],
 ])("a database run whose objects have changed since says their results are out of date: %o", async (changed, note) => {
-  // CFX-APP-postgres/AC-32: "Given an object whose columns or types differ from the run's, then the Profile
+  // DRIVN-45/AC-32: "Given an object whose columns or types differ from the run's, then the Profile
   // tab says the results are out of date."
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([changedRun]);
@@ -881,7 +881,7 @@ test.each([
 });
 
 test("refreshing a database's objects shows at once which of the shown run's results are out of date", async () => {
-  // CFX-APP-postgres/AC-32: the refresh is what finds an object's columns changed (decided for DRIVN-57).
+  // DRIVN-45/AC-32: the refresh is what finds an object's columns changed (decided for DRIVN-57).
   const user = userEvent.setup();
   let refreshed = false;
   sources = [fixture];
@@ -910,7 +910,7 @@ test("refreshing a database's objects shows at once which of the shown run's res
 });
 
 test("a running database run can be cancelled from the Profile tab", async () => {
-  // CFX-APP-postgres/AC-21: "Given a run in progress, when the user cancels it".
+  // DRIVN-45/AC-21: "Given a run in progress, when the user cancels it".
   sources = [fixture];
   gets["/api/profile-runs"] = () =>
     Response.json([{ ...fullRun, status: "running", ended_at: null, current_object: "sales.orders" }]);
@@ -929,7 +929,7 @@ test("a running database run can be cancelled from the Profile tab", async () =>
 });
 
 test("a running database run says which object it is on, in the header and the Profile tab", async () => {
-  // CFX-APP-postgres/AC-17
+  // DRIVN-45/AC-17
   sources = [fixture];
   gets["/api/profile-runs"] = () =>
     Response.json([{ ...databaseRun, status: "running", ended_at: null, current_object: "sales.orders" }]);
@@ -968,7 +968,7 @@ async function startFastProfile() {
 }
 
 test("a role that could change chosen objects is warned, naming each and how, before any run starts", async () => {
-  // CFX-APP-postgres/AC-16: "the screen names the objects ... and why, and the run starts only after the
+  // DRIVN-45/AC-16: "the screen names the objects ... and why, and the run starts only after the
   // user confirms".
   sources = [fixture];
   answers["/api/profile-runs"] = refusedFor(writerAccess);
@@ -987,7 +987,7 @@ test("a role that could change chosen objects is warned, naming each and how, be
 });
 
 test("profiling anyway starts the run with the write access the user was shown", async () => {
-  // CFX-APP-postgres/AC-16: the run starts once the user confirms, and only what they were shown.
+  // DRIVN-45/AC-16: the run starts once the user confirms, and only what they were shown.
   sources = [fixture];
   let starts = 0;
   answers["/api/profile-runs"] = () =>
@@ -1007,7 +1007,7 @@ test("profiling anyway starts the run with the write access the user was shown",
 });
 
 test("profiling anyway after a full profile's warning starts it with its time limit, back on Full profile", async () => {
-  // CFX-APP-postgres/AC-16 with AC-20: the run the user asked for, as they asked for it; WCAG 2.4.3,
+  // DRIVN-45/AC-16 with AC-20: the run the user asked for, as they asked for it; WCAG 2.4.3,
   // focus goes back to where the user started.
   sources = [fixture];
   let starts = 0;
@@ -1033,7 +1033,7 @@ test("profiling anyway after a full profile's warning starts it with its time li
 });
 
 test("cancelling the write warning starts nothing and returns to Fast profile", async () => {
-  // CFX-APP-postgres/AC-16: no run without the user's confirmation; WCAG 2.4.3, focus goes back to where
+  // DRIVN-45/AC-16: no run without the user's confirmation; WCAG 2.4.3, focus goes back to where
   // the user was.
   sources = [fixture];
   answers["/api/profile-runs"] = refusedFor(writerAccess);
@@ -1048,7 +1048,7 @@ test("cancelling the write warning starts nothing and returns to Fast profile", 
 });
 
 test("a superuser is warned that it can change anything, naming the role", async () => {
-  // CFX-APP-postgres/AC-16: "the screen names the objects or the superuser role and why".
+  // DRIVN-45/AC-16: "the screen names the objects or the superuser role and why".
   sources = [fixture];
   answers["/api/profile-runs"] = refusedFor({
     role: "drivnx_admin",
@@ -1070,7 +1070,7 @@ test.each([
   [true, true],
   [false, false],
 ])("a run whose account could only read says so (read only: %s)", async (readOnly, said) => {
-  // CFX-APP-postgres/AC-16: "Given a role that can only read the chosen objects, then no warning appears,
+  // DRIVN-45/AC-16: "Given a role that can only read the chosen objects, then no warning appears,
   // and the screen says the account can only read them." Said of the run, as the selection can change
   // since, and of its account, as the role it signed in as can differ from the user name (found in review).
   sources = [fixture];
@@ -1089,7 +1089,7 @@ test.each([
 });
 
 test("the write warning takes focus on its safe choice, Cancel", async () => {
-  // CFX-APP-postgres/AC-16 and WCAG 2.4.3: an alert dialog moves focus into itself, onto the choice that
+  // DRIVN-45/AC-16 and WCAG 2.4.3: an alert dialog moves focus into itself, onto the choice that
   // changes nothing, as the possibly-sensitive values' confirmation does.
   sources = [fixture];
   answers["/api/profile-runs"] = refusedFor(writerAccess);
@@ -1101,7 +1101,7 @@ test("the write warning takes focus on its safe choice, Cancel", async () => {
 });
 
 test("a write warning shows even when a run elsewhere ends as the start is refused", async () => {
-  // CFX-APP-postgres/AC-16: the refusal mustn't be forgotten with a refusal for a run in progress, which
+  // DRIVN-45/AC-16: the refusal mustn't be forgotten with a refusal for a run in progress, which
   // the end of the run elsewhere clears (found in review).
   sources = [fixture];
   let postedYet = false;
@@ -1155,7 +1155,7 @@ async function findingsPanel() {
 }
 
 test("a database run's finding says which object it was observed in", async () => {
-  // CFX-APP-postgres/AC-26: "the CSV profile's findings appear", each of one object.
+  // DRIVN-45/AC-26: "the CSV profile's findings appear", each of one object.
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([databaseRun]);
   gets["/api/profile-runs/r1"] = () => Response.json(wholeOrders);
@@ -1177,7 +1177,7 @@ test("a database run's finding says which object it was observed in", async () =
 });
 
 test("before any profile of a database, the findings say what to do", async () => {
-  // CFX-APP-postgres/AC-26, as CFX-APP-csv-profile/AC-21 says it for a file.
+  // DRIVN-45/AC-26, as DRIVN-9/AC-21 says it for a file.
   sources = [fixture];
   renderApp();
 
@@ -1227,8 +1227,8 @@ test.each([
     "region has a value of this shape among its most common masked patterns in about 98,765 rows, sampled by page",
   ],
 ])("a database finding from %s says how its object was read", async (_, reading, evidence, kind, said) => {
-  // CFX-APP-postgres/AC-24 and AC-26: a finding is "observed in" its object's reading, as
-  // CFX-APP-csv-profile/AC-24 says a file's first rows; a full profile's patterns are its fast reading's.
+  // DRIVN-45/AC-24 and AC-26: a finding is "observed in" its object's reading, as
+  // DRIVN-9/AC-24 says a file's first rows; a full profile's patterns are its fast reading's.
   const shownRun = { ...databaseRun, mode: reading.mode };
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([shownRun]);
@@ -1269,7 +1269,7 @@ test.each([
   ["possibly_sensitive", [metric("sales.returns", "region", "masked_patterns", ORDER_PATTERNS)], "1 pattern"],
   ["duplicate_rows", [metric("sales.returns", null, "duplicate_rows", 3, "full")], "3 rows are exact copies of another row."],
 ])("a database %s finding's evidence link goes to its own object's metric", async (kind, evidence, shownAs) => {
-  // CFX-APP-postgres/AC-26: "with their evidence links", to the cell of the object it's of.
+  // DRIVN-45/AC-26: "with their evidence links", to the cell of the object it's of.
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([fullRun]);
   gets["/api/profile-runs/r2"] = () =>
@@ -1300,8 +1300,8 @@ test.each([
 });
 
 test("a database run's findings say having no flag doesn't mean no personal data", async () => {
-  // CFX-APP-postgres/AC-27: "the screen says that no flag doesn't mean a column has no personal data",
-  // as CFX-APP-csv-profile/AC-28 does for a file.
+  // DRIVN-45/AC-27: "the screen says that no flag doesn't mean a column has no personal data",
+  // as DRIVN-9/AC-28 does for a file.
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([databaseRun]);
   gets["/api/profile-runs/r1"] = () => Response.json(wholeOrders);
@@ -1315,7 +1315,7 @@ test("a database run's findings say having no flag doesn't mean no personal data
 });
 
 test("when a database run's results don't load, its findings say so", async () => {
-  // CFX-APP-postgres/AC-26: a database run's findings say how each object was read, from its results, so without
+  // DRIVN-45/AC-26: a database run's findings say how each object was read, from its results, so without
   // them the findings can't show, and the panel says why rather than seeming to have found nothing.
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([databaseRun]);
@@ -1331,8 +1331,8 @@ test("when a database run's results don't load, its findings say so", async () =
 });
 
 test("the findings of a database run whose objects have changed since say why they aren't current", async () => {
-  // CFX-APP-postgres/AC-32: its results are out of date, and so are its findings; a database has no
-  // settings, which a file's run says it used (CFX-APP-csv-profile AC-36).
+  // DRIVN-45/AC-32: its results are out of date, and so are its findings; a database has no
+  // settings, which a file's run says it used (DRIVN-9 AC-36).
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([changedRun]);
   gets["/api/findings?profile_run_id=r3"] = () => Response.json([]);
@@ -1354,7 +1354,7 @@ test.each([
   [["s.a", "s.b", "s.c", "s.d"], "of s.a, s.b, s.c and 1 more"],
   [["s.a", "s.b", "s.c", "s.d", "s.e"], "of s.a, s.b, s.c and 2 more"],
 ])("a database run in the runs list names its first 3 objects, then how many more: %o", async (names, shownAs) => {
-  // CFX-APP-postgres/AC-31: "list them with ... objects"; the first 3, then "and N more" (decided for
+  // DRIVN-45/AC-31: "list them with ... objects"; the first 3, then "and N more" (decided for
   // DRIVN-57). The run's results name every one.
   sources = [fixture];
   gets["/api/profile-runs"] = () =>

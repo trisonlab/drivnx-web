@@ -1,4 +1,4 @@
-"""Session protection, CFX-APP-first-slice/AC-06 and AC-08 to AC-13."""
+"""Session protection, DRIVN-8/AC-06 and AC-08 to AC-13."""
 
 import os
 import re
@@ -25,7 +25,7 @@ from ..conftest import REPO_ROOT, Launch, StartDrivnX, posix_only
 def test_api_without_a_session_cookie_is_refused(
     start_drivnx: StartDrivnX, path: str
 ) -> None:
-    # CFX-APP-first-slice/AC-08
+    # DRIVN-8/AC-08
     origin = start_drivnx("--no-browser").wait_for_launch().origin
 
     assert httpx.get(origin + path).status_code == 401
@@ -38,14 +38,14 @@ def sign_in(launch: Launch) -> httpx.Client:
 
 
 def test_launch_code_signs_in(start_drivnx: StartDrivnX) -> None:
-    # CFX-APP-first-slice/AC-08: a valid cookie gets past the check, to a 404 for an unknown route.
+    # DRIVN-8/AC-08: a valid cookie gets past the check, to a 404 for an unknown route.
     client = sign_in(start_drivnx("--no-browser").wait_for_launch())
 
     assert client.get("/api/no-such-route").status_code == 404
 
 
 def test_a_wrong_session_cookie_is_refused(start_drivnx: StartDrivnX) -> None:
-    # CFX-APP-first-slice/AC-08
+    # DRIVN-8/AC-08
     launch = start_drivnx("--no-browser").wait_for_launch()
     cookie_name = f"drivnx_session_{launch.port}"
 
@@ -57,7 +57,7 @@ def test_a_wrong_session_cookie_is_refused(start_drivnx: StartDrivnX) -> None:
 
 
 def test_a_launch_code_works_only_once(start_drivnx: StartDrivnX) -> None:
-    # CFX-APP-first-slice/AC-10
+    # DRIVN-8/AC-10
     launch = start_drivnx("--no-browser").wait_for_launch()
     sign_in(launch)
 
@@ -74,7 +74,7 @@ def test_a_launch_code_works_only_once(start_drivnx: StartDrivnX) -> None:
 def test_a_wrong_launch_code_is_refused_and_the_right_one_still_works(
     start_drivnx: StartDrivnX,
 ) -> None:
-    # CFX-APP-first-slice/AC-10: guessing can't burn the real code and lock the user out.
+    # DRIVN-8/AC-10: guessing can't burn the real code and lock the user out.
     launch = start_drivnx("--no-browser").wait_for_launch()
 
     wrong = httpx.post(
@@ -94,7 +94,7 @@ def test_a_wrong_launch_code_is_refused_and_the_right_one_still_works(
 def test_a_wrong_host_is_refused(
     start_drivnx: StartDrivnX, path: str, host: str
 ) -> None:
-    # CFX-APP-first-slice/AC-09, including /api/session
+    # DRIVN-8/AC-09, including /api/session
     launch = start_drivnx("--no-browser").wait_for_launch()
 
     response = httpx.get(
@@ -119,7 +119,7 @@ def test_a_wrong_host_is_refused(
 def test_a_wrong_origin_is_refused(
     start_drivnx: StartDrivnX, path: str, origin: str
 ) -> None:
-    # CFX-APP-first-slice/AC-09, including /api/session and a page on another local port
+    # DRIVN-8/AC-09, including /api/session and a page on another local port
     launch = start_drivnx("--no-browser").wait_for_launch()
     wrong = origin.format(port=launch.port)
 
@@ -137,7 +137,7 @@ def test_a_wrong_origin_is_refused(
 def test_a_state_changing_request_without_origin_is_refused(
     start_drivnx: StartDrivnX, method: str
 ) -> None:
-    # CFX-APP-first-slice/AC-09
+    # DRIVN-8/AC-09
     launch = start_drivnx("--no-browser").wait_for_launch()
 
     response = httpx.request(
@@ -149,7 +149,7 @@ def test_a_state_changing_request_without_origin_is_refused(
 
 
 def test_a_signed_in_get_without_origin_is_allowed(start_drivnx: StartDrivnX) -> None:
-    # CFX-APP-first-slice/AC-09: browsers don't send Origin on same-origin GET requests.
+    # DRIVN-8/AC-09: browsers don't send Origin on same-origin GET requests.
     launch = start_drivnx("--no-browser").wait_for_launch()
     client = sign_in(launch)
     del client.headers["Origin"]
@@ -195,7 +195,7 @@ def api_reads(client: TestClient) -> list[tuple[str, str]]:
 def test_a_launch_code_expires_after_two_minutes(
     tmp_path: Path, seconds_later: int, status: int
 ) -> None:
-    # CFX-APP-first-slice/AC-10: the spec's 2 minutes, written out as 120 on purpose.
+    # DRIVN-8/AC-10: the spec's 2 minutes, written out as 120 on purpose.
     assert LAUNCH_CODE_LIFETIME_SECONDS == 120
     clock = [1000.0]
     session = LaunchSession(PORT, now=lambda: clock[0])
@@ -210,7 +210,7 @@ def test_a_launch_code_expires_after_two_minutes(
 def test_the_session_cookie_has_the_required_attributes(
     start_drivnx: StartDrivnX,
 ) -> None:
-    # CFX-APP-first-slice/AC-11
+    # DRIVN-8/AC-11
     launch = start_drivnx("--no-browser").wait_for_launch()
 
     response = httpx.post(
@@ -233,7 +233,7 @@ def test_the_session_cookie_has_the_required_attributes(
 
 
 def test_get_and_head_routes_change_nothing(tmp_path: Path) -> None:
-    # CFX-APP-first-slice/AC-13: the launch code survives every read.
+    # DRIVN-8/AC-13: the launch code survives every read.
     session = LaunchSession(PORT)
     client = in_process_client(session, tmp_path)
     reads = api_reads(client)
@@ -251,7 +251,7 @@ def test_get_and_head_routes_change_nothing(tmp_path: Path) -> None:
 
 
 def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
-    # CFX-APP-first-slice/AC-13
+    # DRIVN-8/AC-13
     session = LaunchSession(PORT)
     client = in_process_client(session, tmp_path)
     client.post("/api/session", json={"code": session.launch_code})
@@ -287,7 +287,7 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
     assert ("GET", "/api/sources/{source_id}/rows") in api_reads(client)
     assert ("GET", "/api/profile-runs") in api_reads(client)
     assert ("GET", "/api/profile-runs/{run_id}") in api_reads(client)
-    # CFX-APP-csv-profile/AC-34
+    # DRIVN-9/AC-34
     assert ("GET", "/api/findings") in api_reads(client)
     assert ("GET", "/api/profile-runs/{run_id}/values") in api_reads(client)
     params = {
@@ -317,7 +317,7 @@ def test_get_and_head_routes_change_no_workspace_data(tmp_path: Path) -> None:
 def test_the_session_token_and_launch_code_never_reach_the_workspace(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-first-slice/AC-48: random values, so no pattern in the end-of-run scan could spot them.
+    # DRIVN-8/AC-48: random values, so no pattern in the end-of-run scan could spot them.
     session = LaunchSession(PORT)
     client = in_process_client(session, tmp_path)
     code = session.launch_code
@@ -342,7 +342,7 @@ def test_the_session_token_and_launch_code_never_reach_the_workspace(
 
 @posix_only
 def test_stopping_ends_the_session(start_drivnx: StartDrivnX, free_port: int) -> None:
-    # CFX-APP-first-slice/AC-06
+    # DRIVN-8/AC-06
     first = start_drivnx("--no-browser", "--port", str(free_port))
     client = sign_in(first.wait_for_launch())
     assert client.get("/api/session").json() == {"authenticated": True}
@@ -361,7 +361,7 @@ def test_stopping_ends_the_session(start_drivnx: StartDrivnX, free_port: int) ->
 def test_logs_contain_no_token_or_launch_code(
     start_drivnx: StartDrivnX, free_port: int, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-12: the code goes to a browser here, so printing it isn't what is tested.
+    # DRIVN-8/AC-12: the code goes to a browser here, so printing it isn't what is tested.
     # The unreadable row is there because DuckDB's error message quotes the row.
     opened = tmp_path / "opened"
     browser = tmp_path / "browser"
@@ -424,7 +424,7 @@ VITE_ORIGIN = "http://127.0.0.1:5173"
 def test_the_dev_origin_is_refused_without_the_dev_flag(
     start_drivnx: StartDrivnX,
 ) -> None:
-    # CFX-APP-first-slice/AC-52
+    # DRIVN-8/AC-52
     launch = start_drivnx("--no-browser").wait_for_launch()
 
     response = httpx.get(
@@ -437,7 +437,7 @@ def test_the_dev_origin_is_refused_without_the_dev_flag(
 def test_the_dev_flag_allows_only_that_origin_and_links_to_it(
     start_drivnx: StartDrivnX, free_port: int
 ) -> None:
-    # CFX-APP-first-slice/AC-52
+    # DRIVN-8/AC-52
     drivnx = start_drivnx(
         "--no-browser", "--port", str(free_port), "--dev-origin", VITE_ORIGIN
     )
@@ -458,7 +458,7 @@ def test_the_dev_flag_allows_only_that_origin_and_links_to_it(
 def test_the_dev_flag_refuses_anything_but_a_loopback_origin(
     start_drivnx: StartDrivnX, origin: str
 ) -> None:
-    # CFX-APP-first-slice/AC-52
+    # DRIVN-8/AC-52
     drivnx = start_drivnx("--no-browser", f"--dev-origin={origin}")
 
     assert drivnx.process.wait(timeout=10) == 2
@@ -469,7 +469,7 @@ def test_the_dev_flag_refuses_anything_but_a_loopback_origin(
 def test_sign_in_works_through_the_vite_proxy(
     start_drivnx: StartDrivnX, free_port: int, unused_port: int
 ) -> None:
-    # CFX-APP-first-slice/AC-52: the real dev server, so a Host check it breaks would show here.
+    # DRIVN-8/AC-52: the real dev server, so a Host check it breaks would show here.
     vite_origin = f"http://127.0.0.1:{unused_port}"
     code = (
         start_drivnx(
@@ -509,7 +509,7 @@ def test_sign_in_works_through_the_vite_proxy(
 def test_an_unencodable_launch_code_is_refused_without_a_crash(
     start_drivnx: StartDrivnX,
 ) -> None:
-    # CFX-APP-first-slice/AC-10: found in the T02 review; it returned 500 and logged a traceback.
+    # DRIVN-8/AC-10: found in the T02 review; it returned 500 and logged a traceback.
     launch = start_drivnx("--no-browser").wait_for_launch()
 
     response = httpx.post(

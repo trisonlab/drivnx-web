@@ -2,7 +2,7 @@
 
 - **Status:** Accepted 2026-11-14; Decision 1 amended by ADR 0008 (the OS credential store, DRIVN-48)
 - **Date:** 2026-11-14
-- **Source:** The plan for ticket DRIVN-47, approved by the user in chat on 2026-11-13; spec `CFX-APP-postgres`
+- **Source:** The plan for ticket DRIVN-47, approved by the user in chat on 2026-11-13; spec `DRIVN-45`
   revision 2 (AC-01, AC-02, AC-03, AC-05, AC-14, AC-30); Section 7 of the direction doc; ADR 0006
 
 ## Context

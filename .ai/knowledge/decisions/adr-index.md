@@ -6,21 +6,21 @@ evidence:
 - path: docs/adr/0001-workspace-packaging-and-session-token.md
   sha256: c7aefa50fb13bd077a656403b33297704d19b0f350ccdecf82f1c7b4156289a6
 - path: docs/adr/0002-workspace-storage-sqlite-only.md
-  sha256: 37710fce239923920c0c99664c13b07c646286cd0a6d9f60be5c62b4660e5283
+  sha256: 8dc9aa9e1577816cf89d28430561abdd76a600a310e19d4d0f72648a8f6184be
 - path: docs/adr/0003-contract-schema-native-with-odcs-export.md
   sha256: 7e66661935fb8164735a40415271532c2b582a649019ce6877815c47bca0954e
 - path: docs/adr/0004-profile-values-and-caching.md
-  sha256: 12322e4c09166082db9f7d0aaf9f2778771e08f1f3d831f9d0349ef795516980
+  sha256: 4446f4336c249b89cf73f51bd2cbbd788dcba6319062e37483bf69e396c5014a
 - path: docs/adr/0005-postgres-sampling.md
-  sha256: 10c94851b1fcbeb66d335e9629cd3a3b5071ac99e3a0c247519f0b21b17505c3
+  sha256: 1d789e593fde8aa7b2400ca4f1ac106a15f62968f7e3d0e8827ea9fbb7461e16
 - path: docs/adr/0006-postgres-extension-in-the-wheel.md
-  sha256: 86662d0b293d67401493b0e41990665e64b609596d0533bd23d1a74b06bbab7b
+  sha256: 5db83887b3a05068316af944d09589e3ac35f3f902b90cba25554ab9bf908207
 - path: docs/adr/0007-postgres-password-and-connection.md
-  sha256: 2a563edf68717c775b98e54a03662489a83ea16c4651994f75af8a0e06af239f
+  sha256: 9c7fd883f179d3c3cad967701e51e0eeeca54e2004058300f734653c144883df
 - path: docs/adr/0008-postgres-password-in-the-os-credential-store.md
-  sha256: 30731e7174126249d49711b9795e357c6eb3b66e42ab50d51f75ce76e44769c3
+  sha256: c0e5766fe4c216f6bd01533a6945277047ed7db71f6681d84f1a06635a73ddff
 - path: docs/adr/0009-stopping-a-postgres-read.md
-  sha256: 00900e320d45035aebeccee489d09d2fed89f8449b49b41edc58cdb589d18f36
+  sha256: f1007a10ce1b54942d594d5f9381fc31ee1a791af9d8d0d4756eeaee5fd5f7c4
 ---
 # Architecture decisions
 

@@ -1,4 +1,4 @@
-"""A database's findings in the browser, CFX-APP-postgres AC-26, AC-27 and AC-35 (DRIVN-55), against
+"""A database's findings in the browser, DRIVN-45 AC-26, AC-27 and AC-35 (DRIVN-55), against
 the installed wheel and the PostgreSQL fixture."""
 
 from collections.abc import Callable, Iterator
@@ -40,7 +40,7 @@ def objects(postgres_admin: Callable[[str], None]) -> Iterator[None]:
 def test_a_fast_profiles_findings_say_their_object_and_link_to_its_evidence(
     start_drivnx: StartDrivnX, page: Page, objects: None
 ) -> None:
-    # CFX-APP-postgres/AC-26: the CSV profile's findings "with their evidence links", and none of a
+    # DRIVN-45/AC-26: the CSV profile's findings "with their evidence links", and none of a
     # possible identifier for the declared key; AC-27: the no-flag note; AC-35: "opening a finding's
     # evidence", with the accessibility check.
     open_set_up_app(page, start_drivnx("--no-browser", env=NO_STORE).wait_for_launch().url)

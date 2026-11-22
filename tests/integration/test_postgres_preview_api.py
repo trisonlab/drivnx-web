@@ -1,4 +1,4 @@
-"""Previewing a chosen database object through the API, CFX-APP-postgres AC-12 (DRIVN-50)."""
+"""Previewing a chosen database object through the API, DRIVN-45 AC-12 (DRIVN-50)."""
 
 from collections.abc import Callable, Iterator
 from pathlib import Path
@@ -77,7 +77,7 @@ def values(page: dict) -> list[list[str | None]]:
 def test_a_chosen_objects_preview_opens_on_its_first_50_rows_in_key_order(
     client: TestClient,
 ) -> None:
-    # CFX-APP-postgres/AC-12: 50 rows at a time, with a next page; a table with a primary key is
+    # DRIVN-45/AC-12: 50 rows at a time, with a next page; a table with a primary key is
     # in the key's order (the order agreed for DRIVN-50), not the order the rows went in.
     response = client.get(chosen(client, "numbered"))
 
@@ -89,7 +89,7 @@ def test_a_chosen_objects_preview_opens_on_its_first_50_rows_in_key_order(
 
 
 def test_next_and_previous_page_through_the_rows_to_the_last(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-12: next and previous are pages from an offset; the last page of 120
+    # DRIVN-45/AC-12: next and previous are pages from an offset; the last page of 120
     # rows has 20 and no next page.
     path = chosen(client, "numbered")
 
@@ -103,7 +103,7 @@ def test_next_and_previous_page_through_the_rows_to_the_last(client: TestClient)
 
 
 def test_more_than_200_rows_a_page_is_refused(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-12 with CFX-APP-first-slice/AC-28: at most 200 rows a page.
+    # DRIVN-45/AC-12 with DRIVN-8/AC-28: at most 200 rows a page.
     path = chosen(client, "numbered")
 
     assert client.get(path, params={"limit": 201}).status_code == 422
@@ -111,7 +111,7 @@ def test_more_than_200_rows_a_page_is_refused(client: TestClient) -> None:
 
 
 def test_cells_are_postgresqls_text_and_a_long_one_is_cut_and_marked(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-12 with CFX-APP-first-slice/AC-29: a cell over 1,000 characters is cut
+    # DRIVN-45/AC-12 with DRIVN-8/AC-29: a cell over 1,000 characters is cut
     # and marked; NULL stays null; every type comes as PostgreSQL writes it as text, and markup is
     # only text, which the screen shows as such (Preview.test.tsx).
     (row,) = client.get(chosen(client, "cells")).json()["rows"]
@@ -127,7 +127,7 @@ def test_cells_are_postgresqls_text_and_a_long_one_is_cut_and_marked(client: Tes
 
 
 def test_an_object_that_isnt_chosen_has_no_preview(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-11: only chosen objects can be previewed. `cells` is chosen, so the
+    # DRIVN-45/AC-11: only chosen objects can be previewed. `cells` is chosen, so the
     # source's selection is saved, and `numbered` isn't.
     source_id = chosen(client, "cells").split("/")[3]
     listed = objects_in(client.get(f"/api/sources/{source_id}/objects").json(), SCHEMA)
@@ -139,7 +139,7 @@ def test_an_object_that_isnt_chosen_has_no_preview(client: TestClient) -> None:
 
 
 def test_an_object_no_longer_listed_has_no_preview(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-12: gone in a refresh, or never this source's, as when it's opened.
+    # DRIVN-45/AC-12: gone in a refresh, or never this source's, as when it's opened.
     source_id = chosen(client, "numbered").split("/")[3]
 
     response = client.get(f"/api/sources/{source_id}/objects/{'0' * 32}/rows")
@@ -151,7 +151,7 @@ def test_an_object_no_longer_listed_has_no_preview(client: TestClient) -> None:
 def test_after_a_restart_the_preview_waits_for_the_password(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-12 with AC-05: the rows are read from the database, so after a restart
+    # DRIVN-45/AC-12 with AC-05: the rows are read from the database, so after a restart
     # without a credential store the preview waits for the password, as the source asks for it.
     workspace = tmp_path / "workspace"
     before = start_drivnx("--no-browser", env=NO_STORE, workspace=workspace)
@@ -171,7 +171,7 @@ def test_after_a_restart_the_preview_waits_for_the_password(
 def test_a_password_the_server_refuses_when_previewing_asks_for_it_again(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-12 with AC-06: the preview is the first read after a restart, with a
+    # DRIVN-45/AC-12 with AC-06: the preview is the first read after a restart, with a
     # stored password the server now refuses. The server's reason, and the source asks again.
     store, source = saved_with_a_wrong_stored_password(start_app, workspace)
     after = start_app(store)
@@ -188,7 +188,7 @@ def test_a_password_the_server_refuses_when_previewing_asks_for_it_again(
 def test_an_object_changed_since_it_was_listed_points_to_a_refresh(
     client: TestClient, postgres_admin: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-12 with AC-13: the preview reads the columns the last discovery found,
+    # DRIVN-45/AC-12 with AC-13: the preview reads the columns the last discovery found,
     # and one of them is gone. The connector's message, never DuckDB's text.
     path = chosen(client, "shrinking")
     postgres_admin(f"ALTER TABLE {SCHEMA}.shrinking DROP COLUMN gone")
@@ -205,7 +205,7 @@ def test_an_object_changed_since_it_was_listed_points_to_a_refresh(
 def test_a_preview_is_never_stored_by_drivnx_or_the_browser(
     client: TestClient, workspace_dir: Path
 ) -> None:
-    # CFX-APP-postgres/AC-12: the response is `Cache-Control: no-store`, and no file in the
+    # DRIVN-45/AC-12: the response is `Cache-Control: no-store`, and no file in the
     # workspace holds a previewed value.
     response = client.get(chosen(client, "planted"))
 
@@ -218,7 +218,7 @@ def test_a_preview_is_never_stored_by_drivnx_or_the_browser(
 
 
 def test_a_table_without_columns_shows_its_rows_with_no_cells(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-12: PostgreSQL allows a table with no columns; its rows are still rows.
+    # DRIVN-45/AC-12: PostgreSQL allows a table with no columns; its rows are still rows.
     response = client.get(chosen(client, "bare"))
 
     assert response.status_code == 200, response.text
@@ -227,7 +227,7 @@ def test_a_table_without_columns_shows_its_rows_with_no_cells(client: TestClient
 
 
 def test_a_page_the_database_takes_too_long_to_read_says_so(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-12 with the spec's 30 s statement_timeout for preview: the object hasn't
+    # DRIVN-45/AC-12 with the spec's 30 s statement_timeout for preview: the object hasn't
     # changed, so the message mustn't point to a refresh.
     response = client.get(chosen(client, "slow"))
 

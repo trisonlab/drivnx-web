@@ -2,7 +2,7 @@
 id: DRIVN-51
 legacy_id: CFX-APP-postgres-T06
 title: "Fast profile of chosen objects, end to end"
-feature: CFX-APP-postgres
+feature: DRIVN-45
 feature_revision: 3
 stories: [US-02, US-04, US-05]
 criteria: [AC-13, AC-17, AC-18, AC-23, AC-24]

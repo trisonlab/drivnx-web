@@ -1,4 +1,4 @@
-# Each check here is also a documented local command in the README (CFX-APP-first-slice/AC-53).
+# Each check here is also a documented local command in the README (DRIVN-8/AC-53).
 name: CI
 
 on:

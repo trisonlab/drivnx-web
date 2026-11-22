@@ -1,5 +1,6 @@
 ---
-id: CFX-APP-first-slice
+id: DRIVN-8
+legacy_id: CFX-APP-first-slice
 external_key: DRIVN-8
 kind: feature
 title: "First vertical slice: runtime to CSV preview, on the M1 domain model"
@@ -144,7 +145,7 @@ API for this slice, using the Section 12 outline as amended: `/api/session`, `/a
 - **Compatibility:** Python 3.12, and current Chrome, Firefox, Edge and Safari. Only what can be run here is claimed as tested.
 
 ## Verification
-- Each criterion is covered by a test that names its ID, such as `CFX-APP-first-slice/AC-01`.
+- Each criterion is covered by a test that names its ID, such as `DRIVN-8/AC-01`.
 - pytest for domain, store and API; Vitest for components; Playwright for the journey in AC-01, AC-14, AC-20, AC-24 and AC-27 against the installed wheel.
 - Spike 6 (local browser security) uses AC-07 to AC-13, plus a manual check of accepted risk R1 in the threat register.
 - macOS, Windows and CI are reported as NOT RUN until they can run.
@@ -183,3 +184,4 @@ None blocks approval.
 - Revision 8: Reviewing T07 raised three questions about the domain model. A Finding records its author and event as Inferred, a DictionaryEntry holds assumptions, and a field has at most one Confirmed entry (new AC-55). AC-35 now says everything saved reads back. Approved by the user in chat, 2026-11-04.
 - Revision 9: Building T08 settled how "needs re-review" works (AC-39). The system records it as a ProvenanceEvent, a new Keep as is action lets a user clear it without changing the item, and what counts as a contradiction waits for M3's profiling work. Approved by the user in chat, 2026-11-04.
 - Revision 10: Reference-only change: the workspace is now a plain `DrivnX/` folder with drivnx-docs next to this repo, so `../docs/` becomes `../drivnx-docs/docs/`. No change to behaviour.
+- 2026-11-22, no new revision: the ID changed from `CFX-APP-first-slice` to its Plane key `DRIVN-8`, kept in `legacy_id`, and its criteria with it (`DRIVN-8/AC-01`). Nothing else changed, so the approval stands.

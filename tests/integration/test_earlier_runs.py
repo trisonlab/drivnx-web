@@ -20,7 +20,7 @@ def run_detail(client: TestClient, run: dict) -> dict:
 
 
 def test_a_run_on_an_unchanged_file_is_not_out_of_date(client: TestClient, tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-37
+    # DRIVN-9/AC-37
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
     run = finished(client, start(client, connect(client, path)))
@@ -31,7 +31,7 @@ def test_a_run_on_an_unchanged_file_is_not_out_of_date(client: TestClient, tmp_p
 def test_a_file_whose_size_changed_since_the_run_is_said_to_have_changed(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-37
+    # DRIVN-9/AC-37
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
     run = finished(client, start(client, connect(client, path)))
@@ -46,7 +46,7 @@ def test_a_file_whose_size_changed_since_the_run_is_said_to_have_changed(
 def test_a_file_modified_since_the_run_is_said_to_have_changed(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-37: the same size, written again later.
+    # DRIVN-9/AC-37: the same size, written again later.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
     run = finished(client, start(client, connect(client, path)))
@@ -60,7 +60,7 @@ def test_a_file_modified_since_the_run_is_said_to_have_changed(
 def test_a_file_that_is_gone_says_nothing_about_being_out_of_date(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-37: there's nothing to compare, and the source already says it's gone.
+    # DRIVN-9/AC-37: there's nothing to compare, and the source already says it's gone.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
     run = finished(client, start(client, connect(client, path)))
@@ -73,7 +73,7 @@ def test_a_file_that_is_gone_says_nothing_about_being_out_of_date(
 def test_every_run_of_a_source_is_listed_and_any_completed_one_opens(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-35
+    # DRIVN-9/AC-35
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n")
     source = connect(client, path)
@@ -99,7 +99,7 @@ def test_every_run_of_a_source_is_listed_and_any_completed_one_opens(
 def test_a_run_made_before_a_correction_still_opens_on_its_earlier_settings(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-36
+    # DRIVN-9/AC-36
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n2,Bob\n")
     source = connect(client, path)
@@ -128,7 +128,7 @@ def ended(client: httpx.Client, run: dict) -> dict:
 def test_a_restart_keeps_completed_runs_and_marks_one_in_progress_interrupted(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-38, through the real command and a stop during a run.
+    # DRIVN-9/AC-38, through the real command and a stop during a run.
     directory = tmp_path / "workspace"
     before = start_drivnx("--no-browser", workspace=directory)
     client = sign_in(before.wait_for_launch())

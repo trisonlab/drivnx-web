@@ -1,5 +1,5 @@
 """The warning before profiling with an account that could change the chosen objects, through the
-API, CFX-APP-postgres AC-16 (DRIVN-52)."""
+API, DRIVN-45 AC-16 (DRIVN-52)."""
 
 from collections.abc import Callable, Iterator
 
@@ -78,7 +78,7 @@ def start(client: TestClient, source_id: str, **confirmation: object) -> dict:
 def test_a_role_that_can_only_read_starts_with_no_warning_and_its_run_says_so(
     client: TestClient,
 ) -> None:
-    # CFX-APP-postgres/AC-16: "Given a role that can only read the chosen objects, then no warning
+    # DRIVN-45/AC-16: "Given a role that can only read the chosen objects, then no warning
     # appears, and the screen says the account can only read them."
     source_id = chosen_source(client, "drivnx_fixture", DETAILS["password"], "orders", "people")
 
@@ -90,7 +90,7 @@ def test_a_role_that_can_only_read_starts_with_no_warning_and_its_run_says_so(
 
 
 def test_a_role_that_can_write_is_refused_naming_the_objects_and_how(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-16: "the screen names the objects ... and why, and the run starts only
+    # DRIVN-45/AC-16: "the screen names the objects ... and why, and the run starts only
     # after the user confirms". The client confirms by sending `write_access` back.
     source_id = chosen_source(client, WRITER, WRITER_PASSWORD, "orders", "people")
 
@@ -112,7 +112,7 @@ def test_a_role_that_can_write_is_refused_naming_the_objects_and_how(client: Tes
 
 
 def test_a_role_that_can_write_starts_once_the_user_confirms(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-16: "the run starts only after the user confirms".
+    # DRIVN-45/AC-16: "the run starts only after the user confirms".
     source_id = chosen_source(client, WRITER, WRITER_PASSWORD, "orders", "people")
     access = start(client, source_id)["detail"]["write_access"]
 
@@ -133,7 +133,7 @@ def confirmed_source(client: TestClient, *names: str) -> str:
 
 
 def test_the_same_access_starts_again_without_asking(client: TestClient) -> None:
-    # CFX-APP-postgres, the Assumptions: "the write warning is asked again only when the chosen
+    # DRIVN-45, the Assumptions: "the write warning is asked again only when the chosen
     # objects or the role's privileges change since the last confirmation".
     source_id = confirmed_source(client, "orders", "people")
 
@@ -144,7 +144,7 @@ def test_the_same_access_starts_again_without_asking(client: TestClient) -> None
 
 
 def test_another_chosen_object_asks_again(client: TestClient) -> None:
-    # CFX-APP-postgres, the Assumptions: asked again when the chosen objects change, even when the
+    # DRIVN-45, the Assumptions: asked again when the chosen objects change, even when the
     # new one is only read (agreed for DRIVN-52).
     source_id = confirmed_source(client, "orders")
     listed = objects_in(client.get(f"/api/sources/{source_id}/objects").json(), SCHEMA)
@@ -173,7 +173,7 @@ def test_a_grant_or_a_revoke_asks_again(
     undo: str,
     privileges: list[str],
 ) -> None:
-    # CFX-APP-postgres, the Assumptions: asked again when the role's privileges change.
+    # DRIVN-45, the Assumptions: asked again when the role's privileges change.
     source_id = confirmed_source(client, "orders")
     postgres_admin(change.format(f"{SCHEMA}.orders", WRITER))
     try:
@@ -190,7 +190,7 @@ def test_a_grant_or_a_revoke_asks_again(
 def test_a_confirmation_of_access_that_has_since_changed_is_refused_with_the_new(
     client: TestClient, postgres_admin: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-16: the user confirms what they were shown, and only that.
+    # DRIVN-45/AC-16: the user confirms what they were shown, and only that.
     source_id = chosen_source(client, WRITER, WRITER_PASSWORD, "orders")
     shown = start(client, source_id)["detail"]["write_access"]
     postgres_admin(f"GRANT TRUNCATE ON {SCHEMA}.orders TO {WRITER}")
@@ -207,7 +207,7 @@ def test_a_confirmation_of_access_that_has_since_changed_is_refused_with_the_new
 
 
 def test_a_superuser_is_refused_naming_its_role(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-16: "or a superuser ... the screen names ... the superuser role and why".
+    # DRIVN-45/AC-16: "or a superuser ... the screen names ... the superuser role and why".
     # It could change anything, so the role is the reason, whatever the objects.
     source_id = chosen_source(client, SUPERUSER, SUPERUSER_PASSWORD, "people")
 

@@ -90,7 +90,7 @@ function button(name: string) {
 }
 
 test("the preview opens on the first 50 rows, in the file's columns", async () => {
-  // CFX-APP-first-slice/AC-27
+  // DRIVN-8/AC-27
   const preview = await openPreview();
 
   const rows = await within(preview).findAllByRole("row");
@@ -102,7 +102,7 @@ test("the preview opens on the first 50 rows, in the file's columns", async () =
 });
 
 test("next and previous show the adjacent pages, with no total", async () => {
-  // CFX-APP-first-slice/AC-27
+  // DRIVN-8/AC-27
   const user = userEvent.setup();
   const preview = await openPreview();
   await within(preview).findByText("name1");
@@ -120,7 +120,7 @@ test("next and previous show the adjacent pages, with no total", async () => {
 });
 
 test("next is disabled on the last page", async () => {
-  // CFX-APP-first-slice/AC-27
+  // DRIVN-8/AC-27
   const user = userEvent.setup();
   const preview = await openPreview();
   await within(preview).findByText("name1");
@@ -137,7 +137,7 @@ test("next is disabled on the last page", async () => {
 });
 
 test("script text in a cell is shown as text and nothing runs", async () => {
-  // CFX-APP-first-slice/AC-29
+  // DRIVN-8/AC-29
   const script = '<script>window.ran = true</script><img src=x onerror="window.ran = true">';
   onRows = () => Response.json(onePage([script], [[cell(script)]]));
 
@@ -150,7 +150,7 @@ test("script text in a cell is shown as text and nothing runs", async () => {
 });
 
 test("a cut cell is visibly marked and others are not", async () => {
-  // CFX-APP-first-slice/AC-29
+  // DRIVN-8/AC-29
   onRows = () =>
     Response.json(
       onePage(
@@ -171,7 +171,7 @@ test("a cut cell is visibly marked and others are not", async () => {
 });
 
 test("a file that can't be read gives the reason, and the user can go back", async () => {
-  // CFX-APP-first-slice/AC-31
+  // DRIVN-8/AC-31
   const user = userEvent.setup();
   const reason = "DrivnX can't find this file. It may have moved or been deleted.";
   const preview = await openPreview();
@@ -191,7 +191,7 @@ test("a file that can't be read gives the reason, and the user can go back", asy
 });
 
 test("any other failure says to start DrivnX again, without raw errors", async () => {
-  // CFX-APP-first-slice/AC-31
+  // DRIVN-8/AC-31
   onRows = () => {
     throw new TypeError("Failed to fetch");
   };
@@ -204,7 +204,7 @@ test("any other failure says to start DrivnX again, without raw errors", async (
 });
 
 test("a page with no rows says so and keeps the way back", async () => {
-  // CFX-APP-first-slice/AC-31: a file can shrink between pages.
+  // DRIVN-8/AC-31: a file can shrink between pages.
   const user = userEvent.setup();
   const preview = await openPreview();
   await within(preview).findByText("name1");
@@ -219,7 +219,7 @@ test("a page with no rows says so and keeps the way back", async () => {
 });
 
 test("choosing another source opens its first page", async () => {
-  // CFX-APP-first-slice/AC-27
+  // DRIVN-8/AC-27
   const user = userEvent.setup();
   const preview = await openPreview();
   await within(preview).findByText("name1");
@@ -238,7 +238,7 @@ function rowRequests() {
 }
 
 test("while the next page loads, the label matches the rows still on screen", async () => {
-  // CFX-APP-first-slice/AC-27: found verifying T06, deep pages can take seconds to arrive.
+  // DRIVN-8/AC-27: found verifying T06, deep pages can take seconds to arrive.
   const user = userEvent.setup();
   const preview = await openPreview();
   await within(preview).findByText("name1");
@@ -262,7 +262,7 @@ test("while the next page loads, the label matches the rows still on screen", as
 });
 
 test("pressing next again while a page loads doesn't move further on", async () => {
-  // CFX-APP-first-slice/AC-27: found verifying T06, this could run past the last page.
+  // DRIVN-8/AC-27: found verifying T06, this could run past the last page.
   const user = userEvent.setup();
   const preview = await openPreview();
   await within(preview).findByText("name1");
@@ -286,7 +286,7 @@ test.each([
   [500, "500 lines above this table aren't shown."],
   [1, "1 line above this table isn't shown."],
 ])("skipped lines are stated on every page (%i)", async (skipped_lines, note) => {
-  // CFX-APP-first-slice/AC-27: they can be real rows, so they must not vanish silently.
+  // DRIVN-8/AC-27: they can be real rows, so they must not vanish silently.
   const user = userEvent.setup();
   onRows = (_id, offset) => Response.json({ ...peoplePage(offset), skipped_lines });
   const preview = await openPreview();
@@ -299,7 +299,7 @@ test.each([
 });
 
 test("no note appears when nothing was skipped", async () => {
-  // CFX-APP-first-slice/AC-27
+  // DRIVN-8/AC-27
   const preview = await openPreview();
   await within(preview).findByText("name1");
 
@@ -307,7 +307,7 @@ test("no note appears when nothing was skipped", async () => {
 });
 
 test("skipped lines are stated even when no rows follow them", async () => {
-  // CFX-APP-first-slice/AC-27
+  // DRIVN-8/AC-27
   onRows = () => Response.json({ ...onePage(["id"], []), skipped_lines: 3 });
 
   const preview = await openPreview();
@@ -317,7 +317,7 @@ test("skipped lines are stated even when no rows follow them", async () => {
 });
 
 test("a cut column name is visibly marked", async () => {
-  // CFX-APP-first-slice/AC-29: found reviewing T06.
+  // DRIVN-8/AC-29: found reviewing T06.
   onRows = () =>
     Response.json({
       ...onePage(["id"], [[cell("1"), cell("a")]]),
@@ -348,7 +348,7 @@ test("the first page says it's loading", async () => {
 });
 
 test("after an error the user can try again, without leaving the page", async () => {
-  // CFX-APP-first-slice/AC-31: found reviewing T06, a restored file needed a reload to show.
+  // DRIVN-8/AC-31: found reviewing T06, a restored file needed a reload to show.
   const user = userEvent.setup();
   const reason = "DrivnX can't find this file. It may have moved or been deleted.";
   onRows = () => Response.json({ detail: reason }, { status: 409 });

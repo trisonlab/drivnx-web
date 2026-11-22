@@ -1,4 +1,4 @@
-"""A database's earlier runs, what they describe, and restarts, CFX-APP-postgres AC-31, AC-32 and
+"""A database's earlier runs, what they describe, and restarts, DRIVN-45 AC-31, AC-32 and
 AC-33 (DRIVN-57)."""
 
 import time
@@ -29,7 +29,7 @@ from .test_postgres_stopping import (  # noqa: F401 (the fixture)
 )
 from .test_session import sign_in
 
-# CFX-APP-postgres, Non-functional: "cancelling stops a run within 5 s", which a stop is too.
+# DRIVN-45, Non-functional: "cancelling stops a run within 5 s", which a stop is too.
 GONE_WITHIN_SECONDS = 5
 
 SCHEMA = "drivnx_earlier_runs"
@@ -98,7 +98,7 @@ def completed_run(client: httpx.Client, source_id: str, mode: str) -> dict:
 
 
 def test_a_database_run_in_the_list_names_the_objects_it_read(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-31: "the user can list them with mode, status, time and objects".
+    # DRIVN-45/AC-31: "the user can list them with mode, status, time and objects".
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
     choose(client, source_id, "orders", "customers", "big_orders")
 
@@ -119,7 +119,7 @@ def test_a_database_run_in_the_list_names_the_objects_it_read(client: TestClient
 def test_every_run_of_a_database_is_listed_newest_first_and_any_completed_one_opens(
     client: TestClient,
 ) -> None:
-    # CFX-APP-postgres/AC-31: "Given several runs of a source, then the user can list them with
+    # DRIVN-45/AC-31: "Given several runs of a source, then the user can list them with
     # mode, status, time and objects, open any completed one".
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
     choose(client, source_id, "orders")
@@ -147,7 +147,7 @@ def test_every_run_of_a_database_is_listed_newest_first_and_any_completed_one_op
 
 
 def test_a_files_run_names_no_objects(client: TestClient, tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-31: only a database's run reads objects.
+    # DRIVN-45/AC-31: only a database's run reads objects.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source_id = client.post("/api/sources", json={"path": str(path)}).json()["id"]
@@ -166,7 +166,7 @@ def out_of_date(client: TestClient, run: dict) -> dict[str, bool]:
 def test_an_object_whose_columns_or_types_changed_is_out_of_date_once_the_list_is_refreshed(
     client: TestClient, postgres_admin: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-32: "Given an object whose columns or types differ from the run's, then
+    # DRIVN-45/AC-32: "Given an object whose columns or types differ from the run's, then
     # the Profile tab says the results are out of date". Known from the refresh (decided for
     # DRIVN-57), the rule AC-13 refreshes by.
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
@@ -193,7 +193,7 @@ def test_an_object_whose_columns_or_types_changed_is_out_of_date_once_the_list_i
 def test_a_refresh_that_finds_nothing_changed_leaves_every_object_current(
     client: TestClient,
 ) -> None:
-    # CFX-APP-postgres/AC-32: only an object whose columns or types differ is out of date.
+    # DRIVN-45/AC-32: only an object whose columns or types differ is out of date.
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
     choose(client, source_id, "orders", "customers", "big_orders")
     run = completed_run(client, source_id, "fast")
@@ -236,7 +236,7 @@ def test_a_stop_during_a_database_run_keeps_completed_runs_and_leaves_nothing_on
     name: str,
     read: str,
 ) -> None:
-    # CFX-APP-postgres/AC-33: "Given a restart, then completed runs, their metrics and findings are
+    # DRIVN-45/AC-33: "Given a restart, then completed runs, their metrics and findings are
     # as they were, a run that was in progress shows as `interrupted`, and no query DrivnX started
     # is still running on the server." Through the real command, stopped mid-read.
     directory = tmp_path / "workspace"
@@ -277,7 +277,7 @@ def test_drivnx_killed_during_a_database_run_leaves_nothing_on_the_server_after_
     tmp_path: Path,
     drivnx_queries: Callable[[str], int],
 ) -> None:
-    # CFX-APP-postgres/AC-33: "Given a restart, then ... a run that was in progress shows as
+    # DRIVN-45/AC-33: "Given a restart, then ... a run that was in progress shows as
     # `interrupted`, and no query DrivnX started is still running on the server." Killed, so it
     # can't cancel anything: the server checks its connection is still there (decided for
     # DRIVN-57). Only where the server can (ADR 0009 Decision 7).
@@ -319,7 +319,7 @@ def test_stopping_drivnx_cancels_a_database_runs_read_on_the_server(
     name: str,
     read: str,
 ) -> None:
-    # CFX-APP-postgres/AC-33: "no query DrivnX started is still running on the server". What
+    # DRIVN-45/AC-33: "no query DrivnX started is still running on the server". What
     # shutdown does (`stop_jobs()`), in a process that's still running, so its session is still
     # open and the server's own check (ADR 0009 Decision 7) can't be what ends the read: a read
     # that computes before its rows, which DuckDB's interrupt alone can't stop (Decision 1).

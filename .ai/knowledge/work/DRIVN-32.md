@@ -2,7 +2,7 @@
 id: DRIVN-32
 legacy_id: CFX-APP-csv-profile-T12
 title: "Full journey and checks"
-feature: CFX-APP-csv-profile
+feature: DRIVN-9
 feature_revision: 5
 stories: [US-06, US-08]
 criteria: [AC-33, AC-40, AC-41]
@@ -58,7 +58,7 @@ Out of scope: making `test_full_journey.py` portable, the out-of-date "NOT RUN u
 
 Targets (Non-functional, ASSUMPTION): fast profile at most 5 s, full profile at most 60 s, cancel within 5 s. Every profile run is within them. The full profile is about twice the 15.5 to 18.7 s measured through the API on a RAM disk in T06 and T08, as the disk and the page's polling are now included, and still leaves about 25 s to spare.
 
-**Missed:** UTF-8 run 2 took 5.40 s to the metadata after connecting, against the first slice's 5 s budget (CFX-APP-first-slice). T10 measured 3.86 and 4.95 s for the same file and warned that a slower laptop would miss it. Reported, not redesigned: changing the budget needs a new revision of that spec. Two runs each, on one machine.
+**Missed:** UTF-8 run 2 took 5.40 s to the metadata after connecting, against the first slice's 5 s budget (DRIVN-8). T10 measured 3.86 and 4.95 s for the same file and warned that a slower laptop would miss it. Reported, not redesigned: changing the budget needs a new revision of that spec. Two runs each, on one machine.
 
 ## What building it showed
 - **The journey file changed from the plan.** `id` is `rq{n}vz`, as plain numbers from 1 to 3,000 aren't distinctive enough to scan for. It has no mistyped `amount` and no repeated row: one finding is enough to open its evidence, and "city is missing" gives it.

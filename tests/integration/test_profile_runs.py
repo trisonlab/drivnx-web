@@ -1,4 +1,4 @@
-"""How a profile run ends, CFX-APP-first-slice AC-42 and AC-43 (ADR 0002 point 3)."""
+"""How a profile run ends, DRIVN-8 AC-42 and AC-43 (ADR 0002 point 3)."""
 
 import sqlite3
 import subprocess
@@ -103,7 +103,7 @@ def stored_run(directory: Path, run: str) -> ProfileRun:
 def test_a_run_left_running_is_marked_interrupted_at_the_next_start(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-43, through the real command: this is what "the next runtime" means.
+    # DRIVN-8/AC-43, through the real command: this is what "the next runtime" means.
     directory = tmp_path / "workspace"
     workspace = open_workspace(directory)
     run = start_profile_run(workspace.engine, scope={}, mode="full")
@@ -122,7 +122,7 @@ def test_a_run_left_running_is_marked_interrupted_at_the_next_start(
 def test_a_run_in_a_killed_process_is_marked_interrupted_too(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-43: a crash runs no cleanup, and the OS releases its lock (ADR 0001).
+    # DRIVN-8/AC-43: a crash runs no cleanup, and the OS releases its lock (ADR 0001).
     directory = tmp_path / "workspace"
     writer = subprocess.Popen(
         [
@@ -215,7 +215,7 @@ def test_a_run_ends_with_its_status_and_end_time(
 def test_a_finished_run_is_left_alone_at_the_next_start(
     workspace: Workspace, status: str
 ) -> None:
-    # CFX-APP-first-slice/AC-43: only a run still `running` was interrupted.
+    # DRIVN-8/AC-43: only a run still `running` was interrupted.
     run = start_profile_run(workspace.engine, scope={}, mode="full")
     finish_profile_run(workspace.engine, run, status)
     before = read_profile_run(workspace.engine, run)
@@ -228,7 +228,7 @@ def test_a_finished_run_is_left_alone_at_the_next_start(
 def test_an_interrupted_run_keeps_what_it_wrote(
     workspace: Workspace, dataset_id: str
 ) -> None:
-    # CFX-APP-first-slice/AC-43: ADR 0002 point 3 keeps partial runs visible in history.
+    # DRIVN-8/AC-43: ADR 0002 point 3 keeps partial runs visible in history.
     run, finding = run_with_finding(workspace, dataset_id)
 
     mark_interrupted_runs(workspace.engine)
@@ -241,7 +241,7 @@ def test_an_interrupted_run_keeps_what_it_wrote(
 def test_findings_ignore_a_run_that_did_not_complete(
     workspace: Workspace, dataset_id: str, status: str | None
 ) -> None:
-    # CFX-APP-first-slice/AC-43, and None is a run still going. ADR 0002 point 3.
+    # DRIVN-8/AC-43, and None is a run still going. ADR 0002 point 3.
     run, _ = run_with_finding(workspace, dataset_id)
     if status == "interrupted":
         mark_interrupted_runs(workspace.engine)
@@ -254,7 +254,7 @@ def test_findings_ignore_a_run_that_did_not_complete(
 def test_findings_are_read_from_completed_runs(
     workspace: Workspace, dataset_id: str
 ) -> None:
-    # CFX-APP-first-slice/AC-43: the other half, or returning nothing would pass the test above.
+    # DRIVN-8/AC-43: the other half, or returning nothing would pass the test above.
     run, finding = run_with_finding(workspace, dataset_id)
     finish_profile_run(workspace.engine, run, "completed")
     run_with_finding(workspace, dataset_id)
@@ -263,7 +263,7 @@ def test_findings_are_read_from_completed_runs(
 
 
 def test_a_run_ends_only_once(workspace: Workspace) -> None:
-    # CFX-APP-first-slice/AC-42: a ProfileRun changes only its status and end time, once.
+    # DRIVN-8/AC-42: a ProfileRun changes only its status and end time, once.
     run = start_profile_run(workspace.engine, scope={}, mode="full")
     finish_profile_run(workspace.engine, run, "completed")
     before = read_profile_run(workspace.engine, run)
@@ -275,7 +275,7 @@ def test_a_run_ends_only_once(workspace: Workspace) -> None:
 
 
 def test_an_interrupted_run_cannot_end_again(workspace: Workspace) -> None:
-    # CFX-APP-first-slice/AC-42
+    # DRIVN-8/AC-42
     run = start_profile_run(workspace.engine, scope={}, mode="full")
     mark_interrupted_runs(workspace.engine)
     before = read_profile_run(workspace.engine, run)
@@ -367,7 +367,7 @@ def test_a_completed_run_still_takes_findings(
 
 
 def test_a_finding_keeps_its_kind(workspace: Workspace, dataset_id: str) -> None:
-    # CFX-APP-csv-profile/AC-21: findings are listed in a fixed order by kind.
+    # DRIVN-9/AC-21: findings are listed in a fixed order by kind.
     run = start_profile_run(workspace.engine, scope={}, mode="full")
     add_observations(workspace.engine, Actor.SYSTEM, run, one_observation(dataset_id))
     observation = read_observations(workspace.engine, run)[0].id
@@ -391,7 +391,7 @@ def test_a_finding_keeps_its_kind(workspace: Workspace, dataset_id: str) -> None
 def test_a_finding_of_an_unknown_kind_is_refused(
     workspace: Workspace, dataset_id: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-21: the fixed order only knows the six kinds.
+    # DRIVN-9/AC-21: the fixed order only knows the six kinds.
     run = start_profile_run(workspace.engine, scope={}, mode="full")
     add_observations(workspace.engine, Actor.SYSTEM, run, one_observation(dataset_id))
     observation = read_observations(workspace.engine, run)[0].id
@@ -409,7 +409,7 @@ def test_a_finding_of_an_unknown_kind_is_refused(
 def test_findings_are_saved_only_with_a_completed_ending(
     workspace: Workspace, dataset_id: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-26: found reviewing T08, no test held this.
+    # DRIVN-9/AC-26: found reviewing T08, no test held this.
     run = start_profile_run(workspace.engine, scope={}, mode="full")
     add_observations(workspace.engine, Actor.SYSTEM, run, one_observation(dataset_id))
     observation = read_observations(workspace.engine, run)[0].id
@@ -424,7 +424,7 @@ def test_findings_are_saved_only_with_a_completed_ending(
 
 
 def test_a_run_ends_only_with_its_own_findings(workspace: Workspace, dataset_id: str) -> None:
-    # CFX-APP-csv-profile/AC-26: found reviewing T08. Nothing of the ending is kept.
+    # DRIVN-9/AC-26: found reviewing T08. Nothing of the ending is kept.
     other = start_profile_run(workspace.engine, scope={}, mode="full")
     add_observations(workspace.engine, Actor.SYSTEM, other, one_observation(dataset_id))
     run = start_profile_run(workspace.engine, scope={}, mode="full")
@@ -521,7 +521,7 @@ def test_a_findings_observations_must_be_from_its_own_run(
 def test_a_run_cant_start_on_settings_a_correction_just_replaced(
     workspace: Workspace, dataset_id: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-06, the other way round: a correction saved between reading the
+    # DRIVN-9/AC-06, the other way round: a correction saved between reading the
     # settings and starting the run.
     source = find_source(workspace.engine, "source-1")
     assert source is not None

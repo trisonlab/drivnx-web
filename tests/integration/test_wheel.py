@@ -1,4 +1,4 @@
-"""The wheel a user installs, CFX-APP-first-slice AC-51."""
+"""The wheel a user installs, DRIVN-8 AC-51."""
 
 import os
 import re
@@ -20,7 +20,7 @@ BUILT_UI = f"apps/local-api/{UI}"
 
 
 def test_the_command_comes_from_uv_tool_install(installed_environment: Path) -> None:
-    # CFX-APP-first-slice/AC-51: the way a user gets it, so every test using it proves that too.
+    # DRIVN-8/AC-51: the way a user gets it, so every test using it proves that too.
     listing = subprocess.run(
         ["uv", "tool", "list"],
         env={**os.environ, "UV_TOOL_DIR": str(installed_environment.parent)},
@@ -61,7 +61,7 @@ def wheel_names(built_wheel: Path) -> list[str]:
 
 
 def test_building_the_wheel_builds_the_ui_into_it(wheel_names: list[str]) -> None:
-    # CFX-APP-first-slice/AC-51 and the T01 review: this used to succeed with no UI at all.
+    # DRIVN-8/AC-51 and the T01 review: this used to succeed with no UI at all.
     assert f"{UI}/index.html" in wheel_names
     assert any(name.startswith(f"{UI}/assets/") for name in wheel_names)
 
@@ -69,7 +69,7 @@ def test_building_the_wheel_builds_the_ui_into_it(wheel_names: list[str]) -> Non
 def test_the_wheel_carries_the_postgres_extension_for_each_tested_platform(
     wheel_names: list[str],
 ) -> None:
-    # CFX-APP-postgres/AC-07 (ADR 0006): one wheel for every platform, and DrivnX downloads none.
+    # DRIVN-45/AC-07 (ADR 0006): one wheel for every platform, and DrivnX downloads none.
     assert {
         name for name in wheel_names if name.startswith("connectors/postgres_extension/")
     } == {
@@ -148,7 +148,7 @@ def test_a_ui_that_doesnt_compile_stops_the_wheel_build(
 
 
 def test_a_development_install_doesnt_build_the_ui(clean_checkout: Path) -> None:
-    # CFX-APP-first-slice/AC-50 and the README: pnpm is for the UI, and uv alone sets up Python.
+    # DRIVN-8/AC-50 and the README: pnpm is for the UI, and uv alone sets up Python.
     run("uv", "sync", "--frozen", cwd=clean_checkout)
 
     assert not (clean_checkout / BUILT_UI).exists()
@@ -158,7 +158,7 @@ def test_a_development_install_doesnt_build_the_ui(clean_checkout: Path) -> None
 def test_a_development_install_fetches_this_machines_postgres_extension(
     clean_checkout: Path,
 ) -> None:
-    # CFX-APP-postgres/AC-07 (ADR 0006): tests and `uv run` load it from the source tree.
+    # DRIVN-45/AC-07 (ADR 0006): tests and `uv run` load it from the source tree.
     platform = duckdb.execute("PRAGMA platform").fetchone()[0]
 
     run("uv", "sync", "--frozen", cwd=clean_checkout)

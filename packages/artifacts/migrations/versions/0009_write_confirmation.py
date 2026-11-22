@@ -1,4 +1,4 @@
-"""The write access a database's user last confirmed profiling with (CFX-APP-postgres AC-16).
+"""The write access a database's user last confirmed profiling with (DRIVN-45 AC-16).
 
 A database whose role can change the chosen objects is profiled only once the user confirms, and
 asked again only when the chosen objects or the role's privileges change (DRIVN-52). What was

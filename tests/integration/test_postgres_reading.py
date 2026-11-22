@@ -1,4 +1,4 @@
-"""How a fast profile reads each chosen object, CFX-APP-postgres AC-18 and ADR 0005 (DRIVN-51)."""
+"""How a fast profile reads each chosen object, DRIVN-45 AC-18 and ADR 0005 (DRIVN-51)."""
 
 from collections.abc import Callable, Iterator
 from dataclasses import replace
@@ -158,14 +158,14 @@ def same_rows(connection: duckdb.DuckDBPyConnection, one: str, other: str) -> bo
 def test_each_kind_of_object_is_read_as_the_spec_says(
     kind: str, estimated_rows: int | None, expected: Reading
 ) -> None:
-    # CFX-APP-postgres/AC-18
+    # DRIVN-45/AC-18
     assert reading_for(kind, estimated_rows) == expected
 
 
 def test_a_page_sample_reads_about_100000_rows_and_the_same_seed_reads_them_again(
     attached: duckdb.DuckDBPyConnection,
 ) -> None:
-    # CFX-APP-postgres/AC-18 and ADR 0005: about 100,000 rows from across the table, picked by
+    # DRIVN-45/AC-18 and ADR 0005: about 100,000 rows from across the table, picked by
     # page, which the seed saved in the run picks again; another seed picks others.
     reading = reading_for("table", 150_000)
     big = (SCHEMA, "big")
@@ -183,7 +183,7 @@ def test_a_page_sample_reads_about_100000_rows_and_the_same_seed_reads_them_agai
 def test_a_small_table_is_read_whole_with_null_apart_from_empty_text(
     attached: duckdb.DuckDBPyConnection,
 ) -> None:
-    # CFX-APP-postgres/AC-18: estimated at 100,000 rows or fewer, so all of it; each value as
+    # DRIVN-45/AC-18: estimated at 100,000 rows or fewer, so all of it; each value as
     # PostgreSQL's text, and NULL still NULL (the rule agreed for DRIVN-51).
     method = load_object_rows(
         attached, (SCHEMA, "small"), ("id", "label"), reading_for("table", 3), 42, "rows"
@@ -200,7 +200,7 @@ def test_a_small_table_is_read_whole_with_null_apart_from_empty_text(
 def test_a_table_larger_than_its_estimate_is_its_first_rows(
     attached: duckdb.DuckDBPyConnection,
 ) -> None:
-    # CFX-APP-postgres/AC-18: estimated small, but more than 100,000 rows come back, so the
+    # DRIVN-45/AC-18: estimated small, but more than 100,000 rows come back, so the
     # results are the first rows returned, not random; one row past them says so.
     method = load_object_rows(
         attached, (SCHEMA, "misestimated"), ("id",), reading_for("table", 0), 42, "rows"
@@ -211,7 +211,7 @@ def test_a_table_larger_than_its_estimate_is_its_first_rows(
 
 
 def test_a_view_is_read_from_its_first_100000_rows(attached: duckdb.DuckDBPyConnection) -> None:
-    # CFX-APP-postgres/AC-18: PostgreSQL can't sample a view by page.
+    # DRIVN-45/AC-18: PostgreSQL can't sample a view by page.
     method = load_object_rows(
         attached, (SCHEMA, "big_view"), ("id", "label"), reading_for("view", None), 42, "rows"
     )
@@ -231,7 +231,7 @@ TYPED_COLUMNS = (
 def test_a_whole_read_gives_each_value_as_postgresqls_text(
     attached: duckdb.DuckDBPyConnection, zone: str
 ) -> None:
-    # CFX-APP-postgres/AC-19 and ADR 0009: a full profile measures the same text a fast profile
+    # DRIVN-45/AC-19 and ADR 0009: a full profile measures the same text a fast profile
     # does, so `1.00` stays `1.00`, an array `{1,2}` and `bytea` `\xdeadbeef`, as the server
     # writes them, and a `timestamptz` in the server's time zone, wherever DrivnX runs (found in
     # review). The expected text is the server's own `::text`.
@@ -252,7 +252,7 @@ def test_a_whole_read_gives_each_value_as_postgresqls_text(
 def test_a_whole_read_keeps_columns_whose_names_differ_only_in_case_apart(
     attached: duckdb.DuckDBPyConnection,
 ) -> None:
-    # CFX-APP-postgres/AC-19: "exact results" for each column, `"A"` and `a` being two
+    # DRIVN-45/AC-19: "exact results" for each column, `"A"` and `a` being two
     # (found in review). PostgreSQL's quoted names are case-sensitive; DuckDB's aren't.
     load_whole_object(attached, (SCHEMA, "two_cases"), ("A", "a"), "rows")
 
@@ -262,7 +262,7 @@ def test_a_whole_read_keeps_columns_whose_names_differ_only_in_case_apart(
 def test_a_whole_read_counts_the_rows_of_a_table_with_no_columns(
     attached: duckdb.DuckDBPyConnection,
 ) -> None:
-    # CFX-APP-postgres/AC-19: "each object's exact row count", for a table with no columns too,
+    # DRIVN-45/AC-19: "each object's exact row count", for a table with no columns too,
     # as a fast reading counts them (found in review).
     load_whole_object(attached, (SCHEMA, "no_columns"), (), "rows")
 
@@ -272,7 +272,7 @@ def test_a_whole_read_counts_the_rows_of_a_table_with_no_columns(
 def test_a_whole_read_without_zoned_times_ignores_a_time_zone_duckdb_cant_read(
     attached_in_zone: Callable[[str], duckdb.DuckDBPyConnection],
 ) -> None:
-    # CFX-APP-postgres/AC-19: an object with no `timestamptz` is read whole whatever the server's
+    # DRIVN-45/AC-19: an object with no `timestamptz` is read whole whatever the server's
     # time zone. Every PostgreSQL takes a POSIX zone with a quoted name, and DuckDB refuses it
     # (found in the second review).
     connection = attached_in_zone(REFUSED_ZONE)
@@ -289,7 +289,7 @@ def test_a_whole_read_without_zoned_times_ignores_a_time_zone_duckdb_cant_read(
 def test_a_whole_read_of_zoned_times_in_a_zone_duckdb_cant_write_says_so(
     attached_in_zone: Callable[[str], duckdb.DuckDBPyConnection], zone: str
 ) -> None:
-    # CFX-APP-postgres/AC-19: exact results or none. No other text for a `timestamptz` than the
+    # DRIVN-45/AC-19: exact results or none. No other text for a `timestamptz` than the
     # server's, and a reason the user can act on (decided with the user for DRIVN-53).
     connection = attached_in_zone(zone)
 
@@ -306,7 +306,7 @@ def test_a_whole_read_of_zoned_times_in_a_zone_duckdb_cant_write_says_so(
 def test_a_whole_read_of_zoned_times_writes_them_in_the_servers_named_zone(
     attached_in_zone: Callable[[str], duckdb.DuckDBPyConnection],
 ) -> None:
-    # CFX-APP-postgres/AC-19 and ADR 0009: in a server zone DuckDB can write, other than UTC and
+    # DRIVN-45/AC-19 and ADR 0009: in a server zone DuckDB can write, other than UTC and
     # this machine's, a `timestamptz` reads whole as the server's own `::text`.
     connection = attached_in_zone("Asia/Kolkata")
     connection.execute(
@@ -336,7 +336,7 @@ def test_a_whole_read_of_zoned_times_writes_them_in_the_servers_named_zone(
 def test_a_whole_read_of_an_object_whose_columns_changed_since_it_was_listed_says_so(
     attached: duckdb.DuckDBPyConnection, listed: tuple[str, ...]
 ) -> None:
-    # CFX-APP-postgres/AC-19: each column's results are its own. Read by position, a column the
+    # DRIVN-45/AC-19: each column's results are its own. Read by position, a column the
     # server has under another name or place would be measured as the listed one (found in the
     # second review).
     with pytest.raises(ConnectFailure) as failed:

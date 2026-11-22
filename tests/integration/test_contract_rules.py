@@ -1,4 +1,4 @@
-"""Contract rules and contract versions, CFX-APP-first-slice AC-45 to AC-47 (ADR 0003)."""
+"""Contract rules and contract versions, DRIVN-8 AC-45 to AC-47 (ADR 0003)."""
 
 import sqlite3
 import threading
@@ -161,7 +161,7 @@ def rules(tmp_path: Path, clock: RisingClock) -> Iterator[Rules]:
 
 
 def test_a_rule_written_directly_goes_new_confirmed_defined(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-47: both events, the second on the Defined revision (ADR 0003 point 2).
+    # DRIVN-8/AC-47: both events, the second on the Defined revision (ADR 0003 point 2).
     ref = rules.define()
 
     assert read_item(rules.engine, ref).state is TrustState.DEFINED
@@ -176,7 +176,7 @@ def test_a_rule_written_directly_goes_new_confirmed_defined(rules: Rules) -> Non
 
 
 def test_both_events_carry_what_they_were_given(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-47: the evidence behind a rule is on the whole of it.
+    # DRIVN-8/AC-47: the evidence behind a rule is on the whole of it.
     ref = define_rule(
         rules.engine,
         Actor.USER,
@@ -195,7 +195,7 @@ def test_both_events_carry_what_they_were_given(rules: Rules) -> None:
 
 @pytest.mark.parametrize("actor", [Actor.AI, Actor.SYSTEM])
 def test_only_a_person_can_write_a_defined_rule(rules: Rules, actor: Actor) -> None:
-    # CFX-APP-first-slice/AC-47, and AC-37: only a person can confirm or define anything.
+    # DRIVN-8/AC-47, and AC-37: only a person can confirm or define anything.
     before = everything(rules.workspace)
 
     with pytest.raises(Rejected):
@@ -212,7 +212,7 @@ def test_only_a_person_can_write_a_defined_rule(rules: Rules, actor: Actor) -> N
 
 
 def test_a_failure_on_the_second_step_saves_nothing(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-47: one transaction, so never a Confirmed rule left behind.
+    # DRIVN-8/AC-47: one transaction, so never a Confirmed rule left behind.
     with rules.engine.begin() as connection:
         connection.execute(
             text(
@@ -232,7 +232,7 @@ def test_a_failure_on_the_second_step_saves_nothing(rules: Rules) -> None:
 
 
 def test_a_rule_written_directly_is_in_a_new_contract_version(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-47 and ADR 0003 point 3.
+    # DRIVN-8/AC-47 and ADR 0003 point 3.
     ref = rules.define()
 
     assert rules.contract.version == 2
@@ -276,7 +276,7 @@ def test_editing_a_defined_rule_creates_a_contract_version(rules: Rules) -> None
 
 
 def test_a_demoted_rule_leaves_the_contract_as_confirmed(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-45, and an old version can still be exported (ADR 0003 point 3).
+    # DRIVN-8/AC-45, and an old version can still be exported (ADR 0003 point 3).
     ref = rules.define()
 
     demote(rules.engine, Actor.USER, ref)
@@ -288,7 +288,7 @@ def test_a_demoted_rule_leaves_the_contract_as_confirmed(rules: Rules) -> None:
 
 
 def test_demoting_keeps_a_rules_history(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-45: its revisions and events stay, with one of each added.
+    # DRIVN-8/AC-45: its revisions and events stay, with one of each added.
     ref = rules.define()
     before = history(rules.engine, ref)
 
@@ -330,7 +330,7 @@ def test_a_rule_defined_again_comes_back_in_a_new_version(rules: Rules) -> None:
     ],
 )
 def test_changing_a_candidate_creates_no_contract_version(rules: Rules, change) -> None:
-    # CFX-APP-first-slice/AC-46, on an Inferred rule.
+    # DRIVN-8/AC-46, on an Inferred rule.
     candidate = rules.candidate(TrustState.INFERRED)
 
     change(rules, candidate)
@@ -340,7 +340,7 @@ def test_changing_a_candidate_creates_no_contract_version(rules: Rules, change) 
 
 
 def test_demoting_a_confirmed_rule_creates_no_contract_version(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-46: it was never in the contract.
+    # DRIVN-8/AC-46: it was never in the contract.
     candidate = rules.candidate()
     edit(rules.engine, Actor.USER, candidate, {})
 
@@ -378,7 +378,7 @@ def tombstones(rules: Rules, ref: ItemRef) -> list[tuple[int, int]]:
 
 
 def test_deleting_a_rule_writes_a_tombstone_and_removes_no_rows(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-45: every row from before is still there, unchanged.
+    # DRIVN-8/AC-45: every row from before is still there, unchanged.
     ref = rules.candidate()
     before = everything(rules.workspace)
 
@@ -396,7 +396,7 @@ def test_deleting_a_rule_writes_a_tombstone_and_removes_no_rows(rules: Rules) ->
 
 
 def test_deleting_a_defined_rule_takes_it_out_in_a_new_version(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-45 and ADR 0003 point 3. The old version still has it.
+    # DRIVN-8/AC-45 and ADR 0003 point 3. The old version still has it.
     ref = rules.define()
 
     delete_rule(rules.engine, Actor.USER, ref)
@@ -411,7 +411,7 @@ def test_deleting_a_defined_rule_takes_it_out_in_a_new_version(rules: Rules) -> 
 def test_deleting_a_candidate_creates_no_contract_version(
     rules: Rules, state: TrustState
 ) -> None:
-    # CFX-APP-first-slice/AC-46: it was never in the contract.
+    # DRIVN-8/AC-46: it was never in the contract.
     ref = rules.candidate(state)
 
     delete_rule(rules.engine, Actor.USER, ref)
@@ -421,7 +421,7 @@ def test_deleting_a_candidate_creates_no_contract_version(
 
 @pytest.mark.parametrize("actor", [Actor.AI, Actor.SYSTEM])
 def test_only_a_person_can_delete_a_rule(rules: Rules, actor: Actor) -> None:
-    # CFX-APP-first-slice/AC-45, and AC-37: this takes a rule out of the contract.
+    # DRIVN-8/AC-45, and AC-37: this takes a rule out of the contract.
     ref = rules.define()
     before = everything(rules.workspace)
 
@@ -432,7 +432,7 @@ def test_only_a_person_can_delete_a_rule(rules: Rules, actor: Actor) -> None:
 
 
 def test_a_failure_while_deleting_saves_nothing(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-45 and ADR 0002 point 3: the version, the tombstone and its event.
+    # DRIVN-8/AC-45 and ADR 0002 point 3: the version, the tombstone and its event.
     ref = rules.define()
     with rules.engine.begin() as connection:
         connection.execute(
@@ -455,7 +455,7 @@ def test_a_failure_while_deleting_saves_nothing(rules: Rules) -> None:
 def test_a_deleted_rule_cant_be_read_as_current_but_keeps_its_history(
     rules: Rules,
 ) -> None:
-    # CFX-APP-first-slice/AC-45: its history stays intact (ADR 0002 point 4).
+    # DRIVN-8/AC-45: its history stays intact (ADR 0002 point 4).
     ref = rules.candidate()
     delete_rule(rules.engine, Actor.USER, ref)
 
@@ -483,7 +483,7 @@ AFTER_DELETING = {
 
 @pytest.mark.parametrize("action", AFTER_DELETING)
 def test_nothing_can_be_done_to_a_deleted_rule(rules: Rules, action: str) -> None:
-    # CFX-APP-first-slice/AC-45: pointing it at something else means a new rule (ADR 0003 point 2).
+    # DRIVN-8/AC-45: pointing it at something else means a new rule (ADR 0003 point 2).
     ref = rules.candidate()
     delete_rule(rules.engine, Actor.USER, ref)
     before = everything(rules.workspace)
@@ -495,7 +495,7 @@ def test_nothing_can_be_done_to_a_deleted_rule(rules: Rules, action: str) -> Non
 
 
 def test_a_deleted_rule_cant_be_flagged(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-39: nobody could ever clear it.
+    # DRIVN-8/AC-39: nobody could ever clear it.
     ref = rules.candidate()
     delete_rule(rules.engine, Actor.USER, ref)
     run = start_profile_run(rules.engine, scope={}, mode="full")
@@ -506,7 +506,7 @@ def test_a_deleted_rule_cant_be_flagged(rules: Rules) -> None:
 
 
 def test_a_deleted_rule_leaves_the_review_inbox(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-38: an Inferred tombstone keeps its state, and nobody can review it.
+    # DRIVN-8/AC-38: an Inferred tombstone keeps its state, and nobody can review it.
     ref = rules.candidate(TrustState.INFERRED)
     assert review_inbox(rules.engine) == [ref]
 
@@ -516,7 +516,7 @@ def test_a_deleted_rule_leaves_the_review_inbox(rules: Rules) -> None:
 
 
 def test_deleting_a_flagged_rule_clears_the_flag(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-39: nothing is left to review.
+    # DRIVN-8/AC-39: nothing is left to review.
     ref = rules.define()
     run = start_profile_run(rules.engine, scope={}, mode="full")
     finish_profile_run(rules.engine, run, "completed")
@@ -595,7 +595,7 @@ OTHER_SLOT = {
 def test_promoting_into_an_occupied_slot_is_rejected(
     rules: Rules, first: Spec, second: Spec
 ) -> None:
-    # CFX-APP-first-slice/AC-46
+    # DRIVN-8/AC-46
     rules.define_spec(first)
     candidate = rules.candidate_spec(second)
     before = everything(rules.workspace)
@@ -610,7 +610,7 @@ def test_promoting_into_an_occupied_slot_is_rejected(
 def test_writing_a_defined_rule_into_an_occupied_slot_is_rejected(
     rules: Rules, first: Spec, second: Spec
 ) -> None:
-    # CFX-APP-first-slice/AC-46 and CFX-APP-first-slice/AC-47: the direct way in has the same rule.
+    # DRIVN-8/AC-46 and DRIVN-8/AC-47: the direct way in has the same rule.
     rules.define_spec(first)
     before = everything(rules.workspace)
 
@@ -624,7 +624,7 @@ def test_writing_a_defined_rule_into_an_occupied_slot_is_rejected(
 def test_rules_in_different_slots_can_both_be_defined(
     rules: Rules, first: Spec, second: Spec
 ) -> None:
-    # CFX-APP-first-slice/AC-46: the other half, or refusing everything would pass the test above.
+    # DRIVN-8/AC-46: the other half, or refusing everything would pass the test above.
     refs = [rules.define_spec(first), rules.define_spec(second)]
 
     assert rules.in_contract() == refs
@@ -634,7 +634,7 @@ def test_rules_in_different_slots_can_both_be_defined(
 def test_overlapping_candidates_are_allowed(
     rules: Rules, first: Spec, second: Spec
 ) -> None:
-    # CFX-APP-first-slice/AC-46, also next to a Defined rule in that slot.
+    # DRIVN-8/AC-46, also next to a Defined rule in that slot.
     rules.define_spec(first)
     version = rules.contract.version
 
@@ -645,7 +645,7 @@ def test_overlapping_candidates_are_allowed(
 
 
 def test_a_rule_in_another_contract_does_not_hold_the_slot(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-46: an identifier's slot is one contract, not all of them.
+    # DRIVN-8/AC-46: an identifier's slot is one contract, not all of them.
     rules.define_spec(("identifier", ("a",), (), {}))
     other = add_contract(
         rules.engine,
@@ -674,7 +674,7 @@ def test_a_rule_in_another_contract_does_not_hold_the_slot(rules: Rules) -> None
     ],
 )
 def test_a_rule_leaving_the_contract_frees_its_slot(rules: Rules, leave) -> None:
-    # CFX-APP-first-slice/AC-46: what holds a slot is being in the contract.
+    # DRIVN-8/AC-46: what holds a slot is being in the contract.
     first = rules.define()
     second = rules.candidate()
     leave(rules.engine, Actor.USER, first)
@@ -685,7 +685,7 @@ def test_a_rule_leaving_the_contract_frees_its_slot(rules: Rules, leave) -> None
 
 
 def test_a_rule_doesnt_compete_with_itself_when_edited(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-46: its fields never change, so an edit keeps its slot.
+    # DRIVN-8/AC-46: its fields never change, so an edit keeps its slot.
     ref = rules.define("accepted_values", "a", values=["red"])
 
     edit(rules.engine, Actor.USER, ref, {"values": ["blue"]})
@@ -694,7 +694,7 @@ def test_a_rule_doesnt_compete_with_itself_when_edited(rules: Rules) -> None:
 
 
 def test_two_promotions_at_once_cant_both_take_a_slot(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-46: the check runs holding the write lock (ADR 0003 point 4).
+    # DRIVN-8/AC-46: the check runs holding the write lock (ADR 0003 point 4).
     candidates = [rules.candidate() for _ in range(8)]
     start = threading.Barrier(len(candidates))
     outcomes: list[str] = []
@@ -966,7 +966,7 @@ BAD_PARAMS = {
 def test_params_that_fit_their_type_read_back(
     rules: Rules, rule_type: str, params: dict
 ) -> None:
-    # CFX-APP-first-slice/AC-35 and ADR 0003 point 2: a rule says exactly what it was given.
+    # DRIVN-8/AC-35 and ADR 0003 point 2: a rule says exactly what it was given.
     ref = rules.define_spec((rule_type, ("a",), (), params))
 
     assert read_item(rules.engine, ref).content == params
@@ -1143,7 +1143,7 @@ def test_editing_a_defined_rule_cant_break_the_match(
 
 
 def test_candidates_can_disagree_about_a_type(rules: Rules) -> None:
-    # CFX-APP-first-slice/AC-46: only Defined rules make the export say anything.
+    # DRIVN-8/AC-46: only Defined rules make the export say anything.
     rules.define_spec(("type", ("a",), (), STRING_TYPE))
     candidate = rules.candidate_spec(("range", ("a",), (), INTEGER_RANGE))
 

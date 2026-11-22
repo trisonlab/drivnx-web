@@ -2,7 +2,7 @@
 id: DRIVN-24
 legacy_id: CFX-APP-csv-profile-T04
 title: "Fast profile, end to end"
-feature: CFX-APP-csv-profile
+feature: DRIVN-9
 feature_revision: 5
 stories: [US-02, US-03]
 criteria: [AC-07, AC-09, AC-13, AC-15, AC-16, AC-17]

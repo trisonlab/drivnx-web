@@ -1,4 +1,4 @@
-"""A full profile of a database's chosen objects through the API, CFX-APP-postgres AC-19 and
+"""A full profile of a database's chosen objects through the API, DRIVN-45 AC-19 and
 ADR 0009 (DRIVN-53)."""
 
 from collections.abc import Callable, Iterator
@@ -92,7 +92,7 @@ def saved(workspace: Workspace, source_id: str, run_id: str) -> dict[tuple, tupl
 def test_a_full_profile_reads_every_row_and_counts_them_exactly(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-19: "every row of each object is read, with exact results and each
+    # DRIVN-45/AC-19: "every row of each object is read, with exact results and each
     # object's exact row count".
     client = start_app(None)
     source_id = chosen_source(client, "repeated")
@@ -108,7 +108,7 @@ def test_a_full_profile_reads_every_row_and_counts_them_exactly(
 def test_a_full_profile_counts_the_rows_of_a_table_with_no_columns(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-19: "each object's exact row count", for a table with no columns too
+    # DRIVN-45/AC-19: "each object's exact row count", for a table with no columns too
     # (found in review).
     client = start_app(None)
     source_id = chosen_source(client, "no_columns")
@@ -122,7 +122,7 @@ def test_a_full_profile_counts_the_rows_of_a_table_with_no_columns(
 def test_a_full_profile_counts_the_rows_that_copy_an_earlier_one(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-19, as a CSV's full profile counts them (decided for DRIVN-53): each
+    # DRIVN-45/AC-19, as a CSV's full profile counts them (decided for DRIVN-53): each
     # of the 50,000 rows appears 3 times, so 100,000 copy an earlier one.
     client = start_app(None)
     source_id = chosen_source(client, "repeated")
@@ -137,7 +137,7 @@ def test_a_full_profile_counts_the_rows_that_copy_an_earlier_one(
 def test_a_full_profiles_masked_patterns_come_from_the_objects_sample(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres, the Assumptions: "masked patterns always come from the fast profile's
+    # DRIVN-45, the Assumptions: "masked patterns always come from the fast profile's
     # sample rows, even on a full profile, and are labelled that way" (decided for DRIVN-53).
     # A page sample reaches the last third of `ordered`, whose `#` codes its first rows don't.
     client = start_app(None)
@@ -157,7 +157,7 @@ def test_a_full_profiles_masked_patterns_come_from_the_objects_sample(
 def test_a_full_profile_keeps_its_time_limit_per_object_in_the_run(
     start_app: StartApp, workspace: Workspace, postgres_server: str, asked: dict, kept: int
 ) -> None:
-    # CFX-APP-postgres, the Assumptions: "the per-table time limit can be set from 1 to 120
+    # DRIVN-45, the Assumptions: "the per-table time limit can be set from 1 to 120
     # minutes for a run, and defaults to 10 minutes"; the run's scope records it (Low-Level Design).
     client = start_app(None)
     source_id = chosen_source(client, "repeated")
@@ -172,7 +172,7 @@ def test_a_full_profile_keeps_its_time_limit_per_object_in_the_run(
 def test_a_time_limit_outside_1_to_120_minutes_is_refused(
     start_app: StartApp, postgres_server: str, minutes: int
 ) -> None:
-    # CFX-APP-postgres, the Assumptions: "from 1 to 120 minutes".
+    # DRIVN-45, the Assumptions: "from 1 to 120 minutes".
     client = start_app(None)
     source_id = chosen_source(client, "repeated")
 
@@ -191,7 +191,7 @@ TIME_LIMIT_NOT_HERE = {"detail": "A time limit applies only to a database's full
 def test_a_time_limit_on_a_databases_fast_profile_is_refused(
     start_app: StartApp, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-20: the limit is a full profile's; a fast one reads at most a sample.
+    # DRIVN-45/AC-20: the limit is a full profile's; a fast one reads at most a sample.
     client = start_app(None)
     source_id = chosen_source(client, "repeated")
 
@@ -205,7 +205,7 @@ def test_a_time_limit_on_a_databases_fast_profile_is_refused(
 
 
 def test_a_time_limit_on_a_files_profile_is_refused(client: TestClient, tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-20: a file's profiles have no time limit (CFX-APP-csv-profile).
+    # DRIVN-45/AC-20: a file's profiles have no time limit (DRIVN-9).
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source_id = client.post("/api/sources", json={"path": str(path)}).json()["id"]
@@ -222,7 +222,7 @@ def test_a_time_limit_on_a_files_profile_is_refused(client: TestClient, tmp_path
 def test_a_full_runs_detail_says_each_object_was_read_whole(
     start_app: StartApp, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-19 and AC-24: the Profile tab labels each object by how it was read, and
+    # DRIVN-45/AC-19 and AC-24: the Profile tab labels each object by how it was read, and
     # a full profile reads every row of it, whatever its fast reading would be.
     client = start_app(None)
     source_id = chosen_source(client, "repeated")
@@ -252,7 +252,7 @@ def test_a_full_runs_detail_says_each_object_was_read_whole(
 def test_a_full_runs_detail_says_how_each_objects_patterns_were_read(
     start_app: StartApp, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-24 and the Assumptions: "masked patterns always come from the fast
+    # DRIVN-45/AC-24 and the Assumptions: "masked patterns always come from the fast
     # profile's sample rows, even on a full profile, and are labelled that way": a view's from its
     # first rows, a table's from a page sample (found in review).
     client = start_app(None)

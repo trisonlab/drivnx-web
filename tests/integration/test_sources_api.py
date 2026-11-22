@@ -1,4 +1,4 @@
-"""Connecting a CSV, CFX-APP-first-slice AC-20, AC-21, AC-22, AC-23, AC-24, AC-25, AC-26, AC-49."""
+"""Connecting a CSV, DRIVN-8 AC-20, AC-21, AC-22, AC-23, AC-24, AC-25, AC-26, AC-49."""
 
 import hashlib
 import os
@@ -44,7 +44,7 @@ def database_text(workspace_dir: Path) -> str:
 def test_connecting_a_csv_reports_the_file_and_how_it_is_written(
     client: TestClient, customers: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-22 and CFX-APP-first-slice/AC-24
+    # DRIVN-8/AC-22 and DRIVN-8/AC-24
     source = connect(client, customers)
 
     assert source["name"] == "customers.csv"
@@ -65,7 +65,7 @@ def test_connecting_a_csv_reports_the_file_and_how_it_is_written(
 
 
 def test_no_row_count_is_reported(client: TestClient, customers: Path) -> None:
-    # CFX-APP-first-slice/AC-25: counting rows means reading the file, which is profiling (M3).
+    # DRIVN-8/AC-25: counting rows means reading the file, which is profiling (M3).
     source = connect(client, customers)
 
     assert not {key for key in source if "row" in key or "count" in key}
@@ -74,7 +74,7 @@ def test_no_row_count_is_reported(client: TestClient, customers: Path) -> None:
 def test_connected_sources_are_listed_and_kept(
     client: TestClient, customers: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-15
+    # DRIVN-8/AC-15
     source = connect(client, customers)
 
     assert client.get("/api/sources").json() == [source]
@@ -83,7 +83,7 @@ def test_connected_sources_are_listed_and_kept(
 def test_connecting_leaves_the_file_alone_and_copies_nothing(
     client: TestClient, customers: Path, workspace_dir: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-20
+    # DRIVN-8/AC-20
     before = hashlib.sha256(customers.read_bytes()).hexdigest()
     modified = customers.stat().st_mtime_ns
 
@@ -103,7 +103,7 @@ def test_connecting_leaves_the_file_alone_and_copies_nothing(
 def test_no_row_values_reach_the_database(
     client: TestClient, customers: Path, workspace_dir: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-26
+    # DRIVN-8/AC-26
     connect(client, customers)
 
     text = database_text(workspace_dir)
@@ -116,7 +116,7 @@ def test_no_row_values_reach_the_database(
 def test_a_stray_delimiter_puts_no_row_values_in_the_database(
     client: TestClient, workspace_dir: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-26: found in T05, a tab file with commas in its text stored a row.
+    # DRIVN-8/AC-26: found in T05, a tab file with commas in its text stored a row.
     connect(client, CSV_DIR / "tab_commas_in_text.csv")
 
     text = database_text(workspace_dir)
@@ -141,7 +141,7 @@ def test_only_the_row_used_as_column_names_reaches_the_database(
     kept: str,
     not_kept: tuple[str, ...],
 ) -> None:
-    # CFX-APP-first-slice/AC-26
+    # DRIVN-8/AC-26
     connect(client, CSV_DIR / file)
 
     text = database_text(workspace_dir)
@@ -267,7 +267,7 @@ def test_a_home_relative_path_is_expanded(
 def test_a_bad_path_gets_a_specific_error_and_adds_no_source(
     client: TestClient, tmp_path: Path, kind: str, message: str
 ) -> None:
-    # CFX-APP-first-slice/AC-21
+    # DRIVN-8/AC-21
     target = tmp_path / "target.csv"
     paths: dict[str, str] = {
         "missing": str(tmp_path / "nothing.csv"),
@@ -306,7 +306,7 @@ def test_a_bad_path_gets_a_specific_error_and_adds_no_source(
 def test_a_link_to_a_name_that_is_not_valid_text_gets_a_specific_error(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-21: a request can't carry this name, but a link can lead to it.
+    # DRIVN-8/AC-21: a request can't carry this name, but a link can lead to it.
     name = os.fsencode(tmp_path) + b"/caf\xe9.csv"
     try:
         Path(os.fsdecode(name)).write_bytes((CSV_DIR / "comma_utf8.csv").read_bytes())
@@ -335,7 +335,7 @@ def test_a_link_to_a_name_that_is_not_valid_text_gets_a_specific_error(
 def test_an_invalid_path_is_refused_without_a_crash(
     client: TestClient, body: bytes
 ) -> None:
-    # CFX-APP-first-slice/AC-21
+    # DRIVN-8/AC-21
     response = client.post(
         "/api/sources", content=body, headers={"Content-Type": "application/json"}
     )
@@ -355,7 +355,7 @@ def test_errors_do_not_repeat_the_path(client: TestClient, tmp_path: Path) -> No
 def test_a_moved_file_is_listed_as_unavailable_and_the_app_keeps_working(
     client: TestClient, customers: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-23
+    # DRIVN-8/AC-23
     connect(client, customers)
 
     customers.rename(customers.with_name("moved.csv"))
@@ -369,7 +369,7 @@ def test_a_moved_file_is_listed_as_unavailable_and_the_app_keeps_working(
 def test_a_file_that_comes_back_is_available_again(
     client: TestClient, customers: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-23
+    # DRIVN-8/AC-23
     connect(client, customers)
     moved = customers.with_name("moved.csv")
     customers.rename(moved)
@@ -384,7 +384,7 @@ def test_a_file_that_comes_back_is_available_again(
 def test_a_source_in_a_folder_that_cannot_be_read_is_unavailable_and_the_rest_still_list(
     client: TestClient, customers: Path, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-23: one unreachable source must not hide the others.
+    # DRIVN-8/AC-23: one unreachable source must not hide the others.
     connect(client, customers)
     other = tmp_path / "other.csv"
     shutil.copy(CSV_DIR / "comma_utf8.csv", other)
@@ -401,7 +401,7 @@ def test_a_source_in_a_folder_that_cannot_be_read_is_unavailable_and_the_rest_st
 
 
 def test_the_sources_api_needs_a_session(client: TestClient, customers: Path) -> None:
-    # CFX-APP-first-slice/AC-08
+    # DRIVN-8/AC-08
     client.cookies.clear()
 
     assert client.get("/api/sources").status_code == 401
@@ -414,7 +414,7 @@ def test_connecting_gives_duckdb_the_workspace_temp_directory(
     workspace_dir: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # CFX-APP-first-slice/AC-49
+    # DRIVN-8/AC-49
     configs: list[dict] = []
     real_connect = duckdb.connect
 
@@ -435,7 +435,7 @@ def test_connecting_gives_duckdb_the_workspace_temp_directory(
 def test_duckdb_spills_inside_the_workspace_and_leftovers_are_removed_at_startup(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-first-slice/AC-49
+    # DRIVN-8/AC-49
     directory = tmp_path / "workspace"
     workspace = open_workspace(directory)
     temp = workspace.temp_directory

@@ -1,4 +1,4 @@
-"""Running a fast profile through the API, CFX-APP-csv-profile AC-07, AC-09, AC-13, AC-15, AC-16, AC-17."""
+"""Running a fast profile through the API, DRIVN-9 AC-07, AC-09, AC-13, AC-15, AC-16, AC-17."""
 
 import os
 import sqlite3
@@ -72,7 +72,7 @@ def held_run(monkeypatch: pytest.MonkeyPatch) -> Iterator[threading.Event]:
 def test_a_fast_profile_runs_in_the_background_and_shows_its_results(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-07
+    # DRIVN-9/AC-07
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n2,\n3,Cid\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -91,7 +91,7 @@ def test_a_fast_profile_runs_in_the_background_and_shows_its_results(
 def test_a_second_run_is_refused_while_one_is_in_progress(
     client: TestClient, tmp_path: Path, held_run: threading.Event
 ) -> None:
-    # CFX-APP-csv-profile/AC-09
+    # DRIVN-9/AC-09
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     other = tmp_path / "other.csv"
@@ -114,7 +114,7 @@ def test_a_second_run_is_refused_while_one_is_in_progress(
 def test_runs_are_listed_newest_first_and_show_one_in_progress(
     client: TestClient, tmp_path: Path, held_run: threading.Event
 ) -> None:
-    # CFX-APP-csv-profile/AC-09: the header and the Profile tab read this.
+    # DRIVN-9/AC-09: the header and the Profile tab read this.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -137,7 +137,7 @@ def test_runs_are_listed_newest_first_and_show_one_in_progress(
 def test_a_run_made_before_a_correction_no_longer_uses_the_current_settings(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-36: the Profile tab labels these, and shows them only when opened.
+    # DRIVN-9/AC-36: the Profile tab labels these, and shows them only when opened.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n2,Bob\n3,Cid\n4,Dee\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -172,7 +172,7 @@ def settings_of(source: dict, **changes: object) -> dict:
 def test_a_correction_during_a_run_on_the_same_file_is_refused(
     client: TestClient, tmp_path: Path, held_run: threading.Event
 ) -> None:
-    # CFX-APP-csv-profile/AC-06
+    # DRIVN-9/AC-06
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -195,7 +195,7 @@ def test_a_correction_during_a_run_on_the_same_file_is_refused(
 def test_a_start_that_meets_a_correction_is_refused(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-06, the other way round: the correction lands just after the start has
+    # DRIVN-9/AC-06, the other way round: the correction lands just after the start has
     # read the dataset, so the run would record a dataset that's no longer current.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
@@ -226,7 +226,7 @@ def test_a_start_that_meets_a_correction_is_refused(
 def test_a_correction_while_a_start_reads_the_file_is_refused(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-06: found reviewing T07. A correction saved while the start reads the
+    # DRIVN-9/AC-06: found reviewing T07. A correction saved while the start reads the
     # file's columns gave a completed run, shown as current, that counted the header as a row.
     path = tmp_path / "numbers.csv"
     path.write_text("1,2\n3,4\n", encoding="utf-8", newline="")
@@ -258,7 +258,7 @@ def test_a_correction_while_a_start_reads_the_file_is_refused(
 def test_a_correction_to_another_file_during_a_run_is_saved(
     client: TestClient, tmp_path: Path, held_run: threading.Event
 ) -> None:
-    # CFX-APP-csv-profile/AC-06 refuses only what the run reads.
+    # DRIVN-9/AC-06 refuses only what the run reads.
     running = tmp_path / "people.csv"
     running.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     other = tmp_path / "other.csv"
@@ -292,7 +292,7 @@ def numbered_csv(path: Path, rows: int) -> Path:
 def test_every_metric_says_what_it_was_measured_on(
     client: TestClient, tmp_path: Path, rows: int, scope: str, rows_read: int
 ) -> None:
-    # CFX-APP-csv-profile/AC-15, AC-16 and AC-17
+    # DRIVN-9/AC-15, AC-16 and AC-17
     source = connect(client, numbered_csv(tmp_path / "numbers.csv", rows))
 
     run = finished(client, start(client, source))
@@ -309,7 +309,7 @@ def test_every_metric_says_what_it_was_measured_on(
 def test_results_stay_hidden_until_the_run_has_completed(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-15: a run still in progress may hold only some of its results.
+    # DRIVN-9/AC-15: a run still in progress may hold only some of its results.
     release = threading.Event()
     saved = threading.Event()
     finish = profile_jobs.finish_profile_run
@@ -336,7 +336,7 @@ def test_results_stay_hidden_until_the_run_has_completed(
 def test_two_runs_started_at_once_make_one_run(
     client: TestClient, tmp_path: Path, held_run: threading.Event
 ) -> None:
-    # CFX-APP-csv-profile/AC-09
+    # DRIVN-9/AC-09
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -394,7 +394,7 @@ COLUMNS_NO_LONGER_MATCH = (
 def test_a_file_whose_columns_changed_is_refused_before_a_run_starts(
     client: TestClient, tmp_path: Path, before: str, after: str, saved_settings: bool
 ) -> None:
-    # CFX-APP-csv-profile/AC-12. A new column is told apart from a wider row, which reads the same.
+    # DRIVN-9/AC-12. A new column is told apart from a wider row, which reads the same.
     path = tmp_path / "people.csv"
     path.write_text(before, encoding="utf-8", newline="")
     source = connect(client, path)
@@ -414,7 +414,7 @@ def test_a_file_whose_columns_changed_is_refused_before_a_run_starts(
 def test_saving_the_settings_after_a_refusal_reads_the_columns_again(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-12, the second half.
+    # DRIVN-9/AC-12, the second half.
     path = tmp_path / "people.csv"
     path.write_text("a,b\n1,2\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -450,7 +450,7 @@ def test_a_failed_run_keeps_the_errors_text_to_itself(
 
     wait_for_jobs_to_end()
     assert ended["status"] == "failed"
-    # CFX-APP-csv-profile/AC-11: a reason of DrivnX's own, not DuckDB's.
+    # DRIVN-9/AC-11: a reason of DrivnX's own, not DuckDB's.
     assert ended["failure"] == "DrivnX couldn't profile this file."
     # Python would print an error that escapes the thread, with the row in its text.
     assert escaped_errors == []
@@ -463,7 +463,7 @@ def test_a_failed_run_keeps_the_errors_text_to_itself(
 def test_a_run_that_meets_a_busy_workspace_says_so(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-11: the file is fine, so the message mustn't blame it.
+    # DRIVN-9/AC-11: the file is fine, so the message mustn't blame it.
     def busy_save(*_args) -> None:
         raise WorkspaceBusy("DrivnX is busy writing to this workspace. Try again.")
 
@@ -480,7 +480,7 @@ def test_a_run_that_meets_a_busy_workspace_says_so(
 def test_a_run_that_runs_out_of_memory_says_so(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-11: nothing is wrong with the file, so the message mustn't blame a row.
+    # DRIVN-9/AC-11: nothing is wrong with the file, so the message mustn't blame a row.
     path = tmp_path / "wide_cells.csv"
     path.write_text(
         "id,name\n" + "".join(f"{row},{'x' * 2000}\n" for row in range(3000)),
@@ -499,7 +499,7 @@ def test_a_run_that_runs_out_of_memory_says_so(
 def test_a_row_that_cant_be_read_fails_the_run_and_says_so(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-11, and T04's decision: a wider row past the sample fails the run
+    # DRIVN-9/AC-11, and T04's decision: a wider row past the sample fails the run
     # rather than being cut.
     path = tmp_path / "wide.csv"
     rows = "".join(f"{number},Ann\n" for number in range(30_000))
@@ -517,7 +517,7 @@ def test_a_row_that_cant_be_read_fails_the_run_and_says_so(
 def test_a_quote_never_closed_late_in_a_file_fails_the_run(
     client: TestClient, tmp_path: Path, rows_after: int
 ) -> None:
-    # CFX-APP-csv-profile/AC-11: DuckDB 2.0.0 drops every row from an unclosed quote onwards without
+    # DRIVN-9/AC-11: DuckDB 2.0.0 drops every row from an unclosed quote onwards without
     # an error once it comes after 2,046 rows, so the run would claim a short count as the file.
     path = tmp_path / "late_quote.csv"
     before = "".join(f"{number},v{number}\n" for number in range(3000))
@@ -603,7 +603,7 @@ def test_a_mistake_in_a_job_ends_the_run_and_stays_visible(
 def test_a_failed_run_does_not_stop_the_next_one(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-09: only a run in progress refuses another.
+    # DRIVN-9/AC-09: only a run in progress refuses another.
     measure = profile_jobs.measure_rows
 
     def failing_measure(*_args, **_kwargs):
@@ -641,7 +641,7 @@ def test_a_job_spills_only_inside_the_workspace_and_stays_within_its_memory_limi
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # CFX-APP-csv-profile/AC-13
+    # DRIVN-9/AC-13
     current = tmp_path / "current"
     current.mkdir()
     monkeypatch.chdir(current)
@@ -698,7 +698,7 @@ def test_starting_a_run_needs_a_source_and_a_known_mode(
 def test_a_file_that_has_gone_is_refused_before_a_run_starts(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-11
+    # DRIVN-9/AC-11
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -739,7 +739,7 @@ def before_reading(monkeypatch: pytest.MonkeyPatch, change) -> None:
 def test_a_file_removed_during_a_run_fails_and_says_so(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-11
+    # DRIVN-9/AC-11
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -755,7 +755,7 @@ def test_a_file_removed_during_a_run_fails_and_says_so(
 def test_a_file_changed_during_a_run_fails_and_says_so(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-11: what was measured may not be the file any more.
+    # DRIVN-9/AC-11: what was measured may not be the file any more.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -777,7 +777,7 @@ def test_a_file_changed_during_a_run_fails_and_says_so(
 def test_a_file_that_becomes_unreadable_during_a_run_fails_and_says_so(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-11
+    # DRIVN-9/AC-11
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -796,7 +796,7 @@ def test_a_file_that_becomes_unreadable_during_a_run_fails_and_says_so(
 def test_a_file_replaced_by_a_pipe_during_a_run_still_ends_the_run(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-11: opening a pipe waits for a writer, which never comes.
+    # DRIVN-9/AC-11: opening a pipe waits for a writer, which never comes.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -817,7 +817,7 @@ def test_a_file_replaced_by_a_pipe_during_a_run_still_ends_the_run(
 def test_a_file_that_cant_be_looked_at_during_a_run_still_says_why(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-11: a link to itself is neither missing nor forbidden.
+    # DRIVN-9/AC-11: a link to itself is neither missing nor forbidden.
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -839,7 +839,7 @@ def test_a_file_that_cant_be_looked_at_during_a_run_still_says_why(
 def test_a_file_that_cant_be_read_is_refused_before_a_run_starts(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-11
+    # DRIVN-9/AC-11
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -863,7 +863,7 @@ def test_a_file_that_cant_be_read_is_refused_before_a_run_starts(
 def test_every_file_that_can_be_connected_can_be_profiled(
     client: TestClient, name: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-07: the names a job reads must match the ones saved when connecting.
+    # DRIVN-9/AC-07: the names a job reads must match the ones saved when connecting.
     response = client.post("/api/sources", json={"path": str(CSV_DIR / name)})
     if response.status_code != 201:
         pytest.skip("This file can't be connected, by design.")
@@ -879,7 +879,7 @@ def test_every_file_that_can_be_connected_can_be_profiled(
 def test_every_file_can_be_profiled_after_saving_its_settings(
     client: TestClient, name: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-12: saved settings read the columns the preview's way, so a wider
+    # DRIVN-9/AC-12: saved settings read the columns the preview's way, so a wider
     # row's extra column is saved too, and the check at the start mustn't refuse it.
     response = client.post("/api/sources", json={"path": str(CSV_DIR / name)})
     if response.status_code != 201:
@@ -938,7 +938,7 @@ def test_a_busy_workspace_says_so_when_saving_settings_too(
 
 
 def test_a_field_past_the_saved_columns_gets_no_metric(client: TestClient) -> None:
-    # CFX-APP-csv-profile/AC-07: a row wider than the rest reads as an extra column, which has no
+    # DRIVN-9/AC-07: a row wider than the rest reads as an extra column, which has no
     # saved field to point at. The saved columns are still measured correctly.
     source = connect(client, CSV_DIR / "extra_field_in_a_row.csv")
     assert [column["name"] for column in source["columns"]] == ["id", "name", "amount"]
@@ -954,7 +954,7 @@ def test_a_field_past_the_saved_columns_gets_no_metric(client: TestClient) -> No
 def test_a_wider_row_in_a_file_with_no_header_is_measured_by_position(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-07: past 10 columns DuckDB renumbers its generated names, so `column3`
+    # DRIVN-9/AC-07: past 10 columns DuckDB renumbers its generated names, so `column3`
     # is saved and `column03` is read. Those names say nothing, and only the width can be checked.
     path = tmp_path / "no_header.csv"
     row = "".join(",".join(str(row * 10 + col) for col in range(9)) + "\n" for row in range(1, 6))
@@ -983,7 +983,7 @@ def test_a_file_with_no_header_that_lost_columns_fails(
     held_run: threading.Event,
     escaped_errors: list[BaseException | None],
 ) -> None:
-    # CFX-APP-csv-profile/AC-07: too few to give every saved field its metric.
+    # DRIVN-9/AC-07: too few to give every saved field its metric.
     path = tmp_path / "no_header.csv"
     path.write_text("1,2,3\n4,5,6\n7,8,9\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -1036,7 +1036,7 @@ def test_a_run_records_what_it_read_and_how(
 def test_each_column_gets_its_lengths_distinct_count_and_percentages(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-14. Worked by hand: 4 rows, and `city` has 1 missing and 3 values of
+    # DRIVN-9/AC-14. Worked by hand: 4 rows, and `city` has 1 missing and 3 values of
     # which 2 differ, with lengths 3, 3 and 5.
     path = tmp_path / "people.csv"
     path.write_text("id,city\n1,Rio\n2,Rio\n3,\n4,Paris\n", encoding="utf-8", newline="")
@@ -1056,7 +1056,7 @@ def test_each_column_gets_its_lengths_distinct_count_and_percentages(
 def test_a_header_with_no_rows_saves_nothing_it_would_have_to_divide_by(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-14
+    # DRIVN-9/AC-14
     path = tmp_path / "header_only.csv"
     path.write_text("id,name\n", encoding="utf-8", newline="")
 
@@ -1075,7 +1075,7 @@ def test_a_header_with_no_rows_saves_nothing_it_would_have_to_divide_by(
 def test_a_completely_empty_column_has_no_lengths_or_distinct_percentage(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-14: there are rows, so its missing percentage still means something.
+    # DRIVN-9/AC-14: there are rows, so its missing percentage still means something.
     path = tmp_path / "empty_column.csv"
     path.write_text("id,blank\n1,\n2,   \n3,\n4,\n", encoding="utf-8", newline="")
 
@@ -1096,7 +1096,7 @@ def test_a_completely_empty_column_has_no_lengths_or_distinct_percentage(
 def test_columns_with_the_same_name_are_measured_separately(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-14
+    # DRIVN-9/AC-14
     path = tmp_path / "duplicates.csv"
     path.write_text("a,a\nxx,yyyy\nzz,yyyy\nww,yyyy\n", encoding="utf-8", newline="")
 
@@ -1141,7 +1141,7 @@ def test_columns_with_the_same_name_are_measured_separately(
 def test_values_past_the_detection_sample_are_checked_against_the_type(
     client: TestClient, tmp_path: Path, good: str, late: list[str], not_fitting: int
 ) -> None:
-    # CFX-APP-csv-profile/AC-14: DuckDB detects a type from about the first 20,000 rows.
+    # DRIVN-9/AC-14: DuckDB detects a type from about the first 20,000 rows.
     path = tmp_path / "typed.csv"
     rows = [f"{good},1\n"] * 20_600 + [f"{value},1\n" for value in late]
     path.write_text("value,other\n" + "".join(rows), encoding="utf-8")
@@ -1156,7 +1156,7 @@ def test_values_past_the_detection_sample_are_checked_against_the_type(
 def test_every_value_in_a_date_format_other_than_iso_fits(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-14: a plain cast reports each of these as not fitting.
+    # DRIVN-9/AC-14: a plain cast reports each of these as not fitting.
     path = tmp_path / "dates.csv"
     path.write_text(
         "joined,x\n03/25/2024,1\n03/26/2024,2\n12/27/2024,3\n",
@@ -1222,7 +1222,7 @@ def test_a_format_other_than_iso_fits_however_the_file_had_to_be_read(
     physical_type: str,
     not_fitting: int,
 ) -> None:
-    # CFX-APP-csv-profile/AC-14: found verifying T05. Detecting the format strictly failed on these
+    # DRIVN-9/AC-14: found verifying T05. Detecting the format strictly failed on these
     # files, which left a plain cast to report every value as not fitting.
     path = tmp_path / "dates.csv"
     path.write_bytes(contents)
@@ -1258,7 +1258,7 @@ def test_a_format_other_than_iso_fits_however_the_file_had_to_be_read(
 def test_a_column_in_another_format_of_its_type_fits(
     client: TestClient, tmp_path: Path, contents: str, column: str, physical_type: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-14: found reviewing T05. DuckDB detects one format per type, and still
+    # DRIVN-9/AC-14: found reviewing T05. DuckDB detects one format per type, and still
     # types a second column that its plain cast can read.
     path = tmp_path / "formats.csv"
     path.write_text(contents, encoding="utf-8", newline="")
@@ -1282,7 +1282,7 @@ def test_a_column_in_another_format_of_its_type_fits(
 def test_a_large_integer_fits_an_integer_column(
     client: TestClient, tmp_path: Path, values: list[str], physical_type: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-14: found reviewing T05. Converted two ways, the same whole number can
+    # DRIVN-9/AC-14: found reviewing T05. Converted two ways, the same whole number can
     # round to two different doubles.
     path = tmp_path / "integers.csv"
     path.write_text(
@@ -1301,7 +1301,7 @@ def test_a_large_integer_fits_an_integer_column(
 def test_skipping_every_line_leaves_nothing_to_measure_and_the_run_still_finishes(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-14: found verifying T05. DuckDB can't sniff a format from no rows, and
+    # DRIVN-9/AC-14: found verifying T05. DuckDB can't sniff a format from no rows, and
     # with nothing to fit it doesn't need one.
     path = tmp_path / "header_only.csv"
     path.write_text("id,name\n", encoding="utf-8", newline="")
@@ -1368,7 +1368,7 @@ def corrected(client: TestClient, source: dict, **changes: object) -> dict:
 def test_a_profile_reads_a_file_the_same_way_as_the_preview(
     client: TestClient, tmp_path: Path, contents: bytes, changes: dict
 ) -> None:
-    # CFX-APP-csv-profile/AC-14: counted from what the preview shows, not from how it was read.
+    # DRIVN-9/AC-14: counted from what the preview shows, not from how it was read.
     path = tmp_path / "file.csv"
     path.write_bytes(contents)
     source = connect(client, path)
@@ -1389,7 +1389,7 @@ def test_a_profile_reads_a_file_the_same_way_as_the_preview(
 
 
 def test_a_surplus_column_is_counted_as_not_measured(client: TestClient) -> None:
-    # CFX-APP-csv-profile/AC-14, by the user's decision: it has no saved field to give metrics to,
+    # DRIVN-9/AC-14, by the user's decision: it has no saved field to give metrics to,
     # and the tab says so from this count.
     source = connect(client, CSV_DIR / "extra_field_in_a_row.csv")
 
@@ -1401,7 +1401,7 @@ def test_a_surplus_column_is_counted_as_not_measured(client: TestClient) -> None
 def test_a_file_with_no_surplus_columns_says_nothing_about_them(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-14
+    # DRIVN-9/AC-14
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
 

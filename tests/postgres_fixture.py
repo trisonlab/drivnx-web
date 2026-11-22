@@ -1,4 +1,4 @@
-"""The PostgreSQL fixture that tests run against (CFX-APP-postgres AC-34, ADR 0006).
+"""The PostgreSQL fixture that tests run against (DRIVN-45 AC-34, ADR 0006).
 
 `uv run --frozen python tests/postgres_fixture.py start` before the tests, locally and in CI, and
 `stop` afterwards. Where Docker runs Linux containers, it's the Compose service in

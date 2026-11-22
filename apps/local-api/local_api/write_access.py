@@ -1,5 +1,5 @@
 """What the role a database is profiled with could change in the chosen objects, and the warning
-the user confirms before it is (CFX-APP-postgres AC-16, DRIVN-52). DrivnX itself only reads: every
+the user confirms before it is (DRIVN-45 AC-16, DRIVN-52). DrivnX itself only reads: every
 session it opens is read-only."""
 
 from artifacts.sources import ChosenObject

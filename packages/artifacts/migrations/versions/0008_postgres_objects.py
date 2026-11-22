@@ -1,4 +1,4 @@
-"""A database's objects, their columns and declared keys, and which are chosen (CFX-APP-postgres).
+"""A database's objects, their columns and declared keys, and which are chosen (DRIVN-45).
 
 Each object discovery finds is a dataset and its columns are fields, as a CSV file's are. Only
 names are saved, never a value from the database (ADR 0004).

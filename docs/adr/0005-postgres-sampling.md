@@ -2,7 +2,7 @@
 
 - **Status:** Accepted 2026-11-13; Decision 6 amended by ADR 0009 (stopping a read, DRIVN-53)
 - **Date:** 2026-11-13
-- **Source:** The user's decisions in chat on 2026-11-13, recorded in spec `CFX-APP-postgres`; spike 2 of the direction
+- **Source:** The user's decisions in chat on 2026-11-13, recorded in spec `DRIVN-45`; spike 2 of the direction
   doc (Section 10, "Can we profile large remote tables without expensive full scans?"); the open "PostgreSQL sampling"
   decision in Section 11; ADR 0004
 
@@ -10,7 +10,7 @@
 
 Section 5 asks for a fast profile that is "sample-based" and a full profile only on explicit request. Section 11 leaves the
 sampling method open: random, deterministic or bounded query. A CSV's fast profile reads its first 100,000 rows, because a
-random sample of a file still reads all of it (ADR 0004, spec `CFX-APP-csv-profile`). A database can sample without reading
+random sample of a file still reads all of it (ADR 0004, spec `DRIVN-9`). A database can sample without reading
 everything, so the question is which way, and what it costs.
 
 Values on request are computed again from the same rows as the run (ADR 0004, decision 2), so a sample must be repeatable.

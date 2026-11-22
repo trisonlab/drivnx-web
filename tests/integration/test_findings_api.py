@@ -1,4 +1,4 @@
-"""`GET /api/findings`, CFX-APP-csv-profile AC-23."""
+"""`GET /api/findings`, DRIVN-9 AC-23."""
 
 import threading
 from pathlib import Path
@@ -20,7 +20,7 @@ def findings_of(client: TestClient, run: dict) -> list[dict]:
 def test_a_runs_findings_say_what_was_observed_inferred_and_why_with_their_evidence(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-23
+    # DRIVN-9/AC-23
     source = connect(client, meeting_every_kind(tmp_path / "every_kind.csv"))
     run = finished(client, start(client, source, "full"))
 
@@ -61,7 +61,7 @@ def test_a_runs_findings_say_what_was_observed_inferred_and_why_with_their_evide
 def test_only_that_runs_findings_are_given_and_only_once_it_has_completed(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-23 and CFX-APP-csv-profile/AC-26
+    # DRIVN-9/AC-23 and DRIVN-9/AC-26
     source = connect(client, meeting_every_kind(tmp_path / "every_kind.csv"))
     earlier = finished(client, start(client, source, "full"))
     release = threading.Event()
@@ -88,7 +88,7 @@ def test_only_that_runs_findings_are_given_and_only_once_it_has_completed(
 def test_columns_matching_a_sensitive_field_rule_are_flagged_saying_what_matched(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-21 and CFX-APP-csv-profile/AC-27: synthetic columns for each rule, with
+    # DRIVN-9/AC-21 and DRIVN-9/AC-27: synthetic columns for each rule, with
     # some that match none, through a real run. Only names and masked patterns are read.
     path = tmp_path / "people.csv"
     path.write_text(

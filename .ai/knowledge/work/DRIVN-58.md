@@ -2,7 +2,7 @@
 id: DRIVN-58
 legacy_id: CFX-APP-postgres-T13
 title: "Full journey and checks"
-feature: CFX-APP-postgres
+feature: DRIVN-45
 feature_revision: 3
 stories: [US-03, US-05, US-07]
 criteria: [AC-15, AC-29, AC-35, AC-36]

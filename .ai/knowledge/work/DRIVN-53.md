@@ -2,7 +2,7 @@
 id: DRIVN-53
 legacy_id: CFX-APP-postgres-T08
 title: "Full profile, time limit and cancel"
-feature: CFX-APP-postgres
+feature: DRIVN-45
 feature_revision: 3
 stories: [US-04]
 criteria: [AC-19, AC-20, AC-21, AC-22, AC-23]

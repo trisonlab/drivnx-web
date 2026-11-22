@@ -1,4 +1,4 @@
-"""CFX-APP-first-slice/AC-07: the runtime refuses to bind to a non-loopback address."""
+"""DRIVN-8/AC-07: the runtime refuses to bind to a non-loopback address."""
 
 import socket
 

@@ -1,4 +1,4 @@
-"""Detecting how a CSV is written, CFX-APP-first-slice/AC-22."""
+"""Detecting how a CSV is written, DRIVN-8/AC-22."""
 
 import gzip
 import os
@@ -48,7 +48,7 @@ CSV_DIR = Path(__file__).parents[2] / "testdata" / "csv"
 def test_detection_matches_how_the_file_was_written(
     tmp_path: Path, file: str, delimiter: str, encoding: str, has_header: bool
 ) -> None:
-    # CFX-APP-first-slice/AC-22
+    # DRIVN-8/AC-22
     scan = scan_csv(CSV_DIR / file, tmp_path)
 
     assert scan.detection == CsvDetection(delimiter, encoding, has_header)
@@ -68,7 +68,7 @@ def test_detection_matches_how_the_file_was_written(
 def test_realistic_files_keep_their_delimiter_and_header(
     tmp_path: Path, file: str, delimiter: str, columns: list[str]
 ) -> None:
-    # CFX-APP-first-slice/AC-22 and CFX-APP-first-slice/AC-26: a wrong delimiter skips the real
+    # DRIVN-8/AC-22 and DRIVN-8/AC-26: a wrong delimiter skips the real
     # header and makes the first data row the column names, which then get saved.
     scan = scan_csv(CSV_DIR / file, tmp_path)
 
@@ -79,7 +79,7 @@ def test_realistic_files_keep_their_delimiter_and_header(
 def test_an_all_text_file_without_a_header_uses_its_first_row_as_column_names(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-first-slice/AC-22: this can't be told apart from a header, and the screen says so.
+    # DRIVN-8/AC-22: this can't be told apart from a header, and the screen says so.
     scan = scan_csv(CSV_DIR / "no_header_all_text.csv", tmp_path)
 
     assert scan.detection.has_header is True
@@ -99,7 +99,7 @@ def test_an_all_text_file_without_a_header_uses_its_first_row_as_column_names(
 def test_a_row_may_become_the_column_names_when_a_header_cannot_be_told_from_data(
     tmp_path: Path, file: str, delimiter: str, columns: list[str]
 ) -> None:
-    # CFX-APP-first-slice/AC-22: the accepted limit. If one of these starts failing, detection has
+    # DRIVN-8/AC-22: the accepted limit. If one of these starts failing, detection has
     # improved, so AC-22, AC-26 and threat R3 can be narrowed.
     scan = scan_csv(CSV_DIR / file, tmp_path)
 
@@ -109,7 +109,7 @@ def test_a_row_may_become_the_column_names_when_a_header_cannot_be_told_from_dat
 
 
 def test_a_file_without_a_header_gets_generated_column_names(tmp_path: Path) -> None:
-    # CFX-APP-first-slice/AC-22
+    # DRIVN-8/AC-22
     scan = scan_csv(CSV_DIR / "no_header_typed.csv", tmp_path)
 
     assert [column.name for column in scan.columns] == [f"column{i}" for i in range(5)]
@@ -126,7 +126,7 @@ def test_a_file_without_a_header_gets_generated_column_names(tmp_path: Path) -> 
     ],
 )
 def test_every_encoding_gives_the_same_columns(tmp_path: Path, file: str) -> None:
-    # CFX-APP-first-slice/AC-24: a BOM or a wrong decode would corrupt the first column's name.
+    # DRIVN-8/AC-24: a BOM or a wrong decode would corrupt the first column's name.
     scan = scan_csv(CSV_DIR / file, tmp_path)
 
     assert scan.columns == (
@@ -205,13 +205,13 @@ def test_awkward_directory_names_open_the_file_they_name(
 def test_files_that_cannot_be_read_get_a_specific_error(
     tmp_path: Path, file: str, message: str
 ) -> None:
-    # CFX-APP-first-slice/AC-21
+    # DRIVN-8/AC-21
     with pytest.raises(CsvError, match=message):
         scan_csv(CSV_DIR / file, tmp_path)
 
 
 def test_a_real_gzip_file_is_refused(tmp_path: Path) -> None:
-    # CFX-APP-first-slice/AC-21: compressed files aren't in scope, whatever they are named.
+    # DRIVN-8/AC-21: compressed files aren't in scope, whatever they are named.
     compressed = tmp_path / "data.csv.gz"
     compressed.write_bytes(gzip.compress((CSV_DIR / "comma_utf8.csv").read_bytes(), mtime=0))
 
@@ -223,7 +223,7 @@ def test_a_real_gzip_file_is_refused(tmp_path: Path) -> None:
 def test_a_utf8_bom_on_a_file_that_is_not_utf8_is_refused(
     tmp_path: Path, bad_byte_at: str
 ) -> None:
-    # CFX-APP-first-slice/AC-21: read as Latin-1, the BOM would corrupt the first column's name.
+    # DRIVN-8/AC-21: read as Latin-1, the BOM would corrupt the first column's name.
     rows = b"1,Paris\n" * 3
     bad = b"2,Orl\xe9ans\n"
     mixed = tmp_path / "mixed.csv"
@@ -260,7 +260,7 @@ def test_a_multibyte_character_split_across_read_chunks_is_still_utf8(
 def test_a_large_file_that_must_be_decoded_in_memory_is_refused(
     tmp_path: Path, encoding_name: str
 ) -> None:
-    # CFX-APP-first-slice/AC-21
+    # DRIVN-8/AC-21
     big = tmp_path / "big.csv"
     line = "id,price\n" + "1,€5\n" * (21 * 1024 * 1024 // 5 + 1)
     prefix = b"\xfe\xff" if encoding_name == "utf-16-be" else b""
@@ -274,7 +274,7 @@ def test_a_large_file_that_must_be_decoded_in_memory_is_refused(
 
 @pytest.mark.parametrize("file", ["emoji_utf16_le.csv", "emoji_utf16_be.csv"])
 def test_utf16_with_characters_above_ffff_connects(tmp_path: Path, file: str) -> None:
-    # CFX-APP-first-slice/AC-20 and CFX-APP-first-slice/AC-22: DuckDB refuses these in little-endian.
+    # DRIVN-8/AC-20 and DRIVN-8/AC-22: DuckDB refuses these in little-endian.
     scan = scan_csv(CSV_DIR / file, tmp_path)
 
     assert scan.detection.delimiter == ","
@@ -294,7 +294,7 @@ def large_utf16_le(path: Path, last_row: bytes) -> None:
 def test_a_character_above_ffff_late_in_a_large_utf16_le_file_gets_the_over_limit_error(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-first-slice/AC-21: it would otherwise connect, then fail when the rows are read.
+    # DRIVN-8/AC-21: it would otherwise connect, then fail when the rows are read.
     big = tmp_path / "big.csv"
     large_utf16_le(big, "2,😀\n".encode("utf-16-le"))
 
@@ -305,7 +305,7 @@ def test_a_character_above_ffff_late_in_a_large_utf16_le_file_gets_the_over_limi
 def test_a_large_utf16_le_file_without_those_characters_still_connects(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-first-slice/AC-20: only the files DuckDB can't read have the 100 MB limit.
+    # DRIVN-8/AC-20: only the files DuckDB can't read have the 100 MB limit.
     big = tmp_path / "big.csv"
     large_utf16_le(big, "2,Orléans €\n".encode("utf-16-le"))
 
@@ -322,7 +322,7 @@ def test_a_large_utf16_le_file_without_those_characters_still_connects(
 def test_broken_utf16_le_is_refused_even_late_in_the_file(
     tmp_path: Path, bad_end: bytes
 ) -> None:
-    # CFX-APP-first-slice/AC-21
+    # DRIVN-8/AC-21
     broken = tmp_path / "broken.csv"
     large_utf16_le(broken, bad_end)
 
@@ -333,7 +333,7 @@ def test_broken_utf16_le_is_refused_even_late_in_the_file(
 def test_a_line_too_long_for_the_csv_reader_gets_a_specific_error(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-first-slice/AC-21
+    # DRIVN-8/AC-21
     long_line = tmp_path / "long.csv"
     long_line.write_bytes(b"a,b\n1," + b"x" * (3 * 1024 * 1024) + b"\n")
 
@@ -344,7 +344,7 @@ def test_a_line_too_long_for_the_csv_reader_gets_a_specific_error(
 def test_duckdb_spills_where_it_is_told_and_cannot_fetch_extensions(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-first-slice/AC-49, and nothing may leave the machine or arrive from outside it.
+    # DRIVN-8/AC-49, and nothing may leave the machine or arrive from outside it.
     spill = tmp_path / "duckdb-tmp"
     spill.mkdir()
 
@@ -366,7 +366,7 @@ def test_duckdb_spills_where_it_is_told_and_cannot_fetch_extensions(
 def test_a_sort_too_big_for_memory_spills_inside_the_given_directory(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-first-slice/AC-49: spill files would hold source data.
+    # DRIVN-8/AC-49: spill files would hold source data.
     cwd = tmp_path / "cwd"
     cwd.mkdir()
     monkeypatch.chdir(cwd)
@@ -410,7 +410,7 @@ def test_duckdb_types_map_to_the_contract_vocabulary(
 def test_duckdb_writes_nothing_to_the_current_directory(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-first-slice/AC-49
+    # DRIVN-8/AC-49
     cwd = tmp_path / "cwd"
     cwd.mkdir()
     monkeypatch.chdir(cwd)
@@ -423,7 +423,7 @@ def test_duckdb_writes_nothing_to_the_current_directory(
 def test_a_hash_in_the_header_and_first_row_stays_in_the_file_it_describes(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-first-slice/AC-22: DuckDB can decide # marks comments and lose the header to it.
+    # DRIVN-8/AC-22: DuckDB can decide # marks comments and lose the header to it.
     path = tmp_path / "hash.csv"
     path.write_text("#id,name\n#1,a\n2,b\n3,c\n4,d\n", encoding="utf-8", newline="")
 
@@ -472,7 +472,7 @@ def finishes(call: Callable[[], object]) -> bool:
 def test_a_file_that_becomes_a_fifo_is_refused_rather_than_waited_on(
     tmp_path: Path, read: Callable[[Path, Path], object]
 ) -> None:
-    # CFX-APP-first-slice/AC-31: found reviewing T06, a file can change just after it was checked.
+    # DRIVN-8/AC-31: found reviewing T06, a file can change just after it was checked.
     fifo = tmp_path / "fifo.csv"
     os.mkfifo(fifo)
 
@@ -521,7 +521,7 @@ def test_long_cells_are_cut_before_they_reach_python(tmp_path: Path) -> None:
 def test_values_starting_with_a_hash_count_when_detecting_a_columns_type(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-first-slice/AC-24: read as comments, they would leave this column looking like numbers.
+    # DRIVN-8/AC-24: read as comments, they would leave this column looking like numbers.
     path = tmp_path / "hash.csv"
     path.write_text(
         "issue,title\n#101,a\n#102,b\n103,c\n104,d\n105,e\n",

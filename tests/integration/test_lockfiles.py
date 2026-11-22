@@ -1,4 +1,4 @@
-"""CFX-APP-first-slice/AC-50: a clean checkout installs from the lockfiles without changing them."""
+"""DRIVN-8/AC-50: a clean checkout installs from the lockfiles without changing them."""
 
 import shutil
 import subprocess

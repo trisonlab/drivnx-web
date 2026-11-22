@@ -2,7 +2,7 @@
 id: DRIVN-20
 legacy_id: CFX-APP-first-slice-T10
 title: "Full journey and project checks"
-feature: CFX-APP-first-slice
+feature: DRIVN-8
 feature_revision: 10
 stories: [US-09]
 criteria: [AC-51, AC-53, AC-54]

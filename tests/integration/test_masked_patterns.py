@@ -1,4 +1,4 @@
-"""What a masked pattern keeps of a value, CFX-APP-csv-profile AC-14 and AC-20, from ADR 0004."""
+"""What a masked pattern keeps of a value, DRIVN-9 AC-14 and AC-20, from ADR 0004."""
 
 import csv
 import time
@@ -59,7 +59,7 @@ def patterns_of(client: TestClient, tmp_path: Path, values: list[str]) -> list[d
 def test_letters_become_a_and_digits_become_9_in_any_script_and_the_rest_stays(
     client: TestClient, tmp_path: Path, value: str, pattern: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-20
+    # DRIVN-9/AC-20
     found = patterns_of(client, tmp_path, [value, value, value])
 
     assert found == [{"pattern": pattern, "count": 3, "cut": False}]
@@ -73,7 +73,7 @@ def test_letters_become_a_and_digits_become_9_in_any_script_and_the_rest_stays(
 def test_a_character_too_new_for_duckdb_is_still_hidden(
     client: TestClient, tmp_path: Path, value: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-20: found reviewing T05. Its tables don't know these, so asking for
+    # DRIVN-9/AC-20: found reviewing T05. Its tables don't know these, so asking for
     # letters misses them and the saved pattern would be the value itself. A too-new digit can't
     # be told from a letter, so it becomes `A`, which hides it just the same.
     assert patterns_of(client, tmp_path, [value] * 3)[0]["pattern"] == "A"
@@ -92,7 +92,7 @@ def test_a_character_too_new_for_duckdb_is_still_hidden(
 def test_a_combining_mark_counts_as_part_of_its_letter(
     client: TestClient, tmp_path: Path, value: str, pattern: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-20, by the user's decision: `é` gives one `A` however it's encoded,
+    # DRIVN-9/AC-20, by the user's decision: `é` gives one `A` however it's encoded,
     # and a vowel sign on a letter doesn't stay.
     assert patterns_of(client, tmp_path, [value] * 3)[0]["pattern"] == pattern
 
@@ -101,7 +101,7 @@ def test_a_combining_mark_counts_as_part_of_its_letter(
 def test_a_number_that_is_not_a_decimal_digit_becomes_9_too(
     client: TestClient, tmp_path: Path, value: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-20, by the user's decision: left alone, the saved pattern would be the
+    # DRIVN-9/AC-20, by the user's decision: left alone, the saved pattern would be the
     # value itself, which ADR 0004 is there to prevent.
     assert patterns_of(client, tmp_path, [value] * 3)[0]["pattern"] == "9"
 
@@ -113,7 +113,7 @@ def test_a_number_that_is_not_a_decimal_digit_becomes_9_too(
 def test_a_pattern_stops_at_40_characters_and_says_when_it_was_cut(
     client: TestClient, tmp_path: Path, length: int, pattern_length: int, cut: bool
 ) -> None:
-    # CFX-APP-csv-profile/AC-20
+    # DRIVN-9/AC-20
     found = patterns_of(client, tmp_path, ["x" * length] * 3)
 
     assert found == [{"pattern": "A" * pattern_length, "count": 3, "cut": cut}]
@@ -122,7 +122,7 @@ def test_a_pattern_stops_at_40_characters_and_says_when_it_was_cut(
 def test_only_a_cut_pattern_is_marked_when_both_look_the_same(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-20: 40 letters and 41 letters are different shapes.
+    # DRIVN-9/AC-20: 40 letters and 41 letters are different shapes.
     found = patterns_of(client, tmp_path, ["x" * 40] * 2 + ["y" * 41])
 
     assert found == [
@@ -134,7 +134,7 @@ def test_only_a_cut_pattern_is_marked_when_both_look_the_same(
 def test_a_column_keeps_its_10_most_common_patterns(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-14, from ADR 0004. 12 shapes: length 1 appears 12 times, length 12 once.
+    # DRIVN-9/AC-14, from ADR 0004. 12 shapes: length 1 appears 12 times, length 12 once.
     values = [
         "x" * length for length in range(1, 13) for _ in range(13 - length)
     ]
@@ -149,14 +149,14 @@ def test_a_column_keeps_its_10_most_common_patterns(
 def test_equally_common_patterns_come_in_a_repeatable_order(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-19: a golden file couldn't hold an exact value otherwise.
+    # DRIVN-9/AC-19: a golden file couldn't hold an exact value otherwise.
     found = patterns_of(client, tmp_path, ["b1", "1b", "b1", "1b", "bb", "bb"])
 
     assert [entry["pattern"] for entry in found] == ["9A", "A9", "AA"]
 
 
 def test_missing_values_have_no_pattern(client: TestClient, tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-14: a blank isn't a shape of the column's values.
+    # DRIVN-9/AC-14: a blank isn't a shape of the column's values.
     found = patterns_of(client, tmp_path, ["ab", "", "   ", " ", "cd"])
 
     assert found == [{"pattern": "AA", "count": 2, "cut": False}]
@@ -165,7 +165,7 @@ def test_missing_values_have_no_pattern(client: TestClient, tmp_path: Path) -> N
 def test_a_column_with_nothing_in_it_saves_no_patterns(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-14
+    # DRIVN-9/AC-14
     assert patterns_of(client, tmp_path, ["", "  ", ""]) == []
 
 

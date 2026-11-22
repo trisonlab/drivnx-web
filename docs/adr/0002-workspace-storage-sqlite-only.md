@@ -76,7 +76,7 @@ none of it is.
      than 1,000 observations takes several transactions.
   3. The run ends as `completed`, `cancelled` or `failed`, also in its own transaction. A completed run's
      findings are saved in that transaction, so a run that ends any other way has none and a completed one never
-     has only some (CFX-APP-csv-profile T08). They're written in bulk: on a RAM disk, 4,501 findings from 1,500
+     has only some (DRIVN-9 T08). They're written in bulk: on a RAM disk, 4,501 findings from 1,500
      columns held the write lock for 0.16 s, and 21,001 from 7,000 columns for 1.01 s.
   4. At startup, any run still `running` is marked `interrupted`. No process can still be writing it, because of
      the ADR 0001 lock.

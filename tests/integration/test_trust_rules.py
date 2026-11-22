@@ -1,6 +1,6 @@
 """The trust-state rules in Section 12 of the direction doc, as amended by ADR 0003.
 
-CFX-APP-first-slice AC-36, AC-37 and AC-38. The table below is written out from Section 12 by hand,
+DRIVN-8 AC-36, AC-37 and AC-38. The table below is written out from Section 12 by hand,
 so it can't agree with the code just because it was worked out the same way.
 """
 
@@ -79,7 +79,7 @@ ALLOWED = {
 def test_each_allowed_transition_gives_its_state(
     key: tuple, result: TrustState
 ) -> None:
-    # CFX-APP-first-slice/AC-36
+    # DRIVN-8/AC-36
     actor, action, kind, state = key
 
     assert next_state(actor, action, kind, state) is result
@@ -92,7 +92,7 @@ EVERY_CASE = itertools.product(Actor, Action, ItemKind, [NEW, *TrustState])
     "key", [case for case in EVERY_CASE if case not in ALLOWED], ids=str
 )
 def test_everything_else_is_rejected(key: tuple) -> None:
-    # CFX-APP-first-slice/AC-37, including AI or system Inferred -> Confirmed or Defined.
+    # DRIVN-8/AC-37, including AI or system Inferred -> Confirmed or Defined.
     actor, action, kind, state = key
 
     with pytest.raises(Rejected):
@@ -104,6 +104,6 @@ def test_everything_else_is_rejected(key: tuple) -> None:
 def test_the_hard_rule_only_a_person_can_confirm_or_define(
     actor: Actor, action: Action
 ) -> None:
-    # CFX-APP-first-slice/AC-37: named on its own because Section 3 calls it the hard rule.
+    # DRIVN-8/AC-37: named on its own because Section 3 calls it the hard rule.
     with pytest.raises(Rejected):
         next_state(actor, action, RULE, INFERRED)

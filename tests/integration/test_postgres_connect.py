@@ -1,4 +1,4 @@
-"""Connecting to PostgreSQL read-only, CFX-APP-postgres AC-02, AC-03 and AC-14 (DRIVN-47)."""
+"""Connecting to PostgreSQL read-only, DRIVN-45 AC-02, AC-03 and AC-14 (DRIVN-47)."""
 
 import socket
 import subprocess
@@ -45,7 +45,7 @@ def version_text(dsn: str, tmp_path: Path) -> str:
 def test_details_that_work_give_the_servers_version_and_that_it_is_encrypted(
     postgres_server: str, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-02: the fixture has TLS, so "prefer" encrypts.
+    # DRIVN-45/AC-02: the fixture has TLS, so "prefer" encrypts.
     facts = check(FIXTURE, PASSWORD, tmp_path)
 
     assert f"PostgreSQL {facts.version} " in version_text(postgres_server, tmp_path)
@@ -55,7 +55,7 @@ def test_details_that_work_give_the_servers_version_and_that_it_is_encrypted(
 def test_a_connection_the_server_wont_encrypt_says_so(
     postgres_server: str, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-02: the fixture refuses TLS to this account, so "prefer" connects
+    # DRIVN-45/AC-02: the fixture refuses TLS to this account, so "prefer" connects
     # without it.
     plain = replace(FIXTURE, user=postgres_fixture.PLAIN_USER)
 
@@ -65,7 +65,7 @@ def test_a_connection_the_server_wont_encrypt_says_so(
 def test_verify_full_connects_with_the_ca_that_signed_the_servers_certificate(
     postgres_server: str, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-01: a CA certificate file, for verify-full.
+    # DRIVN-45/AC-01: a CA certificate file, for verify-full.
     verified = replace(
         FIXTURE, tls_mode="verify-full", ca_path=str(postgres_fixture.CA_CERTIFICATE)
     )
@@ -117,7 +117,7 @@ def test_each_way_of_not_connecting_says_which(
     reason: str,
     says: str,
 ) -> None:
-    # CFX-APP-postgres/AC-03: a host that can't be reached, refused credentials, a database that
+    # DRIVN-45/AC-03: a host that can't be reached, refused credentials, a database that
     # doesn't exist, or TLS that is required and fails.
     paths = {"another": str(another_ca(tmp_path)), "missing": str(tmp_path / "no-ca.crt")}
     if change.get("port") == "free":
@@ -135,7 +135,7 @@ def test_each_way_of_not_connecting_says_which(
 def test_a_server_that_never_answers_fails_within_the_connect_timeout(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-postgres/AC-03: "within the connect timeout", for a host that accepts the
+    # DRIVN-45/AC-03: "within the connect timeout", for a host that accepts the
     # connection and then says nothing, as a firewall or a hung server can.
     silent = socket.socket()
     silent.bind(("127.0.0.1", 0))
@@ -155,7 +155,7 @@ def test_a_server_that_never_answers_fails_within_the_connect_timeout(
 def test_a_password_with_quotes_a_backslash_and_an_accent_reaches_the_server_as_typed(
     postgres_server: str, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-02: details that work, whatever the password holds.
+    # DRIVN-45/AC-02: details that work, whatever the password holds.
     quotes = replace(FIXTURE, user=postgres_fixture.QUOTES_USER)
 
     assert check(quotes, postgres_fixture.QUOTES_PASSWORD, tmp_path).version
@@ -171,7 +171,7 @@ PLANTED = "Pl4nted'pass\\word é"  # pragma: allowlist secret, ai-skills: allow
 def test_no_failure_repeats_the_password(
     postgres_server: str, tmp_path: Path, change: dict[str, str]
 ) -> None:
-    # CFX-APP-postgres/AC-30 starts here: DuckDB's errors repeat its connection string, so the
+    # DRIVN-45/AC-30 starts here: DuckDB's errors repeat its connection string, so the
     # password must never be in it, and the failure must carry nothing that is.
     with pytest.raises(ConnectFailure) as failed:
         check(replace(FIXTURE, **change), PLANTED, tmp_path)
@@ -185,7 +185,7 @@ def test_no_failure_repeats_the_password(
 def test_the_password_is_only_in_duckdbs_secret_and_shown_redacted(
     postgres_server: str, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-30 starts here.
+    # DRIVN-45/AC-30 starts here.
     with duckdb_connection(tmp_path) as connection:
         attach(connection, FIXTURE, PASSWORD)
         secrets = connection.execute("SELECT secret_string FROM duckdb_secrets()").fetchall()
@@ -198,7 +198,7 @@ def test_the_password_is_only_in_duckdbs_secret_and_shown_redacted(
 
 
 def test_a_password_duckdb_cant_take_fails_without_repeating_it(tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-30 starts here: a statement DuckDB refuses is printed in its error.
+    # DRIVN-45/AC-30 starts here: a statement DuckDB refuses is printed in its error.
     with pytest.raises(ConnectFailure) as failed:
         check(FIXTURE, f"{PLANTED}\x00rest", tmp_path)
 
@@ -217,7 +217,7 @@ def test_a_password_duckdb_cant_take_fails_without_repeating_it(tmp_path: Path) 
 def test_a_write_through_drivnxs_connection_is_refused_by_the_server(
     postgres_server: str, tmp_path: Path, statement: str
 ) -> None:
-    # CFX-APP-postgres/AC-14: `postgres_execute` sends a statement as it is. The fixture's role
+    # DRIVN-45/AC-14: `postgres_execute` sends a statement as it is. The fixture's role
     # can't write these anyway, so the test looks for the read-only refusal, which the server
     # gives first. Either of DrivnX's two layers alone makes it: DuckDB's READ_ONLY attach opens
     # read-only transactions, and the session's default is read-only.
@@ -229,7 +229,7 @@ def test_a_write_through_drivnxs_connection_is_refused_by_the_server(
 
 
 def test_drivnx_names_itself_to_the_server(postgres_server: str, tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-14, and AC-15 to come: a database administrator can see DrivnX's
+    # DRIVN-45/AC-14, and AC-15 to come: a database administrator can see DrivnX's
     # sessions, and they're read-only by default.
     with duckdb_connection(tmp_path) as connection:
         attach(connection, FIXTURE, PASSWORD)
@@ -242,7 +242,7 @@ def test_drivnx_names_itself_to_the_server(postgres_server: str, tmp_path: Path)
 
 
 def test_duckdb_attaches_the_database_read_only(postgres_server: str, tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-14: the other of the two layers.
+    # DRIVN-45/AC-14: the other of the two layers.
     with duckdb_connection(tmp_path) as connection:
         attach(connection, FIXTURE, PASSWORD)
         read_only = connection.execute(
@@ -255,7 +255,7 @@ def test_duckdb_attaches_the_database_read_only(postgres_server: str, tmp_path: 
 def test_a_platform_with_no_bundled_extension_is_told_postgresql_isnt_available(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-postgres/AC-07: an empty folder is what a platform the wheel has nothing for sees.
+    # DRIVN-45/AC-07: an empty folder is what a platform the wheel has nothing for sees.
     monkeypatch.setattr(postgres, "EXTENSIONS", tmp_path / "none")
     with duckdb_connection(tmp_path) as connection:
         platform = connection.execute("PRAGMA platform").fetchone()[0]

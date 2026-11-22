@@ -104,7 +104,7 @@ REPLACING = re.compile(rf"(?is)\bREPLACE\b.*?\b({'|'.join(sorted(WATCHED))})\b")
 
 @pytest.fixture(scope="session", autouse=True)
 def history_changes() -> Iterator[list[str]]:
-    # CFX-APP-first-slice/AC-42 (ADR 0002 point 4), for what this process runs through a SQLAlchemy
+    # DRIVN-8/AC-42 (ADR 0002 point 4), for what this process runs through a SQLAlchemy
     # engine. SQLite says what each update or delete touches, also from a trigger or through the
     # engine's driver connection. Not watched: a REPLACE in a trigger or through that driver
     # connection, `ALTER TABLE`, and a separate `sqlite3.connect`, such as a separately started
@@ -143,7 +143,7 @@ def history_changes() -> Iterator[list[str]]:
 def no_workspace_holds_a_credential(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> Iterator[None]:
-    # CFX-APP-first-slice/AC-48: every workspace this run created, backups included. Every test's
+    # DRIVN-8/AC-48: every workspace this run created, backups included. Every test's
     # temporary directory sits under this one.
     yield
     found = {

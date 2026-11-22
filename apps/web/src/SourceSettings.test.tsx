@@ -73,7 +73,7 @@ function savedBody() {
 }
 
 test("the settings stay out of the way until they're opened", () => {
-  // CFX-APP-csv-profile/AC-01
+  // DRIVN-9/AC-01
   showSettings();
 
   expect(screen.queryByRole("combobox", { name: "Delimiter" })).not.toBeInTheDocument();
@@ -81,7 +81,7 @@ test("the settings stay out of the way until they're opened", () => {
 });
 
 test("the current settings are shown and can be changed", async () => {
-  // CFX-APP-csv-profile/AC-01
+  // DRIVN-9/AC-01
   showSettings();
   await open();
 
@@ -105,7 +105,7 @@ test("the current settings are shown and can be changed", async () => {
 });
 
 test("a number the user chose isn't described as automatic", async () => {
-  // CFX-APP-csv-profile/AC-01
+  // DRIVN-9/AC-01
   showSettings({ ...report, skip_lines: 4 });
   await open();
 
@@ -114,7 +114,7 @@ test("a number the user chose isn't described as automatic", async () => {
 });
 
 test("saving sends what the user chose", async () => {
-  // CFX-APP-csv-profile/AC-02
+  // DRIVN-9/AC-02
   showSettings();
   await open();
 
@@ -136,7 +136,7 @@ test("saving sends what the user chose", async () => {
 });
 
 test("lines to skip stay automatic unless the user changes them", async () => {
-  // CFX-APP-csv-profile/AC-02: with the right delimiter, the number can come out differently.
+  // DRIVN-9/AC-02: with the right delimiter, the number can come out differently.
   showSettings();
   await open();
 
@@ -148,7 +148,7 @@ test("lines to skip stay automatic unless the user changes them", async () => {
 });
 
 test("after saving, the app shows the new settings and starts the preview again", async () => {
-  // CFX-APP-csv-profile/AC-02
+  // DRIVN-9/AC-02
   let current = report;
   onSave = () => {
     current = { ...report, delimiter: "\t", columns: [{ ...report.columns[0], name: "corrected" }] };
@@ -193,7 +193,7 @@ test("after saving, the app shows the new settings and starts the preview again"
 });
 
 test("settings the file can't be read with are refused with the server's words", async () => {
-  // CFX-APP-csv-profile/AC-03
+  // DRIVN-9/AC-03
   onSave = () =>
     Response.json(
       { detail: "DrivnX can't read this file with these settings. Your previous settings are still in use." },
@@ -211,7 +211,7 @@ test("settings the file can't be read with are refused with the server's words",
 });
 
 test("a file that has gone says so when saving", async () => {
-  // CFX-APP-csv-profile/AC-03
+  // DRIVN-9/AC-03
   onSave = () =>
     Response.json({ detail: "DrivnX can't find this file. It may have moved or been deleted." }, { status: 409 });
   showSettings();
@@ -234,7 +234,7 @@ test("a busy workspace says so when saving, so the user tries again", async () =
 });
 
 test.each(["", "1001", "2.5"])("%j isn't accepted as lines to skip", async (typed) => {
-  // CFX-APP-csv-profile/AC-01
+  // DRIVN-9/AC-01
   showSettings();
   await open();
 
@@ -251,7 +251,7 @@ test.each(["", "1001", "2.5"])("%j isn't accepted as lines to skip", async (type
 });
 
 test("settings can't be changed while the file can't be found", async () => {
-  // CFX-APP-csv-profile/AC-03
+  // DRIVN-9/AC-03
   showSettings({ ...report, available: false });
   await open();
 
@@ -260,7 +260,7 @@ test("settings can't be changed while the file can't be found", async () => {
 });
 
 test("saving the same settings after the file changed reads the rows again", async () => {
-  // CFX-APP-csv-profile/AC-02: the settings didn't change, so nothing else would refresh the preview.
+  // DRIVN-9/AC-02: the settings didn't change, so nothing else would refresh the preview.
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
@@ -283,7 +283,7 @@ test("saving the same settings after the file changed reads the rows again", asy
 });
 
 test("the settings use the first page the preview already read", async () => {
-  // CFX-APP-csv-profile/AC-02: the lines worked out show at once, without reading the file again.
+  // DRIVN-9/AC-02: the lines worked out show at once, without reading the file again.
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>

@@ -1,4 +1,4 @@
-"""Opening a workspace safely, CFX-APP-first-slice AC-02, AC-03, AC-04, AC-17, AC-18, AC-19, AC-44."""
+"""Opening a workspace safely, DRIVN-8 AC-02, AC-03, AC-04, AC-17, AC-18, AC-19, AC-44."""
 
 import signal
 import stat
@@ -17,7 +17,7 @@ def mode(path: Path) -> int:
 def test_a_non_empty_directory_that_is_not_a_workspace_is_refused_and_left_alone(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-03
+    # DRIVN-8/AC-03
     documents = tmp_path / "Documents"
     documents.mkdir(mode=0o755)
     documents.chmod(0o755)
@@ -38,7 +38,7 @@ def test_a_non_empty_directory_that_is_not_a_workspace_is_refused_and_left_alone
 def test_a_usable_directory_opens_as_a_workspace(
     start_drivnx: StartDrivnX, tmp_path: Path, state: str
 ) -> None:
-    # CFX-APP-first-slice/AC-02
+    # DRIVN-8/AC-02
     workspace = tmp_path / "parent" / "workspace"
     if state != "new":
         workspace.mkdir(parents=True)
@@ -55,7 +55,7 @@ def test_a_usable_directory_opens_as_a_workspace(
 def test_an_existing_workspace_opens_again(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-02
+    # DRIVN-8/AC-02
     workspace = tmp_path / "workspace"
     first = start_drivnx("--no-browser", workspace=workspace)
     first.wait_for_launch()
@@ -72,7 +72,7 @@ def test_an_existing_workspace_opens_again(
 def test_a_new_workspace_is_owner_only_whatever_the_umask(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-17
+    # DRIVN-8/AC-17
     workspace = tmp_path / "workspace"
 
     start_drivnx("--no-browser", workspace=workspace, umask=0).wait_for_launch()
@@ -86,7 +86,7 @@ def test_a_new_workspace_is_owner_only_whatever_the_umask(
 def test_an_empty_directory_becomes_owner_only(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-17
+    # DRIVN-8/AC-17
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     workspace.chmod(0o755)
@@ -99,7 +99,7 @@ def test_an_empty_directory_becomes_owner_only(
 def test_a_file_instead_of_a_directory_gets_a_clear_error(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-03
+    # DRIVN-8/AC-03
     file = tmp_path / "file.txt"
     file.write_text("x", encoding="utf-8", newline="")
 
@@ -115,7 +115,7 @@ def test_a_file_instead_of_a_directory_gets_a_clear_error(
 def test_a_second_runtime_on_the_same_workspace_is_refused(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-04
+    # DRIVN-8/AC-04
     workspace = tmp_path / "workspace"
     first = start_drivnx("--no-browser", workspace=workspace)
     first.wait_for_launch()
@@ -133,7 +133,7 @@ def test_a_second_runtime_on_the_same_workspace_is_refused(
 def test_a_killed_runtime_does_not_block_the_next_one(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-04: the lock file stays on disk, and only the held lock counts.
+    # DRIVN-8/AC-04: the lock file stays on disk, and only the held lock counts.
     workspace = tmp_path / "workspace"
     first = start_drivnx("--no-browser", workspace=workspace)
     first.wait_for_launch()
@@ -148,7 +148,7 @@ def test_a_killed_runtime_does_not_block_the_next_one(
 def test_two_different_workspaces_can_run_at_once(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-04
+    # DRIVN-8/AC-04
     start_drivnx("--no-browser", workspace=tmp_path / "one").wait_for_launch()
     start_drivnx("--no-browser", workspace=tmp_path / "two").wait_for_launch()
 
@@ -156,7 +156,7 @@ def test_two_different_workspaces_can_run_at_once(
 def test_no_argument_opens_the_default_workspace(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # ADR 0001. CFX-APP-first-slice/AC-01 is finished in T04.
+    # ADR 0001. DRIVN-8/AC-01 is finished in T04.
     start_drivnx("--no-browser", workspace=None).wait_for_launch()
 
     assert (tmp_path / "home" / "DrivnX" / "default" / "workspace.db").is_file()
@@ -176,7 +176,7 @@ def test_no_argument_opens_the_default_workspace(
 def test_a_workspace_in_a_sync_folder_gets_a_warning(
     start_drivnx: StartDrivnX, tmp_path: Path, folder: str
 ) -> None:
-    # CFX-APP-first-slice/AC-18
+    # DRIVN-8/AC-18
     drivnx = start_drivnx("--no-browser", workspace=tmp_path / folder / "workspace")
     drivnx.wait_for_launch()
     drivnx.process.terminate()
@@ -190,7 +190,7 @@ def test_a_workspace_in_a_sync_folder_gets_a_warning(
 def test_a_workspace_elsewhere_gets_no_warning(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-18: a folder name that merely contains the word isn't a sync folder.
+    # DRIVN-8/AC-18: a folder name that merely contains the word isn't a sync folder.
     drivnx = start_drivnx(
         "--no-browser", workspace=tmp_path / "my-dropbox-notes" / "workspace"
     )

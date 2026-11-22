@@ -2,7 +2,7 @@
 id: DRIVN-52
 legacy_id: CFX-APP-postgres-T07
 title: "Confirm before profiling with an account that can write"
-feature: CFX-APP-postgres
+feature: DRIVN-45
 feature_revision: 3
 stories: [US-03]
 criteria: [AC-16]

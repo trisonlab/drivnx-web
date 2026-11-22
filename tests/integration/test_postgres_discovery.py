@@ -1,4 +1,4 @@
-"""Listing a database's schemas and objects, CFX-APP-postgres AC-08, AC-09 and AC-10 (DRIVN-49),
+"""Listing a database's schemas and objects, DRIVN-45 AC-08, AC-09 and AC-10 (DRIVN-49),
 and what the role can change in them, AC-16 (DRIVN-52)."""
 
 import re
@@ -143,7 +143,7 @@ def objects_in(discovery: Discovery, schema: str) -> dict[str, DiscoveredObject]
 
 
 def test_every_kind_of_object_is_listed_with_its_kind_and_estimate(discovery: Discovery) -> None:
-    # CFX-APP-postgres/AC-08: tables, partitioned tables, views and materialized views, each with
+    # DRIVN-45/AC-08: tables, partitioned tables, views and materialized views, each with
     # its kind and estimated row count. Only the materialized view has been analysed: two regions.
     listed = {
         (found.name, found.kind, found.estimated_rows)
@@ -161,14 +161,14 @@ def test_every_kind_of_object_is_listed_with_its_kind_and_estimate(discovery: Di
 def test_a_partitioned_tables_estimate_is_its_analysed_partitions_rows(
     discovery: Discovery,
 ) -> None:
-    # CFX-APP-postgres/AC-08: autovacuum analyses partitions and never their parent, whose own
+    # DRIVN-45/AC-08: autovacuum analyses partitions and never their parent, whose own
     # estimate then stays at -1. Three rows in 2024 and two in 2025 are analysed; 2026's one row is
     # in a partition never analysed, so it is left out.
     assert objects_in(discovery, "drivnx_discovery")["visits"].estimated_rows == 5
 
 
 def test_partitions_and_foreign_tables_are_not_listed(discovery: Discovery) -> None:
-    # CFX-APP-postgres/AC-08: partitions hidden, under their partitioned table; foreign tables
+    # DRIVN-45/AC-08: partitions hidden, under their partitioned table; foreign tables
     # aren't listed.
     listed = objects_in(discovery, "drivnx_discovery")
 
@@ -177,7 +177,7 @@ def test_partitions_and_foreign_tables_are_not_listed(discovery: Discovery) -> N
 
 
 def test_system_and_temporary_schemas_are_not_listed(discovery: Discovery) -> None:
-    # CFX-APP-postgres/AC-08: every schema the user can see, an empty one too, except the system
+    # DRIVN-45/AC-08: every schema the user can see, an empty one too, except the system
     # schemas and the temporary ones (pg_temp_N, pg_toast_temp_N), which the fixture made by
     # creating a temporary table.
     shown = set(discovery.schemas) | {found.schema for found in discovery.objects}
@@ -190,7 +190,7 @@ def test_system_and_temporary_schemas_are_not_listed(discovery: Discovery) -> No
 def test_an_object_without_select_or_without_schema_usage_is_listed_as_not_readable(
     discovery: Discovery,
 ) -> None:
-    # CFX-APP-postgres/AC-10: listed, as "no read access". The fixture's role can SELECT from
+    # DRIVN-45/AC-10: listed, as "no read access". The fixture's role can SELECT from
     # drivnx_no_usage.hidden but not use its schema, so can't read it either.
     listed = objects_in(discovery, "drivnx_discovery")
     hidden = objects_in(discovery, "drivnx_no_usage")["hidden"]
@@ -204,7 +204,7 @@ def test_an_object_without_select_or_without_schema_usage_is_listed_as_not_reada
 def test_a_materialized_view_never_refreshed_is_listed_as_not_populated(
     discovery: Discovery,
 ) -> None:
-    # CFX-APP-postgres/AC-10, as agreed for DRIVN-49: the role may SELECT from it, but every read
+    # DRIVN-45/AC-10, as agreed for DRIVN-49: the role may SELECT from it, but every read
     # fails with "has not been populated", so it is listed and can't be chosen.
     listed = objects_in(discovery, "drivnx_discovery")
 
@@ -217,7 +217,7 @@ def test_a_materialized_view_never_refreshed_is_listed_as_not_populated(
 def test_an_objects_columns_have_their_types_normalised_types_and_whether_they_allow_nulls(
     discovery: Discovery,
 ) -> None:
-    # CFX-APP-postgres/AC-09: in the table's order. The normalised types are ADR 0003's
+    # DRIVN-45/AC-09: in the table's order. The normalised types are ADR 0003's
     # vocabulary; a domain has its base type's, and anything else is a string.
     typed = objects_in(discovery, "drivnx_discovery")["typed"]
 
@@ -247,7 +247,7 @@ def test_an_objects_columns_have_their_types_normalised_types_and_whether_they_a
 
 
 def test_a_views_columns_are_listed_too(discovery: Discovery) -> None:
-    # CFX-APP-postgres/AC-09: any listed object can be opened.
+    # DRIVN-45/AC-09: any listed object can be opened.
     view = objects_in(discovery, "drivnx_discovery")["order_view"]
 
     assert [(column.name, column.physical_type) for column in view.columns] == [
@@ -259,7 +259,7 @@ def test_a_views_columns_are_listed_too(discovery: Discovery) -> None:
 def test_declared_primary_unique_and_foreign_keys_are_found_with_what_they_reference(
     discovery: Discovery,
 ) -> None:
-    # CFX-APP-postgres/AC-09: each key's columns in the key's order, not the table's.
+    # DRIVN-45/AC-09: each key's columns in the key's order, not the table's.
     orders = objects_in(discovery, "drivnx_discovery")["orders"]
 
     assert set(orders.keys) == {
@@ -277,7 +277,7 @@ def test_declared_primary_unique_and_foreign_keys_are_found_with_what_they_refer
 
 
 def test_a_keys_column_names_are_kept_whole_whatever_they_hold(discovery: Discovery) -> None:
-    # CFX-APP-postgres/AC-09: names with a comma, a quote, a dot, a space and an accent.
+    # DRIVN-45/AC-09: names with a comma, a quote, a dot, a space and an accent.
     odd = objects_in(discovery, "drivnx_discovery")["Odd.Name, é"]
 
     assert odd.keys == (DeclaredKey("unique", "key, odd", ('c"d', "a,b")),)
@@ -286,7 +286,7 @@ def test_a_keys_column_names_are_kept_whole_whatever_they_hold(discovery: Discov
 def test_a_foreign_key_to_a_partitioned_table_is_one_key_to_that_table(
     discovery: Discovery,
 ) -> None:
-    # CFX-APP-postgres/AC-09: PostgreSQL keeps a copy of the key for each partition referenced,
+    # DRIVN-45/AC-09: PostgreSQL keeps a copy of the key for each partition referenced,
     # and partitions are hidden.
     bookings = objects_in(discovery, "drivnx_discovery")["bookings"]
     periods = objects_in(discovery, "drivnx_discovery_ref")["periods"]
@@ -305,7 +305,7 @@ def test_a_foreign_key_to_a_partitioned_table_is_one_key_to_that_table(
 
 
 def test_discovery_reads_no_row(discovery: Discovery) -> None:
-    # CFX-APP-postgres/AC-09: "without reading any row". The fixture's role can't read a row of
+    # DRIVN-45/AC-09: "without reading any row". The fixture's role can't read a row of
     # either of these, yet discovery found their columns and keys.
     secret = objects_in(discovery, "drivnx_discovery")["secret"]
     hidden = objects_in(discovery, "drivnx_no_usage")["hidden"]
@@ -319,7 +319,7 @@ def test_discovery_reads_no_row(discovery: Discovery) -> None:
 def test_a_catalog_query_that_fails_says_so_without_duckdbs_text(
     postgres_admin: Callable[[str], None], tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-08: the server refuses one of the catalog queries. DuckDB's text, which
+    # DRIVN-45/AC-08: the server refuses one of the catalog queries. DuckDB's text, which
     # repeats the query and the server's error, is never shown.
     function = "FUNCTION pg_catalog.has_schema_privilege(oid, text)"
     postgres_admin(f"REVOKE EXECUTE ON {function} FROM PUBLIC")
@@ -336,7 +336,7 @@ def test_a_catalog_query_that_fails_says_so_without_duckdbs_text(
 
 
 def test_discovery_has_a_30_second_statement_timeout(postgres_server: str, tmp_path: Path) -> None:
-    # CFX-APP-postgres, the assumption that every query DrivnX sends has a statement_timeout, 30 s
+    # DRIVN-45, the assumption that every query DrivnX sends has a statement_timeout, 30 s
     # for discovery (AC-08, AC-09): set for the whole connection, under DuckDB's own queries too.
     with duckdb_connection(tmp_path) as connection:
         attach(connection, FIXTURE, PASSWORD)
@@ -412,7 +412,7 @@ WRITTEN = ("inserted", "updated", "read", "emptied")
 
 @pytest.mark.usefixtures("write_roles")
 def test_each_object_says_what_the_role_can_change_in_it(tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-16: INSERT, UPDATE, DELETE and TRUNCATE, in that order, each as the
+    # DRIVN-45/AC-16: INSERT, UPDATE, DELETE and TRUNCATE, in that order, each as the
     # server grants it. UPDATE on one column counts, as the role can change the table with it.
     found = discover(signed_in_as(WRITER), WRITER_PASSWORD, tmp_path)
 
@@ -428,14 +428,14 @@ def test_each_object_says_what_the_role_can_change_in_it(tmp_path: Path) -> None
 
 @pytest.mark.usefixtures("write_roles")
 def test_a_superuser_is_said_to_be_one(tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-16: a superuser can change anything, whatever it's been granted.
+    # DRIVN-45/AC-16: a superuser can change anything, whatever it's been granted.
     found = discover(signed_in_as(SUPERUSER), SUPERUSER_PASSWORD, tmp_path)
 
     assert (found.role, found.superuser) == (SUPERUSER, True)
 
 
 def test_a_role_that_can_only_read_can_change_nothing(discovery: Discovery) -> None:
-    # CFX-APP-postgres/AC-16: the fixture's role is granted SELECT and nothing more, so no object
+    # DRIVN-45/AC-16: the fixture's role is granted SELECT and nothing more, so no object
     # it lists has a privilege that could change it.
     assert {found.write_privileges for found in discovery.objects} == {()}
     assert (discovery.role, discovery.superuser) == (postgres_fixture.USER, False)
@@ -445,7 +445,7 @@ def test_a_role_that_can_only_read_can_change_nothing(discovery: Discovery) -> N
 def test_a_grant_on_a_partition_or_a_child_table_counts_for_the_table_it_is_part_of(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-postgres/AC-16: the role can change the chosen table's rows through either, so it is
+    # DRIVN-45/AC-16: the role can change the chosen table's rows through either, so it is
     # warned as if granted on the table (found in review).
     listed = objects_in(discover(signed_in_as(WRITER), WRITER_PASSWORD, tmp_path), WRITE_SCHEMA)
 
@@ -474,7 +474,7 @@ def server_on_windows(temp_directory: Path) -> bool:
 def test_discovery_says_whether_the_server_checks_that_drivnx_is_still_there(
     discovery: Discovery, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-33: a server that checks ends a query once DrivnX is gone, even killed
+    # DRIVN-45/AC-33: a server that checks ends a query once DrivnX is gone, even killed
     # (decided for DRIVN-57). PostgreSQL can on Linux, macOS, illumos and the BSDs, not Windows.
     assert discovery.checks_closed_connections is not server_on_windows(tmp_path)
 
@@ -483,7 +483,7 @@ def test_discovery_says_whether_the_server_checks_that_drivnx_is_still_there(
 def test_a_session_attached_to_check_its_connection_has_the_server_check_it_every_second(
     tmp_path: Path, check_connection: bool, interval: str
 ) -> None:
-    # CFX-APP-postgres/AC-33: set as the session starts, so a session the extension opens again
+    # DRIVN-45/AC-33: set as the session starts, so a session the extension opens again
     # has it too (decided for DRIVN-57); it's off for every other session, as before.
     if check_connection and server_on_windows(tmp_path / "version"):
         pytest.skip("PostgreSQL on Windows can't check a connection (ADR 0009).")

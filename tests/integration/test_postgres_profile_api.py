@@ -1,4 +1,4 @@
-"""A fast profile of a database's chosen objects through the API, CFX-APP-postgres AC-13, AC-17,
+"""A fast profile of a database's chosen objects through the API, DRIVN-45 AC-13, AC-17,
 AC-18 and AC-24 (DRIVN-51)."""
 
 import threading
@@ -79,7 +79,7 @@ def chosen_source(client: TestClient, *names: str) -> str:
 def test_after_a_restart_a_run_waits_for_the_password(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-05: a run reads the database, so without a credential store it waits
+    # DRIVN-45/AC-05: a run reads the database, so without a credential store it waits
     # for the password, as the source asks for it.
     source_id = chosen_source(start_app(None), "people")
     after = start_app(None)
@@ -95,7 +95,7 @@ def test_after_a_restart_a_run_waits_for_the_password(
 def test_a_password_the_server_refuses_when_a_run_starts_asks_for_it_again(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-06: the run's start is the read that finds the stored password refused.
+    # DRIVN-45/AC-06: the run's start is the read that finds the stored password refused.
     store, source = saved_with_a_wrong_stored_password(start_app, workspace)
     after = start_app(store)
     listed = objects_in(after.get(f"/api/sources/{source.id}/objects").json(), SCHEMA)
@@ -112,7 +112,7 @@ def test_a_password_the_server_refuses_when_a_run_starts_asks_for_it_again(
 def test_a_run_on_an_object_changed_since_the_list_is_refused_pointing_to_the_refresh(
     client: TestClient, postgres_admin: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-13: "When a run starts on such an object, it is refused with a message
+    # DRIVN-45/AC-13: "When a run starts on such an object, it is refused with a message
     # pointing to the refresh."
     source_id = chosen_source(client, "people", "changing")
     postgres_admin(f"ALTER TABLE {SCHEMA}.changing ADD COLUMN note text")
@@ -143,7 +143,7 @@ def ended(client: TestClient, run_id: str) -> dict:
 def test_a_fast_profile_reads_each_chosen_object_as_planned_with_the_runs_seed(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-18: one run over every chosen object; a small table is read whole and a
+    # DRIVN-45/AC-18: one run over every chosen object; a small table is read whole and a
     # view from its first rows, and the seed is saved in the run.
     client = start_app(None)
     source_id = chosen_source(client, "people", "names")
@@ -177,7 +177,7 @@ def saved(workspace: Workspace, source_id: str, run_id: str) -> dict[tuple, tupl
 def test_each_objects_columns_get_the_metrics_for_their_type_and_only_null_is_missing(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-24 and the Assumptions' metrics: counts for every column, text lengths
+    # DRIVN-45/AC-24 and the Assumptions' metrics: counts for every column, text lengths
     # and masked patterns for text columns, never "values that don't fit"; only NULL is missing
     # (agreed for DRIVN-51). A whole table is measured "full", a view's first rows "sample".
     client = start_app(None)
@@ -215,7 +215,7 @@ def test_each_objects_columns_get_the_metrics_for_their_type_and_only_null_is_mi
 def test_a_run_that_cant_read_an_object_fails_and_says_which(
     start_app: StartApp, workspace: Workspace, postgres_admin: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-18 and AC-22: the run reads each object, and one it can't read ends it
+    # DRIVN-45/AC-18 and AC-22: the run reads each object, and one it can't read ends it
     # `failed`, with the object and DrivnX's reason, never DuckDB's or the server's text. Its
     # columns are as listed, so the start doesn't refuse it.
     client = start_app(None)
@@ -240,7 +240,7 @@ def test_a_run_that_cant_read_an_object_fails_and_says_which(
 def test_a_run_whose_connection_is_refused_says_why_without_naming_an_object(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-18: the job connects again after the start's check, and the server can
+    # DRIVN-45/AC-18: the job connects again after the start's check, and the server can
     # refuse it then, as when the password changed meanwhile. No object was being read, so the
     # reason stands alone. Started directly, as a request can't reach that moment.
     client = start_app(None)
@@ -274,7 +274,7 @@ def test_a_run_whose_connection_is_refused_says_why_without_naming_an_object(
 
 
 def test_a_second_run_is_refused_while_one_is_in_progress(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-17: "a second run is refused with a clear message".
+    # DRIVN-45/AC-17: "a second run is refused with a clear message".
     source_id = chosen_source(client, "slow")
     first = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "fast"})
     assert first.status_code == 202, first.text
@@ -291,7 +291,7 @@ def test_a_second_run_is_refused_while_one_is_in_progress(client: TestClient) ->
 def test_a_second_run_is_refused_without_connecting_to_the_server(
     client: TestClient, postgres_admin: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-17 and AC-23: refusing a second run needs nothing from the server, so
+    # DRIVN-45/AC-17 and AC-23: refusing a second run needs nothing from the server, so
     # it opens no second session there. The role is held to the one session the job has.
     source_id = chosen_source(client, "slow")
     run_id = client.post(
@@ -320,7 +320,7 @@ def running_on(client: TestClient, run_id: str) -> str | None:
 
 
 def test_a_running_run_says_which_object_it_is_on(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-17: "the header's profile status and the Profile tab show which object
+    # DRIVN-45/AC-17: "the header's profile status and the Profile tab show which object
     # a running run is on", from the run as the API lists it.
     source_id = chosen_source(client, "slow")
     run_id = client.post(
@@ -341,7 +341,7 @@ def test_a_running_run_says_which_object_it_is_on(client: TestClient) -> None:
 
 
 def test_a_database_runs_results_say_how_each_object_was_read(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-24: each metric's object and scope, and each object's method, for the
+    # DRIVN-45/AC-24: each metric's object and scope, and each object's method, for the
     # Profile tab's labels.
     source_id = chosen_source(client, "people", "names")
     run_id = client.post(
@@ -391,7 +391,7 @@ def test_a_database_runs_results_say_how_each_object_was_read(client: TestClient
 def test_an_object_larger_than_its_estimate_is_labelled_as_its_first_rows(
     client: TestClient,
 ) -> None:
-    # CFX-APP-postgres/AC-18: "a smaller or never-analysed one whole, unless it returns more than
+    # DRIVN-45/AC-18: "a smaller or never-analysed one whole, unless it returns more than
     # 100,000 rows, when it's labelled as the first rows returned, not random".
     source_id = chosen_source(client, "misestimated")
     run_id = client.post(
@@ -415,7 +415,7 @@ def test_an_object_larger_than_its_estimate_is_labelled_as_its_first_rows(
 
 
 def test_a_database_runs_values_on_request_arent_available_yet(client: TestClient) -> None:
-    # CFX-APP-postgres AC-28 comes with DRIVN-56.
+    # DRIVN-45 AC-28 comes with DRIVN-56.
     source_id = chosen_source(client, "people")
     run_id = client.post(
         "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
@@ -450,7 +450,7 @@ def drivnx_sessions(tmp_path: Path) -> Iterator[Callable[[], int]]:
 def test_a_jobs_attach_holds_even_a_read_on_every_thread_to_one_session(
     tmp_path: Path, drivnx_sessions: Callable[[], int]
 ) -> None:
-    # CFX-APP-postgres/AC-23 and ADR 0009 Decision 2: the job's pool has one session, which each
+    # DRIVN-45/AC-23 and ADR 0009 Decision 2: the job's pool has one session, which each
     # read waits for, as well as `threads = 1` on its reads. Here a read on 4 threads, which the
     # scanner would spread over 4 sessions of `wide`'s 14,000 pages, and its pool keeps them open.
     details = ConnectionDetails(
@@ -473,7 +473,7 @@ def test_a_jobs_attach_holds_even_a_read_on_every_thread_to_one_session(
 def test_a_run_holds_at_most_one_connection_to_the_server(
     client: TestClient, drivnx_sessions: Callable[[], int], mode: str
 ) -> None:
-    # CFX-APP-postgres/AC-23: "DrivnX reads the server over at most one connection for it, on a
+    # DRIVN-45/AC-23: "DrivnX reads the server over at most one connection for it, on a
     # full profile too". Tables large enough that DuckDB's own scanner would read them over
     # several (ADR 0005), `wide` at about 14,000 pages, and a view slow enough to watch.
     source_id = chosen_source(client, "misestimated", "wide", "slow")
@@ -508,7 +508,7 @@ def test_a_run_creates_nothing_in_the_current_directory_and_spills_inside_the_wo
     monkeypatch: pytest.MonkeyPatch,
     mode: str,
 ) -> None:
-    # CFX-APP-postgres/AC-23: "it creates nothing in the current directory, any spill files are
+    # DRIVN-45/AC-23: "it creates nothing in the current directory, any spill files are
     # inside <workspace>/duckdb-tmp/", on a full profile too. A memory limit small enough that
     # the rows spill.
     current = tmp_path / "current"

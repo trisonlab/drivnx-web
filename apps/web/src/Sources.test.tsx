@@ -88,7 +88,7 @@ test("with nothing connected, the explorer says so and offers to connect a file"
 });
 
 test("connecting a file shows it in the explorer with its columns", async () => {
-  // CFX-APP-first-slice/AC-20 and CFX-APP-first-slice/AC-24
+  // DRIVN-8/AC-20 and DRIVN-8/AC-24
   renderApp();
 
   await connect("/data/customers.csv");
@@ -101,7 +101,7 @@ test("connecting a file shows it in the explorer with its columns", async () => 
 });
 
 test("a connected file shows what the scan found, labelled as metadata", async () => {
-  // CFX-APP-first-slice/AC-22, CFX-APP-first-slice/AC-24 and CFX-APP-first-slice/AC-25
+  // DRIVN-8/AC-22, DRIVN-8/AC-24 and DRIVN-8/AC-25
   sources = [customers];
   renderApp();
 
@@ -127,7 +127,7 @@ test.each([
   ["\t", "Tab"],
   ["|", "Pipe"],
 ])("the delimiter %j is named %s", async (delimiter, label) => {
-  // CFX-APP-first-slice/AC-22
+  // DRIVN-8/AC-22
   sources = [{ ...customers, delimiter }];
   renderApp();
 
@@ -135,7 +135,7 @@ test.each([
 });
 
 test("generated column names are shown as generated", async () => {
-  // CFX-APP-first-slice/AC-22
+  // DRIVN-8/AC-22
   sources = [{ ...customers, has_header: false }];
   renderApp();
 
@@ -163,7 +163,7 @@ test("the path box empties after connecting, ready for another", async () => {
 });
 
 test("a refused path shows the server's reason and keeps what was typed", async () => {
-  // CFX-APP-first-slice/AC-21
+  // DRIVN-8/AC-21
   onConnect = () => Response.json({ detail: "There's no file at this path." }, { status: 422 });
   renderApp();
 
@@ -196,7 +196,7 @@ test.each([
 });
 
 test("a file that has moved is marked unavailable and the app keeps working", async () => {
-  // CFX-APP-first-slice/AC-23
+  // DRIVN-8/AC-23
   sources = [{ ...customers, available: false }];
   renderApp();
 

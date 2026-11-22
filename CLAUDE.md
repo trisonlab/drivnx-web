@@ -67,8 +67,10 @@ Tickets are mirrored in Plane: workspace `drivnx`, project DRIVN (<https://app.p
 
 - A ticket's ID is its Plane key: `.ai/knowledge/work/DRIVN-31.md` has `id: DRIVN-31` and `external_key: DRIVN-31`.
   Older tickets keep their pre-Plane ID in `legacy_id` (e.g. `CFX-APP-csv-profile-T11`); search for both.
-- Features and criteria keep their CFX IDs (`CFX-APP-csv-profile`, `CFX-APP-csv-profile/AC-35`); the feature file's
-  `external_key` holds its Plane item (`DRIVN-9`). Tests keep naming criteria by the CFX feature ID.
+- A feature's ID is its Plane key too: `.ai/knowledge/requirements/DRIVN-9.md` has `id: DRIVN-9` and
+  `external_key: DRIVN-9`, and its criteria are `DRIVN-9/AC-35`, which tests name. Shaping a feature creates its Plane
+  item first and names the file after the key it gets. Features shaped before 2026-11-22 keep their old ID in
+  `legacy_id` (`DRIVN-9` was `CFX-APP-csv-profile`), as do older commits' `Spec:` lines; search for both.
 - Branch `feat/drivn-31-<short-title>`; commit title `DRIVN-31: <description>`; trailers `Spec: <feature ID>`,
   `Ticket: DRIVN-31`, `Criteria: …`.
 - When the Plane MCP server is connected: cutting a ticket creates its Plane item first (child of the feature's item,

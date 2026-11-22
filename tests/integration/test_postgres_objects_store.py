@@ -1,4 +1,4 @@
-"""Saving a database's objects and the user's choice of them, CFX-APP-postgres AC-08 to AC-11 and
+"""Saving a database's objects and the user's choice of them, DRIVN-45 AC-08 to AC-11 and
 AC-13 (DRIVN-49). No PostgreSQL here: what discovery found is written by hand."""
 
 import shutil
@@ -123,7 +123,7 @@ def rows(database: Path, table: str) -> list[tuple[object, ...]]:
 def test_a_workspace_at_0007_keeps_its_csv_sources_runs_and_one_current_dataset(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-postgres/AC-08: migration 0008 adds what discovery saves to a workspace that
+    # DRIVN-45/AC-08: migration 0008 adds what discovery saves to a workspace that
     # already has data, and a CSV source still has one current dataset.
     before = tmp_path / "migrations"
     shutil.copytree(
@@ -168,7 +168,7 @@ def downgrade_to_0007(database: Path) -> None:
 def test_a_workspace_goes_back_to_0007_unless_it_has_a_databases_objects(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-postgres/AC-08: the downgrade gives back the 0007 schema with every CSV row, and
+    # DRIVN-45/AC-08: the downgrade gives back the 0007 schema with every CSV row, and
     # refuses, changing nothing, once a dataset is a database's object (runs may refer to it).
     directory = tmp_path / "workspace"
     open_workspace(directory).close()
@@ -265,7 +265,7 @@ def database(tmp_path: Path) -> Iterator[sqlite3.Connection]:
 def test_the_database_refuses_a_chosen_object_without_read_access(
     database: sqlite3.Connection, values: str
 ) -> None:
-    # CFX-APP-postgres/AC-10: an object without read access can't be chosen, and an object row
+    # DRIVN-45/AC-10: an object without read access can't be chosen, and an object row
     # always says what it is and whether it can be read.
     with pytest.raises(sqlite3.IntegrityError):
         database.execute(
@@ -291,7 +291,7 @@ def test_the_database_refuses_a_chosen_object_without_read_access(
 def test_the_database_refuses_a_foreign_key_without_its_target(
     database: sqlite3.Connection, values: str
 ) -> None:
-    # CFX-APP-postgres/AC-09: a foreign key names the table and columns it references, and only
+    # DRIVN-45/AC-09: a foreign key names the table and columns it references, and only
     # a foreign key does.
     with pytest.raises(sqlite3.IntegrityError):
         database.execute(
@@ -322,7 +322,7 @@ def test_the_database_refuses_a_foreign_key_without_its_target(
 def test_the_database_refuses_what_discovery_never_finds(
     database: sqlite3.Connection, statement: str
 ) -> None:
-    # CFX-APP-postgres/AC-08, AC-09: an object is listed once with an estimate that is a row
+    # DRIVN-45/AC-08, AC-09: an object is listed once with an estimate that is a row
     # count; a column allows nulls or not; a key is a primary, unique or foreign key on a list of
     # column names.
     with pytest.raises(sqlite3.IntegrityError):
@@ -354,7 +354,7 @@ def listed(workspace: Workspace) -> list[tuple[object, ...]]:
 def test_saving_a_discovery_lists_schemas_objects_and_kinds_in_order(
     workspace: Workspace,
 ) -> None:
-    # CFX-APP-postgres/AC-08: every schema, an empty one too, with its objects, each with its
+    # DRIVN-45/AC-08: every schema, an empty one too, with its objects, each with its
     # kind and estimated row count, by schema then name. Nothing is chosen yet.
     assert read_objects(workspace.engine, SOURCE.id).discovered_at is None
 
@@ -384,7 +384,7 @@ def object_id(workspace: Workspace, schema: str, name: str) -> str:
 
 
 def test_an_opened_object_has_its_columns_and_declared_keys(workspace: Workspace) -> None:
-    # CFX-APP-postgres/AC-09: columns in order with their PostgreSQL type, normalised type and
+    # DRIVN-45/AC-09: columns in order with their PostgreSQL type, normalised type and
     # whether they allow nulls; keys with their columns in key order and what a foreign key
     # references. Only an object of this source opens.
     other = StoredPostgresSource(**{**SOURCE.__dict__, "id": "b" * 32, "user": "someone"})
@@ -420,7 +420,7 @@ def chosen(workspace: Workspace) -> set[tuple[str, str]]:
 
 
 def test_a_selection_stays_after_reopening_the_workspace(tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-11: the chosen objects are saved, and saving again replaces them.
+    # DRIVN-45/AC-11: the chosen objects are saved, and saving again replaces them.
     directory = tmp_path / "workspace"
     workspace = open_workspace(directory)
     try:
@@ -448,7 +448,7 @@ def test_a_selection_stays_after_reopening_the_workspace(tmp_path: Path) -> None
 
 
 def test_choosing_nothing_before_any_discovery_saves_nothing(workspace: Workspace) -> None:
-    # CFX-APP-postgres/AC-11: an empty selection is a selection, even with nothing listed.
+    # DRIVN-45/AC-11: an empty selection is a selection, even with nothing listed.
     save_selection(workspace.engine, SOURCE.id, frozenset())
 
     with pytest.raises(NotChoosable):
@@ -460,7 +460,7 @@ def test_choosing_nothing_before_any_discovery_saves_nothing(workspace: Workspac
 def test_choosing_an_object_without_read_access_or_from_another_source_changes_nothing(
     workspace: Workspace, refused: str
 ) -> None:
-    # CFX-APP-postgres/AC-10, AC-11: only this source's objects that the user can read can be
+    # DRIVN-45/AC-10, AC-11: only this source's objects that the user can read can be
     # chosen, and a selection with any other id is refused whole.
     other = StoredPostgresSource(**{**SOURCE.__dict__, "id": "b" * 32, "user": "someone"})
     assert add_postgres_source(workspace.engine, other)
@@ -503,7 +503,7 @@ def dataset_row(workspace: Workspace, dataset_id: str) -> tuple[object, ...]:
 def test_a_refresh_after_a_drop_no_longer_lists_it_and_keeps_its_dataset_for_earlier_runs(
     workspace: Workspace,
 ) -> None:
-    # CFX-APP-postgres/AC-13: the list shows the database as it is now. A dropped object, or
+    # DRIVN-45/AC-13: the list shows the database as it is now. A dropped object, or
     # schema, is gone; its dataset stays, replaced, so what a run measured still points at it.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
     view = object_id(workspace, "sales", "order_view")
@@ -545,7 +545,7 @@ CHANGES = {
 def test_a_refresh_after_a_column_change_gives_a_new_object_with_the_new_columns_and_keeps_it_chosen(
     workspace: Workspace, change: str
 ) -> None:
-    # CFX-APP-postgres/AC-13, AC-11: the changed object is a new dataset with the columns as they
+    # DRIVN-45/AC-13, AC-11: the changed object is a new dataset with the columns as they
     # are now, still chosen; the old one stays, replaced, with its columns, for earlier runs.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
     old = object_id(workspace, "sales", "orders")
@@ -577,7 +577,7 @@ def test_a_refresh_after_a_column_change_gives_a_new_object_with_the_new_columns
 def test_a_refresh_keeps_an_unchanged_objects_id_and_updates_its_estimate_and_access(
     workspace: Workspace,
 ) -> None:
-    # CFX-APP-postgres/AC-13: same kind and columns, so the same dataset, now with the database's
+    # DRIVN-45/AC-13: same kind and columns, so the same dataset, now with the database's
     # estimate, read access and declared keys; still chosen.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
     orders = object_id(workspace, "sales", "orders")
@@ -609,7 +609,7 @@ def test_a_refresh_keeps_an_unchanged_objects_id_and_updates_its_estimate_and_ac
 def test_an_object_that_loses_read_access_is_no_longer_chosen(
     workspace: Workspace, columns: tuple[StoredColumn, ...]
 ) -> None:
-    # CFX-APP-postgres/AC-10: whether its columns changed or not. Getting access back doesn't
+    # DRIVN-45/AC-10: whether its columns changed or not. Getting access back doesn't
     # choose it again: a refresh never adds to the selection.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
     save_selection(
@@ -643,7 +643,7 @@ def test_an_object_that_loses_read_access_is_no_longer_chosen(
 def test_the_database_refuses_a_chosen_object_that_isnt_populated(
     database: sqlite3.Connection, values: str
 ) -> None:
-    # CFX-APP-postgres/AC-10, as agreed for DRIVN-49: a materialized view never refreshed can't be
+    # DRIVN-45/AC-10, as agreed for DRIVN-49: a materialized view never refreshed can't be
     # chosen, and only an object says whether it is populated.
     with pytest.raises(sqlite3.IntegrityError):
         database.execute(
@@ -658,7 +658,7 @@ UNPOPULATED = ObjectFound(**{**TOTALS.__dict__, "populated": False})
 def test_a_materialized_view_never_refreshed_is_listed_and_cant_be_chosen(
     workspace: Workspace,
 ) -> None:
-    # CFX-APP-postgres/AC-10: listed as not populated, and a selection with it is refused whole.
+    # DRIVN-45/AC-10: listed as not populated, and a selection with it is refused whole.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, (*FOUND[:3], UNPOPULATED, SECRET))
     totals = object_id(workspace, "audit", "Odd.Name, é")
     orders = object_id(workspace, "sales", "orders")
@@ -675,7 +675,7 @@ def test_a_materialized_view_never_refreshed_is_listed_and_cant_be_chosen(
 def test_a_refresh_after_refreshing_the_view_lets_it_be_chosen_and_after_emptying_it_unchooses_it(
     workspace: Workspace,
 ) -> None:
-    # CFX-APP-postgres/AC-13: REFRESH MATERIALIZED VIEW, then a refresh in DrivnX; then
+    # DRIVN-45/AC-13: REFRESH MATERIALIZED VIEW, then a refresh in DrivnX; then
     # REFRESH ... WITH NO DATA, and a refresh takes it out of the selection.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, (*FOUND[:3], UNPOPULATED, SECRET))
     totals = object_id(workspace, "audit", "Odd.Name, é")
@@ -692,7 +692,7 @@ def test_a_refresh_after_refreshing_the_view_lets_it_be_chosen_and_after_emptyin
 
 
 def test_the_chosen_objects_are_read_with_their_fields_for_a_run(workspace: Workspace) -> None:
-    # CFX-APP-postgres/AC-18: a run profiles each chosen object, by schema then name, and saves
+    # DRIVN-45/AC-18: a run profiles each chosen object, by schema then name, and saves
     # what it measures against each one's fields.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
     ids = {object_id(workspace, "sales", name) for name in ("orders", "order_view")}
@@ -728,7 +728,7 @@ def without_orders(change: str) -> tuple[ObjectFound, ...]:
 def test_a_chosen_object_gone_or_changed_since_the_list_is_named(
     workspace: Workspace, change: str
 ) -> None:
-    # CFX-APP-postgres/AC-13: a run on it is refused, pointing to the refresh, by the same rule a
+    # DRIVN-45/AC-13: a run on it is refused, pointing to the refresh, by the same rule a
     # refresh uses to replace it.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
     save_selection(
@@ -745,7 +745,7 @@ def test_a_chosen_object_gone_or_changed_since_the_list_is_named(
 def test_unchanged_chosen_objects_or_a_change_to_another_one_name_nothing(
     workspace: Workspace,
 ) -> None:
-    # CFX-APP-postgres/AC-13: only a chosen object that changed refuses a run.
+    # DRIVN-45/AC-13: only a chosen object that changed refuses a run.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
     save_selection(workspace.engine, SOURCE.id, frozenset({object_id(workspace, "sales", "events")}))
 
@@ -756,7 +756,7 @@ def test_unchanged_chosen_objects_or_a_change_to_another_one_name_nothing(
 def test_a_database_run_is_listed_under_its_source_and_current_until_an_object_is_replaced(
     workspace: Workspace,
 ) -> None:
-    # CFX-APP-postgres/AC-17 and AC-24: one run covers the source's chosen objects; a refresh that
+    # DRIVN-45/AC-17 and AC-24: one run covers the source's chosen objects; a refresh that
     # replaces one of them makes the run's results no longer current.
     save_discovery(workspace.engine, SOURCE.id, SCHEMAS, FOUND)
     names = ("order_view", "orders")
@@ -775,7 +775,7 @@ def test_a_database_run_is_listed_under_its_source_and_current_until_an_object_i
 
     (listed,) = list_profile_runs(workspace.engine)
     assert (listed.id, listed.source_id, listed.dataset_id) == (run_id, SOURCE.id, None)
-    # CFX-APP-postgres/AC-31: in the order the run reads them.
+    # DRIVN-45/AC-31: in the order the run reads them.
     assert listed.objects == ("sales.order_view", "sales.orders")
     assert listed.current_settings is True
     assert find_listed_profile_run(workspace.engine, run_id) == listed
