@@ -43,6 +43,9 @@ OBJECTS = (
     f"CREATE TABLE {SCHEMA}.small (id integer, label text)",
     f"INSERT INTO {SCHEMA}.small VALUES (1, 'one'), (2, 'one'), (3, 'two')",
     f"ANALYZE {SCHEMA}.small",
+    # Blank strings, which a database keeps apart from NULL (agreed for DRIVN-51).
+    f"CREATE TABLE {SCHEMA}.blanks (label text)",
+    f"INSERT INTO {SCHEMA}.blanks VALUES (''), (''), (''), (' '), ('a'), (NULL)",
     # Larger than a fast profile's sample, so it's sampled by page. Autovacuum is off, so its
     # pages stay where the test put them.
     f"CREATE TABLE {SCHEMA}.big (id integer, label text) WITH (autovacuum_enabled = false)",
@@ -69,6 +72,7 @@ COLUMNS = {
     "misestimated": (("id", "int4", "integer"),),
     "sleepy": (("n", "int4", "integer"),),
     "three_seconds": (("n", "int4", "integer"),),
+    "blanks": (("label", "text", "text"),),
 }
 
 
@@ -315,3 +319,24 @@ def test_values_from_a_database_that_refuses_the_connection_fail_with_its_reason
 
     assert str(refused.value) == "The server refused this user name and password."
     assert ask(postgres_fixture.PASSWORD)[0] == "whole"
+
+
+def test_a_database_columns_blank_strings_are_values_as_its_run_counted_them(
+    workspace: Workspace,
+) -> None:
+    # DRIVN-45 AC-28, "with that run's method": a run counts only NULL as missing in a database
+    # (DRIVN-51), so its values must too (found in review).
+    method, values = profile_jobs.object_values_of(
+        workspace,
+        FIXTURE,
+        postgres_fixture.PASSWORD,
+        chosen("blanks"),
+        0,
+        "fast",
+        Reading("whole"),
+        7,
+    )
+
+    assert method == "whole"
+    assert values.frequent == (Frequent("", 3), Frequent(" ", 1), Frequent("a", 1))
+    assert (values.minimum, values.maximum) == ("", "a")

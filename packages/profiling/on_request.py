@@ -77,17 +77,19 @@ def values_for(
     column_type: str,
     formats: Mapping[str, str],
     every_row: bool,
+    blank_is_missing: bool = True,
 ) -> ColumnValues:
     """A column's range, most frequent values and, by its type, histogram and statistics, on the
     table's first rows or every row. The table's columns are named by position, as `measure_rows`
-    takes them. Every value is text."""
+    takes them. Every value is text. With `blank_is_missing` off, only NULL is missing, as in a
+    database (DRIVN-51)."""
     loaded = connection.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
     rows_read = loaded if every_row else min(loaded, FIRST_ROWS)
     written_as = formats.get(column_type) if column_type in _WRITTEN_AS else None
     typed = _WRITTEN_AS[column_type] if written_as else _TYPED.get(column_type)
     parameters = [written_as] if written_as else []
     cells = f"""
-        {_cells(f"c{position}", table, every_row)},
+        {_cells(f"c{position}", table, every_row, blank_is_missing)},
         typed AS (
             SELECT {"CASE WHEN isfinite(v) THEN v END" if column_type in _FINITE else "v"} AS typed
             FROM (SELECT {typed or "cell"} AS v FROM cells)
@@ -109,7 +111,7 @@ def values_for(
     ).fetchone()
     frequent = connection.execute(
         f"""
-        {_cells(f"c{position}", table, every_row)}
+        {_cells(f"c{position}", table, every_row, blank_is_missing)}
         SELECT cell, count(*) AS found FROM cells WHERE cell IS NOT NULL
         GROUP BY cell ORDER BY found DESC, cell LIMIT {FREQUENT_VALUES}
         """

@@ -921,10 +921,11 @@ def object_values_of(
             )
 
             def measured(method: str) -> tuple[str, ColumnValues]:
-                # As `_measure_loaded` measured the run's rows.
+                # As `_measure_loaded` measured the run's rows: the first rows of an object larger
+                # than its estimate, and only NULL as missing.
                 every_row = method != "first_rows"
                 return method, values_for(
-                    connection, VALUES_TABLE, position, column_type, {}, every_row
+                    connection, VALUES_TABLE, position, column_type, {}, every_row, False
                 )
 
             if mode == "fast":
