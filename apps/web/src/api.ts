@@ -383,6 +383,9 @@ export type ProfileRunDetail = ProfileRun & {
   // A database run's objects, each with how its rows were read (DRIVN-45 AC-18).
   objects?: {
     object: string;
+    // Its schema and name apart, which its values are asked for by (DRIVN-56).
+    schema: string;
+    name: string;
     method: "page_sample" | "whole" | "first_rows" | "view_first_rows" | "full";
     // A full profile stopped reading it at its time limit, so it has no results (DRIVN-45 AC-20).
     stopped_at_time_limit?: boolean;
@@ -415,8 +418,12 @@ export async function getProfileRun(runId: string): Promise<ProfileRunDetail> {
 export type ColumnValues = {
   profile_run_id: string;
   column: string;
-  // The part of the file read, as a metric's scope says it.
+  // The part of the file or the object read, as a metric's scope says it.
   scope: "full" | "sample";
+  // A database run's object, its kind, and how its rows were read (DRIVN-56).
+  object?: string;
+  kind?: string;
+  method?: NonNullable<ProfileRunDetail["objects"]>[number]["method"];
   rows_read: number;
   computed_at: string;
   minimum: Cell | null;
@@ -429,12 +436,22 @@ export type ColumnValues = {
   standard_deviation: Cell | null;
 };
 
-/** Computed now from the file, and never saved (ADR 0004). `confirmed` is the extra confirmation a
- * possibly-sensitive column needs (AC-29). */
-export async function getColumnValues(runId: string, column: string, confirmed: boolean): Promise<ColumnValues> {
-  const params = new URLSearchParams({ column, ...(confirmed && { confirmed: "true" }) });
+/** Computed now from the file, or a database run's object `of`, and never saved (ADR 0004).
+ * `confirmed` is the extra confirmation a possibly-sensitive column needs (AC-29). */
+export async function getColumnValues(
+  runId: string,
+  column: string,
+  confirmed: boolean,
+  of?: { schema: string; name: string },
+): Promise<ColumnValues> {
+  const params = new URLSearchParams({
+    column,
+    ...(of && { schema: of.schema, object: of.name }),
+    ...(confirmed && { confirmed: "true" }),
+  });
   const response = await fetch(`${PROFILE_RUNS_PATH}/${runId}/values?${params}`);
-  if (response.status === 404 || response.status === 409) {
+  // A database that couldn't be read is a 422, with the connector's reason (DRIVN-56).
+  if (response.status === 404 || response.status === 409 || response.status === 422) {
     const { detail } = await response.json();
     throw new FileUnreadableError(detail);
   }

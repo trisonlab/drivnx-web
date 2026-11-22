@@ -231,18 +231,21 @@ function ColumnValuesSection({
   run,
   column,
   confirmed,
+  of,
   onClose,
 }: {
   run: ProfileRun;
   column: string;
   confirmed: boolean;
+  // A database run's object, read again as the run read it (DRIVN-56).
+  of?: DatabaseObject;
   onClose: () => void;
 }) {
   const headingId = useId();
   const heading = useRef<HTMLHeadingElement>(null);
   const values = useQuery({
-    queryKey: ["values", run.id, column, confirmed],
-    queryFn: () => getColumnValues(run.id, column, confirmed),
+    queryKey: ["values", run.id, of?.object, column, confirmed],
+    queryFn: () => getColumnValues(run.id, column, confirmed, of),
     gcTime: 0,
     retry: false,
   });
@@ -261,6 +264,7 @@ function ColumnValuesSection({
     <section className="column-values" aria-labelledby={headingId}>
       <h3 id={headingId} ref={heading} tabIndex={-1}>
         Values in {column}
+        {of && ` of ${of.object}`}
       </h3>
       {values.isPending && <p role="status">Working out the values…</p>}
       {values.isError && (
@@ -271,7 +275,18 @@ function ColumnValuesSection({
           {/* AC-30: the part of the file and the time, as they can differ from the run's. */}
           <p>
             Computed {new Date(found.computed_at).toLocaleString()} from{" "}
-            {found.scope === "full" ? "the whole file" : "the first 100,000 rows, not random"}, and not saved.
+            {found.method
+              ? READ_AS[found.method](shown(found.rows_read))
+              : found.scope === "full"
+                ? "the whole file"
+                : "the first 100,000 rows, not random"}
+            , and not saved.
+            {/* DRIVN-45 AC-28: read again now, so only as the run's rows while the object is unchanged,
+                and a view's rows can differ even then. */}
+            {of &&
+              (found.kind === "view"
+                ? " The view may return other rows than it did for this run."
+                : ` These are the same rows as this run's only if ${of.object} hasn't changed since this run.`)}
           </p>
           {found.frequent.length === 0 ? (
             <p>This column has no values in that part of the file.</p>
@@ -422,6 +437,65 @@ function SensitiveConfirmation({ onShow, onDecline }: { onShow: () => void; onDe
   );
 }
 
+type AskedValues = { column: string; of?: DatabaseObject };
+
+/** A column's values on request: asked about first if the run found the column possibly sensitive
+ * (AC-29, DRIVN-45 AC-27), and the focus back on its button once they close. `buttonId` names
+ * each column's button; `show` asks for its values; `section` is what then shows. */
+function useValuesOnRequest(run: ProfileRun) {
+  // The same query the findings panel makes, so the server's refusal is rarely what asks.
+  const findings = useQuery({ queryKey: ["findings", run.id], queryFn: () => getFindings(run.id) });
+  const [asked, setAsked] = useState<(AskedValues & { confirmed: boolean }) | null>(null);
+  const [confirming, setConfirming] = useState<AskedValues | null>(null);
+  const buttonsId = useId();
+  // By object and column, as two of a database's objects can have a column of the same name.
+  const key = (column: string, object?: string | null) => `${object ?? ""}\u0000${column}`;
+  const flagged = new Set(
+    findings.data
+      ?.filter((finding) => finding.kind === "possibly_sensitive")
+      .flatMap((finding) => finding.evidence.flatMap((cited) => (cited.column ? [key(cited.column, cited.object)] : []))),
+  );
+  const buttonId = (column: string, of?: DatabaseObject) =>
+    `${buttonsId}-${encodeURIComponent(key(column, of?.object))}`;
+  // Back where it was once what opened from it closes, as for a keyboard it would be lost.
+  const focusButtonOf = ({ column, of }: AskedValues) => document.getElementById(buttonId(column, of))?.focus();
+  const show = (wanted: AskedValues) => {
+    const sensitive = flagged.has(key(wanted.column, wanted.of?.object));
+    setAsked(sensitive ? null : { ...wanted, confirmed: false });
+    setConfirming(sensitive ? wanted : null);
+  };
+  const section = (
+    <>
+      {confirming && (
+        <SensitiveConfirmation
+          onShow={() => {
+            setAsked({ ...confirming, confirmed: true });
+            setConfirming(null);
+          }}
+          onDecline={() => {
+            setConfirming(null);
+            focusButtonOf(confirming);
+          }}
+        />
+      )}
+      {asked && (
+        <ColumnValuesSection
+          key={`${key(asked.column, asked.of?.object)}-${asked.confirmed}`}
+          run={run}
+          column={asked.column}
+          confirmed={asked.confirmed}
+          of={asked.of}
+          onClose={() => {
+            setAsked(null);
+            focusButtonOf(asked);
+          }}
+        />
+      )}
+    </>
+  );
+  return { buttonId, show, section };
+}
+
 /** AC-35: every run of this file, newest first. A completed one that isn't shown can be opened. */
 // A run's objects named in the runs list; its results name every one (decided for DRIVN-57).
 const OBJECTS_NAMED = 3;
@@ -479,20 +553,7 @@ function RunsList({
 
 function Results({ run }: { run: ProfileRun }) {
   const results = useQuery({ queryKey: ["profile-run", run.id], queryFn: () => getProfileRun(run.id) });
-  // The same query the findings panel makes, so the server's refusal is rarely what asks.
-  const findings = useQuery({ queryKey: ["findings", run.id], queryFn: () => getFindings(run.id) });
-  const [asked, setAsked] = useState<{ column: string; confirmed: boolean } | null>(null);
-  const [confirming, setConfirming] = useState<string | null>(null);
-  const buttonsId = useId();
-  const flagged = new Set(
-    findings.data
-      ?.filter((finding) => finding.kind === "possibly_sensitive")
-      .flatMap((finding) => finding.evidence.flatMap((cited) => cited.column ?? [])),
-  );
-  const showValues = (column: string) => {
-    setAsked(flagged.has(column) ? null : { column, confirmed: false });
-    setConfirming(flagged.has(column) ? column : null);
-  };
+  const values = useValuesOnRequest(run);
   if (results.isError) {
     return <p role="alert">DrivnX couldn't load these results. Start DrivnX again.</p>;
   }
@@ -508,9 +569,6 @@ function Results({ run }: { run: ProfileRun }) {
   // Only a run that read every row knows how many the file has (first slice AC-25).
   const fileRows = rowsRead?.scope === "full" && typeof rowsRead.value === "number" ? rowsRead.value : null;
   const columns = [...new Set(metrics.flatMap((metric) => metric.column ?? []))];
-  const buttonOf = (column: string) => `${buttonsId}-${columns.indexOf(column)}`;
-  // Back where it was once what opened from it closes, as for a keyboard it would be lost.
-  const focusButtonOf = (column: string) => document.getElementById(buttonOf(column))?.focus();
   return (
     <>
       {fileRows !== null && (
@@ -557,40 +615,19 @@ function Results({ run }: { run: ProfileRun }) {
                 name={column}
                 metrics={metrics.filter((metric) => metric.column === column)}
                 rowsRead={ofTheFile("rows_read")}
-                buttonId={buttonOf(column)}
-                onShowValues={() => showValues(column)}
+                buttonId={values.buttonId(column)}
+                onShowValues={() => values.show({ column })}
               />
             ))}
           </tbody>
         </table>
       </div>
-      {confirming && (
-        <SensitiveConfirmation
-          onShow={() => {
-            setAsked({ column: confirming, confirmed: true });
-            setConfirming(null);
-          }}
-          onDecline={() => {
-            setConfirming(null);
-            focusButtonOf(confirming);
-          }}
-        />
-      )}
-      {asked && (
-        <ColumnValuesSection
-          key={`${asked.column}-${asked.confirmed}`}
-          run={run}
-          column={asked.column}
-          confirmed={asked.confirmed}
-          onClose={() => {
-            setAsked(null);
-            focusButtonOf(asked.column);
-          }}
-        />
-      )}
+      {values.section}
     </>
   );
 }
+
+type DatabaseObject = NonNullable<ProfileRunDetail["objects"]>[number];
 
 // How a database run read an object, with the rows it read (DRIVN-45 AC-18, AC-24).
 const READ_AS: Record<NonNullable<ProfileRunDetail["objects"]>[number]["method"], (rows: string) => string> = {
@@ -624,10 +661,11 @@ function outOfDateNote(objects: string[]): string {
     : `${named} have changed or are gone since this run, so their results are out of date and this run's findings aren't current. Profile again to see them as they are now.`;
 }
 
-/** A database run's results: one table per object, with how its rows were read. No values that
- * don't fit, which a typed column can't hold, and no values on request yet (DRIVN-56). */
+/** A database run's results: one table per object, with how its rows were read, and each column's
+ * values on request (DRIVN-56). No values that don't fit, which a typed column can't hold. */
 function DatabaseResults({ run }: { run: ProfileRun }) {
   const results = useQuery({ queryKey: ["profile-run", run.id], queryFn: () => getProfileRun(run.id) });
+  const values = useValuesOnRequest(run);
   if (results.isError) {
     return <p role="alert">DrivnX couldn't load these results. Start DrivnX again.</p>;
   }
@@ -681,6 +719,7 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
                   <th scope="col">Longest</th>
                   <th scope="col">Average</th>
                   <th scope="col">Patterns</th>
+                  <th scope="col">Values</th>
                 </tr>
               </thead>
               <tbody>
@@ -713,6 +752,16 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
                           NOT_SAVED
                         )}
                       </td>
+                      <td>
+                        <button
+                          type="button"
+                          id={values.buttonId(column, found)}
+                          aria-label={`Show values of ${column} in ${object}`}
+                          onClick={() => values.show({ column, of: found })}
+                        >
+                          Show values
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -726,6 +775,7 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
           </div>
         );
       })}
+      {values.section}
     </>
   );
 }
