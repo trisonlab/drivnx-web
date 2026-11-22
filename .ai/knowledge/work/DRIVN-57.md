@@ -7,7 +7,7 @@ feature_revision: 3
 stories: [US-06]
 criteria: [AC-31, AC-32, AC-33]
 blocked_by: [DRIVN-53]
-state: ready
+state: done
 external_key: DRIVN-57
 status: CONFIRMED
 ---
@@ -20,9 +20,9 @@ Plane: [DRIVN-57](https://app.plane.so/drivnx/browse/DRIVN-57/) · `CFX-APP-post
 A user goes back to earlier runs of a source, knows results describe each object at the run's time and when they're out of date, and finds a run that was going when DrivnX stopped marked interrupted, with nothing left running on the server.
 
 ## Acceptance checklist
-- [ ] AC-31 (US-06): Given several runs of a source, then the user can list them with mode, status, time and objects, open any completed one, and the newest completed run is shown by default.
-- [ ] AC-32 (US-06): Given results, then they say they describe the object at the run's time. Given an object whose columns or types differ from the run's, then the Profile tab says the results are out of date.
-- [ ] AC-33 (US-06): Given a restart, then completed runs, their metrics and findings are as they were, a run that was in progress shows as `interrupted`, and no query DrivnX started is still running on the server.
+- [x] AC-31 (US-06): Given several runs of a source, then the user can list them with mode, status, time and objects, open any completed one, and the newest completed run is shown by default.
+- [x] AC-32 (US-06): Given results, then they say they describe the object at the run's time. Given an object whose columns or types differ from the run's, then the Profile tab says the results are out of date.
+- [x] AC-33 (US-06): Given a restart, then completed runs, their metrics and findings are as they were, a run that was in progress shows as `interrupted`, and no query DrivnX started is still running on the server.
 
 ## Expected evidence
 Integration tests for the runs list, out-of-date results after a column change, and a restart during a run checked in `pg_stat_activity`.
@@ -70,3 +70,32 @@ limit plus 30 s on a full profile); after a power loss or a lost network no clos
 and discovery sessions don't get the check; they stop at the 30 s statement timeout (INFERRED: AC-33 is about a run).
 Not in this ticket: a live check when a run is opened, ending sessions at the next startup, database findings
 (DRIVN-55, which changes `database_run_detail` and `DatabaseResults` too: whichever merges second rebases).
+
+## Decisions in building this
+- **The runs list's objects are `object_names`,** as `schema.object` in the order the run read them; the detail's own
+  `objects` (how each was read) kept its name and shape. A file's run has `null`.
+- **`out_of_date` is per object,** on each of the detail's `objects`, from `replaced_datasets()`: a refresh found it
+  gone or of another kind or columns. The run's `current_settings` is false once any is.
+- **A refresh fetches the runs and their results again** (`DatabaseObjects.tsx`), found by a test: without it the
+  Profile tab said nothing until a reload.
+- **The findings panel says why a database run's findings aren't current:** its objects have changed or gone since,
+  not a file's "used earlier settings". Found when DRIVN-55 merged, as that run is now shown by default.
+- **A stop needed no code:** `stop_jobs()` already cancels on shutdown. Its test fails when that call is taken out, on
+  a read that computes before its rows; one that sends rows ends anyway as its socket closes.
+- **The check is 1 s, set in the session's startup options** (ADR 0009 Decision 7); discovery asks the server with
+  `set_config(..., true)` after its catalog's transaction. Preview, values and discovery sessions don't set it.
+
+## Verification (2026-11-22, `c8f6f0f`, rebased on `a0349e5`)
+| Criterion | Evidence | Result |
+|---|---|---|
+| AC-31 | `test_postgres_earlier_runs.py`: names its objects, every run newest first and any completed one opens, a file's run names none; `test_postgres_objects_store.py`; Vitest: newest completed shown after a refresh, list names objects; e2e: an earlier run opens | PASS |
+| AC-32 | `test_postgres_earlier_runs.py`: column added, type changed, dropped are out of date after the refresh and not before; an unchanged refresh leaves all current; Vitest: "as it was when this run read it", the note for one and two objects, a refresh shows it at once, the findings panel's reason; e2e: the note after a refresh and on the earlier run, with the accessibility check | PASS |
+| AC-33 | `test_postgres_earlier_runs.py`: a stop mid-read (table everywhere, computing view off Windows) keeps the completed run's detail and findings, marks the run `interrupted`, nothing in `pg_stat_activity` within 5 s; a SIGKILL mid-read the same off Windows; `test_postgres_discovery.py`: the server's check and the session's setting | PASS (Linux); Windows NOT RUN |
+
+Checks run: `uv run pytest tests/integration tests/golden` 2587 passed, 8 skipped (on `7216cd6`; only web files
+changed since); `uv run pytest tests/e2e` 84 passed (`c8f6f0f`); `pnpm exec vitest run` 253 passed;
+`pnpm exec tsc --noEmit` clean; CI's detect-secrets clean; pip-audit and `pnpm audit` no known vulnerabilities;
+`ai-skills knowledge check` consistent.
+
+Not verified: a Windows server, where discovery should say `False` and the kill test is skipped (CI's Windows job);
+macOS (CI); a network between DrivnX and the server.
