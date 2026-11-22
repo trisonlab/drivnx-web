@@ -11,7 +11,7 @@ from artifacts.profiles import read_profile_run
 from artifacts.sources import find_source
 from artifacts.workspace import Workspace
 from fastapi.testclient import TestClient
-from local_api import profile_jobs
+from local_api import profile_jobs, profile_runs_api
 from local_api.credentials import entry
 
 from .test_credential_store import MemoryStore
@@ -295,15 +295,26 @@ POSSIBLY_SENSITIVE = (
 
 
 def test_a_possibly_sensitive_columns_values_need_the_extra_confirmation(
-    client: TestClient,
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # DRIVN-45 AC-27: "its values need the extra confirmation", as for a CSV (DRIVN-9 AC-29).
+    # DRIVN-45 AC-27: "its values need the extra confirmation", as for a CSV (DRIVN-9 AC-29),
+    # asked before the database is read.
     run_id = completed(client, chosen_source(client, "contacts"))
+    reads: list[int] = []
+    read = profile_runs_api.object_values_of
+
+    def counted(*args: object, **kwargs: object) -> object:
+        reads.append(1)
+        return read(*args, **kwargs)
+
+    monkeypatch.setattr(profile_runs_api, "object_values_of", counted)
 
     refused = values_of(client, run_id, "contacts", "email")
+    read_before_confirming = len(reads)
     confirmed = values_of(client, run_id, "contacts", "email", confirmed="true")
 
     assert (refused.status_code, refused.json()) == (409, {"detail": POSSIBLY_SENSITIVE})
+    assert read_before_confirming == 0
     assert confirmed.status_code == 200, confirmed.text
     assert confirmed.json()["frequent"] == [
         {"value": cell("a0@example.com"), "count": 5},
@@ -384,6 +395,7 @@ def test_after_a_restart_values_wait_for_the_password(start_app: StartApp) -> No
         409,
         {"detail": "Enter the password for this database first."},
     )
+
 
 # DuckDB's text can quote a value it read, so it must never travel (DRIVN-45 AC-29).
 PLANTED = "Ann-7731-planted"
