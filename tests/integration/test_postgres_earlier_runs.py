@@ -7,11 +7,20 @@ from pathlib import Path
 
 import httpx
 import pytest
+from artifacts.profiles import mark_interrupted_runs
+from artifacts.workspace import Workspace
 from fastapi.testclient import TestClient
+from local_api.profile_jobs import stop_jobs
 
 from ..conftest import StartDrivnX, posix_only
 from .test_credential_store import NO_STORE
 from .test_postgres_objects_api import DETAILS, objects_in
+from .test_postgres_discovery import server_on_windows
+from .test_postgres_password_store import (  # noqa: F401 (the fixtures)
+    StartApp,
+    start_app,
+    workspace,
+)
 from .test_postgres_profile_api import ended
 from .test_postgres_stopping import (  # noqa: F401 (the fixture)
     SLEEP_SECONDS,
@@ -200,7 +209,6 @@ def test_a_refresh_that_finds_nothing_changed_leaves_every_object_current(
     assert client.get(f"/api/profile-runs/{run['id']}").json()["current_settings"] is True
 
 
-
 def none_left_on_the_server(drivnx_queries: Callable[[str], int], since: float) -> None:
     """Nothing DrivnX started is running on the server within the target from `since`."""
     while drivnx_queries("%") and time.monotonic() < since + GONE_WITHIN_SECONDS:
@@ -239,6 +247,8 @@ def test_a_stop_during_a_database_run_keeps_completed_runs_and_leaves_nothing_on
     completed = completed_run(client, source_id, "fast")
     detail = client.get(f"/api/profile-runs/{completed['id']}").json()
     findings = client.get("/api/findings", params={"profile_run_id": completed["id"]}).json()
+    # Some, so the comparison after the restart shows they're kept (DRIVN-55).
+    assert findings
     choose(client, source_id, name)
     started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "full"})
     assert started.status_code == 202, started.text
@@ -262,8 +272,6 @@ def test_a_stop_during_a_database_run_keeps_completed_runs_and_leaves_nothing_on
         after.get("/api/findings", params={"profile_run_id": completed["id"]}).json() == findings
     )
 
-
-@posix_only
 def test_drivnx_killed_during_a_database_run_leaves_nothing_on_the_server_after_a_restart(
     start_drivnx: StartDrivnX,
     tmp_path: Path,
@@ -272,7 +280,9 @@ def test_drivnx_killed_during_a_database_run_leaves_nothing_on_the_server_after_
     # CFX-APP-postgres/AC-33: "Given a restart, then ... a run that was in progress shows as
     # `interrupted`, and no query DrivnX started is still running on the server." Killed, so it
     # can't cancel anything: the server checks its connection is still there (decided for
-    # DRIVN-57). Only where the server can (ADR 0009); CI's servers run on the runner's system.
+    # DRIVN-57). Only where the server can (ADR 0009 Decision 7).
+    if server_on_windows(tmp_path / "version"):
+        pytest.skip("PostgreSQL on Windows can't check a connection (ADR 0009).")
     directory = tmp_path / "workspace"
     before = start_drivnx("--no-browser", env=NO_STORE, workspace=directory)
     client = sign_in(before.wait_for_launch())
@@ -291,4 +301,42 @@ def test_drivnx_killed_during_a_database_run_leaves_nothing_on_the_server_after_
 
     none_left_on_the_server(drivnx_queries, killed_at)
     (listed,) = after.get("/api/profile-runs").json()
+    assert (listed["id"], listed["status"]) == (started.json()["id"], "interrupted")
+
+
+@pytest.mark.parametrize(
+    ("mode", "name", "read"),
+    [
+        ("fast", "sleepy", f'COPY (SELECT "n"::text AS c0 FROM "{SCHEMA}"."sleepy"%'),
+        ("full", "late_sleepy", f'COPY (SELECT "n" FROM "{SCHEMA}"."late_sleepy"%'),
+    ],
+)
+def test_stopping_drivnx_cancels_a_database_runs_read_on_the_server(
+    start_app: StartApp,
+    workspace: Workspace,
+    drivnx_queries: Callable[[str], int],
+    mode: str,
+    name: str,
+    read: str,
+) -> None:
+    # CFX-APP-postgres/AC-33: "no query DrivnX started is still running on the server". What
+    # shutdown does (`stop_jobs()`), in a process that's still running, so its session is still
+    # open and the server's own check (ADR 0009 Decision 7) can't be what ends the read: a read
+    # that computes before its rows, which DuckDB's interrupt alone can't stop (Decision 1).
+    client = start_app(None)
+    source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
+    choose(client, source_id, name)
+    started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": mode})
+    assert started.status_code == 202, started.text
+    reading(drivnx_queries, read)
+
+    stopped_at = time.monotonic()
+    stop_jobs()
+
+    none_left_on_the_server(drivnx_queries, stopped_at)
+    # Left for the next start to mark, as only it knows nothing is still writing the run.
+    (listed,) = client.get("/api/profile-runs").json()
+    assert listed["status"] == "running"
+    mark_interrupted_runs(workspace.engine)
+    (listed,) = client.get("/api/profile-runs").json()
     assert (listed["id"], listed["status"]) == (started.json()["id"], "interrupted")

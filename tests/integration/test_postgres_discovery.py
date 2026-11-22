@@ -1,7 +1,7 @@
 """Listing a database's schemas and objects, CFX-APP-postgres AC-08, AC-09 and AC-10 (DRIVN-49),
 and what the role can change in them, AC-16 (DRIVN-52)."""
 
-import sys
+import re
 import traceback
 from collections.abc import Callable, Iterator
 from pathlib import Path
@@ -454,13 +454,29 @@ def test_a_grant_on_a_partition_or_a_child_table_counts_for_the_table_it_is_part
     assert "split_1" not in listed
 
 
+# How PostgreSQL's `version()` names a Windows build: Visual C++, or MinGW (INFERRED from their
+# builds' strings; CI's Windows server is the one run).
+_WINDOWS_BUILD = re.compile(r"visual c\+\+|mingw|windows", re.IGNORECASE)
+
+
+def server_on_windows(temp_directory: Path) -> bool:
+    """Whether the fixture's server runs on Windows, where PostgreSQL can't check that a
+    connection is still there (ADR 0009 Decision 7). The server's, not this machine's: a Windows
+    machine may run the fixture's Linux image in Docker."""
+    with duckdb_connection(temp_directory) as connection:
+        attach(connection, FIXTURE, PASSWORD)
+        ((version,),) = connection.execute(
+            "SELECT * FROM postgres_query('source', 'SELECT version()')"
+        ).fetchall()
+    return bool(_WINDOWS_BUILD.search(version))
+
+
 def test_discovery_says_whether_the_server_checks_that_drivnx_is_still_there(
-    discovery: Discovery,
+    discovery: Discovery, tmp_path: Path
 ) -> None:
     # CFX-APP-postgres/AC-33: a server that checks ends a query once DrivnX is gone, even killed
-    # (decided for DRIVN-57). PostgreSQL can on Linux, macOS, illumos and the BSDs, not Windows;
-    # the fixture runs on this machine's system (INFERRED from CI's set-up).
-    assert discovery.checks_closed_connections is (sys.platform != "win32")
+    # (decided for DRIVN-57). PostgreSQL can on Linux, macOS, illumos and the BSDs, not Windows.
+    assert discovery.checks_closed_connections is not server_on_windows(tmp_path)
 
 
 @pytest.mark.parametrize(("check_connection", "interval"), [(True, "1s"), (False, "0")])
@@ -469,7 +485,7 @@ def test_a_session_attached_to_check_its_connection_has_the_server_check_it_ever
 ) -> None:
     # CFX-APP-postgres/AC-33: set as the session starts, so a session the extension opens again
     # has it too (decided for DRIVN-57); it's off for every other session, as before.
-    if check_connection and sys.platform == "win32":
+    if check_connection and server_on_windows(tmp_path / "version"):
         pytest.skip("PostgreSQL on Windows can't check a connection (ADR 0009).")
     with duckdb_connection(tmp_path) as connection:
         attach(connection, FIXTURE, PASSWORD, check_connection=check_connection)

@@ -80,8 +80,12 @@ Not in this ticket: a live check when a run is opened, ending sessions at the ne
   Profile tab said nothing until a reload.
 - **The findings panel says why a database run's findings aren't current:** its objects have changed or gone since,
   not a file's "used earlier settings". Found when DRIVN-55 merged, as that run is now shown by default.
-- **A stop needed no code:** `stop_jobs()` already cancels on shutdown. Its test fails when that call is taken out, on
-  a read that computes before its rows; one that sends rows ends anyway as its socket closes.
+- **A stop needed no code:** `stop_jobs()` already cancels on shutdown. Through the real command, a stopped process's
+  socket closes and the server's check (step 5) then ends the read too, so that test can't show the cancel (found in
+  review): `test_stopping_drivnx_cancels_a_database_runs_read_on_the_server` calls `stop_jobs()` in a process that
+  goes on, and fails when shutdown doesn't interrupt and cancel the job's read.
+- **Whether the server can check is the server's system, not the tests' machine** (found in review): a Windows
+  machine may run the fixture's Linux image in Docker, so the tests ask the server's `version()`.
 - **The check is 1 s, set in the session's startup options** (ADR 0009 Decision 7); discovery asks the server with
   `set_config(..., true)` after its catalog's transaction. Preview, values and discovery sessions don't set it.
 

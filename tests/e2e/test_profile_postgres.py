@@ -106,7 +106,6 @@ def test_a_full_profile_reads_every_row_within_a_time_limit_the_user_sets(
     assert violations(page) == []
 
 
-
 def test_an_earlier_run_opens_and_says_which_objects_are_out_of_date_since(
     start_drivnx: StartDrivnX,
     page: Page,
@@ -147,6 +146,7 @@ def test_an_earlier_run_opens_and_says_which_objects_are_out_of_date_since(
     expect(profile.get_by_text(re.compile(f"^{re.escape(changed)}"))).to_be_visible()
     expect(runs.nth(1)).to_contain_text("Shown")
     assert violations(page) == []
+
 
 SLOW_SCHEMA = "drivnx_e2e_stopping"
 SLOW_DROP = f"DROP SCHEMA IF EXISTS {SLOW_SCHEMA} CASCADE"
