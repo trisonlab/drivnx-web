@@ -1,14 +1,27 @@
 """A database's earlier runs, what they describe, and restarts, CFX-APP-postgres AC-31, AC-32 and
 AC-33 (DRIVN-57)."""
 
+import time
 from collections.abc import Callable, Iterator
 from pathlib import Path
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+from ..conftest import StartDrivnX, posix_only
+from .test_credential_store import NO_STORE
 from .test_postgres_objects_api import DETAILS, objects_in
 from .test_postgres_profile_api import ended
+from .test_postgres_stopping import (  # noqa: F401 (the fixture)
+    SLEEP_SECONDS,
+    drivnx_queries,
+    reading,
+)
+from .test_session import sign_in
+
+# CFX-APP-postgres, Non-functional: "cancelling stops a run within 5 s", which a stop is too.
+GONE_WITHIN_SECONDS = 5
 
 SCHEMA = "drivnx_earlier_runs"
 DROP = (f"DROP SCHEMA IF EXISTS {SCHEMA} CASCADE",)
@@ -31,6 +44,15 @@ OBJECTS = (
     f"INSERT INTO {SCHEMA}.retyped VALUES (1)",
     f"INSERT INTO {SCHEMA}.dropped VALUES (1)",
     f"INSERT INTO {SCHEMA}.steady VALUES (1)",
+    # 3 million rows, which the scanner takes a few seconds to read whole (ADR 0009, Measured), and
+    # sends as it reads them.
+    f"CREATE TABLE {SCHEMA}.big (id integer, code text)",
+    f"INSERT INTO {SCHEMA}.big SELECT n, 'C-' || n FROM generate_series(1, 3000000) AS n",
+    f"ANALYZE {SCHEMA}.big",
+    # Its first 100,000 rows come at once, for a full profile's fast reading, and its whole read's
+    # last row only after the sleep, so the server computes without sending anything meanwhile.
+    f"CREATE VIEW {SCHEMA}.late_sleepy AS SELECT n FROM generate_series(1, 100001) AS n"
+    f" WHERE n <= 100000 OR (SELECT true FROM pg_sleep({SLEEP_SECONDS}))",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -47,7 +69,7 @@ def objects(postgres_admin: Callable[[str], None]) -> Iterator[None]:
             postgres_admin(statement)
 
 
-def choose(client: TestClient, source_id: str, *names: str) -> None:
+def choose(client: httpx.Client, source_id: str, *names: str) -> None:
     listed = objects_in(client.get(f"/api/sources/{source_id}/objects").json(), SCHEMA)
     response = client.put(
         f"/api/sources/{source_id}/selection",
@@ -56,7 +78,7 @@ def choose(client: TestClient, source_id: str, *names: str) -> None:
     assert response.status_code == 200, response.text
 
 
-def completed_run(client: TestClient, source_id: str, mode: str) -> dict:
+def completed_run(client: httpx.Client, source_id: str, mode: str) -> dict:
     started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": mode})
     assert started.status_code == 202, started.text
     run = ended(client, started.json()["id"])
@@ -174,3 +196,66 @@ def test_a_refresh_that_finds_nothing_changed_leaves_every_object_current(
         f"{SCHEMA}.orders": False,
     }
     assert client.get(f"/api/profile-runs/{run['id']}").json()["current_settings"] is True
+
+
+
+def none_left_on_the_server(drivnx_queries: Callable[[str], int], since: float) -> None:
+    """Nothing DrivnX started is running on the server within the target from `since`."""
+    while drivnx_queries("%") and time.monotonic() < since + GONE_WITHIN_SECONDS:
+        time.sleep(0.05)
+    assert drivnx_queries("%") == 0, "A query DrivnX started is still running on the server."
+
+
+@pytest.mark.parametrize(
+    ("name", "read"),
+    [
+        pytest.param("big", f'COPY (SELECT "id", "code" FROM "{SCHEMA}"."big"%', id="streaming"),
+        # Windows' `terminate()` is a hard kill, not a stop, which the test after this one is.
+        pytest.param(
+            "late_sleepy",
+            f'COPY (SELECT "n" FROM "{SCHEMA}"."late_sleepy"%',
+            id="computing",
+            marks=posix_only,
+        ),
+    ],
+)
+def test_a_stop_during_a_database_run_keeps_completed_runs_and_leaves_nothing_on_the_server(
+    start_drivnx: StartDrivnX,
+    tmp_path: Path,
+    drivnx_queries: Callable[[str], int],
+    name: str,
+    read: str,
+) -> None:
+    # CFX-APP-postgres/AC-33: "Given a restart, then completed runs, their metrics and findings are
+    # as they were, a run that was in progress shows as `interrupted`, and no query DrivnX started
+    # is still running on the server." Through the real command, stopped mid-read.
+    directory = tmp_path / "workspace"
+    before = start_drivnx("--no-browser", env=NO_STORE, workspace=directory)
+    client = sign_in(before.wait_for_launch())
+    source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
+    choose(client, source_id, "orders", "customers")
+    completed = completed_run(client, source_id, "fast")
+    detail = client.get(f"/api/profile-runs/{completed['id']}").json()
+    findings = client.get("/api/findings", params={"profile_run_id": completed["id"]}).json()
+    choose(client, source_id, name)
+    started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "full"})
+    assert started.status_code == 202, started.text
+    reading(drivnx_queries, read)
+
+    before.process.terminate()
+    stopped_at = time.monotonic()
+    before.process.wait(timeout=30)
+    after = sign_in(
+        start_drivnx("--no-browser", env=NO_STORE, workspace=directory).wait_for_launch()
+    )
+
+    none_left_on_the_server(drivnx_queries, stopped_at)
+    listed = after.get("/api/profile-runs").json()
+    assert [(run["id"], run["status"]) for run in listed] == [
+        (started.json()["id"], "interrupted"),
+        (completed["id"], "completed"),
+    ]
+    assert after.get(f"/api/profile-runs/{completed['id']}").json() == detail
+    assert (
+        after.get("/api/findings", params={"profile_run_id": completed["id"]}).json() == findings
+    )
