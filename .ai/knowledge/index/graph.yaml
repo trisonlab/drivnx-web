@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-21T13:38:02+00:00'
+updated_at: '2026-11-22T00:44:45+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -37,8 +37,8 @@ sources:
   .ai/knowledge/work/DRIVN-52.md: 9ed89f7ffb088dc0c5c56cdd167e6326880ddf14027878fb7c391374d384c4ed
   .ai/knowledge/work/DRIVN-53.md: b61ae72f48df18374eec9d3f9fe49647f86a7d1f1132a2d491c135faa8165fb1
   .ai/knowledge/work/DRIVN-54.md: e32740839d7587470a47fc66bdfb95d3179a0d40ecf564d67dbb126f60eb674c
-  .ai/knowledge/work/DRIVN-55.md: 2e9738330438a76d6b5777e91e29c6e8aa2f3882b83a822327d621991f37d5a9
-  .ai/knowledge/work/DRIVN-56.md: 6d4791b654ba4986ca0010eb9c15e72514503a30a4ed3b6a0d0c2dba3870e442
+  .ai/knowledge/work/DRIVN-55.md: 4a06fd16627410d65c2bdd273fcd1cac08a5f8e81f9e3794f3b5c24bcb79baf4
+  .ai/knowledge/work/DRIVN-56.md: 4aba846894b265e974f487f98bdf2edba9db959d5fcede7022b23aa3458c8eb5
   .ai/knowledge/work/DRIVN-57.md: 5c6c18594ce2d7ab2208a7ad5c4026f72ff4d8de5c2bd9938cd6b11313d47a48
   .ai/knowledge/work/DRIVN-58.md: 4540f05479a72c05f5cbd0de04fa5342bbcb5b2fd003227ef443728d3365c3e8
   .ai/knowledge/work/DRIVN-59.md: 65b3c5978e379de092ebf3b6344a9c2d866bcf3ca4e2c4137ffdf17d627f0dbd
@@ -65,7 +65,7 @@ sources:
   apps/web/src/DatabaseObjects.tsx: 0e217dfe5ca1dc588d9620d91d9ed4ac68765a46ba316ca7f7294067b1820096
   apps/web/src/Findings.tsx: 4bcc3d40d1cc48dfda9eaf04210428881cf2578511bb725c1982ff1f1ca69271
   apps/web/src/ObjectDetails.tsx: 62a2cbce8fdef6d95f9892f9285000fa4d36a1a650f11509b4b1bba772ae8797
-  apps/web/src/Postgres.test.tsx: f3d369002a649a8be2d7f23b496ec4d4a09478bb64d9116617d9cab744b53206
+  apps/web/src/Postgres.test.tsx: d8aa7c7bfcb595f255f622d60a7970368cf6b7bc0f2f347534657adeaf515450
   apps/web/src/PostgresDetails.tsx: 2fe5dfc71e6ba8b80a6706a46bb4c1314b8a04f5807028e8a7505826d4f28c0e
   apps/web/src/PostgresForm.tsx: eac4bddeb54295a657f1b6b4ecab0c4b3df7d0ec34ef8a1aae69a6fcb66acba6
   apps/web/src/Preview.test.tsx: a14bc6c5e6440210ad45e3df29fe41fc1c19b553cb93d26083f35aa5a0593de3
@@ -91,7 +91,7 @@ sources:
   packages/artifacts/migrations/versions/0007_postgres_sources.py: eb63bf61813648e3c4f5dd1642ade7d01116a3940d6c2abe676eb4fad0b1aae3
   packages/artifacts/migrations/versions/0008_postgres_objects.py: 4fdbc0ab3faaba590683e6e56bb231f8beba74509c5208cef7dd5abeca1e278c
   packages/artifacts/migrations/versions/0009_write_confirmation.py: 11cb93e270ac9d9b5e6a0396e7641290cc2382ffa548821fa794d72a376d424c
-  packages/artifacts/profiles.py: 0c61481e5930abe907b884e8c722be3cd7fe534e33a694e4f13b287d5797fc4d
+  packages/artifacts/profiles.py: 6424eb6fdd7c4d4efbf94bc7e18bfdd66cd43de9b467940c27f3bddccb66928c
   packages/artifacts/provenance.py: 006c59372b073c3aa223564142dd6f604a8667d07f5c00f427b9087cadb52be2
   packages/artifacts/review.py: f959e1fbf57048bc3ee35a8c0d501eb18cfdd92186325e132f3f1a4a72cdbeaa
   packages/artifacts/schema.py: 713e5b4a63502f907fa3ae6ff42ca3831660ec8d9f5834b157b88431e0bd58c6
@@ -150,7 +150,7 @@ sources:
   tests/integration/test_postgres_discovery.py: dbad70ed8d76af4281a019ecaca623d839a675c9038975bb3919780a0f95d981
   tests/integration/test_postgres_extension.py: 694e52700e6c97dceecde1d0a3b64a9d975ee39a58a52d02bb4e630b1d53cd0f
   tests/integration/test_postgres_extension_build.py: d4bc9552a15e1f405fc7d16f06b927da9ebb68862d9f88b9ef55e26fb886a447
-  tests/integration/test_postgres_findings.py: fcddcc3c7d2c8a8f5c0f6bbc2e276ce6b4aeab9f2b8c2865806a90ad5398db5d
+  tests/integration/test_postgres_findings.py: 543827904be49bfb5823a68f68245098bd81b32497abc6265f290aa107ba069e
   tests/integration/test_postgres_fixture.py: 72faf18bfcc5d7d8b89d98eb4b05539dd6b309bbbc71359f3a42b3f8a157f04b
   tests/integration/test_postgres_full_profile.py: 59d4957c00b91d23c16373c7fedef0b768287900ad5b3a355f5e4b89ef8645af
   tests/integration/test_postgres_objects_api.py: adce162ef55fdb12ce5180ad425b5414ebfd5ac4f1563f8075086dff9acf1991
@@ -2066,7 +2066,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-55.md
   title: Findings and sensitive fields
-  state: ready
+  state: done
   external_key: DRIVN-55
 - id: ticket:DRIVN-56
   kind: ticket
@@ -3729,7 +3729,7 @@ edges:
   to: criterion:CFX-APP-csv-profile/AC-28
   status: CONFIRMED
   evidence:
-  - apps/web/src/Postgres.test.tsx:1167
+  - apps/web/src/Postgres.test.tsx:1168
 - from: module:apps/web/src/Postgres.test.tsx
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-01
@@ -3848,13 +3848,14 @@ edges:
   evidence:
   - apps/web/src/Postgres.test.tsx:1022
   - apps/web/src/Postgres.test.tsx:1044
-  - apps/web/src/Postgres.test.tsx:1135
+  - apps/web/src/Postgres.test.tsx:1136
+  - apps/web/src/Postgres.test.tsx:1182
 - from: module:apps/web/src/Postgres.test.tsx
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-27
   status: CONFIRMED
   evidence:
-  - apps/web/src/Postgres.test.tsx:1166
+  - apps/web/src/Postgres.test.tsx:1167
 - from: module:apps/web/src/Postgres.test.tsx
   rel: verifies
   to: ticket:DRIVN-49
@@ -6501,7 +6502,7 @@ edges:
   to: criterion:CFX-APP-csv-profile/AC-26
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_findings.py:257
+  - tests/integration/test_postgres_findings.py:259
 - from: module:tests/integration/test_postgres_findings.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-20
@@ -6519,9 +6520,9 @@ edges:
   - tests/integration/test_postgres_findings.py:149
   - tests/integration/test_postgres_findings.py:163
   - tests/integration/test_postgres_findings.py:208
-  - tests/integration/test_postgres_findings.py:257
-  - tests/integration/test_postgres_findings.py:283
-  - tests/integration/test_postgres_findings.py:301
+  - tests/integration/test_postgres_findings.py:259
+  - tests/integration/test_postgres_findings.py:285
+  - tests/integration/test_postgres_findings.py:303
 - from: module:tests/integration/test_postgres_findings.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-27
@@ -6541,7 +6542,7 @@ edges:
   evidence:
   - tests/integration/test_postgres_findings.py:2
   - tests/integration/test_postgres_findings.py:149
-  - tests/integration/test_postgres_findings.py:283
+  - tests/integration/test_postgres_findings.py:285
 - from: module:tests/integration/test_postgres_fixture.py
   rel: imports
   to: module:tests/conftest.py
@@ -9149,6 +9150,12 @@ edges:
 - from: ticket:DRIVN-56
   rel: blocked_by
   to: ticket:DRIVN-55
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-56.md
+- from: ticket:DRIVN-56
+  rel: covers
+  to: criterion:CFX-APP-postgres/AC-27
   status: CONFIRMED
   evidence:
   - .ai/knowledge/work/DRIVN-56.md

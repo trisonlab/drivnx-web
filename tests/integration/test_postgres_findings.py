@@ -223,8 +223,10 @@ def test_an_object_stopped_at_its_time_limit_has_no_findings_and_the_others_do(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # CFX-APP-postgres/AC-20 and AC-26: an object stopped at its time limit has no results, so
-    # nothing to find from, and the run goes on to the next. A minute lasts a quarter of a second.
-    monkeypatch.setattr(profile_jobs, "SECONDS_PER_MINUTE", 0.25)
+    # nothing to find from, and the run goes on to the next. A minute lasts 3 s: `late_gaps` waits
+    # 30 s, and `gaps` is read first, on a new session. At a quarter of a second, as the stopping
+    # tests use for timing a stop, `gaps` was often stopped too on a busy machine (0 runs of 10 passed).
+    monkeypatch.setattr(profile_jobs, "SECONDS_PER_MINUTE", 3)
     client = start_app(None)
     source_id = chosen_source(client, "gaps", "late_gaps")
 

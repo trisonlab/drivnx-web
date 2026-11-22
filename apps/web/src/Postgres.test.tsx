@@ -1113,24 +1113,25 @@ test.each([
   );
 });
 
-// Two objects with a column of the same name, so a link can only find its own object's cell.
+// Two objects with a column of the same name, so a link can only find its own object's cell. The finding is of
+// the second, so an ID without the object would land in the first.
 function twoObjects(object: string) {
   return [
     metric(object, null, "rows_read", 2500, "full"),
-    metric(object, null, "duplicate_rows", object === "sales.orders" ? 3 : 0, "full"),
-    metric(object, "region", "missing_count", object === "sales.orders" ? 12 : 0, "full"),
-    metric(object, "region", "missing_percent", object === "sales.orders" ? 0.48 : 0, "full"),
-    metric(object, "region", "distinct_count", object === "sales.orders" ? 2500 : 4, "full"),
-    metric(object, "region", "distinct_percent", object === "sales.orders" ? 100 : 0.16, "full"),
+    metric(object, null, "duplicate_rows", object === "sales.returns" ? 3 : 0, "full"),
+    metric(object, "region", "missing_count", object === "sales.returns" ? 12 : 0, "full"),
+    metric(object, "region", "missing_percent", object === "sales.returns" ? 0.48 : 0, "full"),
+    metric(object, "region", "distinct_count", object === "sales.returns" ? 2500 : 4, "full"),
+    metric(object, "region", "distinct_percent", object === "sales.returns" ? 100 : 0.16, "full"),
     metric(object, "region", "masked_patterns", ORDER_PATTERNS),
   ];
 }
 
 test.each([
-  ["possible_identifier", [metric("sales.orders", "region", "distinct_count", 2500, "full")], "2,500 (100%)"],
-  ["missing_values", [metric("sales.orders", "region", "missing_count", 12, "full")], "12 (0.48%)"],
-  ["possibly_sensitive", [metric("sales.orders", "region", "masked_patterns", ORDER_PATTERNS)], "1 pattern"],
-  ["duplicate_rows", [metric("sales.orders", null, "duplicate_rows", 3, "full")], "3 rows are exact copies of another row."],
+  ["possible_identifier", [metric("sales.returns", "region", "distinct_count", 2500, "full")], "2,500 (100%)"],
+  ["missing_values", [metric("sales.returns", "region", "missing_count", 12, "full")], "12 (0.48%)"],
+  ["possibly_sensitive", [metric("sales.returns", "region", "masked_patterns", ORDER_PATTERNS)], "1 pattern"],
+  ["duplicate_rows", [metric("sales.returns", null, "duplicate_rows", 3, "full")], "3 rows are exact copies of another row."],
 ])("a database %s finding's evidence link goes to its own object's metric", async (kind, evidence, shownAs) => {
   // CFX-APP-postgres/AC-26: "with their evidence links", to the cell of the object it's of.
   sources = [fixture];
@@ -1152,14 +1153,14 @@ test.each([
   renderApp();
   const shown = await within(await findingsPanel()).findByRole("article");
   const tab = await screen.findByRole("tabpanel", { name: "Profile" });
-  const [orders] = await within(tab).findAllByRole("table");
+  const [, returns] = await within(tab).findAllByRole("table");
 
   await userEvent.click(within(shown).getByRole("button", { name: /evidence/i }));
 
   const focused = document.activeElement as HTMLElement;
   expect(focused.textContent).toContain(shownAs);
   // The object's own section: its table, or what's said under it.
-  expect(focused.closest(".table-scroll")).toBe(orders.closest(".table-scroll"));
+  expect(focused.closest(".table-scroll")).toBe(returns.closest(".table-scroll"));
 });
 
 test("a database run's findings say having no flag doesn't mean no personal data", async () => {
@@ -1175,4 +1176,20 @@ test("a database run's findings say having no flag doesn't mean no personal data
 
   expect(await within(panel).findByText("This profile found nothing to point out.")).toBeInTheDocument();
   expect(panel).toHaveTextContent("Having no possibly-sensitive flag doesn't mean a column has no personal data.");
+});
+
+test("when a database run's results don't load, its findings say so", async () => {
+  // CFX-APP-postgres/AC-26: a database run's findings say how each object was read, from its results, so without
+  // them the findings can't show, and the panel says why rather than seeming to have found nothing.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/profile-runs/r1"] = () => Response.json({ detail: "no" }, { status: 500 });
+  gets["/api/findings?profile_run_id=r1"] = () =>
+    Response.json([databaseFinding("single_value", [metric("sales.orders", "region", "distinct_count", 1)])]);
+  renderApp();
+
+  const panel = await findingsPanel();
+
+  expect(await within(panel).findByRole("alert")).toHaveTextContent("DrivnX couldn't load the findings.");
+  expect(within(panel).queryByRole("article")).not.toBeInTheDocument();
 });
