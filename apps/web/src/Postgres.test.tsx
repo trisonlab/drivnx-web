@@ -1329,3 +1329,22 @@ test("when a database run's results don't load, its findings say so", async () =
   expect(await within(panel).findByRole("alert")).toHaveTextContent("DrivnX couldn't load the findings.");
   expect(within(panel).queryByRole("article")).not.toBeInTheDocument();
 });
+
+test("the findings of a database run whose objects have changed since say why they aren't current", async () => {
+  // CFX-APP-postgres/AC-32: its results are out of date, and so are its findings; a database has no
+  // settings, which a file's run says it used (CFX-APP-csv-profile AC-36).
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([changedRun]);
+  gets["/api/findings?profile_run_id=r3"] = () => Response.json([]);
+  gets["/api/profile-runs/r3"] = () => Response.json(changedDetail);
+  renderApp();
+
+  const findings = await findingsPanel();
+
+  expect(
+    await within(findings).findByText(
+      "These findings are from a profile some of whose objects have changed or gone since, so they aren't current.",
+    ),
+  ).toBeInTheDocument();
+  expect(findings).not.toHaveTextContent("used earlier settings");
+});

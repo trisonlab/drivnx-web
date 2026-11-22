@@ -134,9 +134,13 @@ export function Findings({ source, openedRunId }: { source: Source | undefined; 
       {(runs.isError || findings.isError || detail.isError) && (
         <p role="alert">DrivnX couldn't load the findings. Start DrivnX again.</p>
       )}
-      {/* AC-36 */}
+      {/* AC-36; a database run's objects have changed since instead (CFX-APP-postgres AC-32). */}
       {run && !run.current_settings && (
-        <p>These findings are from a profile that used earlier settings, so they aren't current.</p>
+        <p>
+          {database
+            ? "These findings are from a profile some of whose objects have changed or gone since, so they aren't current."
+            : "These findings are from a profile that used earlier settings, so they aren't current."}
+        </p>
       )}
       {shown?.length === 0 && <p>This profile found nothing to point out.</p>}
       {shown?.map((finding) => (
