@@ -2,7 +2,7 @@
 id: DRIVN-30
 legacy_id: CFX-APP-csv-profile-T10
 title: "Values on request"
-feature: CFX-APP-csv-profile
+feature: DRIVN-9
 feature_revision: 5
 stories: [US-05, US-06]
 criteria: [AC-29, AC-30, AC-31, AC-32, AC-34]

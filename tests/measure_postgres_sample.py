@@ -1,4 +1,4 @@
-"""Spike 2 of CFX-APP-postgres: how a fast profile should sample a large PostgreSQL table (ADR 0005).
+"""Spike 2 of DRIVN-45: how a fast profile should sample a large PostgreSQL table (ADR 0005).
 
 `uv run --frozen python tests/measure_postgres_sample.py <extension dir> [host] [port] [user]`
 against a throwaway server whose user may create the `spike` database (the defaults are 127.0.0.1,

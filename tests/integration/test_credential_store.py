@@ -1,4 +1,4 @@
-"""The OS credential store a database's password is kept in, CFX-APP-postgres AC-04 and AC-06
+"""The OS credential store a database's password is kept in, DRIVN-45 AC-04 and AC-06
 (DRIVN-48)."""
 
 import secrets
@@ -109,7 +109,7 @@ def real_store(this_computers_store: RealStore | None) -> RealStore:
 def test_a_plaintext_or_null_keyring_is_not_a_credential_store(
     chosen: type[KeyringBackend], chosen_keyring: None
 ) -> None:
-    # CFX-APP-postgres/AC-04: only Keychain, Credential Manager or Secret Service, even when
+    # DRIVN-45/AC-04: only Keychain, Credential Manager or Secret Service, even when
     # PYTHON_KEYRING_BACKEND or keyringrc.cfg chooses another keyring.
     keyring.set_keyring(chosen())
 
@@ -120,7 +120,7 @@ def test_a_plaintext_or_null_keyring_is_not_a_credential_store(
 def test_keychain_credential_manager_and_secret_service_are_credential_stores(
     chosen: type[KeyringBackend], chosen_keyring: None
 ) -> None:
-    # CFX-APP-postgres/AC-04
+    # DRIVN-45/AC-04
     store = chosen()
     keyring.set_keyring(store)
 
@@ -145,7 +145,7 @@ def chain_of(*links: KeyringBackend) -> ChainerBackend:
 def test_a_chain_is_a_store_only_when_every_link_is_an_os_store(
     links: tuple[KeyringBackend, ...], is_a_store: bool, chosen_keyring: None
 ) -> None:
-    # CFX-APP-postgres/AC-04: a chain reads every link in turn, so a plaintext file in it would
+    # DRIVN-45/AC-04: a chain reads every link in turn, so a plaintext file in it would
     # hold or answer for the password.
     chain = chain_of(*links)
     keyring.set_keyring(chain)
@@ -154,7 +154,7 @@ def test_a_chain_is_a_store_only_when_every_link_is_an_os_store(
 
 
 def test_the_entry_names_drivnx_and_the_source() -> None:
-    # CFX-APP-postgres/AC-04: "under an entry naming DrivnX and the source", found again in
+    # DRIVN-45/AC-04: "under an entry naming DrivnX and the source", found again in
     # Keychain Access, Credential Manager or Seahorse; one entry per source, also for two
     # workspaces with the same connection.
     source = StoredPostgresSource(
@@ -174,7 +174,7 @@ def test_the_entry_names_drivnx_and_the_source() -> None:
 
 
 def test_the_os_store_keeps_and_replaces_a_password(real_store: RealStore) -> None:
-    # CFX-APP-postgres/AC-04 (kept and read again) and AC-06 (a new one replaces it).
+    # DRIVN-45/AC-04 (kept and read again) and AC-06 (a new one replaces it).
     service = f"DrivnX PostgreSQL test {uuid.uuid4()}"
     first, second = secrets.token_urlsafe(18), secrets.token_urlsafe(18)
 
@@ -187,7 +187,7 @@ def test_the_os_store_keeps_and_replaces_a_password(real_store: RealStore) -> No
 
 @ON_WINDOWS_ONLY
 def test_on_windows_the_password_stays_on_this_computer(chosen_keyring: None) -> None:
-    # CFX-APP-postgres/AC-30: Credential Manager's default lets a roaming profile copy it to the
+    # DRIVN-45/AC-30: Credential Manager's default lets a roaming profile copy it to the
     # user's other computers.
     from win32ctypes.pywin32 import win32cred
 

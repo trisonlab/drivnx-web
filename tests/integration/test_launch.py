@@ -1,4 +1,4 @@
-"""CFX-APP-first-slice/AC-05: how DrivnX starts, and where the launch URL goes."""
+"""DRIVN-8/AC-05: how DrivnX starts, and where the launch URL goes."""
 
 import socket
 import time

@@ -110,7 +110,7 @@ def findings_for(
 ) -> list[DraftFinding]:
     """Findings in the fixed order by kind, then in the order their columns were saved. `names`
     gives each column's name by its field ID, and `keyed` the columns a declared key of their own
-    already identifies, which are no possible identifier (CFX-APP-postgres AC-26)."""
+    already identifies, which are no possible identifier (DRIVN-45 AC-26)."""
     of_the_whole = {e.metric: e for e in observations if e.field_id is None}
     # An object a full profile stopped at its time limit has no results to find from (AC-20).
     if "rows_read" not in of_the_whole:

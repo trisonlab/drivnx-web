@@ -1,4 +1,4 @@
-# The PostgreSQL fixture tests run against (CFX-APP-postgres AC-34, ADR 0006). Start it with
+# The PostgreSQL fixture tests run against (DRIVN-45 AC-34, ADR 0006). Start it with
 # `uv run --frozen python tests/postgres_fixture.py start`, which also waits until it's ready.
 name: drivnx-postgres-fixture
 services:

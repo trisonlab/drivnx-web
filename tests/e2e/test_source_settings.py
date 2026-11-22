@@ -1,4 +1,4 @@
-"""Correcting how a file is read in a real browser, CFX-APP-csv-profile AC-01, AC-02, AC-03, AC-05."""
+"""Correcting how a file is read in a real browser, DRIVN-9 AC-01, AC-02, AC-03, AC-05."""
 
 import pytest
 from playwright.sync_api import Page, expect
@@ -16,7 +16,7 @@ def app(start_drivnx: StartDrivnX, page: Page) -> Page:
 
 
 def test_correcting_a_file_changes_its_columns_and_preview(app: Page) -> None:
-    # CFX-APP-csv-profile/AC-01 and CFX-APP-csv-profile/AC-02
+    # DRIVN-9/AC-01 and DRIVN-9/AC-02
     connect(app, CSV_DIR / "title_line_tab_commas_in_text.csv")
     details = details_of(app, "title_line_tab_commas_in_text.csv")
     expect(details).to_be_visible()
@@ -36,7 +36,7 @@ def test_correcting_a_file_changes_its_columns_and_preview(app: Page) -> None:
 
 
 def test_settings_that_cannot_read_the_file_keep_the_old_ones(app: Page) -> None:
-    # CFX-APP-csv-profile/AC-03
+    # DRIVN-9/AC-03
     connect(app, CSV_DIR / "comma_latin1.csv")
     details = details_of(app, "comma_latin1.csv")
     expect(details).to_be_visible()

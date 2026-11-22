@@ -54,8 +54,8 @@ export function useProfileRuns() {
 }
 
 /** The runs the tab and the header go by, newest first: a file's with its current settings
- * (CFX-APP-csv-profile AC-35), and every one of a database's, which says when its objects have changed
- * since (CFX-APP-postgres AC-31, AC-32). */
+ * (DRIVN-9 AC-35), and every one of a database's, which says when its objects have changed
+ * since (DRIVN-45 AC-31, AC-32). */
 function runsOfSource(runs: ProfileRun[] | undefined, source: Source): ProfileRun[] {
   return (
     runs?.filter((run) => run.source_id === source.id && (source.kind === "postgres" || run.current_settings)) ?? []
@@ -91,7 +91,7 @@ export function profileStatus(
   const running = runs.find((run) => run.status === "running");
   if (running) {
     const name = sources?.find((source) => source.id === running.source_id)?.name;
-    // A database's run also names the object it's reading (CFX-APP-postgres AC-17).
+    // A database's run also names the object it's reading (DRIVN-45 AC-17).
     const on = running.current_object ? `${name}: ${running.current_object}` : name;
     return name ? `Running on ${on}` : "Running";
   }
@@ -352,7 +352,7 @@ function ColumnValuesSection({
   );
 }
 
-/** Before a database is profiled with a role that could change the chosen objects (CFX-APP-postgres
+/** Before a database is profiled with a role that could change the chosen objects (DRIVN-45
  * AC-16): which, and with what. DrivnX itself only reads. */
 function WriteAccessConfirmation({
   access,
@@ -453,9 +453,9 @@ function RunsList({
             <li key={run.id}>
               {MODE_LABELS[run.mode]}, {run.status === "running" ? "Running" : STATUS_LABELS[run.status]}, started{" "}
               {started}
-              {/* CFX-APP-postgres AC-31 */}
+              {/* DRIVN-45 AC-31 */}
               {run.object_names && `, of ${namedObjects(run.object_names)}`}
-              {/* AC-36; for a database, a refresh has since changed one of its objects (CFX-APP-postgres AC-32). */}
+              {/* AC-36; for a database, a refresh has since changed one of its objects (DRIVN-45 AC-32). */}
               {!run.current_settings && (of === "database" ? " · Out of date" : " · Used earlier settings")}
               {run.id === shown?.id ? (
                 " · Shown"
@@ -592,7 +592,7 @@ function Results({ run }: { run: ProfileRun }) {
   );
 }
 
-// How a database run read an object, with the rows it read (CFX-APP-postgres AC-18, AC-24).
+// How a database run read an object, with the rows it read (DRIVN-45 AC-18, AC-24).
 const READ_AS: Record<NonNullable<ProfileRunDetail["objects"]>[number]["method"], (rows: string) => string> = {
   page_sample: (rows) => `about ${rows} rows, sampled by page`,
   whole: (rows) => `the whole object, ${rows} rows`,
@@ -637,14 +637,14 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
   const { metrics, objects = [] } = results.data;
   // A full profile stopped these at their time limit, so they have no results (AC-20).
   const stopped = objects.filter((found) => found.stopped_at_time_limit).map((found) => found.object);
-  // A refresh has since found these gone or with other columns (CFX-APP-postgres AC-32).
+  // A refresh has since found these gone or with other columns (DRIVN-45 AC-32).
   const outOfDate = objects.filter((found) => found.out_of_date).map((found) => found.object);
   return (
     <>
       <p>
         Run {run.id}, finished {new Date(run.ended_at ?? run.started_at).toLocaleString()}
       </p>
-      {/* CFX-APP-postgres AC-32 */}
+      {/* DRIVN-45 AC-32 */}
       <p>
         These results describe each object as it was when this run read it, on{" "}
         {new Date(run.started_at).toLocaleString()}.
@@ -660,9 +660,9 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
         }
         const own = metrics.filter((metric) => metric.object === object);
         const columns = [...new Set(own.flatMap((metric) => metric.column ?? []))];
-        // Only a full profile counts them (CFX-APP-postgres AC-26).
+        // Only a full profile counts them (DRIVN-45 AC-26).
         const duplicates = own.find((metric) => metric.column === null && metric.metric === "duplicate_rows")?.value;
-        // A full profile's masked patterns are its fast reading's (CFX-APP-postgres, the Assumptions).
+        // A full profile's masked patterns are its fast reading's (DRIVN-45, the Assumptions).
         const patternsReadAs = patterns_from ? objectReading(results.data, found, true) : undefined;
         return (
           <div className="table-scroll" key={object}>
@@ -742,7 +742,7 @@ export function ProfileTab({
   const headingId = useId();
   const queryClient = useQueryClient();
   const runs = useProfileRuns();
-  // A database's full profile stops each object at this many minutes (CFX-APP-postgres AC-20).
+  // A database's full profile stops each object at this many minutes (DRIVN-45 AC-20).
   const [minutes, setMinutes] = useState("10");
   // Said once a full profile is asked for with minutes it can't take, until they're put right.
   const [triedMinutes, setTriedMinutes] = useState(false);

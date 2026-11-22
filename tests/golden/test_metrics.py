@@ -1,4 +1,4 @@
-"""Every metric a profile saves, against values worked out by hand, CFX-APP-csv-profile AC-19.
+"""Every metric a profile saves, against values worked out by hand, DRIVN-9 AC-19.
 
 Each expected value below comes from reading the file in `testdata/golden`, written by
 `testdata/generate_csv.py`, and not from running the code.
@@ -428,7 +428,7 @@ def profiled(client: TestClient, path: Path) -> dict:
 
 @pytest.mark.parametrize("name", sorted(EXPECTED))
 def test_every_saved_metric_equals_its_known_value(client: TestClient, name: str) -> None:
-    # CFX-APP-csv-profile/AC-19: compared whole, so an extra or missing metric fails too.
+    # DRIVN-9/AC-19: compared whole, so an extra or missing metric fails too.
     run = profiled(client, GOLDEN_DIR / name)
 
     assert run["status"] == "completed"
@@ -446,6 +446,6 @@ def test_every_saved_metric_equals_its_known_value(client: TestClient, name: str
 
 
 def test_a_golden_file_exists_for_every_kind_the_spec_names() -> None:
-    # CFX-APP-csv-profile/AC-19: missing values, duplicates, dates, Unicode, mixed types and high
+    # DRIVN-9/AC-19: missing values, duplicates, dates, Unicode, mixed types and high
     # cardinality. Dates has several files, as what DuckDB detects depends on the whole file.
     assert set(EXPECTED) == {path.name for path in GOLDEN_DIR.iterdir()}

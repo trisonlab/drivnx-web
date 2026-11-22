@@ -1,4 +1,4 @@
-"""Values computed on request from a table's rows, CFX-APP-csv-profile AC-30."""
+"""Values computed on request from a table's rows, DRIVN-9 AC-30."""
 
 from pathlib import Path
 
@@ -36,7 +36,7 @@ def column(name: str, *cells: str) -> str:
 
 
 def test_a_text_columns_values_are_its_range_and_most_frequent_values(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-30: text takes no histogram, mean, median or deviation.
+    # DRIVN-9/AC-30: text takes no histogram, mean, median or deviation.
     cities = ("Oslo", "Bergen", "Oslo", "", "Tromsø", "Oslo")
 
     found = values(tmp_path, column("city", *cities), "string")
@@ -53,7 +53,7 @@ def test_a_text_columns_values_are_its_range_and_most_frequent_values(tmp_path: 
 
 
 def test_only_the_10_most_frequent_values_are_given_ties_in_order(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-30
+    # DRIVN-9/AC-30
     cells = ["k"] * 3 + ["b"] * 2 + [f"v{number:02d}" for number in range(12)]
 
     found = values(tmp_path, column("code", *cells), "string")
@@ -68,7 +68,7 @@ def test_only_the_10_most_frequent_values_are_given_ties_in_order(tmp_path: Path
 def test_an_integer_columns_range_is_in_number_order_over_values_that_fit(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-csv-profile/AC-30: as text, "10" would come before "9". A value that doesn't fit is
+    # DRIVN-9/AC-30: as text, "10" would come before "9". A value that doesn't fit is
     # still a frequent value, but takes no part in the range or the statistics.
     found = values(tmp_path, column("amount", "9", "10", "100", "n/a", "10", "1.5"), "integer")
 
@@ -81,7 +81,7 @@ def test_an_integer_columns_range_is_in_number_order_over_values_that_fit(
 
 
 def test_a_number_columns_histogram_has_10_equal_buckets_over_its_range(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-30: each bucket runs from where the one before ended, the first
+    # DRIVN-9/AC-30: each bucket runs from where the one before ended, the first
     # from the minimum, and together they hold every value that fits.
     readings = [f"{number}.5" for number in range(100)]
 
@@ -98,7 +98,7 @@ def test_a_number_columns_histogram_has_10_equal_buckets_over_its_range(tmp_path
 
 
 def test_a_column_of_one_value_has_one_bucket(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-30
+    # DRIVN-9/AC-30
     found = values(tmp_path, column("level", "7", "7", "7"), "integer")
 
     assert found.histogram == (Bucket("7", "7", 3),)
@@ -108,7 +108,7 @@ def test_a_column_of_one_value_has_one_bucket(tmp_path: Path) -> None:
 def test_a_date_column_written_day_first_takes_its_range_histogram_and_median(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-csv-profile/AC-30: in the format the file writes, and the median is a real date. An
+    # DRIVN-9/AC-30: in the format the file writes, and the median is a real date. An
     # average date means little, so there's no mean or deviation.
     dates = ("03/25/2024", "01/02/2024", "02/10/2024", "12/31/2023", "02/10/2024")
 
@@ -125,14 +125,14 @@ def test_a_date_column_written_day_first_takes_its_range_histogram_and_median(
 
 
 def test_a_column_with_no_values_has_none_to_give(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-30: blanks are missing values, as in the profile.
+    # DRIVN-9/AC-30: blanks are missing values, as in the profile.
     found = values(tmp_path, "id,note\n1,\n2,  \n", "number", position=1)
 
     assert found == ColumnValues(2, True, None, None, (), None, None, None, None)
 
 
 def test_values_after_a_fast_profile_come_from_the_first_rows_only(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-30: the part of the file the run read, and said so.
+    # DRIVN-9/AC-30: the part of the file the run read, and said so.
     ids = [str(number) for number in range(FIRST_ROWS + 5)]
 
     found = values(tmp_path, column("id", *ids), "integer")
@@ -142,7 +142,7 @@ def test_values_after_a_fast_profile_come_from_the_first_rows_only(tmp_path: Pat
 
 
 def test_values_after_a_full_profile_come_from_every_row(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-30
+    # DRIVN-9/AC-30
     found = values(
         tmp_path,
         column("id", *(str(number) for number in range(FIRST_ROWS + 5))),
@@ -155,7 +155,7 @@ def test_values_after_a_full_profile_come_from_every_row(tmp_path: Path) -> None
 
 
 def test_a_buckets_edges_read_as_the_numbers_they_are(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-30: a width of 0.06 adds up to 0.1599999999999998 in floating point.
+    # DRIVN-9/AC-30: a width of 0.06 adds up to 0.1599999999999998 in floating point.
     found = values(tmp_path, column("ratio", "0.1", "0.4", "0.7"), "number")
 
     assert found.histogram is not None
@@ -165,7 +165,7 @@ def test_a_buckets_edges_read_as_the_numbers_they_are(tmp_path: Path) -> None:
 def test_numbers_that_arent_finite_take_no_part_in_the_range_statistics_or_histogram(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-csv-profile/AC-30: a file can write inf or NaN, and they have no place on a range.
+    # DRIVN-9/AC-30: a file can write inf or NaN, and they have no place on a range.
     # They're still frequent values.
     found = values(tmp_path, column("reading", "1", "inf", "NaN", "-Infinity", "3"), "number")
 
@@ -180,7 +180,7 @@ def test_numbers_that_arent_finite_take_no_part_in_the_range_statistics_or_histo
 def test_dates_that_arent_finite_take_no_part_in_the_range_or_histogram(
     tmp_path: Path, column_type: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-30: DuckDB's `try_strptime` reads `infinity` as 1900-01-01.
+    # DRIVN-9/AC-30: DuckDB's `try_strptime` reads `infinity` as 1900-01-01.
     found = values(
         tmp_path, column("joined", "2024-01-02", "Infinity", "-infinity", "2024-03-04"), column_type
     )

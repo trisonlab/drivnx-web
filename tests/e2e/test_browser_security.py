@@ -1,6 +1,6 @@
 """Spike 6 as repeatable checks: what a real browser does, which API tests can't show.
 
-CFX-APP-first-slice AC-09 and AC-11. Accepted risk R1 stays documented in the threat register.
+DRIVN-8 AC-09 and AC-11. Accepted risk R1 stays documented in the threat register.
 """
 
 import http.server
@@ -60,7 +60,7 @@ def signed_in(browser: Browser, launch: Launch) -> Iterator[BrowserContext]:
 def test_the_code_leaves_the_address_bar_and_the_token_is_out_of_reach(
     page: Page, launch: Launch
 ) -> None:
-    # CFX-APP-first-slice/AC-11
+    # DRIVN-8/AC-11
     page.goto(launch.url)
     expect(page.get_by_role("textbox", name="Workspace name")).to_be_visible()
 
@@ -89,7 +89,7 @@ def test_a_reload_and_a_new_tab_stay_signed_in(
 def test_a_second_browser_with_a_used_code_is_refused_and_told_what_to_do(
     browser: Browser, signed_in: BrowserContext, launch: Launch
 ) -> None:
-    # CFX-APP-first-slice/AC-10
+    # DRIVN-8/AC-10
     other = browser.new_context()
     page = other.new_page()
 
@@ -102,7 +102,7 @@ def test_a_second_browser_with_a_used_code_is_refused_and_told_what_to_do(
 def test_another_local_page_cannot_use_the_api_with_fetch(
     signed_in: BrowserContext, launch: Launch, other_local_site: str
 ) -> None:
-    # CFX-APP-first-slice/AC-09: SameSite treats other local ports as the same site.
+    # DRIVN-8/AC-09: SameSite treats other local ports as the same site.
     page = signed_in.new_page()
     page.goto(other_local_site)
 
@@ -146,7 +146,7 @@ def test_another_local_page_cannot_use_the_api_with_fetch(
 def test_a_form_posted_from_another_local_page_is_refused(
     signed_in: BrowserContext, launch: Launch, other_local_site: str
 ) -> None:
-    # CFX-APP-first-slice/AC-09: a form can't be stopped by the browser, so the Origin check must.
+    # DRIVN-8/AC-09: a form can't be stopped by the browser, so the Origin check must.
     page = signed_in.new_page()
     page.goto(other_local_site)
     page.set_content(

@@ -1,4 +1,4 @@
-"""A fast profile in a real browser, against the installed wheel, CFX-APP-csv-profile AC-07, AC-15, AC-16, AC-17, AC-36."""
+"""A fast profile in a real browser, against the installed wheel, DRIVN-9 AC-07, AC-15, AC-16, AC-17, AC-36."""
 
 from pathlib import Path
 
@@ -27,7 +27,7 @@ def run_a_fast_profile(page: Page, path: Path):
 
 
 def test_a_file_under_100000_rows_is_labelled_as_the_whole_file(app: Page) -> None:
-    # CFX-APP-csv-profile/AC-07, CFX-APP-csv-profile/AC-15 and CFX-APP-csv-profile/AC-17
+    # DRIVN-9/AC-07, DRIVN-9/AC-15 and DRIVN-9/AC-17
     panel = run_a_fast_profile(app, CSV_DIR / "comma_utf8.csv")
 
     city = panel.get_by_role("row").filter(has_text="city")
@@ -42,7 +42,7 @@ def test_a_file_under_100000_rows_is_labelled_as_the_whole_file(app: Page) -> No
 def test_patterns_that_differ_only_in_spaces_look_different(
     app: Page, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-14: found reviewing T05. They're separate patterns, and a browser
+    # DRIVN-9/AC-14: found reviewing T05. They're separate patterns, and a browser
     # collapses spaces unless told not to, which would show the same pattern twice.
     path = tmp_path / "spaces.csv"
     path.write_text("id,value\n1, 8\n2,9 \n3,x 7\n", encoding="utf-8", newline="")
@@ -60,7 +60,7 @@ def test_patterns_that_differ_only_in_spaces_look_different(
 def test_a_file_over_100000_rows_is_labelled_as_its_first_rows(
     app: Page, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-07 and CFX-APP-csv-profile/AC-16
+    # DRIVN-9/AC-07 and DRIVN-9/AC-16
     path = tmp_path / "numbers.csv"
     path.write_text(
         "id,name\n" + "".join(f"{number},name{number}\n" for number in range(150_000)),
@@ -79,7 +79,7 @@ def test_a_file_over_100000_rows_is_labelled_as_its_first_rows(
 
 
 def test_a_correction_stops_showing_results_read_the_earlier_way(app: Page) -> None:
-    # CFX-APP-csv-profile/AC-36
+    # DRIVN-9/AC-36
     panel = run_a_fast_profile(app, CSV_DIR / "comma_utf8.csv")
     details = details_of(app, "comma_utf8.csv")
 

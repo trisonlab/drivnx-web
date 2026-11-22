@@ -162,8 +162,8 @@ def test_the_journey_works_by_keyboard_alone(
     expect(preview.get_by_text("Rows 51 to 60")).to_be_visible()
 
 
-# The new screens of CFX-APP-csv-profile in the states its journey doesn't reach
-# (tests/e2e/test_profile_journey.py), for CFX-APP-csv-profile/AC-41.
+# The new screens of DRIVN-9 in the states its journey doesn't reach
+# (tests/e2e/test_profile_journey.py), for DRIVN-9/AC-41.
 
 
 def profile_of(page: Page):
@@ -171,7 +171,7 @@ def profile_of(page: Page):
 
 
 def test_a_running_profile_and_its_cancel(page: Page, launch_url: str, tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-41
+    # DRIVN-9/AC-41
     path = large_csv(tmp_path / "large.csv", rows=20_000_000)
     open_set_up_app(page, launch_url)
     connect(page, path)
@@ -189,7 +189,7 @@ def test_a_running_profile_and_its_cancel(page: Page, launch_url: str, tmp_path:
 
 
 def test_settings_that_cannot_read_the_file(page: Page, launch_url: str) -> None:
-    # CFX-APP-csv-profile/AC-41
+    # DRIVN-9/AC-41
     latin1 = REPO_ROOT / "testdata/csv/comma_latin1.csv"
     open_set_up_app(page, launch_url)
     connect(page, latin1)
@@ -203,7 +203,7 @@ def test_settings_that_cannot_read_the_file(page: Page, launch_url: str) -> None
 
 
 def test_an_earlier_run_opened_after_a_correction(page: Page, launch_url: str) -> None:
-    # CFX-APP-csv-profile/AC-41
+    # DRIVN-9/AC-41
     open_set_up_app(page, launch_url)
     connect(page, CSV)
     profile = profile_of(page)
@@ -230,7 +230,7 @@ def test_an_earlier_run_opened_after_a_correction(page: Page, launch_url: str) -
 
 
 def test_a_profile_that_found_nothing(page: Page, launch_url: str, tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-41: no column is distinct, one value, missing or mistyped, and no row
+    # DRIVN-9/AC-41: no column is distinct, one value, missing or mistyped, and no row
     # repeats, so none of the six kinds of finding applies.
     path = tmp_path / "plain.csv"
     path.write_text("size,colour\nS,red\nS,blue\nL,red\nL,blue\n", encoding="utf-8", newline="")
@@ -248,7 +248,7 @@ def test_a_profile_that_found_nothing(page: Page, launch_url: str, tmp_path: Pat
 def test_a_profile_interrupted_when_drivnx_stopped(
     page: Page, start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-41: DrivnX stops during a run, and the next start marks it
+    # DRIVN-9/AC-41: DrivnX stops during a run, and the next start marks it
     # interrupted.
     path = large_csv(tmp_path / "large.csv", rows=20_000_000)
     workspace = tmp_path / "workspace"

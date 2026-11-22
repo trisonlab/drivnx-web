@@ -5,12 +5,12 @@ library: keyring
 version: "25.7.0"
 retrieved: "2026-11-14"
 status: INFERRED
-related: [CFX-APP-postgres, DRIVN-48]
+related: [DRIVN-45, DRIVN-48]
 ---
 
 # keyring 25.7.0: reaching Keychain, Windows Credential Manager and Secret Service
 
-Researched for DRIVN-48 (CFX-APP-postgres AC-04, AC-06, AC-30) on 2026-11-14. External documentation and source,
+Researched for DRIVN-48 (DRIVN-45 AC-04, AC-06, AC-30) on 2026-11-14. External documentation and source,
 not project evidence: INFERRED until the build proves each point on CI. keyring is **not** a dependency yet
 (`pyproject.toml`, `uv.lock` checked 2026-11-14); adding it is the user's decision.
 

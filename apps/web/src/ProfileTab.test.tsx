@@ -170,7 +170,7 @@ async function startButton() {
 }
 
 test("choosing Fast profile starts a run for this source", async () => {
-  // CFX-APP-csv-profile/AC-07
+  // DRIVN-9/AC-07
   renderApp();
 
   await userEvent.click(await startButton());
@@ -182,7 +182,7 @@ test("choosing Fast profile starts a run for this source", async () => {
 });
 
 test("choosing Full profile starts a full run for this source", async () => {
-  // CFX-APP-csv-profile/AC-08
+  // DRIVN-9/AC-08
   renderApp();
 
   await userEvent.click(await within(await profilePanel()).findByRole("button", { name: "Full profile" }));
@@ -194,7 +194,7 @@ test("choosing Full profile starts a full run for this source", async () => {
 });
 
 test("a run in progress shows in the header and the Profile tab", async () => {
-  // CFX-APP-csv-profile/AC-09
+  // DRIVN-9/AC-09
   runs = [run({ status: "running", ended_at: null })];
   renderApp();
 
@@ -204,7 +204,7 @@ test("a run in progress shows in the header and the Profile tab", async () => {
 });
 
 test("a run in progress on this file can be cancelled", async () => {
-  // CFX-APP-csv-profile/AC-10
+  // DRIVN-9/AC-10
   runs = [run({ status: "running", ended_at: null })];
   renderApp();
 
@@ -216,7 +216,7 @@ test("a run in progress on this file can be cancelled", async () => {
 });
 
 test("the results appear by themselves when the run completes", async () => {
-  // CFX-APP-csv-profile/AC-07
+  // DRIVN-9/AC-07
   renderApp();
   await userEvent.click(await startButton());
   await within(await profilePanel()).findByRole("status");
@@ -229,7 +229,7 @@ test("the results appear by themselves when the run completes", async () => {
 });
 
 test("a second run is refused with the server's message", async () => {
-  // CFX-APP-csv-profile/AC-09
+  // DRIVN-9/AC-09
   onStart = () =>
     Response.json(
       { detail: "A profile is already running. Wait for it to finish, then try again." },
@@ -245,7 +245,7 @@ test("a second run is refused with the server's message", async () => {
 });
 
 test("a metric from the first rows says so and claims no total", async () => {
-  // CFX-APP-csv-profile/AC-15 and CFX-APP-csv-profile/AC-16
+  // DRIVN-9/AC-15 and DRIVN-9/AC-16
   runs = [run()];
   scope = "sample";
   renderApp();
@@ -262,7 +262,7 @@ test("a metric from the first rows says so and claims no total", async () => {
 });
 
 test("a metric from a whole file says so", async () => {
-  // CFX-APP-csv-profile/AC-15 and CFX-APP-csv-profile/AC-17
+  // DRIVN-9/AC-15 and DRIVN-9/AC-17
   runs = [run()];
   renderApp();
 
@@ -278,7 +278,7 @@ test.each([
   [1, "This file has 1 row."],
   [100000, "This file has 100,000 rows."],
 ])("a run that read the whole file of %i rows says how many it has", async (rows, said) => {
-  // CFX-APP-csv-profile/AC-08
+  // DRIVN-9/AC-08
   runs = [run({ mode: "full" })];
   rowsRead = rows;
   renderApp();
@@ -287,7 +287,7 @@ test.each([
 });
 
 test("a run of the first rows doesn't say how many rows the file has", async () => {
-  // CFX-APP-csv-profile/AC-16
+  // DRIVN-9/AC-16
   runs = [run()];
   scope = "sample";
   renderApp();
@@ -297,7 +297,7 @@ test("a run of the first rows doesn't say how many rows the file has", async () 
 });
 
 test("every metric shows its precision, and the results show their run", async () => {
-  // CFX-APP-csv-profile/AC-15
+  // DRIVN-9/AC-15
   runs = [run()];
   renderApp();
 
@@ -312,7 +312,7 @@ test("every metric shows its precision, and the results show their run", async (
 });
 
 test("a run on earlier settings isn't shown as the current results", async () => {
-  // CFX-APP-csv-profile/AC-36
+  // DRIVN-9/AC-36
   runs = [run({ current_settings: false })];
   renderApp();
 
@@ -323,7 +323,7 @@ test("a run on earlier settings isn't shown as the current results", async () =>
 });
 
 test("saving a correction stops showing the earlier results", async () => {
-  // CFX-APP-csv-profile/AC-36: the list has to be read again for that to show.
+  // DRIVN-9/AC-36: the list has to be read again for that to show.
   runs = [run()];
   renderApp();
   const panel = await profilePanel();
@@ -340,7 +340,7 @@ async function runsList() {
 }
 
 test("every run of this file is listed with its mode, status and time", async () => {
-  // CFX-APP-csv-profile/AC-35
+  // DRIVN-9/AC-35
   runs = [
     run({ id: "run-3", status: "failed", started_at: "2024-03-07T09:00:00+00:00" }),
     run({ id: "run-2", mode: "full", started_at: "2024-03-06T09:00:00+00:00" }),
@@ -360,7 +360,7 @@ test("every run of this file is listed with its mode, status and time", async ()
 });
 
 test("the newest completed run with the current settings is shown, and any completed one opens", async () => {
-  // CFX-APP-csv-profile/AC-35
+  // DRIVN-9/AC-35
   runs = [run({ id: "run-3", status: "failed" }), run({ id: "run-2", mode: "full" }), run({ id: "run-1" })];
   findingsOf = "run-1";
   findings = [finding("single_value", [{ column: "city", metric: "distinct_count", value: 1 }])];
@@ -381,7 +381,7 @@ test("the newest completed run with the current settings is shown, and any compl
 });
 
 test("starting a profile goes back to showing the newest results", async () => {
-  // CFX-APP-csv-profile/AC-35
+  // DRIVN-9/AC-35
   runs = [run({ id: "run-2" }), run({ id: "run-1" })];
   onStart = () => {
     runs = [run({ id: "run-3" }), ...runs];
@@ -399,7 +399,7 @@ test("starting a profile goes back to showing the newest results", async () => {
 });
 
 test("a run on earlier settings is labelled, and once opened says its findings aren't current", async () => {
-  // CFX-APP-csv-profile/AC-36
+  // DRIVN-9/AC-36
   runs = [run({ current_settings: false })];
   findings = [finding("single_value", [{ column: "city", metric: "distinct_count", value: 1 }])];
   renderApp();
@@ -418,7 +418,7 @@ test("a run on earlier settings is labelled, and once opened says its findings a
 });
 
 test("results from a file that changed since its run may be out of date", async () => {
-  // CFX-APP-csv-profile/AC-37
+  // DRIVN-9/AC-37
   runs = [run()];
   fileChanged = true;
   renderApp();
@@ -431,7 +431,7 @@ test("results from a file that changed since its run may be out of date", async 
 });
 
 test.each([false, null])("results from a file that hasn't changed, or can't be looked at, say nothing (%s)", async (changed) => {
-  // CFX-APP-csv-profile/AC-37
+  // DRIVN-9/AC-37
   runs = [run()];
   fileChanged = changed;
   renderApp();
@@ -443,7 +443,7 @@ test.each([false, null])("results from a file that hasn't changed, or can't be l
 });
 
 test("a run that was in progress when DrivnX stopped says so, and earlier results stay", async () => {
-  // CFX-APP-csv-profile/AC-38
+  // DRIVN-9/AC-38
   runs = [run({ id: "run-2", status: "interrupted" }), run()];
   renderApp();
   const panel = await profilePanel();
@@ -454,7 +454,7 @@ test("a run that was in progress when DrivnX stopped says so, and earlier result
 });
 
 test("a source whose only run was interrupted says so in the tab", async () => {
-  // CFX-APP-csv-profile/AC-38: from T04, the tab was empty while the header said "Interrupted".
+  // DRIVN-9/AC-38: from T04, the tab was empty while the header said "Interrupted".
   runs = [run({ status: "interrupted" })];
   renderApp();
   const panel = await profilePanel();
@@ -464,7 +464,7 @@ test("a source whose only run was interrupted says so in the tab", async () => {
 });
 
 test("a run that failed says so, and earlier results stay", async () => {
-  // CFX-APP-csv-profile/AC-09: T07 gives each failure its own message.
+  // DRIVN-9/AC-09: T07 gives each failure its own message.
   runs = [run({ id: "run-2", status: "failed" }), run()];
   renderApp();
 
@@ -472,14 +472,14 @@ test("a run that failed says so, and earlier results stay", async () => {
 
   expect(await within(panel).findByRole("alert")).toHaveTextContent("couldn't finish");
   expect(await within(panel).findByRole("table")).toBeInTheDocument();
-  // CFX-APP-csv-profile/AC-11: they aren't the failed run's.
+  // DRIVN-9/AC-11: they aren't the failed run's.
   expect(panel).toHaveTextContent("The results below are from the run before.");
   expect(panel).toHaveTextContent("run-1");
   expect(within(await screen.findByRole("banner")).getByText("Profile status: Failed")).toBeInTheDocument();
 });
 
 test("a cancelled run says so, and its results don't appear as current", async () => {
-  // CFX-APP-csv-profile/AC-10
+  // DRIVN-9/AC-10
   runs = [run({ id: "run-2", status: "cancelled" }), run()];
   renderApp();
 
@@ -493,7 +493,7 @@ test("a cancelled run says so, and its results don't appear as current", async (
 });
 
 test("a failed run says why, in the server's words", async () => {
-  // CFX-APP-csv-profile/AC-11
+  // DRIVN-9/AC-11
   runs = [run({ status: "failed", failure: "DrivnX can't find this file. It may have moved or been deleted." })];
   renderApp();
 
@@ -506,7 +506,7 @@ test("a failed run says why, in the server's words", async () => {
 });
 
 test("with no source, the Profile tab says what to do first", async () => {
-  // CFX-APP-csv-profile/AC-07
+  // DRIVN-9/AC-07
   fetchMock.mockImplementation(async (url: string) =>
     url === "/api/workspace" ? Response.json(workspace) : Response.json([]),
   );
@@ -520,7 +520,7 @@ test("with no source, the Profile tab says what to do first", async () => {
 });
 
 test("if the runs can't be read, the header doesn't claim there are none", async () => {
-  // CFX-APP-csv-profile/AC-09
+  // DRIVN-9/AC-09
   const answer = fetchMock.getMockImplementation();
   fetchMock.mockImplementation(async (url: string, init?: RequestInit) =>
     url === "/api/profile-runs" ? new Response(null, { status: 500 }) : answer?.(url, init),
@@ -534,7 +534,7 @@ test("if the runs can't be read, the header doesn't claim there are none", async
 });
 
 test("results that can't be read say so", async () => {
-  // CFX-APP-csv-profile/AC-07
+  // DRIVN-9/AC-07
   runs = [run()];
   const answer = fetchMock.getMockImplementation();
   fetchMock.mockImplementation(async (url: string, init?: RequestInit) =>
@@ -546,7 +546,7 @@ test("results that can't be read say so", async () => {
 });
 
 test("a refusal because a run is in progress clears once that run ends", async () => {
-  // CFX-APP-csv-profile/AC-09: left on screen, it would say a finished run is still going.
+  // DRIVN-9/AC-09: left on screen, it would say a finished run is still going.
   runs = [run({ source_id: "s2", status: "running", ended_at: null })];
   onStart = () =>
     Response.json(
@@ -565,7 +565,7 @@ test("a refusal because a run is in progress clears once that run ends", async (
 });
 
 test("a start refused by a run this page didn't know about shows that run", async () => {
-  // CFX-APP-csv-profile/AC-09: another tab started it after this page last read the runs.
+  // DRIVN-9/AC-09: another tab started it after this page last read the runs.
   renderApp();
   const button = await startButton();
   await screen.findByText("Profile status: Not run yet");
@@ -584,7 +584,7 @@ test("a start refused by a run this page didn't know about shows that run", asyn
 });
 
 test("a run this page learned of from a refusal shows its results when it ends", async () => {
-  // CFX-APP-csv-profile/AC-09: the page keeps asking for as long as the run goes on.
+  // DRIVN-9/AC-09: the page keeps asking for as long as the run goes on.
   renderApp();
   const button = await startButton();
   onStart = () => {
@@ -603,14 +603,14 @@ test("a run this page learned of from a refusal shows its results when it ends",
 });
 
 test("a run on another file shows in the Profile tab too", async () => {
-  // CFX-APP-csv-profile/AC-09: the header and the tab both show a run in progress.
+  // DRIVN-9/AC-09: the header and the tab both show a run in progress.
   runs = [run({ source_id: "s2", status: "running", ended_at: null })];
   renderApp();
 
   const panel = await profilePanel();
 
   expect(await within(panel).findByRole("status")).toHaveTextContent("A profile is running on another file.");
-  // CFX-APP-csv-profile/AC-10: it's cancelled from its own file's tab.
+  // DRIVN-9/AC-10: it's cancelled from its own file's tab.
   expect(within(panel).queryByRole("button", { name: "Cancel profile" })).not.toBeInTheDocument();
 });
 
@@ -620,7 +620,7 @@ async function rowFor(column: string) {
 }
 
 test("each column shows every metric, on one row", async () => {
-  // CFX-APP-csv-profile/AC-14
+  // DRIVN-9/AC-14
   runs = [run()];
   renderApp();
 
@@ -631,7 +631,7 @@ test("each column shows every metric, on one row", async () => {
 });
 
 test("a metric that wasn't saved shows as a dash", async () => {
-  // CFX-APP-csv-profile/AC-14: nothing to divide by, or a run from before these metrics existed.
+  // DRIVN-9/AC-14: nothing to divide by, or a run from before these metrics existed.
   runs = [run()];
   renderApp();
 
@@ -642,7 +642,7 @@ test("a metric that wasn't saved shows as a dash", async () => {
 });
 
 test("the most common patterns open from their cell, with their counts", async () => {
-  // CFX-APP-csv-profile/AC-14
+  // DRIVN-9/AC-14
   runs = [run()];
   renderApp();
   const row = await rowFor("city");
@@ -653,7 +653,7 @@ test("the most common patterns open from their cell, with their counts", async (
 });
 
 test("a full profile's patterns say they come from the first rows", async () => {
-  // CFX-APP-csv-profile/AC-18
+  // DRIVN-9/AC-18
   runs = [run({ mode: "full" })];
   patternsScope = "sample";
   renderApp();
@@ -664,7 +664,7 @@ test("a full profile's patterns say they come from the first rows", async () => 
 });
 
 test("a cut pattern says so", async () => {
-  // CFX-APP-csv-profile/AC-20
+  // DRIVN-9/AC-20
   runs = [run()];
   renderApp();
   const row = await rowFor("city");
@@ -679,7 +679,7 @@ test.each([
   [1, "Some rows have 1 more field than the columns shown, and it isn't measured."],
   [2, "Some rows have 2 more fields than the columns shown, and they aren't measured."],
 ])("%i surplus columns are mentioned", async (count, message) => {
-  // CFX-APP-csv-profile/AC-14, by the user's decision: they have no saved field to give metrics to.
+  // DRIVN-9/AC-14, by the user's decision: they have no saved field to give metrics to.
   extraMetrics = [["extra_columns", count]];
   runs = [run()];
   renderApp();
@@ -688,7 +688,7 @@ test.each([
 });
 
 test("a file with no surplus columns doesn't mention them", async () => {
-  // CFX-APP-csv-profile/AC-14
+  // DRIVN-9/AC-14
   runs = [run()];
   renderApp();
   await rowFor("city");
@@ -717,7 +717,7 @@ test("a file with no lines left out above the table doesn't mention them", async
 });
 
 test("what a metric was measured on comes straight after its column", async () => {
-  // CFX-APP-csv-profile/AC-15: the table scrolls on a smaller screen, and these must stay in view.
+  // DRIVN-9/AC-15: the table scrolls on a smaller screen, and these must stay in view.
   runs = [run()];
   scope = "sample";
   renderApp();
@@ -747,7 +747,7 @@ async function findingsPanel() {
 }
 
 test("a finding says what was observed and inferred, why it matters and what to do, as Inferred", async () => {
-  // CFX-APP-csv-profile/AC-23
+  // DRIVN-9/AC-23
   runs = [run()];
   findings = [
     finding("possible_identifier", [
@@ -797,7 +797,7 @@ test.each([
     "id has 1 distinct value (100%)",
   ],
 ])("a %s finding says what was observed: %#", async (kind, evidence, said) => {
-  // CFX-APP-csv-profile/AC-23
+  // DRIVN-9/AC-23
   runs = [run()];
   findings = [finding(kind, evidence)];
   renderApp();
@@ -829,7 +829,7 @@ test.each([
     "the column is named city, and it has a value of this shape among its most common masked patterns in the first 100,000 rows",
   ],
 ])("a possibly-sensitive finding says what was observed when %s", async (_, evidence, said) => {
-  // CFX-APP-csv-profile/AC-27: it cites the missing count when the name matched, and the
+  // DRIVN-9/AC-27: it cites the missing count when the name matched, and the
   // patterns, which come from the first rows, when they did. A name isn't from the first rows.
   runs = [run()];
   scope = "sample";
@@ -841,7 +841,7 @@ test.each([
 });
 
 test("a finding from the first rows only says so", async () => {
-  // CFX-APP-csv-profile/AC-24, as revised in revision 3
+  // DRIVN-9/AC-24, as revised in revision 3
   runs = [run()];
   scope = "sample";
   findings = [
@@ -867,7 +867,7 @@ test.each([
   ["fast", true],
   ["full", false],
 ] as const)("after a %s profile, whether duplicate rows need a full profile is said: %s", async (mode, said) => {
-  // CFX-APP-csv-profile/AC-22
+  // DRIVN-9/AC-22
   runs = [run({ mode })];
   renderApp();
 
@@ -882,7 +882,7 @@ test.each([
   [1, "1 row is an exact copy of another row."],
   [0, "No row is an exact copy of another row."],
 ])("a full profile says how many rows copy another: %i", async (copies, said) => {
-  // CFX-APP-csv-profile/AC-22: the count a duplicate-rows finding cites.
+  // DRIVN-9/AC-22: the count a duplicate-rows finding cites.
   runs = [run({ mode: "full" })];
   extraMetrics = [["duplicate_rows", copies]];
   renderApp();
@@ -891,7 +891,7 @@ test.each([
 });
 
 test("a finding's evidence link goes to the metric it cites, with its run", async () => {
-  // CFX-APP-csv-profile/AC-23
+  // DRIVN-9/AC-23
   runs = [run()];
   findings = [
     finding("possible_identifier", [
@@ -914,7 +914,7 @@ test.each([
   ["missing_values", { column: "city", metric: "missing_count", value: 12 }, "12 (0.01%)"],
   ["not_fitting", { column: "city", metric: "not_fitting_count", value: 7 }, "7"],
 ])("a %s finding's evidence link goes to its metric", async (kind, cited, shownAs) => {
-  // CFX-APP-csv-profile/AC-23
+  // DRIVN-9/AC-23
   runs = [run({ mode: "full" })];
   extraMetrics = [["duplicate_rows", 3]];
   findings = [finding(kind, [cited])];
@@ -928,7 +928,7 @@ test.each([
 });
 
 test("a possibly-sensitive finding's evidence link goes to the patterns it cites", async () => {
-  // CFX-APP-csv-profile/AC-27, as AC-23 asks of every finding
+  // DRIVN-9/AC-27, as AC-23 asks of every finding
   runs = [run()];
   findings = [finding("possibly_sensitive", [{ column: "city", metric: "masked_patterns", value: PATTERNS }])];
   renderApp();
@@ -948,7 +948,7 @@ test.each([
   ["with findings of other kinds", [finding("single_value", [{ column: "city", metric: "distinct_count", value: 1 }])]],
   ["with no findings", []],
 ])("the findings say having no flag doesn't mean no personal data, %s", async (_, found) => {
-  // CFX-APP-csv-profile/AC-28
+  // DRIVN-9/AC-28
   runs = [run()];
   findings = found;
   renderApp();
@@ -957,14 +957,14 @@ test.each([
 });
 
 test("before any profile, the findings say what to do", async () => {
-  // CFX-APP-csv-profile/AC-21
+  // DRIVN-9/AC-21
   renderApp();
 
   expect(await within(await findingsPanel()).findByText("Profile this file to see what it finds.")).toBeInTheDocument();
 });
 
 test("a profile that found nothing says so", async () => {
-  // CFX-APP-csv-profile/AC-21: no condition met, so no finding of any kind.
+  // DRIVN-9/AC-21: no condition met, so no finding of any kind.
   runs = [run({ mode: "full" })];
   renderApp();
 
@@ -972,7 +972,7 @@ test("a profile that found nothing says so", async () => {
 });
 
 test("findings that can't be read say so", async () => {
-  // CFX-APP-csv-profile/AC-23
+  // DRIVN-9/AC-23
   runs = [run()];
   const answer = fetchMock.getMockImplementation();
   fetchMock.mockImplementation(async (url: string, init?: RequestInit) =>
@@ -984,7 +984,7 @@ test("findings that can't be read say so", async () => {
 });
 
 test("after a cancelled run, the earlier run's findings stay", async () => {
-  // CFX-APP-csv-profile/AC-26
+  // DRIVN-9/AC-26
   runs = [run({ id: "run-2", status: "cancelled" }), run()];
   findings = [finding("single_value", [{ column: "city", metric: "distinct_count", value: 1 }])];
   renderApp();
@@ -1054,7 +1054,7 @@ async function valuesSection() {
 }
 
 test("a column's values show on request, labelled with the part of the file and when", async () => {
-  // CFX-APP-csv-profile/AC-30
+  // DRIVN-9/AC-30
   runs = [run()];
   renderApp();
 
@@ -1078,7 +1078,7 @@ test("a column's values show on request, labelled with the part of the file and 
 });
 
 test("a number column's values show its histogram and statistics, from the first rows", async () => {
-  // CFX-APP-csv-profile/AC-30
+  // DRIVN-9/AC-30
   runs = [run()];
   onValues = () =>
     Response.json({
@@ -1112,7 +1112,7 @@ test("a number column's values show its histogram and statistics, from the first
 });
 
 test("a value cut at 1,000 characters is marked as cut", async () => {
-  // CFX-APP-csv-profile/AC-31, as in the preview
+  // DRIVN-9/AC-31, as in the preview
   runs = [run()];
   onValues = () => Response.json({ ...cityValues, maximum: cell("Z".repeat(1000), true) });
   renderApp();
@@ -1130,7 +1130,7 @@ const flaggedCity = () => [
 ];
 
 test("a possibly-sensitive column's values need the extra confirmation", async () => {
-  // CFX-APP-csv-profile/AC-29
+  // DRIVN-9/AC-29
   runs = [run()];
   findings = flaggedCity();
   renderApp();
@@ -1147,7 +1147,7 @@ test("a possibly-sensitive column's values need the extra confirmation", async (
 });
 
 test("declining the confirmation shows no values and asks for none", async () => {
-  // CFX-APP-csv-profile/AC-29
+  // DRIVN-9/AC-29
   runs = [run()];
   findings = flaggedCity();
   renderApp();
@@ -1162,7 +1162,7 @@ test("declining the confirmation shows no values and asks for none", async () =>
 });
 
 test("values that can't be worked out say why, and the saved metrics still show", async () => {
-  // CFX-APP-csv-profile/AC-32
+  // DRIVN-9/AC-32
   runs = [run()];
   onValues = () =>
     Response.json(
@@ -1181,7 +1181,7 @@ test("values that can't be worked out say why, and the saved metrics still show"
 });
 
 test("closing the values forgets them, so showing them again works them out again", async () => {
-  // CFX-APP-csv-profile/AC-30: computed on request each time (ADR 0004).
+  // DRIVN-9/AC-30: computed on request each time (ADR 0004).
   runs = [run()];
   renderApp();
   await showValuesOf("city");
@@ -1197,7 +1197,7 @@ test("closing the values forgets them, so showing them again works them out agai
 });
 
 test("the values section takes the focus when it opens", async () => {
-  // CFX-APP-csv-profile/AC-30, by keyboard alone
+  // DRIVN-9/AC-30, by keyboard alone
   runs = [run()];
   renderApp();
 
@@ -1208,7 +1208,7 @@ test("the values section takes the focus when it opens", async () => {
 });
 
 test("closing the values gives the focus back to the column's button", async () => {
-  // CFX-APP-csv-profile/AC-30, by keyboard alone
+  // DRIVN-9/AC-30, by keyboard alone
   runs = [run()];
   renderApp();
   await showValuesOf("city");
@@ -1220,7 +1220,7 @@ test("closing the values gives the focus back to the column's button", async () 
 });
 
 test("declining the confirmation gives the focus back to the column's button", async () => {
-  // CFX-APP-csv-profile/AC-29, by keyboard alone
+  // DRIVN-9/AC-29, by keyboard alone
   runs = [run()];
   findings = flaggedCity();
   renderApp();

@@ -1,4 +1,4 @@
-"""Adding a PostgreSQL source through the API, CFX-APP-postgres AC-01, AC-02, AC-03, AC-05, AC-07
+"""Adding a PostgreSQL source through the API, DRIVN-45 AC-01, AC-02, AC-03, AC-05, AC-07
 (DRIVN-47)."""
 
 import json
@@ -28,7 +28,7 @@ DETAILS = {
 def test_testing_details_that_work_shows_the_server_and_saves_nothing(
     client: TestClient, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-02: "when the user tests ... the connection".
+    # DRIVN-45/AC-02: "when the user tests ... the connection".
     response = client.post("/api/sources/postgres/test", json=DETAILS)
 
     assert response.status_code == 200, response.text
@@ -40,7 +40,7 @@ def test_testing_details_that_work_shows_the_server_and_saves_nothing(
 def test_a_saved_connection_is_listed_under_its_database_with_how_its_password_is_kept(
     client: TestClient, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-02 and AC-05: there's no credential store yet (DRIVN-48), so the password
+    # DRIVN-45/AC-02 and AC-05: there's no credential store yet (DRIVN-48), so the password
     # is kept until DrivnX stops, and the screen says so.
     response = client.post("/api/sources/postgres", json=DETAILS)
 
@@ -65,7 +65,7 @@ def test_a_saved_connection_is_listed_under_its_database_with_how_its_password_i
 def test_saving_the_same_connection_again_gives_the_source_it_already_is(
     client: TestClient, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-02, as connecting a CSV path again does.
+    # DRIVN-45/AC-02, as connecting a CSV path again does.
     first = client.post("/api/sources/postgres", json=DETAILS).json()
 
     again = client.post("/api/sources/postgres", json=DETAILS)
@@ -124,7 +124,7 @@ def test_saving_a_saved_connection_with_other_tls_settings_is_refused_and_change
 def test_a_connection_that_fails_says_which_way_and_nothing_is_saved(
     client: TestClient, postgres_server: str, path: str, change: dict, says: str
 ) -> None:
-    # CFX-APP-postgres/AC-03: the connector proves every case; this proves the API passes the
+    # DRIVN-45/AC-03: the connector proves every case; this proves the API passes the
     # message on, as written for the user, and saves nothing.
     response = client.post(path, json={**DETAILS, **change})
 
@@ -136,7 +136,7 @@ def test_a_connection_that_fails_says_which_way_and_nothing_is_saved(
 @pytest.mark.parametrize(
     "change",
     [
-        # CFX-APP-postgres/AC-01: no field for a connection string or URL.
+        # DRIVN-45/AC-01: no field for a connection string or URL.
         {"url": "postgresql://drivnx_fixture@127.0.0.1:54329/drivnx_fixture"},
         {"dsn": "host=127.0.0.1"},
         {"host": "postgresql://127.0.0.1:54329"},
@@ -161,7 +161,7 @@ def test_a_connection_that_fails_says_which_way_and_nothing_is_saved(
 def test_details_that_cant_be_right_are_refused_without_repeating_them(
     client: TestClient, change: dict
 ) -> None:
-    # CFX-APP-postgres/AC-01: the fields and TLS modes the form offers, and nothing else. Refused
+    # DRIVN-45/AC-01: the fields and TLS modes the form offers, and nothing else. Refused
     # as input, a list of problems, before any connection is tried with them.
     # Escaped as JSON allows, as a lone surrogate can't be sent as UTF-8.
     response = client.post(
@@ -176,7 +176,7 @@ def test_details_that_cant_be_right_are_refused_without_repeating_them(
 
 
 def test_every_field_but_the_ca_certificate_is_needed(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-01: the form's defaults are the form's (port 5432, prefer).
+    # DRIVN-45/AC-01: the form's defaults are the form's (port 5432, prefer).
     for field in ("host", "port", "database", "user", "password", "tls_mode"):
         body = {key: value for key, value in DETAILS.items() if key != field}
         assert client.post("/api/sources/postgres/test", json=body).status_code == 422, field
@@ -185,7 +185,7 @@ def test_every_field_but_the_ca_certificate_is_needed(client: TestClient) -> Non
 def test_a_platform_with_no_bundled_extension_is_told_so_when_it_tests(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-postgres/AC-07: the message the screen shows.
+    # DRIVN-45/AC-07: the message the screen shows.
     monkeypatch.setattr(postgres, "EXTENSIONS", tmp_path / "none")
 
     response = client.post("/api/sources/postgres/test", json=DETAILS)
@@ -204,7 +204,7 @@ QUOTES = {
 def test_after_a_restart_a_source_asks_for_its_password_and_keeps_the_one_that_works(
     start_drivnx: StartDrivnX, tmp_path: Path, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-02 and AC-05: the source stays after a restart, and its password doesn't.
+    # DRIVN-45/AC-02 and AC-05: the source stays after a restart, and its password doesn't.
     directory = tmp_path / "workspace"
     before = start_drivnx("--no-browser", env=NO_STORE, workspace=directory)
     saved = sign_in(before.wait_for_launch()).post("/api/sources/postgres", json=QUOTES).json()
@@ -243,7 +243,7 @@ SETTINGS = {"delimiter": ",", "encoding": "UTF-8", "has_header": True, "skip_lin
 def test_what_only_a_file_can_do_is_refused_for_a_database_with_a_reason(
     client: TestClient, postgres_server: str, method: str, path: str, body: dict | None
 ) -> None:
-    # CFX-APP-postgres/AC-02: a saved database is a source, and previewing or profiling its tables
+    # DRIVN-45/AC-02: a saved database is a source, and previewing or profiling its tables
     # comes later (DRIVN-50 and 51), so these say so rather than fail.
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
     filled = json.loads(json.dumps(body).replace("{id}", source_id)) if body else None
@@ -257,7 +257,7 @@ def test_what_only_a_file_can_do_is_refused_for_a_database_with_a_reason(
 def test_a_password_is_only_taken_for_a_database_that_exists(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-05
+    # DRIVN-45/AC-05
     csv = tmp_path / "people.csv"
     csv.write_text("id\n1\n", encoding="utf-8")
     file_id = client.post("/api/sources", json={"path": str(csv)}).json()["id"]
@@ -290,7 +290,7 @@ def parts_of(password: str) -> set[bytes]:
 def test_no_password_reaches_the_workspace_or_the_most_detailed_logs(
     start_drivnx: StartDrivnX, tmp_path: Path, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-05, and AC-30 starts here: the right password and a wrong one, through a
+    # DRIVN-45/AC-05, and AC-30 starts here: the right password and a wrong one, through a
     # save, a restart and the password asked again.
     wrong = "Wr0ng-Pl4nted-pass"  # pragma: allowlist secret, ai-skills: allow
     directory = tmp_path / "workspace"

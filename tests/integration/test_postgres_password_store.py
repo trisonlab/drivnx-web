@@ -1,4 +1,4 @@
-"""A database's password in the OS credential store, through the API, CFX-APP-postgres AC-04,
+"""A database's password in the OS credential store, through the API, DRIVN-45 AC-04,
 AC-06 and AC-30 (DRIVN-48)."""
 
 import secrets
@@ -66,7 +66,7 @@ def start_app(tmp_path: Path, workspace: Workspace) -> StartApp:
 def test_saving_a_connection_puts_its_password_in_the_store_under_drivnx_and_the_source(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-04: "when a connection is saved, then its password is stored there
+    # DRIVN-45/AC-04: "when a connection is saved, then its password is stored there
     # under an entry naming DrivnX and the source".
     store = MemoryStore()
 
@@ -83,7 +83,7 @@ def test_saving_a_connection_puts_its_password_in_the_store_under_drivnx_and_the
 def test_after_a_restart_the_password_comes_from_the_store_without_asking(
     start_app: StartApp, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-04: "DrivnX reads it from there after a restart".
+    # DRIVN-45/AC-04: "DrivnX reads it from there after a restart".
     store = MemoryStore()
     start_app(store).post("/api/sources/postgres", json=DETAILS)
 
@@ -98,7 +98,7 @@ def test_after_a_restart_the_password_comes_from_the_store_without_asking(
 def test_opening_a_source_after_a_restart_connects_with_the_stored_password(
     start_app: StartApp, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-04, and AC-02's server version and encryption after a restart.
+    # DRIVN-45/AC-04, and AC-02's server version and encryption after a restart.
     store = MemoryStore()
     source_id = start_app(store).post("/api/sources/postgres", json=DETAILS).json()["id"]
     after = start_app(store)
@@ -133,7 +133,7 @@ def saved_with_a_wrong_stored_password(
 def test_a_stored_password_the_server_refuses_asks_again_and_a_new_one_replaces_it(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-06: "when the source is opened, then the user is asked for the
+    # DRIVN-45/AC-06: "when the source is opened, then the user is asked for the
     # password, and saving a new one replaces the stored one".
     store, source = saved_with_a_wrong_stored_password(start_app, workspace)
     after = start_app(store)
@@ -155,7 +155,7 @@ def test_a_stored_password_the_server_refuses_asks_again_and_a_new_one_replaces_
 def test_a_refused_stored_password_still_says_the_next_one_goes_in_the_store(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-06 with AC-04: the password asked for replaces the stored one, so the
+    # DRIVN-45/AC-06 with AC-04: the password asked for replaces the stored one, so the
     # screen mustn't say it's kept only until DrivnX stops (AC-05).
     store, source = saved_with_a_wrong_stored_password(start_app, workspace)
     after = start_app(store)
@@ -169,7 +169,7 @@ def test_a_refused_stored_password_still_says_the_next_one_goes_in_the_store(
 def test_a_stored_password_refused_while_listing_asks_again(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-06 when Refresh is the first read: the source asks for the password
+    # DRIVN-45/AC-06 when Refresh is the first read: the source asks for the password
     # too, and the saved list stays as it was.
     store, source = saved_with_a_wrong_stored_password(start_app, workspace)
     after = start_app(store)
@@ -186,7 +186,7 @@ def test_a_stored_password_refused_while_listing_asks_again(
 def test_an_unreachable_server_keeps_the_password(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-06 asks again only when the server refuses the password; a server
+    # DRIVN-45/AC-06 asks again only when the server refuses the password; a server
     # that doesn't answer may answer later, with the same password.
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
@@ -217,7 +217,7 @@ def test_an_unreachable_server_keeps_the_password(
 def test_a_wrong_password_given_again_leaves_the_stored_one(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-06: only a password the server takes replaces the stored one.
+    # DRIVN-45/AC-06: only a password the server takes replaces the stored one.
     store, source = saved_with_a_wrong_stored_password(start_app, workspace)
     after = start_app(store)
     after.post(f"/api/sources/{source.id}/connect")
@@ -244,7 +244,7 @@ class LockedStore(MemoryStore):
 def test_a_store_that_cannot_keep_it_says_until_drivnx_stops(
     start_app: StartApp, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-05 where the store fails: kept in memory, and the screen says so.
+    # DRIVN-45/AC-05 where the store fails: kept in memory, and the screen says so.
     store = LockedStore()
 
     response = start_app(store).post("/api/sources/postgres", json=DETAILS)
@@ -271,7 +271,7 @@ class WriteFailingStore(MemoryStore):
 def test_a_store_failing_with_another_error_keeps_the_password_until_drivnx_stops(
     start_app: StartApp, postgres_server: str, caplog: pytest.LogCaptureFixture
 ) -> None:
-    # CFX-APP-postgres/AC-05 (ADR 0008 Decision 8): any failure of the store is no store, for
+    # DRIVN-45/AC-05 (ADR 0008 Decision 8): any failure of the store is no store, for
     # that save, and only the kind of failure is logged.
     response = start_app(WriteFailingStore()).post("/api/sources/postgres", json=DETAILS)
 
@@ -292,7 +292,7 @@ class ReadFailingStore(MemoryStore):
 def test_a_store_failing_with_another_error_when_read_asks_for_the_password(
     start_app: StartApp, postgres_server: str, caplog: pytest.LogCaptureFixture
 ) -> None:
-    # CFX-APP-postgres/AC-05 (ADR 0008 Decision 8): the sources are still listed, and the
+    # DRIVN-45/AC-05 (ADR 0008 Decision 8): the sources are still listed, and the
     # source asks for its password, as with no store.
     store = ReadFailingStore()
     start_app(store).post("/api/sources/postgres", json=DETAILS)
@@ -309,7 +309,7 @@ def test_a_store_failing_with_another_error_when_read_asks_for_the_password(
 def test_opening_a_source_reads_the_stored_password_without_writing_it_again(
     start_app: StartApp, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-04: still in the store, so the screen says so, even when the store
+    # DRIVN-45/AC-04: still in the store, so the screen says so, even when the store
     # couldn't take a write now.
     store = MemoryStore()
     source_id = start_app(store).post("/api/sources/postgres", json=DETAILS).json()["id"]
@@ -332,7 +332,7 @@ class UnreadableStore(MemoryStore):
 def test_a_store_that_cannot_be_read_after_a_restart_asks_for_the_password(
     start_app: StartApp, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-05 where the store fails: the source asks, as with no store.
+    # DRIVN-45/AC-05 where the store fails: the source asks, as with no store.
     store = UnreadableStore()
     start_app(store).post("/api/sources/postgres", json=DETAILS)
 
@@ -363,7 +363,7 @@ class CountingStore(MemoryStore):
 def test_after_a_restart_the_store_is_read_once_however_often_the_sources_are_listed(
     start_app: StartApp, postgres_server: str, locked: bool
 ) -> None:
-    # CFX-APP-postgres/AC-04 and AC-05: an unlock prompt the user dismissed doesn't come back
+    # DRIVN-45/AC-04 and AC-05: an unlock prompt the user dismissed doesn't come back
     # each time the list reloads; the source asks for the password instead.
     start_app(None).post("/api/sources/postgres", json=DETAILS)
     store = CountingStore(locked)
@@ -379,7 +379,7 @@ def test_after_a_restart_the_store_is_read_once_however_often_the_sources_are_li
 def test_a_locked_store_is_read_once_for_all_the_sources(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-05 (ADR 0008 Decision 6): a locked Secret Service prompts on each read,
+    # DRIVN-45/AC-05 (ADR 0008 Decision 6): a locked Secret Service prompts on each read,
     # so a dismissed prompt doesn't come back once for each database source.
     start_app(None).post("/api/sources/postgres", json=DETAILS)
     add_postgres_source(
@@ -405,7 +405,7 @@ def test_a_locked_store_is_read_once_for_all_the_sources(
 def test_a_refusal_of_an_older_password_leaves_the_one_given_since(
     workspace: Workspace,
 ) -> None:
-    # CFX-APP-postgres/AC-06 in two tabs: one opens the source with the stored password while the
+    # DRIVN-45/AC-06 in two tabs: one opens the source with the stored password while the
     # other gives a new one the server takes; the first one's refusal is of the old password.
     source = StoredPostgresSource(
         id=uuid.uuid4().hex,
@@ -441,7 +441,7 @@ def test_no_part_of_a_stored_password_reaches_the_workspace_or_the_most_detailed
     start_drivnx: StartDrivnX, tmp_path: Path, this_computers_store: RealStore | None,
     postgres_server: str,
 ) -> None:
-    # CFX-APP-postgres/AC-30 through the API: a refused password, the right one saved, a
+    # DRIVN-45/AC-30 through the API: a refused password, the right one saved, a
     # restart, a stored password the server now refuses, a wrong one and the right one again.
     # With this computer's store where it has one, else with the password in memory (AC-05).
     store = this_computers_store
@@ -489,7 +489,7 @@ def test_no_part_of_a_stored_password_reaches_the_workspace_or_the_most_detailed
 def test_a_restart_reads_the_password_from_the_os_store(
     start_drivnx: StartDrivnX, tmp_path: Path, real_store: RealStore, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-04 with DrivnX as a user runs it, and this computer's own store.
+    # DRIVN-45/AC-04 with DrivnX as a user runs it, and this computer's own store.
     workspace = tmp_path / "workspace"
     before = start_drivnx("--no-browser", env=real_store.env, workspace=workspace)
     saved = sign_in(before.wait_for_launch()).post("/api/sources/postgres", json=DETAILS).json()
@@ -510,7 +510,7 @@ def test_a_restart_reads_the_password_from_the_os_store(
 def test_connecting_needs_a_database_whose_password_is_known(
     start_app: StartApp, tmp_path: Path, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-05: without a store, after a restart, the password is asked for first.
+    # DRIVN-45/AC-05: without a store, after a restart, the password is asked for first.
     source_id = start_app(None).post("/api/sources/postgres", json=DETAILS).json()["id"]
     after = start_app(None)
     csv = tmp_path / "people.csv"

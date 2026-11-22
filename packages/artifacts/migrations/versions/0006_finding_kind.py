@@ -1,4 +1,4 @@
-"""What kind each finding is, so findings are listed in a fixed order (CFX-APP-csv-profile)."""
+"""What kind each finding is, so findings are listed in a fixed order (DRIVN-9)."""
 
 from alembic import op
 

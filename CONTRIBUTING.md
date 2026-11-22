@@ -24,7 +24,7 @@ You need Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 22 with pnpm (t
 | What | Where |
 |---|---|
 | What DrivnX is and why | `../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md`: approved and canonical; it wins over everything below |
-| Features (stories, acceptance criteria, revision, approval) | `.ai/knowledge/requirements/CFX-APP-*.md` |
+| Features (stories, acceptance criteria, revision, approval) | `.ai/knowledge/requirements/DRIVN-*.md` |
 | Tickets (criteria, `blocked_by`, `state: ready / blocked / done`) | `.ai/knowledge/work/DRIVN-*.md`, mirrored in [Plane](https://app.plane.so/drivnx/) project DRIVN |
 | Decisions | `docs/adr/` (index in `.ai/knowledge/decisions/adr-index.md`) |
 | Threats and mitigations | `docs/threat-model/threat-register.md` |
@@ -33,8 +33,8 @@ Build from an approved feature and a `ready` ticket only. If a ticket turns out 
 (a new revision), then cut the tickets again; don't quietly build something different.
 
 A ticket's ID is its Plane key, such as `DRIVN-23`; tickets cut before Plane keep their old ID in `legacy_id`
-(`CFX-APP-csv-profile-T03`). Features and criteria keep their permanent IDs, such as `CFX-APP-csv-profile` (Plane
-`DRIVN-9`) and `CFX-APP-csv-profile/AC-24`, which never change, even if the product is renamed.
+(`CFX-APP-csv-profile-T03`). Features and criteria keep their permanent IDs, such as `DRIVN-9` (Plane
+`DRIVN-9`) and `DRIVN-9/AC-24`, which never change, even if the product is renamed.
 
 **Plane.** The repo is the source of truth and Plane mirrors it. A new ticket starts in Plane, as a child of its
 feature's item, so it gets its key; then its file is written as `DRIVN-N.md` with `id` and `external_key` set to that
@@ -125,7 +125,7 @@ Code runs them as subagents; in other tools, ask the AI to take on the role.
 
 - One ticket per chat. Start a fresh chat when the topic changes or the chat gets long.
 - Start each step with the skill's name, so the AI follows that skill's procedure instead of improvising.
-- Name the IDs (`CFX-APP-…/AC-07`) in prompts, tests and commits; that's what makes coverage traceable.
+- Name the IDs (`DRIVN-8/AC-07`) in prompts, tests and commits; that's what makes coverage traceable.
 - Keep the gates in order: criteria before code, a failing test before a fix, verification before "done", review
   before commit.
 

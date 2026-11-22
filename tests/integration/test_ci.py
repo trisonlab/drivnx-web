@@ -1,4 +1,4 @@
-"""CI runs the project's real checks, and each one runs locally the same way, CFX-APP-first-slice AC-53."""
+"""CI runs the project's real checks, and each one runs locally the same way, DRIVN-8 AC-53."""
 
 import ast
 import re
@@ -29,7 +29,7 @@ CHECKS = {
 
 @pytest.mark.parametrize("command", CHECKS.values(), ids=CHECKS)
 def test_each_check_runs_in_ci_and_locally_with_one_command(command: str) -> None:
-    # CFX-APP-first-slice/AC-53: the same words in both, so they can't drift apart.
+    # DRIVN-8/AC-53: the same words in both, so they can't drift apart.
     assert f"run: {command}\n" in WORKFLOW.read_text(encoding="utf-8")
     assert f"\n{command}\n" in README.read_text(encoding="utf-8")
 
@@ -44,7 +44,7 @@ def test_a_failure_early_in_a_pipe_fails_the_step(command: str) -> None:
 
 
 def test_no_step_can_fail_without_failing_the_run() -> None:
-    # CFX-APP-first-slice/AC-53: these would keep the commands above in the file and still skip them.
+    # DRIVN-8/AC-53: these would keep the commands above in the file and still skip them.
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     assert "continue-on-error" not in workflow
@@ -57,7 +57,7 @@ APT_RETRIES = (
 
 
 def test_only_the_apt_retries_depend_on_the_platform() -> None:
-    # CFX-APP-first-slice/AC-53: a platform test in a step's shell could skip a check the way `if:` would. The one
+    # DRIVN-8/AC-53: a platform test in a step's shell could skip a check the way `if:` would. The one
     # allowed sets up apt on Linux and runs no check.
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
@@ -67,7 +67,7 @@ def test_only_the_apt_retries_depend_on_the_platform() -> None:
 
 
 def test_the_postgres_fixture_starts_before_the_tests_and_ci_requires_it() -> None:
-    # CFX-APP-postgres/AC-34: without a server the PostgreSQL tests would skip, and CI must fail
+    # DRIVN-45/AC-34: without a server the PostgreSQL tests would skip, and CI must fail
     # instead. Its platform setup lives in that one script, so the rules above still hold.
     workflow = WORKFLOW.read_text(encoding="utf-8")
     tests = workflow[workflow.index("\n  tests:\n") : workflow.index("\n  scans:\n")]
@@ -110,7 +110,7 @@ def test_no_test_file_needs_a_posix_module_just_to_load() -> None:
 
 
 def test_ci_installs_from_the_lockfiles() -> None:
-    # CFX-APP-first-slice/AC-50 and CFX-APP-first-slice/AC-53.
+    # DRIVN-8/AC-50 and DRIVN-8/AC-53.
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     assert "run: uv sync --frozen\n" in workflow

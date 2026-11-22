@@ -1,7 +1,7 @@
 """Listing, opening, choosing and refreshing a database's tables in a real browser, against the
 installed wheel and the fixture.
 
-CFX-APP-postgres AC-08, AC-09, AC-10, AC-11 and AC-13, with an automated accessibility check on
+DRIVN-45 AC-08, AC-09, AC-10, AC-11 and AC-13, with an automated accessibility check on
 each new state.
 """
 
@@ -57,7 +57,7 @@ def save_connection(page: Page):
 def test_a_saved_database_lists_its_tables_and_opens_one(
     start_drivnx: StartDrivnX, page: Page, objects: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-08, CFX-APP-postgres/AC-09 and CFX-APP-postgres/AC-10
+    # DRIVN-45/AC-08, DRIVN-45/AC-09 and DRIVN-45/AC-10
     open_set_up_app(page, start_drivnx("--no-browser", env=NO_STORE).wait_for_launch().url)
 
     listed = save_connection(page)
@@ -84,7 +84,7 @@ def test_a_saved_database_lists_its_tables_and_opens_one(
 def test_a_selection_stays_after_a_restart_and_a_refresh_shows_a_new_column(
     start_drivnx: StartDrivnX, page: Page, tmp_path: Path, objects: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-11 and CFX-APP-postgres/AC-13
+    # DRIVN-45/AC-11 and DRIVN-45/AC-13
     workspace = tmp_path / "workspace"
     first = start_drivnx("--no-browser", env=NO_STORE, workspace=workspace)
     open_set_up_app(page, first.wait_for_launch().url)

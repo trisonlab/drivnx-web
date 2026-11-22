@@ -2,7 +2,7 @@
 id: DRIVN-29
 legacy_id: CFX-APP-csv-profile-T09
 title: "Possibly sensitive fields"
-feature: CFX-APP-csv-profile
+feature: DRIVN-9
 feature_revision: 5
 stories: [US-04, US-05]
 criteria: [AC-21, AC-27, AC-28]

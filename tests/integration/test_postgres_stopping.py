@@ -1,5 +1,5 @@
 """A database's run stopped while it reads: by the user, at its time limit, or by the server.
-CFX-APP-postgres AC-20, AC-21 and AC-22, and ADR 0009 (DRIVN-53)."""
+DRIVN-45 AC-20, AC-21 and AC-22, and ADR 0009 (DRIVN-53)."""
 
 import socket
 import threading
@@ -24,9 +24,9 @@ from .test_postgres_password_store import (  # noqa: F401 (the fixtures)
 )
 from .test_postgres_profile_api import ended
 
-# CFX-APP-postgres, Non-functional: "cancelling stops a run within 5 s".
+# DRIVN-45, Non-functional: "cancelling stops a run within 5 s".
 CANCEL_WITHIN_SECONDS = 5
-# CFX-APP-postgres/AC-20: "its scan stops within 5 s".
+# DRIVN-45/AC-20: "its scan stops within 5 s".
 STOP_AT_THE_LIMIT_WITHIN_SECONDS = 5
 # Longer than the cancel's target, and shorter than the 30 s any one statement may run.
 SLEEP_SECONDS = 20
@@ -121,7 +121,7 @@ def test_cancelling_a_run_mid_read_stops_the_read_on_the_server(
     name: str,
     read: str,
 ) -> None:
-    # CFX-APP-postgres/AC-21: "it stops within the target under Non-functional, no query from
+    # DRIVN-45/AC-21: "it stops within the target under Non-functional, no query from
     # DrivnX is left running on the server, its status is `cancelled`, and none of its results
     # or findings appear as current".
     client = start_app(None)
@@ -156,7 +156,7 @@ def test_an_object_reaching_its_time_limit_is_stopped_and_the_run_goes_on(
     monkeypatch: pytest.MonkeyPatch,
     name: str,
 ) -> None:
-    # CFX-APP-postgres/AC-20: "its scan stops within 5 s, no query from DrivnX is left running
+    # DRIVN-45/AC-20: "its scan stops within 5 s, no query from DrivnX is left running
     # on the server, the object shows 'stopped at the time limit, no results', the run goes on
     # to the next object, and the finished run says which objects have no results". A minute
     # lasts a quarter of a second here, and each object takes longer than that to read whole, even
@@ -240,7 +240,7 @@ def test_a_run_whose_session_the_server_ends_mid_read_fails_naming_the_object_an
     name: str,
     read: str,
 ) -> None:
-    # CFX-APP-postgres/AC-22: "Given a connection lost, a server restart ... during a run, then
+    # DRIVN-45/AC-22: "Given a connection lost, a server restart ... during a run, then
     # the run ends `failed`, the message names the object and the reason, and its results don't
     # appear as current". A restart's fast shutdown ends each session as this does (decided for
     # DRIVN-53), and the server says the same.
@@ -272,7 +272,7 @@ def test_a_run_whose_next_object_is_revoked_mid_run_fails_naming_it_and_why(
     drivnx_queries: Callable[[str], int],
     mode: str,
 ) -> None:
-    # CFX-APP-postgres/AC-22: "Given ... a privilege revoked during a run, then the run ends
+    # DRIVN-45/AC-22: "Given ... a privilege revoked during a run, then the run ends
     # `failed`, the message names the object and the reason, and its results don't appear as
     # current". Revoked while the object before it is read.
     client = start_app(None)
@@ -298,7 +298,7 @@ def test_a_run_whose_next_object_is_revoked_mid_run_fails_naming_it_and_why(
 def test_a_profile_read_the_server_stops_for_taking_too_long_fails_naming_the_object(
     start_app: StartApp, workspace: Workspace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-postgres/AC-22 with ADR 0009 Decision 6: a statement timeout is told apart from a
+    # DRIVN-45/AC-22 with ADR 0009 Decision 6: a statement timeout is told apart from a
     # lost connection and a revoked privilege, and is about the object, not a preview's page.
     # Other statements have 1 s here, and a fast reading of the view takes 2 s.
     monkeypatch.setattr(postgres, "STATEMENT_TIMEOUT_SECONDS", 1)
@@ -319,7 +319,7 @@ def test_a_profile_read_the_server_stops_for_taking_too_long_fails_naming_the_ob
 def test_a_running_jobs_password_stays_out_of_its_repr(
     start_app: StartApp, workspace: Workspace
 ) -> None:
-    # CFX-APP-postgres, Non-functional "No secret is saved outside the OS credential store", and
+    # DRIVN-45, Non-functional "No secret is saved outside the OS credential store", and
     # ADR 0007: the job holds the password to cancel its read on the server (ADR 0009), and a
     # debugger or a test's failure shows the jobs as their repr (found in review).
     client = start_app(None)
@@ -350,7 +350,7 @@ def test_a_read_after_the_server_replaced_the_jobs_session_is_still_stopped_on_t
     drivnx_queries: Callable[[str], int],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # CFX-APP-postgres/AC-21 and ADR 0009 Decision 1: the extension replaces a session that has
+    # DRIVN-45/AC-21 and ADR 0009 Decision 1: the extension replaces a session that has
     # ended, or been left idle a minute, without a word, so the server's cancel must name the
     # session that reads (found in review). Here the session ends once the object's fast reading
     # is in, while it's measured, before its whole read, as a restart or an administrator could.
@@ -423,7 +423,7 @@ class DroppingProxy:
 def test_a_read_whose_network_fails_says_the_connection_was_lost(
     tmp_path: Path, drivnx_queries: Callable[[str], int], tls_mode: str
 ) -> None:
-    # CFX-APP-postgres/AC-22: "Given a connection lost ... during a run, then ... the message names
+    # DRIVN-45/AC-22: "Given a connection lost ... during a run, then ... the message names
     # the object and the reason". A network that fails says nothing from the server, so libpq
     # writes its own text for it, which a session the server ends can also give, as Windows' CI
     # showed (decided with the user for DRIVN-53).

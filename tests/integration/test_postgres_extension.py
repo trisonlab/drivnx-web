@@ -1,4 +1,4 @@
-"""Loading DuckDB's PostgreSQL extension from inside the package, CFX-APP-postgres AC-07."""
+"""Loading DuckDB's PostgreSQL extension from inside the package, DRIVN-45 AC-07."""
 
 import os
 import subprocess
@@ -14,7 +14,7 @@ THIS_MACHINE = duckdb.execute("PRAGMA platform").fetchone()[0]
 
 
 def test_the_bundled_extension_is_found_for_this_machine_and_not_for_others() -> None:
-    # CFX-APP-postgres/AC-07: only the tested platforms carry one (ADR 0006).
+    # DRIVN-45/AC-07: only the tested platforms carry one (ADR 0006).
     found = postgres.extension_file(THIS_MACHINE)
 
     assert found is not None
@@ -38,7 +38,7 @@ def no_way_to_download(tmp_path: Path, closed_port: int) -> duckdb.DuckDBPyConne
 def test_the_extension_loads_from_the_package_with_no_way_to_download(
     tmp_path: Path, free_port: int
 ) -> None:
-    # CFX-APP-postgres/AC-07: DrivnX downloads no extension (ADR 0006).
+    # DRIVN-45/AC-07: DrivnX downloads no extension (ADR 0006).
     with pytest.raises(duckdb.Error):
         no_way_to_download(tmp_path, free_port).execute("INSTALL postgres")
     connection = no_way_to_download(tmp_path, free_port)
@@ -53,7 +53,7 @@ def test_the_extension_loads_from_the_package_with_no_way_to_download(
 def test_a_changed_extension_is_refused_by_drivnxs_duckdb(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-postgres/AC-07: DuckDB checks the signature of what it loads, so a file changed after
+    # DRIVN-45/AC-07: DuckDB checks the signature of what it loads, so a file changed after
     # the build, in the package or on disk, can't run inside DrivnX.
     bundled = postgres.extension_file(THIS_MACHINE)
     changed = tmp_path / "bundle" / THIS_MACHINE / bundled.name
@@ -71,7 +71,7 @@ def test_a_changed_extension_is_refused_by_drivnxs_duckdb(
 def test_a_machine_with_no_bundled_extension_is_told_so_by_platform(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-postgres/AC-07: on another platform, PostgreSQL isn't available (the screen is
+    # DRIVN-45/AC-07: on another platform, PostgreSQL isn't available (the screen is
     # DRIVN-47's), rather than DuckDB failing on a path that isn't there.
     monkeypatch.setattr(postgres, "EXTENSIONS", tmp_path / "nothing bundled")
 
@@ -104,7 +104,7 @@ if len(sys.argv) > 3:
 def test_the_installed_wheel_loads_its_own_extension(
     installed_environment: Path, tmp_path: Path, free_port: int
 ) -> None:
-    # CFX-APP-postgres/AC-07: on each tested platform, from the wheel a user installs.
+    # DRIVN-45/AC-07: on each tested platform, from the wheel a user installs.
     python = installed_environment / ("Scripts" if os.name == "nt" else "bin") / "python"
 
     result = subprocess.run(
@@ -127,7 +127,7 @@ def test_the_installed_wheel_loads_its_own_extension(
 def test_the_installed_wheel_reads_a_postgres_database_with_no_way_to_download(
     installed_environment: Path, tmp_path: Path, free_port: int, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-07: when DrivnX connects, the bundled extension does the work, and DuckDB
+    # DRIVN-45/AC-07: when DrivnX connects, the bundled extension does the work, and DuckDB
     # has no other host it could fetch anything from.
     python = installed_environment / ("Scripts" if os.name == "nt" else "bin") / "python"
 

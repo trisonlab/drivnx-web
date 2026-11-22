@@ -1,7 +1,7 @@
 """`/api/sources` for PostgreSQL: testing a connection, saving it, and its password after a restart.
 
 The password is kept in this process's memory, and in the OS credential store where there is one
-(CFX-APP-postgres AC-04, AC-05, ADR 0008); never in the workspace.
+(DRIVN-45 AC-04, AC-05, ADR 0008); never in the workspace.
 """
 
 import logging

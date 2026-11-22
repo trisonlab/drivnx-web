@@ -27,7 +27,7 @@ export function CellText({ cell }: { cell: Cell }) {
   );
 }
 
-/** A file's rows, or with `objectId` and its `load` a chosen database object's (CFX-APP-postgres AC-12). */
+/** A file's rows, or with `objectId` and its `load` a chosen database object's (DRIVN-45 AC-12). */
 export function Preview({
   sourceId,
   objectId,

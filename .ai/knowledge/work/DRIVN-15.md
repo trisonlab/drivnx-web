@@ -2,7 +2,7 @@
 id: DRIVN-15
 legacy_id: CFX-APP-first-slice-T05
 title: "Connect a CSV and see its metadata"
-feature: CFX-APP-first-slice
+feature: DRIVN-8
 feature_revision: 10
 stories: [US-04, US-05, US-08]
 criteria: [AC-20, AC-21, AC-22, AC-23, AC-24, AC-25, AC-26, AC-49]

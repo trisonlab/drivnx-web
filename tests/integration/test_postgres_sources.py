@@ -1,4 +1,4 @@
-"""Saving a PostgreSQL source beside the CSV ones, CFX-APP-postgres AC-02 (DRIVN-47), and the
+"""Saving a PostgreSQL source beside the CSV ones, DRIVN-45 AC-02 (DRIVN-47), and the
 write access its user last confirmed, AC-16 (DRIVN-52)."""
 
 import shutil
@@ -81,7 +81,7 @@ def rows(database: Path, table: str) -> list[tuple[object, ...]]:
 def test_a_workspace_from_before_postgres_keeps_every_csv_source_and_run(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-postgres/AC-02: migration 0007 rebuilds `source`, which every dataset refers to.
+    # DRIVN-45/AC-02: migration 0007 rebuilds `source`, which every dataset refers to.
     before = tmp_path / "migrations"
     shutil.copytree(
         MIGRATIONS_DIR,
@@ -113,7 +113,7 @@ def test_a_workspace_from_before_postgres_keeps_every_csv_source_and_run(
 def test_a_postgres_source_is_kept_after_a_restart_with_nowhere_for_a_password(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-postgres/AC-02: a saved source stays after a restart, and only the password is a
+    # DRIVN-45/AC-02: a saved source stays after a restart, and only the password is a
     # secret, which `workspace.db` has no column for.
     directory = tmp_path / "workspace"
     workspace = open_workspace(directory)
@@ -135,7 +135,7 @@ def test_a_postgres_source_is_kept_after_a_restart_with_nowhere_for_a_password(
 
 
 def test_the_same_connection_saved_twice_is_kept_once(tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-02: as connecting a CSV path again gives the source it already is.
+    # DRIVN-45/AC-02: as connecting a CSV path again gives the source it already is.
     workspace = open_workspace(tmp_path / "workspace")
     try:
         assert add_postgres_source(workspace.engine, FIXTURE)
@@ -183,7 +183,7 @@ def test_the_same_connection_saved_twice_is_kept_once(tmp_path: Path) -> None:
 def test_a_source_row_that_mixes_kinds_or_settings_is_refused(
     tmp_path: Path, values: str
 ) -> None:
-    # CFX-APP-postgres/AC-02: the database refuses what the code must never write.
+    # DRIVN-45/AC-02: the database refuses what the code must never write.
     directory = tmp_path / "workspace"
     open_workspace(directory).close()
     connection = sqlite3.connect(directory / "workspace.db")
@@ -199,7 +199,7 @@ def test_a_source_row_that_mixes_kinds_or_settings_is_refused(
 
 
 def test_a_verify_full_source_keeps_its_ca_certificate_path(tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-01: the CA certificate file is saved as a path, not a secret.
+    # DRIVN-45/AC-01: the CA certificate file is saved as a path, not a secret.
     verified = StoredPostgresSource(
         **{**FIXTURE.__dict__, "tls_mode": "verify-full", "ca_path": "/certs/ca.pem"}
     )
@@ -212,7 +212,7 @@ def test_a_verify_full_source_keeps_its_ca_certificate_path(tmp_path: Path) -> N
 
 
 def test_a_workspace_at_0008_keeps_its_sources_with_no_confirmation(tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-16: migration 0009 adds where a confirmed write warning is kept, empty
+    # DRIVN-45/AC-16: migration 0009 adds where a confirmed write warning is kept, empty
     # for every source a workspace already has.
     before = tmp_path / "migrations"
     shutil.copytree(
@@ -261,7 +261,7 @@ CONFIRMED = {
 def test_a_confirmed_write_warning_is_kept_with_its_source_after_a_restart(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-postgres/AC-16: what the user confirmed, so the next run asks only if it changed.
+    # DRIVN-45/AC-16: what the user confirmed, so the next run asks only if it changed.
     directory = tmp_path / "workspace"
     workspace = open_workspace(directory)
     try:
@@ -290,7 +290,7 @@ def test_a_confirmed_write_warning_is_kept_with_its_source_after_a_restart(
 def test_a_confirmation_a_source_cant_have_is_refused(
     tmp_path: Path, kind: str, confirmed: str
 ) -> None:
-    # CFX-APP-postgres/AC-16: the database refuses what the code must never write.
+    # DRIVN-45/AC-16: the database refuses what the code must never write.
     directory = tmp_path / "workspace"
     workspace = open_workspace(directory)
     try:

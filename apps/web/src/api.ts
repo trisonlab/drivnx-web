@@ -58,7 +58,7 @@ export type CsvSource = {
 
 export type TlsMode = "prefer" | "require" | "verify-full";
 
-// How long a password is kept, which the screen tells the user (CFX-APP-postgres AC-04, AC-05).
+// How long a password is kept, which the screen tells the user (DRIVN-45 AC-04, AC-05).
 export const UNTIL_STOP = "until_stop";
 export const CREDENTIAL_STORE = "credential_store";
 
@@ -120,7 +120,7 @@ export async function connectSource(path: string): Promise<CsvSource> {
   return response.json();
 }
 
-/** Each detail of a PostgreSQL connection, never a connection string (CFX-APP-postgres AC-01). */
+/** Each detail of a PostgreSQL connection, never a connection string (DRIVN-45 AC-01). */
 export type ConnectionChoice = {
   host: string;
   port: number;
@@ -199,7 +199,7 @@ export async function givePassword(sourceId: string, password: string): Promise<
 }
 
 /** On opening a source whose password DrivnX has, from the credential store after a restart: the
- * server's version and encryption. A refusal says why (CFX-APP-postgres AC-04, AC-06). */
+ * server's version and encryption. A refusal says why (DRIVN-45 AC-04, AC-06). */
 export async function connectStored(sourceId: string): Promise<PostgresSource> {
   const response = await fetch(`${SOURCES_PATH}/${sourceId}/connect`, { method: "POST" });
   return connectedFrom(response);
@@ -207,7 +207,7 @@ export async function connectStored(sourceId: string): Promise<PostgresSource> {
 
 export type ObjectKind = "table" | "partitioned_table" | "view" | "materialized_view";
 
-/** A table or view as the last listing found it (CFX-APP-postgres AC-08). */
+/** A table or view as the last listing found it (DRIVN-45 AC-08). */
 export type DatabaseObject = {
   id: string;
   name: string;
@@ -310,7 +310,7 @@ export async function getRows(sourceId: string, offset: number): Promise<RowsPag
   return response.json();
 }
 
-/** A page of a chosen database object's rows, read from the database (CFX-APP-postgres AC-12). A failure says why. */
+/** A page of a chosen database object's rows, read from the database (DRIVN-45 AC-12). A failure says why. */
 export async function getObjectRows(sourceId: string, objectId: string, offset: number): Promise<RowsPage> {
   const response = await fetch(`${SOURCES_PATH}/${sourceId}/objects/${objectId}/rows?offset=${offset}`);
   if (response.status === 404) {
@@ -353,12 +353,12 @@ export type ProfileRun = {
   current_settings: boolean;
   // Why it failed, when DrivnX knows. Not kept across a restart.
   failure: string | null;
-  // The object a database's running run is reading, as `schema.object` (CFX-APP-postgres AC-17).
+  // The object a database's running run is reading, as `schema.object` (DRIVN-45 AC-17).
   current_object?: string | null;
-  // Whether a database run's role could only read its objects (CFX-APP-postgres AC-16); null for a
+  // Whether a database run's role could only read its objects (DRIVN-45 AC-16); null for a
   // file's run.
   read_only?: boolean | null;
-  // A database run's objects as `schema.object`, in the order it read them (CFX-APP-postgres AC-31);
+  // A database run's objects as `schema.object`, in the order it read them (DRIVN-45 AC-31);
   // null for a file's run.
   object_names?: string[] | null;
 };
@@ -380,16 +380,16 @@ export type ProfileRunDetail = ProfileRun & {
   // Whether the file's size or modified time differs from the run's now (AC-37), or `null` when
   // the file can't be looked at.
   file_changed: boolean | null;
-  // A database run's objects, each with how its rows were read (CFX-APP-postgres AC-18).
+  // A database run's objects, each with how its rows were read (DRIVN-45 AC-18).
   objects?: {
     object: string;
     method: "page_sample" | "whole" | "first_rows" | "view_first_rows" | "full";
-    // A full profile stopped reading it at its time limit, so it has no results (CFX-APP-postgres AC-20).
+    // A full profile stopped reading it at its time limit, so it has no results (DRIVN-45 AC-20).
     stopped_at_time_limit?: boolean;
     // On a full profile, how its fast reading read the rows its masked patterns are from.
     patterns_from?: { method: "page_sample" | "whole" | "first_rows" | "view_first_rows"; rows: number } | null;
     // A refresh has since found it gone, or with other columns, so its results are out of date
-    // (CFX-APP-postgres AC-32).
+    // (DRIVN-45 AC-32).
     out_of_date?: boolean;
   }[];
 };
@@ -448,7 +448,7 @@ export async function getColumnValues(runId: string, column: string, confirmed: 
 export class RunRefusedError extends Error {}
 
 /** What the role a database is profiled with could change in the chosen objects, as `schema.object`
- * (CFX-APP-postgres AC-16). DrivnX itself only reads. */
+ * (DRIVN-45 AC-16). DrivnX itself only reads. */
 export type WriteAccess = {
   role: string;
   superuser: boolean;
@@ -496,12 +496,12 @@ export async function cancelProfile(runId: string): Promise<ProfileRun> {
   return response.json();
 }
 
-/** `writeAccess` is what a refusal showed the user, who confirmed it (CFX-APP-postgres AC-16). */
+/** `writeAccess` is what a refusal showed the user, who confirmed it (DRIVN-45 AC-16). */
 export async function startProfile(
   sourceId: string,
   mode: ProfileRun["mode"],
   writeAccess?: WriteAccess,
-  // A database's full profile: each object's limit (CFX-APP-postgres AC-20).
+  // A database's full profile: each object's limit (DRIVN-45 AC-20).
   timeLimitMinutes?: number,
 ): Promise<ProfileRun> {
   const response = await fetch(PROFILE_RUNS_PATH, {

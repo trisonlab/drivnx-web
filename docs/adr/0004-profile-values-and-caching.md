@@ -2,7 +2,7 @@
 
 - **Status:** Accepted 2026-11-05
 - **Date:** 2026-11-05
-- **Source:** The user's decisions in chat on 2026-11-05, recorded in spec `CFX-APP-csv-profile`; direction doc Sections 5,
+- **Source:** The user's decisions in chat on 2026-11-05, recorded in spec `DRIVN-9`; direction doc Sections 5,
   7 and 11; ADR 0002 (the finding on values from source data, and "observations are always stored"); ADR 0003 (accepted
   values); R3 in the threat register
 

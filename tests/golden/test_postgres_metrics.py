@@ -1,5 +1,5 @@
 """Every metric a database's fast profile saves, against values worked out by hand,
-CFX-APP-postgres AC-25 (DRIVN-54).
+DRIVN-45 AC-25 (DRIVN-54).
 
 Each expected value below comes from reading the rows in `OBJECTS`, and PostgreSQL's own rules for
 its types, not from running the code. Distinct values are counted on PostgreSQL's text form of
@@ -408,7 +408,7 @@ def profiled(client: TestClient, name: str) -> dict:
 
 @pytest.mark.parametrize("name", sorted(EXPECTED))
 def test_every_saved_metric_equals_its_known_value(client: TestClient, name: str) -> None:
-    # CFX-APP-postgres/AC-25: compared whole, so an extra or missing metric fails too.
+    # DRIVN-45/AC-25: compared whole, so an extra or missing metric fails too.
     run = profiled(client, name)
 
     assert run["status"] == "completed", run["failure"]

@@ -339,7 +339,7 @@ def _new_findings(run_id: str, drafts: list[DraftFinding]) -> list[NewFinding]:
 
 
 # The text types whose lengths and masked patterns are measured; any other column gets counts
-# only (CFX-APP-postgres, the Assumptions' metrics). An array of them isn't one.
+# only (DRIVN-45, the Assumptions' metrics). An array of them isn't one.
 _TEXT_TYPE = re.compile(r"(text|character varying|character|citext|name)(\(\d+\))?")
 # Measured for every column. "Values that don't fit the type" can't happen in a typed column.
 _COUNTS = ("missing_count", "missing_percent", "distinct_count", "distinct_percent")

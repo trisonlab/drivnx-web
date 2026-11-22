@@ -1,4 +1,4 @@
-"""Reading and measuring a file's first rows, CFX-APP-csv-profile AC-07, AC-16, AC-17."""
+"""Reading and measuring a file's first rows, DRIVN-9 AC-07, AC-16, AC-17."""
 
 from pathlib import Path
 
@@ -43,7 +43,7 @@ def summary(measured: MeasuredRows) -> tuple[int, bool, tuple[int, ...]]:
 
 
 def test_a_small_file_is_read_as_the_whole_file(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-17
+    # DRIVN-9/AC-17
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n2,Bob\n3,Cid\n", encoding="utf-8", newline="")
 
@@ -75,7 +75,7 @@ def numbered_csv(path: Path, rows: int) -> Path:
 def test_the_first_100000_rows_are_all_that_is_measured(
     tmp_path: Path, rows: int, rows_read: int, whole_file: bool
 ) -> None:
-    # CFX-APP-csv-profile/AC-07, AC-16 and AC-17: exactly 100,000 rows is still the whole file.
+    # DRIVN-9/AC-07, AC-16 and AC-17: exactly 100,000 rows is still the whole file.
     path = numbered_csv(tmp_path / "numbers.csv", rows)
 
     _, measured = measure(path, tmp_path)
@@ -86,7 +86,7 @@ def test_the_first_100000_rows_are_all_that_is_measured(
 def test_empty_and_whitespace_only_cells_are_missing_in_each_column(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-csv-profile/AC-07: "missing" is no value, or a value holding only whitespace.
+    # DRIVN-9/AC-07: "missing" is no value, or a value holding only whitespace.
     path = tmp_path / "people.csv"
     path.write_text(
         "id,name,city\n"
@@ -107,7 +107,7 @@ def test_empty_and_whitespace_only_cells_are_missing_in_each_column(
 def test_a_missing_value_after_the_first_100000_rows_is_not_counted(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-csv-profile/AC-07: the row read to tell whether there are more is never measured.
+    # DRIVN-9/AC-07: the row read to tell whether there are more is never measured.
     path = tmp_path / "numbers.csv"
     rows = "".join(f"{number},x\n" for number in range(100_000))
     path.write_text(f"id,name\n{rows}100000,\n100001,\n", encoding="utf-8", newline="")
@@ -118,7 +118,7 @@ def test_a_missing_value_after_the_first_100000_rows_is_not_counted(
 
 
 def test_column_names_can_hold_anything(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-07: a name comes from the file, so it must never reach the SQL as SQL.
+    # DRIVN-9/AC-07: a name comes from the file, so it must never reach the SQL as SQL.
     path = tmp_path / "hostile.csv"
     path.write_text(
         '"a""b","x"") FROM first_rows; DROP TABLE first_rows; --"\n1,\n2,y\n',
@@ -133,7 +133,7 @@ def test_column_names_can_hold_anything(tmp_path: Path) -> None:
 
 
 def test_duplicate_names_are_measured_as_separate_columns(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-07: the names DuckDB gives them are the ones the preview shows.
+    # DRIVN-9/AC-07: the names DuckDB gives them are the ones the preview shows.
     path = tmp_path / "duplicates.csv"
     path.write_text("a,a,A\n1,,3\n,,6\n", encoding="utf-8", newline="")
 
@@ -144,7 +144,7 @@ def test_duplicate_names_are_measured_as_separate_columns(tmp_path: Path) -> Non
 
 
 def test_a_header_with_no_rows_has_nothing_missing(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-17
+    # DRIVN-9/AC-17
     path = tmp_path / "empty_table.csv"
     path.write_text("id,name\n", encoding="utf-8", newline="")
 
@@ -154,7 +154,7 @@ def test_a_header_with_no_rows_has_nothing_missing(tmp_path: Path) -> None:
 
 
 def test_lines_the_user_chose_to_skip_are_not_measured(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-07: read as the preview reads it, with the settings the user saved.
+    # DRIVN-9/AC-07: read as the preview reads it, with the settings the user saved.
     path = tmp_path / "report.csv"
     path.write_text("Quarterly,report\nid,name\n1,Ann\n2,\n", encoding="utf-8", newline="")
 
@@ -167,7 +167,7 @@ def test_lines_the_user_chose_to_skip_are_not_measured(tmp_path: Path) -> None:
 def test_a_broken_row_after_the_first_rows_does_not_stop_the_read(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-csv-profile/AC-07: a row past the limit isn't read at all.
+    # DRIVN-9/AC-07: a row past the limit isn't read at all.
     path = tmp_path / "numbers.csv"
     rows = "".join(f"{number},x\n" for number in range(120_000))
     path.write_text(f"id,name\n{rows}1,2,3,4,5,6\n", encoding="utf-8", newline="")
@@ -182,7 +182,7 @@ def test_a_broken_row_after_the_first_rows_does_not_stop_the_read(
 def test_a_column_can_share_a_name_with_duckdbs_own_row_number(
     tmp_path: Path, name: str
 ) -> None:
-    # CFX-APP-csv-profile/AC-07: exports from Oracle and SQLite often have this column.
+    # DRIVN-9/AC-07: exports from Oracle and SQLite often have this column.
     path = tmp_path / "export.csv"
     path.write_text(
         f"{name},city\n50000,Paris\n150000,\n3,Lyon\n4,Nice\n",
@@ -197,7 +197,7 @@ def test_a_column_can_share_a_name_with_duckdbs_own_row_number(
 
 
 def test_a_broken_row_just_after_the_first_rows_fails_the_read(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-07: DuckDB parses in chunks, so this row is reached. A failed read is
+    # DRIVN-9/AC-07: DuckDB parses in chunks, so this row is reached. A failed read is
     # safe, and leaving out a row that was reached wouldn't be. A DuckDB upgrade may change this.
     path = tmp_path / "numbers.csv"
     rows = "".join(f"{number},x\n" for number in range(100_049))
@@ -210,7 +210,7 @@ def test_a_broken_row_just_after_the_first_rows_fails_the_read(tmp_path: Path) -
 def test_a_surplus_column_can_share_a_name_with_duckdbs_own_row_number(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-csv-profile/AC-14: only the first column is measured, and the name after it is harmless.
+    # DRIVN-9/AC-14: only the first column is measured, and the name after it is harmless.
     path = tmp_path / "export.csv"
     path.write_text("id,rowid\n1,x\n,y\n3,z\n4,w\n", encoding="utf-8", newline="")
     spill = tmp_path / "duckdb-tmp"
@@ -236,7 +236,7 @@ def loaded(connection: duckdb.DuckDBPyConnection, *columns: list[str | None]) ->
 
 
 def test_in_a_database_only_null_is_missing(tmp_path: Path) -> None:
-    # CFX-APP-postgres AC-24's metrics, with the rule agreed for DRIVN-51: a database keeps NULL
+    # DRIVN-45 AC-24's metrics, with the rule agreed for DRIVN-51: a database keeps NULL
     # apart from an empty or blank string, which are values with a length.
     with duckdb_connection(tmp_path) as connection:
         loaded(connection, [None, "", "   ", "x"])
@@ -248,7 +248,7 @@ def test_in_a_database_only_null_is_missing(tmp_path: Path) -> None:
 
 
 def test_a_page_sample_is_measured_whole_without_counting_copies(tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-18: a page sample is about 100,000 rows, often more, and all of it is
+    # DRIVN-45/AC-18: a page sample is about 100,000 rows, often more, and all of it is
     # measured; duplicate rows are only for a full profile (AC-26).
     with duckdb_connection(tmp_path) as connection:
         connection.execute(

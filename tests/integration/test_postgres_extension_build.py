@@ -1,4 +1,4 @@
-"""Building DuckDB's PostgreSQL extension into the wheel, CFX-APP-postgres AC-07 (ADR 0006)."""
+"""Building DuckDB's PostgreSQL extension into the wheel, DRIVN-45 AC-07 (ADR 0006)."""
 
 import gzip
 import hashlib
@@ -26,7 +26,7 @@ def served(tmp_path: Path, version: str, platform: str, content: bytes) -> tuple
 
 
 def test_a_download_matching_its_hash_is_unpacked_for_its_platform(tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-07: the file DrivnX loads is the one whose hash was pinned.
+    # DRIVN-45/AC-07: the file DrivnX loads is the one whose hash was pinned.
     base, digest = served(tmp_path, "9.9.9", "linux_amd64", b"an extension")
     manifest = {"duckdb": "9.9.9", "sha256": {"linux_amd64": digest}}
 
@@ -38,7 +38,7 @@ def test_a_download_matching_its_hash_is_unpacked_for_its_platform(tmp_path: Pat
 def test_a_download_not_matching_its_hash_stops_the_build_and_writes_nothing(
     tmp_path: Path,
 ) -> None:
-    # CFX-APP-postgres/AC-07: a changed file on the server, or in transit, must not ship.
+    # DRIVN-45/AC-07: a changed file on the server, or in transit, must not ship.
     base, digest = served(tmp_path, "9.9.9", "osx_arm64", b"what was pinned")
     gz = tmp_path / "repository" / "v9.9.9" / "osx_arm64" / f"{NAME}.gz"
     gz.write_bytes(gzip.compress(b"something else"))
@@ -51,7 +51,7 @@ def test_a_download_not_matching_its_hash_stops_the_build_and_writes_nothing(
 
 
 def test_the_pinned_extension_is_for_the_locked_duckdb_on_each_tested_platform() -> None:
-    # CFX-APP-postgres/AC-07: an extension built for another DuckDB version won't load.
+    # DRIVN-45/AC-07: an extension built for another DuckDB version won't load.
     lock = tomllib.loads((REPO_ROOT / "uv.lock").read_text(encoding="utf-8"))
     locked = next(p["version"] for p in lock["package"] if p["name"] == "duckdb")
     manifest = FETCH.get("POSTGRES_EXTENSION", {})
@@ -61,7 +61,7 @@ def test_the_pinned_extension_is_for_the_locked_duckdb_on_each_tested_platform()
 
 
 def test_a_locked_duckdb_the_extension_wasnt_pinned_for_stops_the_build() -> None:
-    # CFX-APP-postgres/AC-07: upgrading DuckDB alone would otherwise ship an extension it refuses.
+    # DRIVN-45/AC-07: upgrading DuckDB alone would otherwise ship an extension it refuses.
     manifest = {"duckdb": "2.0.0", "sha256": {}}
     check = FETCH.get("check_locked_duckdb", lambda pins, manifest: None)
 

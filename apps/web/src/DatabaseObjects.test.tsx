@@ -82,7 +82,7 @@ function renderDetails(shown: PostgresSource = source) {
 }
 
 test("each schema is listed with its objects, their kinds and estimated rows labelled as estimates", async () => {
-  // CFX-APP-postgres/AC-08
+  // DRIVN-45/AC-08
   renderDetails();
 
   const sales = await screen.findByRole("group", { name: "sales" });
@@ -102,7 +102,7 @@ test("each schema is listed with its objects, their kinds and estimated rows lab
 });
 
 test("a database not listed yet says so, and listing it shows its schemas", async () => {
-  // CFX-APP-postgres/AC-08: listing when the connection was saved failed, so the user lists it.
+  // DRIVN-45/AC-08: listing when the connection was saved failed, so the user lists it.
   answers["GET /api/sources/p1/objects"] = () => Response.json({ discovered_at: null, schemas: [] });
   answers["POST /api/sources/p1/discover"] = () => Response.json(listed);
   const user = renderDetails();
@@ -118,7 +118,7 @@ test("a database not listed yet says so, and listing it shows its schemas", asyn
 });
 
 test("a list the workspace can't load says so", async () => {
-  // CFX-APP-postgres/AC-08: never an empty section with nothing to do.
+  // DRIVN-45/AC-08: never an empty section with nothing to do.
   answers["GET /api/sources/p1/objects"] = () => Response.json({ detail: "Internal Server Error" }, { status: 500 });
   renderDetails();
   const section = await screen.findByRole("region", { name: "Schemas and tables" });
@@ -129,7 +129,7 @@ test("a list the workspace can't load says so", async () => {
 });
 
 test("refreshing shows the database as it is now, and when it was listed", async () => {
-  // CFX-APP-postgres/AC-13: the order view was dropped since the last listing.
+  // DRIVN-45/AC-13: the order view was dropped since the last listing.
   const now = {
     discovered_at: "2026-11-14T11:00:00+00:00",
     schemas: [{ name: "sales", objects: listed.schemas[0].objects.filter(({ name }) => name !== "order_view") }],
@@ -147,7 +147,7 @@ test("refreshing shows the database as it is now, and when it was listed", async
 });
 
 test("a refresh that fails says why and keeps the list", async () => {
-  // CFX-APP-postgres/AC-13
+  // DRIVN-45/AC-13
   answers["POST /api/sources/p1/discover"] = () =>
     Response.json({ detail: "Nothing answered at this host and port." }, { status: 422 });
   const user = renderDetails();
@@ -177,7 +177,7 @@ const withAccess = {
 };
 
 test("an object without read access, or never populated, is listed and can't be chosen", async () => {
-  // CFX-APP-postgres/AC-10
+  // DRIVN-45/AC-10
   answers["GET /api/sources/p1/objects"] = () => Response.json(withAccess);
   renderDetails();
 
@@ -199,7 +199,7 @@ function put(path: string): unknown[] {
 }
 
 test("choosing a whole schema or single objects and saving sends exactly the chosen objects", async () => {
-  // CFX-APP-postgres/AC-11: a whole schema is its objects that can be chosen, as they are now.
+  // DRIVN-45/AC-11: a whole schema is its objects that can be chosen, as they are now.
   answers["GET /api/sources/p1/objects"] = () => Response.json(withAccess);
   const saved = {
     ...withAccess,
@@ -233,7 +233,7 @@ test("choosing a whole schema or single objects and saving sends exactly the cho
 });
 
 test("unticking a whole schema leaves none of it chosen", async () => {
-  // CFX-APP-postgres/AC-11
+  // DRIVN-45/AC-11
   answers["GET /api/sources/p1/objects"] = () =>
     Response.json({ ...withAccess, schemas: [{ name: "audit", objects: [object("o8", "log", { chosen: true })] }] });
   const user = renderDetails();
@@ -246,7 +246,7 @@ test("unticking a whole schema leaves none of it chosen", async () => {
 });
 
 test("a selection the server refuses says why", async () => {
-  // CFX-APP-postgres/AC-10: chosen in another window, then its access was taken away.
+  // DRIVN-45/AC-10: chosen in another window, then its access was taken away.
   answers["GET /api/sources/p1/objects"] = () => Response.json(withAccess);
   answers["PUT /api/sources/p1/selection"] = () =>
     Response.json({ detail: "Some of these objects can't be chosen. Refresh and choose again." }, { status: 422 });
@@ -279,7 +279,7 @@ const orders = {
 };
 
 test("opening an object shows its columns and declared keys, and reads no row", async () => {
-  // CFX-APP-postgres/AC-09
+  // DRIVN-45/AC-09
   answers["GET /api/sources/p1/objects/o1"] = () => Response.json(orders);
   const user = renderDetails();
 
@@ -303,7 +303,7 @@ test("opening an object shows its columns and declared keys, and reads no row", 
 });
 
 test("a view's columns say PostgreSQL doesn't record whether they allow nulls", async () => {
-  // CFX-APP-postgres/AC-09: the catalog says every view column allows nulls, which isn't known.
+  // DRIVN-45/AC-09: the catalog says every view column allows nulls, which isn't known.
   answers["GET /api/sources/p1/objects/o3"] = () =>
     Response.json({ ...orders, ...object("o3", "order_view", { kind: "view" }), keys: [] });
   const user = renderDetails();
@@ -317,7 +317,7 @@ test("a view's columns say PostgreSQL doesn't record whether they allow nulls", 
 });
 
 test("a materialized view's columns say PostgreSQL doesn't record whether they allow nulls", async () => {
-  // CFX-APP-postgres/AC-09: as for a view, NOT NULL is never recorded for a materialized view's columns.
+  // DRIVN-45/AC-09: as for a view, NOT NULL is never recorded for a materialized view's columns.
   answers["GET /api/sources/p1/objects/o4"] = () =>
     Response.json({ ...orders, ...object("o4", "order_totals", { kind: "materialized_view" }), keys: [] });
   const user = renderDetails();
@@ -330,7 +330,7 @@ test("a materialized view's columns say PostgreSQL doesn't record whether they a
 });
 
 test("an object no longer listed says to refresh", async () => {
-  // CFX-APP-postgres/AC-13: refreshed in another window since this list was shown.
+  // DRIVN-45/AC-13: refreshed in another window since this list was shown.
   answers["GET /api/sources/p1/objects/o1"] = () =>
     Response.json({ detail: "There's no such object. Refresh the list." }, { status: 404 });
   const user = renderDetails();
@@ -341,7 +341,7 @@ test("an object no longer listed says to refresh", async () => {
 });
 
 test("a refresh closes the opened object and starts again from the saved selection", async () => {
-  // CFX-APP-postgres/AC-13: the refresh may have replaced the object, and unsaved ticks may name
+  // DRIVN-45/AC-13: the refresh may have replaced the object, and unsaved ticks may name
   // objects that are gone.
   answers["GET /api/sources/p1/objects"] = () => Response.json(withAccess);
   answers["GET /api/sources/p1/objects/o1"] = () => Response.json(orders);
@@ -361,7 +361,7 @@ test("a refresh closes the opened object and starts again from the saved selecti
 });
 
 test("changing the selection after saving it no longer says it's saved", async () => {
-  // CFX-APP-postgres/AC-11
+  // DRIVN-45/AC-11
   answers["GET /api/sources/p1/objects"] = () => Response.json(withAccess);
   answers["PUT /api/sources/p1/selection"] = () => Response.json(withAccess);
   const user = renderDetails();
@@ -378,7 +378,7 @@ function cells(...values: (string | null)[]) {
 }
 
 test("a chosen object's preview shows its rows 50 at a time, with next and previous", async () => {
-  // CFX-APP-postgres/AC-12, with CFX-APP-first-slice/AC-29: markup in a cell is only text.
+  // DRIVN-45/AC-12, with DRIVN-8/AC-29: markup in a cell is only text.
   answers["GET /api/sources/p1/objects/o1"] = () => Response.json({ ...orders, chosen: true });
   answers["GET /api/sources/p1/objects/o1/rows?offset=0"] = () =>
     Response.json({
@@ -409,7 +409,7 @@ test("a chosen object's preview shows its rows 50 at a time, with next and previ
 });
 
 test("an object that isn't chosen says to choose it to see its rows, and reads none", async () => {
-  // CFX-APP-postgres/AC-11: only chosen objects can be previewed.
+  // DRIVN-45/AC-11: only chosen objects can be previewed.
   answers["GET /api/sources/p1/objects/o1"] = () => Response.json(orders);
   const user = renderDetails();
 
@@ -422,7 +422,7 @@ test("an object that isn't chosen says to choose it to see its rows, and reads n
 });
 
 test("choosing the opened object and saving shows its rows", async () => {
-  // CFX-APP-postgres/AC-11 and AC-12: the saved selection decides, so the opened object follows it.
+  // DRIVN-45/AC-11 and AC-12: the saved selection decides, so the opened object follows it.
   let chosen = false;
   answers["GET /api/sources/p1/objects/o1"] = () => Response.json({ ...orders, chosen });
   answers["PUT /api/sources/p1/selection"] = () => {
@@ -447,7 +447,7 @@ test("choosing the opened object and saving shows its rows", async () => {
 });
 
 test("a page of an object gone since it was opened says to refresh", async () => {
-  // CFX-APP-postgres/AC-12 with AC-13: refreshed in another window, as when the object is opened.
+  // DRIVN-45/AC-12 with AC-13: refreshed in another window, as when the object is opened.
   answers["GET /api/sources/p1/objects/o1"] = () => Response.json({ ...orders, chosen: true });
   answers["GET /api/sources/p1/objects/o1/rows?offset=0"] = () =>
     Response.json({ detail: "There's no such object. Refresh the list." }, { status: 404 });

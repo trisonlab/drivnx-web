@@ -3,7 +3,7 @@ id: macos-keychain-under-redirected-home
 kind: issue
 status: CONFIRMED
 found: "2026-11-16"
-related: [DRIVN-48, CFX-APP-postgres, ADR-0008]
+related: [DRIVN-48, DRIVN-45, ADR-0008]
 evidence:
   - tests/conftest.py
   - tests/integration/test_credential_store.py

@@ -1,4 +1,4 @@
-"""Where everything in testdata/ comes from, CFX-APP-first-slice AC-54."""
+"""Where everything in testdata/ comes from, DRIVN-8 AC-54."""
 
 import filecmp
 import runpy
@@ -20,7 +20,7 @@ def _files_in(directory: Path) -> set[str]:
 
 
 def test_the_generator_makes_every_csv_exactly(tmp_path: Path) -> None:
-    # CFX-APP-first-slice/AC-54: a file nobody can regenerate could hold anything.
+    # DRIVN-8/AC-54: a file nobody can regenerate could hold anything.
     runpy.run_path(str(GENERATOR))["write_all"](tmp_path)
 
     committed = TESTDATA / "csv"
@@ -33,7 +33,7 @@ def test_the_generator_makes_every_csv_exactly(tmp_path: Path) -> None:
 
 
 def test_the_generator_makes_every_golden_file_exactly(tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-40: golden files are synthetic and can be regenerated.
+    # DRIVN-9/AC-40: golden files are synthetic and can be regenerated.
     runpy.run_path(str(GENERATOR))["write_golden"](tmp_path)
 
     committed = TESTDATA / "golden"
@@ -59,8 +59,8 @@ def test_git_leaves_the_csvs_line_endings_alone() -> None:
 
 
 def test_nothing_else_is_in_testdata() -> None:
-    # CFX-APP-first-slice/AC-54: anything hand-written has to say so here. The PostgreSQL fixture
-    # is (CFX-APP-postgres/AC-34): fixture.sql is the committed script that builds its database,
+    # DRIVN-8/AC-54: anything hand-written has to say so here. The PostgreSQL fixture
+    # is (DRIVN-45/AC-34): fixture.sql is the committed script that builds its database,
     # and every value in it is invented; pg_hba.conf is its sign-in rules.
     outside_the_csvs = {
         name

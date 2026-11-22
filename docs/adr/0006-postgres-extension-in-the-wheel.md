@@ -2,7 +2,7 @@
 
 - **Status:** Accepted 2026-11-13
 - **Date:** 2026-11-13
-- **Source:** The user's decisions in chat on 2026-11-13, recorded in spec `CFX-APP-postgres` (revision 2: "the PostgreSQL
+- **Source:** The user's decisions in chat on 2026-11-13, recorded in spec `DRIVN-45` (revision 2: "the PostgreSQL
   extension is bundled in the wheel") and in ticket DRIVN-46's plan; ADR 0005; the CI rules in `tests/integration/test_ci.py`
 
 ## Context

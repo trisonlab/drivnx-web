@@ -1,4 +1,4 @@
-"""The rules that turn a run's observations into findings, CFX-APP-csv-profile AC-21 and AC-22."""
+"""The rules that turn a run's observations into findings, DRIVN-9 AC-21 and AC-22."""
 
 from dataclasses import dataclass
 from typing import Any
@@ -43,7 +43,7 @@ def findings_of(observations: list[Seen]) -> list:
 def test_a_column_at_least_99_percent_distinct_is_a_possible_identifier(
     distinct: int, found: bool
 ) -> None:
-    # CFX-APP-csv-profile/AC-21: 99 of 100 values are distinct, and 98 of 100 aren't enough.
+    # DRIVN-9/AC-21: 99 of 100 values are distinct, and 98 of 100 aren't enough.
     observations = run(
         100,
         column("id", missing_count=0, distinct_count=distinct, distinct_percent=float(distinct)),
@@ -55,7 +55,7 @@ def test_a_column_at_least_99_percent_distinct_is_a_possible_identifier(
 
 
 def test_a_column_with_no_values_is_no_identifier() -> None:
-    # CFX-APP-csv-profile/AC-21: an identifier needs at least one value. Nothing to divide by means
+    # DRIVN-9/AC-21: an identifier needs at least one value. Nothing to divide by means
     # no distinct percentage is saved.
     observations = run(
         10, column("note", missing_count=10, missing_percent=100.0, distinct_count=0)
@@ -68,7 +68,7 @@ def test_a_column_with_no_values_is_no_identifier() -> None:
 def test_a_column_at_least_20_percent_missing_has_significant_missing_values(
     missing: int, found: bool
 ) -> None:
-    # CFX-APP-csv-profile/AC-21
+    # DRIVN-9/AC-21
     observations = run(
         100,
         column(
@@ -89,7 +89,7 @@ def test_a_column_at_least_20_percent_missing_has_significant_missing_values(
 def test_a_column_with_one_value_in_at_least_two_rows_is_single_value(
     rows: int, found: bool
 ) -> None:
-    # CFX-APP-csv-profile/AC-21: decided in T08's plan. A one-row file is neither single-value nor,
+    # DRIVN-9/AC-21: decided in T08's plan. A one-row file is neither single-value nor,
     # since spec revision 4, an identifier.
     observations = run(
         rows,
@@ -103,7 +103,7 @@ def test_a_column_with_one_value_in_at_least_two_rows_is_single_value(
 def test_a_column_with_a_value_that_doesnt_fit_its_type_says_so(
     not_fitting: int, found: bool
 ) -> None:
-    # CFX-APP-csv-profile/AC-21: decided in T08's plan, one is enough. Text has none to find.
+    # DRIVN-9/AC-21: decided in T08's plan, one is enough. Text has none to find.
     observations = run(
         10,
         column(
@@ -128,7 +128,7 @@ def test_a_column_with_a_value_that_doesnt_fit_its_type_says_so(
 def test_duplicated_rows_are_a_finding_about_the_file(
     of_the_file: dict[str, int], found: bool
 ) -> None:
-    # CFX-APP-csv-profile/AC-22: only a full profile counts them.
+    # DRIVN-9/AC-22: only a full profile counts them.
     observations = run(
         10,
         column("id", missing_count=0, distinct_count=5, distinct_percent=50.0),
@@ -139,7 +139,7 @@ def test_duplicated_rows_are_a_finding_about_the_file(
 
 
 def test_findings_come_in_a_fixed_order_by_kind_then_column() -> None:
-    # CFX-APP-csv-profile/AC-21: the spec's order is possibly sensitive, values that don't fit the
+    # DRIVN-9/AC-21: the spec's order is possibly sensitive, values that don't fit the
     # type, duplicate rows, significant missing values, possible identifier, single-value column.
     observations = run(
         100,
@@ -168,7 +168,7 @@ def test_findings_come_in_a_fixed_order_by_kind_then_column() -> None:
 
 
 def test_a_table_with_no_rows_has_no_findings() -> None:
-    # CFX-APP-csv-profile/AC-21: a file that's only a header. Nothing to divide by means no
+    # DRIVN-9/AC-21: a file that's only a header. Nothing to divide by means no
     # percentages are saved.
     observations = run(0, column("id", missing_count=0, distinct_count=0))
 
@@ -176,7 +176,7 @@ def test_a_table_with_no_rows_has_no_findings() -> None:
 
 
 def test_a_column_of_one_value_among_blanks_is_no_identifier() -> None:
-    # CFX-APP-csv-profile/AC-21: spec revision 4, found reviewing T08. One value is 100% distinct.
+    # DRIVN-9/AC-21: spec revision 4, found reviewing T08. One value is 100% distinct.
     observations = run(
         1000,
         column(
@@ -246,7 +246,7 @@ def plain(name: str, **metrics: Any) -> list[Seen]:
     ],
 )
 def test_a_column_whose_name_matches_a_rule_is_possibly_sensitive(name: str, suggests: str) -> None:
-    # CFX-APP-csv-profile/AC-27: by its name alone, with no AI. A name isn't an observation, so the
+    # DRIVN-9/AC-27: by its name alone, with no AI. A name isn't an observation, so the
     # finding cites the column's missing count, which every column saves, to point at the column.
     observations = run(10, plain(name))
 
@@ -263,7 +263,7 @@ def test_a_column_whose_name_matches_a_rule_is_possibly_sensitive(name: str, sug
     ],
 )
 def test_a_column_whose_name_matches_no_rule_isnt_flagged_by_its_name(name: str) -> None:
-    # CFX-APP-csv-profile/AC-21 and CFX-APP-csv-profile/AC-27: whole words only, and "name" only
+    # DRIVN-9/AC-21 and DRIVN-9/AC-27: whole words only, and "name" only
     # alone or with a word for a person.
     assert sensitive(run(10, plain(name))) == []
 
@@ -283,7 +283,7 @@ def shaped(name: str, *patterns: str) -> list[Seen]:
 def test_a_column_with_a_value_shaped_like_an_email_address_is_possibly_sensitive(
     pattern: str,
 ) -> None:
-    # CFX-APP-csv-profile/AC-27: one of its kept patterns is enough, among others that aren't.
+    # DRIVN-9/AC-27: one of its kept patterns is enough, among others that aren't.
     observations = run(10, shaped("contact", "AAAA", pattern, "99"))
 
     assert sensitive(observations) == [
@@ -298,7 +298,7 @@ def test_a_column_with_a_value_shaped_like_an_email_address_is_possibly_sensitiv
     "pattern", ["AAAA@AAAA", "@AAA.AAA", "AAA@.AAA", "AAA@AAA.99", "AAA AAA@AAA.AAA", "AAA@@AA.AA"]
 )
 def test_a_value_only_partly_like_an_email_address_isnt_flagged(pattern: str) -> None:
-    # CFX-APP-csv-profile/AC-21 and CFX-APP-csv-profile/AC-27
+    # DRIVN-9/AC-21 and DRIVN-9/AC-27
     assert sensitive(run(10, shaped("contact", pattern))) == []
 
 
@@ -316,7 +316,7 @@ def test_a_value_only_partly_like_an_email_address_isnt_flagged(pattern: str) ->
 def test_a_column_with_a_value_shaped_like_a_phone_number_is_possibly_sensitive(
     pattern: str,
 ) -> None:
-    # CFX-APP-csv-profile/AC-27
+    # DRIVN-9/AC-27
     observations = run(10, shaped("contact", "AAAA", pattern))
 
     assert sensitive(observations) == [
@@ -355,7 +355,7 @@ def test_a_column_with_a_value_shaped_like_a_phone_number_is_possibly_sensitive(
     ],
 )
 def test_a_value_only_partly_like_a_phone_number_isnt_flagged(pattern: str) -> None:
-    # CFX-APP-csv-profile/AC-21 and CFX-APP-csv-profile/AC-27
+    # DRIVN-9/AC-21 and DRIVN-9/AC-27
     assert sensitive(run(10, shaped("reading", pattern))) == []
 
 
@@ -375,7 +375,7 @@ def test_a_value_only_partly_like_a_phone_number_isnt_flagged(pattern: str) -> N
 def test_a_column_with_a_value_shaped_like_a_payment_card_number_is_possibly_sensitive(
     pattern: str,
 ) -> None:
-    # CFX-APP-csv-profile/AC-27: only the shape, as checking a card's digits would need its value.
+    # DRIVN-9/AC-27: only the shape, as checking a card's digits would need its value.
     observations = run(10, shaped("reference", "AAAA", pattern))
 
     assert sensitive(observations) == [
@@ -404,12 +404,12 @@ def test_a_column_with_a_value_shaped_like_a_payment_card_number_is_possibly_sen
     ],
 )
 def test_a_value_only_partly_like_a_payment_card_number_isnt_flagged(pattern: str) -> None:
-    # CFX-APP-csv-profile/AC-21 and CFX-APP-csv-profile/AC-27
+    # DRIVN-9/AC-21 and DRIVN-9/AC-27
     assert sensitive(run(10, shaped("reference", pattern))) == []
 
 
 def test_a_column_matching_by_name_and_pattern_gets_one_finding_saying_both() -> None:
-    # CFX-APP-csv-profile/AC-21 and CFX-APP-csv-profile/AC-27: one finding for each column
+    # DRIVN-9/AC-21 and DRIVN-9/AC-27: one finding for each column
     # concerned. It cites both, so the screen can say both, with the patterns first for its link.
     observations = run(10, shaped("Phone", "+99 999 999 9999"))
 
@@ -425,7 +425,7 @@ def test_a_column_matching_by_name_and_pattern_gets_one_finding_saying_both() ->
 
 
 def test_a_column_with_a_declared_key_of_its_own_is_no_possible_identifier() -> None:
-    # CFX-APP-postgres/AC-26: "a column with a declared primary key or unique constraint gets no
+    # DRIVN-45/AC-26: "a column with a declared primary key or unique constraint gets no
     # possible-identifier finding", as the key already says so.
     observations = run(
         100, column("id", missing_count=0, distinct_count=100, distinct_percent=100.0)
@@ -436,14 +436,14 @@ def test_a_column_with_a_declared_key_of_its_own_is_no_possible_identifier() -> 
 
 def typed_column(field_id: str, **metrics: Any) -> list[Seen]:
     """A database column's observations: a typed column saves no count of values that don't fit,
-    as none can (CFX-APP-postgres, the Assumptions)."""
+    as none can (DRIVN-45, the Assumptions)."""
     return [
         Seen(f"{field_id}.{metric}", field_id, metric, value) for metric, value in metrics.items()
     ]
 
 
 def test_a_typed_column_gets_the_findings_its_metrics_meet() -> None:
-    # CFX-APP-postgres/AC-26: "the CSV profile's findings appear", here a single-value column, from
+    # DRIVN-45/AC-26: "the CSV profile's findings appear", here a single-value column, from
     # a column whose values can't fail to fit its type.
     observations = run(
         3, typed_column("code", missing_count=0, distinct_count=1, distinct_percent=33.33)
@@ -453,7 +453,7 @@ def test_a_typed_column_gets_the_findings_its_metrics_meet() -> None:
 
 
 def test_an_object_stopped_at_its_time_limit_has_no_findings() -> None:
-    # CFX-APP-postgres/AC-20: an object stopped at its time limit has "no results", so nothing to
+    # DRIVN-45/AC-20: an object stopped at its time limit has "no results", so nothing to
     # find from: it saves only that it was stopped, with the limit in minutes.
     observations = [Seen("time_limit_reached", None, "time_limit_reached", 10)]
 
@@ -461,7 +461,7 @@ def test_an_object_stopped_at_its_time_limit_has_no_findings() -> None:
 
 
 def test_what_a_finding_says_fits_a_databases_object_as_well_as_a_file() -> None:
-    # CFX-APP-postgres/AC-26: "the CSV profile's findings appear" for a database's objects too, so
+    # DRIVN-45/AC-26: "the CSV profile's findings appear" for a database's objects too, so
     # what they say holds for a table (decided with the user for DRIVN-55).
     observations = run(
         4,

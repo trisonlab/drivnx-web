@@ -1,4 +1,4 @@
-"""The CSV profile's findings for each object of a database run, CFX-APP-postgres AC-26 and AC-27
+"""The CSV profile's findings for each object of a database run, DRIVN-45 AC-26 and AC-27
 (DRIVN-55)."""
 
 import threading
@@ -109,7 +109,7 @@ def found(workspace: Workspace, source_id: str, run_id: str) -> list[tuple[str, 
 def test_a_column_that_is_its_primary_key_gets_no_possible_identifier_finding(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-26: "a column with a declared primary key or unique constraint gets no
+    # DRIVN-45/AC-26: "a column with a declared primary key or unique constraint gets no
     # possible-identifier finding". `code` is as distinct, and declared nothing.
     client = start_app(None)
     source_id = chosen_source(client, "keyed")
@@ -132,7 +132,7 @@ def identifiers(workspace: Workspace, source_id: str, run_id: str) -> list[str |
 def test_a_column_that_is_its_unique_constraint_gets_no_possible_identifier_finding(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-26: "a column with a declared primary key or unique constraint gets no
+    # DRIVN-45/AC-26: "a column with a declared primary key or unique constraint gets no
     # possible-identifier finding". `label` is as distinct, and declared nothing.
     client = start_app(None)
     source_id = chosen_source(client, "unique_code")
@@ -146,7 +146,7 @@ def test_a_column_that_is_its_unique_constraint_gets_no_possible_identifier_find
 def test_a_column_of_a_composite_key_can_be_a_possible_identifier(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-26, as agreed for DRIVN-55: only a key of the column alone says it
+    # DRIVN-45/AC-26, as agreed for DRIVN-55: only a key of the column alone says it
     # identifies each row, so a column of a composite key can be a possible identifier.
     client = start_app(None)
     source_id = chosen_source(client, "pairs")
@@ -160,7 +160,7 @@ def test_a_column_of_a_composite_key_can_be_a_possible_identifier(
 def test_a_run_finds_significant_missing_values_and_a_single_value_column(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-26: the CSV profile's findings, in its fixed order by kind. 3 of 10
+    # DRIVN-45/AC-26: the CSV profile's findings, in its fixed order by kind. 3 of 10
     # missing is at least the CSV profile's 20%.
     client = start_app(None)
     source_id = chosen_source(client, "gaps")
@@ -177,7 +177,7 @@ def test_a_run_finds_significant_missing_values_and_a_single_value_column(
 def test_each_sensitive_field_rule_finds_a_possibly_sensitive_field(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-27: "columns matching the sensitive-field name rules or the email,
+    # DRIVN-45/AC-27: "columns matching the sensitive-field name rules or the email,
     # phone or payment card patterns ... each gets a possibly-sensitive finding", saying which.
     client = start_app(None)
     source_id = chosen_source(client, "contacts")
@@ -205,7 +205,7 @@ def test_each_sensitive_field_rule_finds_a_possibly_sensitive_field(
 def test_only_a_full_profile_finds_rows_that_copy_another(
     start_app: StartApp, workspace: Workspace, postgres_server: str, mode: str, expected: list
 ) -> None:
-    # CFX-APP-postgres/AC-26: "and on a full profile duplicate rows", as only a full profile
+    # DRIVN-45/AC-26: "and on a full profile duplicate rows", as only a full profile
     # counts them (DRIVN-53).
     client = start_app(None)
     source_id = chosen_source(client, "copies")
@@ -222,7 +222,7 @@ def test_an_object_stopped_at_its_time_limit_has_no_findings_and_the_others_do(
     postgres_server: str,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # CFX-APP-postgres/AC-20 and AC-26: an object stopped at its time limit has no results, so
+    # DRIVN-45/AC-20 and AC-26: an object stopped at its time limit has no results, so
     # nothing to find from, and the run goes on to the next. A minute lasts 3 s: `late_gaps` waits
     # 30 s, and `gaps` is read first, on a new session. At a quarter of a second, as the stopping
     # tests use for timing a stop, `gaps` was often stopped too on a busy machine (0 runs of 10 passed).
@@ -256,7 +256,7 @@ def test_a_cancel_after_findings_are_worked_out_still_saves_none(
     postgres_server: str,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # CFX-APP-postgres/AC-26, as a CSV's (CFX-APP-csv-profile/AC-26): the run has its findings
+    # DRIVN-45/AC-26, as a CSV's (DRIVN-9/AC-26): the run has its findings
     # ready, but ends as `cancelled`, and a cancelled run has none.
     ready, cancelled = threading.Event(), threading.Event()
     findings_for = profile_jobs.findings_for
@@ -282,7 +282,7 @@ def test_a_cancel_after_findings_are_worked_out_still_saves_none(
 def test_a_runs_findings_are_by_object_in_its_order_then_by_kind(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-26, as agreed for DRIVN-55: by object in the run's order (by schema
+    # DRIVN-45/AC-26, as agreed for DRIVN-55: by object in the run's order (by schema
     # then name), each object's in the fixed order by kind, so not by kind across objects.
     client = start_app(None)
     source_id = chosen_source(client, "keyed", "gaps")
@@ -300,7 +300,7 @@ def test_a_runs_findings_are_by_object_in_its_order_then_by_kind(
 def test_a_database_runs_findings_say_their_object_and_cite_its_columns(
     start_app: StartApp, workspace: Workspace, postgres_server: str
 ) -> None:
-    # CFX-APP-postgres/AC-26: the findings "with their evidence links", each of an object, so
+    # DRIVN-45/AC-26: the findings "with their evidence links", each of an object, so
     # each says which, and its evidence names that object's column.
     client = start_app(None)
     source_id = chosen_source(client, "keyed", "gaps")

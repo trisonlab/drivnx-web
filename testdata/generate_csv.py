@@ -1,6 +1,6 @@
 """Writes the synthetic CSV files in testdata/csv and testdata/golden. Everything in them is invented.
 
-Run with `uv run python testdata/generate_csv.py`. CFX-APP-first-slice/AC-54, CFX-APP-csv-profile/AC-40
+Run with `uv run python testdata/generate_csv.py`. DRIVN-8/AC-54, DRIVN-9/AC-40
 """
 
 from pathlib import Path

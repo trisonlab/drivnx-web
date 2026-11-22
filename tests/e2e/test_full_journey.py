@@ -1,4 +1,4 @@
-"""The whole journey through the installed wheel, CFX-APP-first-slice/AC-51."""
+"""The whole journey through the installed wheel, DRIVN-8/AC-51."""
 
 import re
 from pathlib import Path
@@ -16,8 +16,8 @@ from .test_preview import preview_of
 def test_the_journey_through_the_installed_command_on_one_origin(
     start_drivnx: StartDrivnX, page: Page, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-51, through CFX-APP-first-slice/AC-01, CFX-APP-first-slice/AC-14,
-    # CFX-APP-first-slice/AC-20, CFX-APP-first-slice/AC-24 and CFX-APP-first-slice/AC-27.
+    # DRIVN-8/AC-51, through DRIVN-8/AC-01, DRIVN-8/AC-14,
+    # DRIVN-8/AC-20, DRIVN-8/AC-24 and DRIVN-8/AC-27.
     elsewhere = tmp_path / "somewhere-else"
     elsewhere.mkdir()
     people = tmp_path / "people.csv"

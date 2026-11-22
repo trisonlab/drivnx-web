@@ -2,7 +2,7 @@
 id: DRIVN-56
 legacy_id: CFX-APP-postgres-T11
 title: "Values on request"
-feature: CFX-APP-postgres
+feature: DRIVN-45
 feature_revision: 3
 stories: [US-05]
 criteria: [AC-28, AC-27]

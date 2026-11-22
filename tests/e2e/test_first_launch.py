@@ -1,4 +1,4 @@
-"""First launch in a real browser, CFX-APP-first-slice AC-01, AC-14, AC-15, AC-16, AC-32, AC-33, AC-34."""
+"""First launch in a real browser, DRIVN-8 AC-01, AC-14, AC-15, AC-16, AC-32, AC-33, AC-34."""
 
 import time
 from pathlib import Path
@@ -12,7 +12,7 @@ from ..conftest import StartDrivnX, posix_only
 def test_a_new_workspace_shows_where_it_is_and_asks_for_a_name_and_ai_mode(
     start_drivnx: StartDrivnX, page: Page, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-14
+    # DRIVN-8/AC-14
     workspace = tmp_path / "my workspace"
     launch = start_drivnx("--no-browser", workspace=workspace).wait_for_launch()
 
@@ -57,7 +57,7 @@ def run_drivnx_and_catch_the_browser(
 def test_drivnx_with_no_argument_opens_the_browser_signed_in_on_the_default_workspace(
     start_drivnx: StartDrivnX, page: Page, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-01
+    # DRIVN-8/AC-01
     default = tmp_path / "home" / "DrivnX" / "default"
     assert not default.exists()
 
@@ -87,7 +87,7 @@ def test_setup_opens_the_app_and_a_restart_keeps_it(
     mode: str,
     privacy: str,
 ) -> None:
-    # CFX-APP-first-slice/AC-15 and CFX-APP-first-slice/AC-34
+    # DRIVN-8/AC-15 and DRIVN-8/AC-34
     workspace = tmp_path / "workspace"
     first = start_drivnx("--no-browser", workspace=workspace)
     context = browser.new_context()
@@ -114,7 +114,7 @@ def test_setup_opens_the_app_and_a_restart_keeps_it(
 def test_the_app_layout_shows_and_marks_what_is_not_built(
     start_drivnx: StartDrivnX, page: Page
 ) -> None:
-    # CFX-APP-first-slice/AC-32 and CFX-APP-first-slice/AC-33
+    # DRIVN-8/AC-32 and DRIVN-8/AC-33
     page.goto(start_drivnx("--no-browser").wait_for_launch().url)
     finish_setup(page, "Sales")
 
@@ -125,7 +125,7 @@ def test_the_app_layout_shows_and_marks_what_is_not_built(
     expect(page.get_by_text("Profile status: Not run yet")).to_be_visible()
     expect(page.get_by_role("button", name="Export")).to_be_disabled()
     expect(page.get_by_role("tab")).to_have_count(4)
-    # CFX-APP-csv-profile builds the profile status and the Profile tab, and the rest stay marked.
+    # DRIVN-9 builds the profile status and the Profile tab, and the rest stay marked.
     expect(page.get_by_role("tab", name="Profile", exact=True)).to_be_enabled()
     for name in ("Overview", "Dictionary", "Contract"):
         tab = page.get_by_role("tab", name=name)
@@ -137,7 +137,7 @@ def test_the_app_layout_shows_and_marks_what_is_not_built(
 def test_the_browser_only_talks_to_drivnx_and_reports_no_errors(
     start_drivnx: StartDrivnX, page: Page, mode: str
 ) -> None:
-    # CFX-APP-first-slice/AC-16: no AI request in any mode, and no console errors, including the favicon.
+    # DRIVN-8/AC-16: no AI request in any mode, and no console errors, including the favicon.
     requests: list[str] = []
     problems: list[str] = []
     page.on("request", lambda request: requests.append(request.url))

@@ -1,4 +1,4 @@
-"""Connecting a CSV in a real browser, CFX-APP-first-slice AC-15, AC-20, AC-21, AC-22, AC-23, AC-24, AC-25."""
+"""Connecting a CSV in a real browser, DRIVN-8 AC-15, AC-20, AC-21, AC-22, AC-23, AC-24, AC-25."""
 
 import re
 import shutil
@@ -35,7 +35,7 @@ def app(start_drivnx: StartDrivnX, page: Page) -> Page:
 
 
 def test_connecting_a_csv_shows_what_the_scan_found(app: Page) -> None:
-    # CFX-APP-first-slice/AC-22, CFX-APP-first-slice/AC-24 and CFX-APP-first-slice/AC-25
+    # DRIVN-8/AC-22, DRIVN-8/AC-24 and DRIVN-8/AC-25
     connect(app, CSV_DIR / "comma_utf8.csv")
 
     details = details_of(app, "comma_utf8.csv")
@@ -69,7 +69,7 @@ def test_connecting_a_csv_shows_what_the_scan_found(app: Page) -> None:
 def test_each_kind_of_file_shows_its_detection(
     app: Page, file: str, delimiter: str, encoding: str, column: str
 ) -> None:
-    # CFX-APP-first-slice/AC-22
+    # DRIVN-8/AC-22
     connect(app, CSV_DIR / file)
 
     details = details_of(app, file)
@@ -79,7 +79,7 @@ def test_each_kind_of_file_shows_its_detection(
 
 
 def test_a_file_without_a_header_shows_generated_names(app: Page) -> None:
-    # CFX-APP-first-slice/AC-22
+    # DRIVN-8/AC-22
     connect(app, CSV_DIR / "no_header_typed.csv")
 
     details = details_of(app, "no_header_typed.csv")
@@ -90,7 +90,7 @@ def test_a_file_without_a_header_shows_generated_names(app: Page) -> None:
 def test_an_all_text_file_without_a_header_says_a_row_became_the_names(
     app: Page,
 ) -> None:
-    # CFX-APP-first-slice/AC-22
+    # DRIVN-8/AC-22
     connect(app, CSV_DIR / "no_header_all_text.csv")
 
     details = details_of(app, "no_header_all_text.csv")
@@ -124,7 +124,7 @@ def test_a_bracket_in_the_name_opens_that_file_and_not_a_similar_one(
     ],
 )
 def test_a_bad_path_shows_a_specific_error(app: Page, path: str, message: str) -> None:
-    # CFX-APP-first-slice/AC-21
+    # DRIVN-8/AC-21
     connect(app, path)
 
     expect(app.get_by_role("alert")).to_contain_text(message)
@@ -134,7 +134,7 @@ def test_a_bad_path_shows_a_specific_error(app: Page, path: str, message: str) -
 def test_sources_survive_a_restart_and_a_moved_file_is_marked(
     start_drivnx: StartDrivnX, browser: Browser, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-15 and CFX-APP-first-slice/AC-23
+    # DRIVN-8/AC-15 and DRIVN-8/AC-23
     workspace = tmp_path / "workspace"
     data = tmp_path / "data.csv"
     shutil.copy(CSV_DIR / "comma_utf8.csv", data)
@@ -179,7 +179,7 @@ def test_sources_survive_a_restart_and_a_moved_file_is_marked(
 def test_connecting_reports_no_console_errors_or_outside_requests(
     start_drivnx: StartDrivnX, page: Page
 ) -> None:
-    # CFX-APP-first-slice/AC-16 still holds now that a source is read.
+    # DRIVN-8/AC-16 still holds now that a source is read.
     requests: list[str] = []
     problems: list[str] = []
     page.on("request", lambda request: requests.append(request.url))

@@ -1,4 +1,4 @@
-"""Values on request in a real browser, against the installed wheel, CFX-APP-csv-profile AC-29 and
+"""Values on request in a real browser, against the installed wheel, DRIVN-9 AC-29 and
 AC-30."""
 
 from pathlib import Path
@@ -20,7 +20,7 @@ def app(start_drivnx: StartDrivnX, page: Page) -> Page:
 def test_a_flagged_columns_values_show_after_the_extra_confirmation(
     app: Page, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-29 and CFX-APP-csv-profile/AC-30, with an automated accessibility
+    # DRIVN-9/AC-29 and DRIVN-9/AC-30, with an automated accessibility
     # check in each state.
     path = tmp_path / "people.csv"
     path.write_text(

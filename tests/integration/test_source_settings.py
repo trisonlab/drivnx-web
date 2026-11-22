@@ -1,4 +1,4 @@
-"""Correcting how a file is read, CFX-APP-csv-profile AC-01, AC-02, AC-03, AC-05."""
+"""Correcting how a file is read, DRIVN-9 AC-01, AC-02, AC-03, AC-05."""
 
 import sqlite3
 from collections.abc import Callable
@@ -78,7 +78,7 @@ def restart(tmp_path: Path, workspace_dir: Path) -> RunningApp:
 def test_a_source_reports_its_settings_and_that_skipping_is_automatic(
     client: TestClient,
 ) -> None:
-    # CFX-APP-csv-profile/AC-01
+    # DRIVN-9/AC-01
     source = connect(client, CSV_DIR / "comma_utf8.csv")
 
     assert source["delimiter"] == ","
@@ -134,7 +134,7 @@ def test_saving_the_right_settings_changes_the_columns_and_the_preview(
     expected_names: list[str],
     expected_rows: list[list[str | None]],
 ) -> None:
-    # CFX-APP-csv-profile/AC-02
+    # DRIVN-9/AC-02
     source = connect(client, CSV_DIR / file)
 
     response = save(client, source, **changes)
@@ -152,7 +152,7 @@ def test_saving_the_right_settings_changes_the_columns_and_the_preview(
 def test_a_corrected_encoding_changes_the_text(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-02
+    # DRIVN-9/AC-02
     path = tmp_path / "people.csv"
     path.write_bytes("id,name\n1,Zoé\n".encode())
     source = connect(client, path)
@@ -167,7 +167,7 @@ def test_a_corrected_encoding_changes_the_text(
 def test_lines_skipped_by_the_user_are_reported_by_the_preview(
     client: TestClient,
 ) -> None:
-    # CFX-APP-csv-profile/AC-02
+    # DRIVN-9/AC-02
     source = connect(client, CSV_DIR / "title_line.csv")
 
     save(client, source, has_header=False, skip_lines=2)
@@ -180,7 +180,7 @@ def test_lines_skipped_by_the_user_are_reported_by_the_preview(
 def test_a_corrected_encoding_stays_when_the_file_changes(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-02: detecting again would quietly undo the user's choice.
+    # DRIVN-9/AC-02: detecting again would quietly undo the user's choice.
     path = tmp_path / "people.csv"
     path.write_bytes("id,name\n1,Zoé\n".encode())
     source = connect(client, path)
@@ -194,7 +194,7 @@ def test_a_corrected_encoding_stays_when_the_file_changes(
 def test_corrected_settings_survive_a_restart(
     tmp_path: Path, workspace_dir: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-02
+    # DRIVN-9/AC-02
     first_run = restart(tmp_path, workspace_dir)
     source = connect(first_run, CSV_DIR / "no_header_commas_in_text.csv")
     save(first_run, source, delimiter="\t", has_header=False, skip_lines=1)
@@ -221,7 +221,7 @@ def test_corrected_settings_survive_a_restart(
 def test_the_saved_columns_come_from_one_current_dataset(
     client: TestClient, workspace_dir: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-02: earlier observations must still point at what they measured.
+    # DRIVN-9/AC-02: earlier observations must still point at what they measured.
     source = connect(client, CSV_DIR / "no_header_commas_in_text.csv")
 
     save(client, source, delimiter="\t", has_header=False)
@@ -239,7 +239,7 @@ def test_the_saved_columns_come_from_one_current_dataset(
 def test_saving_the_same_settings_changes_nothing(
     client: TestClient, workspace_dir: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-02
+    # DRIVN-9/AC-02
     source = connect(client, CSV_DIR / "comma_utf8.csv")
 
     response = save(client, source)
@@ -267,7 +267,7 @@ def test_saving_the_same_settings_changes_nothing(
 def test_settings_that_cannot_read_the_file_are_refused_and_the_old_ones_stay(
     client: TestClient, changes: dict
 ) -> None:
-    # CFX-APP-csv-profile/AC-03
+    # DRIVN-9/AC-03
     source = connect(client, CSV_DIR / "comma_latin1.csv")
     before = first_page(client, source)
 
@@ -282,7 +282,7 @@ def test_settings_that_cannot_read_the_file_are_refused_and_the_old_ones_stay(
 def test_mixed_line_endings_with_a_chosen_number_of_lines_are_refused(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-03: a lax read is the only one that manages these, and given a number
+    # DRIVN-9/AC-03: a lax read is the only one that manages these, and given a number
     # of lines to skip it can answer with no rows and the wrong columns.
     path = tmp_path / "mixed.csv"
     path.write_bytes(b"junk\nid,name\r\n1,Ann\n2,Bob\r\n3,Cid\n")
@@ -298,7 +298,7 @@ def test_mixed_line_endings_with_a_chosen_number_of_lines_are_refused(
 def test_a_row_wider_than_the_table_is_an_error_and_never_cut(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-03: dropping the extra field would hide data without saying so.
+    # DRIVN-9/AC-03: dropping the extra field would hide data without saying so.
     path = tmp_path / "wide.csv"
     rows = "".join(f"{number},Ann\n" for number in range(30_000))
     path.write_text(f"title\nid,name\n{rows}1,Ann,extra\n", encoding="utf-8", newline="")
@@ -315,7 +315,7 @@ def test_a_row_wider_than_the_table_is_an_error_and_never_cut(
 def test_a_bad_byte_far_past_the_sample_is_refused(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-03: otherwise a later page would fail after the save had worked.
+    # DRIVN-9/AC-03: otherwise a later page would fail after the save had worked.
     path = tmp_path / "late.csv"
     good = "".join(f"{number},Ann\n" for number in range(500_000)).encode()
     path.write_bytes(b"id,name\n" + good + b"1,Zo\xe9\n")
@@ -331,7 +331,7 @@ def test_a_bad_byte_far_past_the_sample_is_refused(
 def test_an_encoding_over_the_limit_is_refused_and_the_old_one_stays(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-csv-profile/AC-03
+    # DRIVN-9/AC-03
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -347,7 +347,7 @@ def test_an_encoding_over_the_limit_is_refused_and_the_old_one_stays(
 def test_a_file_that_has_gone_keeps_the_old_settings(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-03
+    # DRIVN-9/AC-03
     path = tmp_path / "people.csv"
     path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
@@ -371,7 +371,7 @@ def test_a_file_that_has_gone_keeps_the_old_settings(
 def test_values_outside_the_choices_are_refused(
     client: TestClient, changes: dict
 ) -> None:
-    # CFX-APP-csv-profile/AC-01
+    # DRIVN-9/AC-01
     source = connect(client, CSV_DIR / "comma_utf8.csv")
 
     assert save(client, source, **changes).status_code == 422
@@ -379,7 +379,7 @@ def test_values_outside_the_choices_are_refused(
 
 
 def test_settings_of_a_source_that_does_not_exist(client: TestClient) -> None:
-    # CFX-APP-csv-profile/AC-01
+    # DRIVN-9/AC-01
     response = client.put(
         "/api/sources/nope/settings",
         json={
@@ -396,7 +396,7 @@ def test_settings_of_a_source_that_does_not_exist(client: TestClient) -> None:
 def test_connecting_the_path_again_opens_the_corrected_source(
     client: TestClient,
 ) -> None:
-    # CFX-APP-csv-profile/AC-05
+    # DRIVN-9/AC-05
     source = connect(client, CSV_DIR / "no_header_commas_in_text.csv")
     corrected = save(client, source, delimiter="\t", has_header=False).json()
 
@@ -409,7 +409,7 @@ def test_connecting_the_path_again_opens_the_corrected_source(
 def test_saving_settings_needs_a_session_and_the_right_origin(
     client: TestClient,
 ) -> None:
-    # CFX-APP-first-slice/AC-08 and CFX-APP-first-slice/AC-09, for this new route.
+    # DRIVN-8/AC-08 and DRIVN-8/AC-09, for this new route.
     source = connect(client, CSV_DIR / "comma_utf8.csv")
     url = f"/api/sources/{source['id']}/settings"
     body = settings_of(source)

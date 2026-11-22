@@ -5,7 +5,7 @@ evidence-backed, human-reviewed understanding (Data Profile → Data Dictionary 
 
 - **Source of truth:** [../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md](../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md)
   (approved); open findings in [../drivnx-docs/docs/DrivnX_Phase1_Review_Notes.md](../drivnx-docs/docs/DrivnX_Phase1_Review_Notes.md)
-- **Status:** first vertical slice in progress (`.ai/knowledge/requirements/CFX-APP-first-slice.md`): the runtime, its session protection,
+- **Status:** first vertical slice in progress (`.ai/knowledge/requirements/DRIVN-8.md`): the runtime, its session protection,
   workspace setup, the app shell, connecting a CSV, paging through its rows, the trust-state core, profile run history rules and contract rules exist.
 - **Stack (§4):** Python 3.12, FastAPI, Pydantic v2, DuckDB, SQLite · React + TypeScript + Vite, TanStack, Radix/shadcn ·
   uv and pnpm with committed lockfiles · pytest, Vitest, Playwright, Docker Compose PostgreSQL fixture
@@ -90,9 +90,10 @@ uv tool install dist/drivnx_data-*.whl
 
 Tickets are tracked in Plane, project DRIVN (<https://app.plane.so/drivnx/>), and a ticket's ID is its Plane key, such
 as `DRIVN-13`. The ticket file is `.ai/knowledge/work/DRIVN-13.md`; the repo stays the source of truth and Plane
-mirrors it. Specs and criteria keep their permanent IDs, such as `CFX-APP-first-slice` (Plane `DRIVN-8`) and
-`CFX-APP-first-slice/AC-07`, because tests name the criteria they prove. Tickets cut before Plane also keep their old
-ID in `legacy_id` (`DRIVN-13` was `CFX-APP-first-slice-T03`).
+mirrors it. A spec's ID is its Plane key as well, such as `DRIVN-8`, and
+its criteria are `DRIVN-8/AC-07`, which tests name to show what they prove. Tickets cut before Plane keep their old
+ID in `legacy_id` (`DRIVN-13` was `CFX-APP-first-slice-T03`), and so do specs shaped before 2026-11-22 (`DRIVN-8` was
+`CFX-APP-first-slice`).
 
 A ticket commit's title is `<ticket-id>: <description>`. Every commit that belongs to a spec ends with its IDs, listing
 each criterion in full and never as a range:
@@ -100,15 +101,15 @@ each criterion in full and never as a range:
 ```text
 DRIVN-13: Open workspaces safely
 
-Spec: CFX-APP-first-slice (DRIVN-8)
-Ticket: DRIVN-13 (CFX-APP-first-slice-T03)
+Spec: DRIVN-8
+Ticket: DRIVN-13
 Criteria: AC-02, AC-03, AC-04
 ```
 
 New tickets write `Ticket: DRIVN-N` alone. To trace: `git log --grep="DRIVN-13"` finds a ticket's commits, `git blame`
-leads from a line to its commit and ticket, and `ai-skills knowledge graph CFX-APP-first-slice/AC-07` shows a
-criterion's ticket and tests. Commit titles before 2026-11-08 were rewritten from the old IDs; the `Ticket:` line keeps
-both.
+leads from a line to its commit and ticket, and `ai-skills knowledge graph DRIVN-8/AC-07` shows a
+criterion's ticket and tests. Commit titles before 2026-11-08 were rewritten from the old IDs, and their `Ticket:` line keeps
+both. Commits before 2026-11-22 name the spec by its old ID (`Spec: CFX-APP-first-slice`), so search for both.
 
 ## Branches
 

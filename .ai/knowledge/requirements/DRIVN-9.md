@@ -1,5 +1,6 @@
 ---
-id: CFX-APP-csv-profile
+id: DRIVN-9
+legacy_id: CFX-APP-csv-profile
 external_key: DRIVN-9
 kind: feature
 title: "Profile a CSV: correct how it's read, profile it, and see findings with evidence"
@@ -10,7 +11,7 @@ revision: 5
 approved_revision: 5
 approval_evidence: "user approved the workspace restructure in chat, 2026-11-09 (revision 5, reference-only)"
 updated: "2026-11-09"
-related: [CFX-APP-first-slice]
+related: [DRIVN-8]
 status: CONFIRMED
 ---
 
@@ -19,7 +20,7 @@ status: CONFIRMED
 ## Problem
 A user can connect a CSV and page through it, but DrivnX doesn't yet tell them anything about their data. This slice delivers M3 for CSV files, so a user gets the first real evidence and findings. Detection can be wrong and observations can't be edited, so the slice also lets users correct how a file is read, which stops wrong evidence being saved.
 
-Source of truth: `../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md` (Sections 3, 5, 7, 8 and 10), ADRs 0001, 0002 and 0003 in `docs/adr/`, and the first slice's spec `CFX-APP-first-slice`.
+Source of truth: `../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md` (Sections 3, 5, 7, 8 and 10), ADRs 0001, 0002 and 0003 in `docs/adr/`, and the first slice's spec `DRIVN-8`.
 
 ## Scope
 In:
@@ -143,13 +144,13 @@ API, following the Section 12 outline: `/api/profile-runs` to start, read status
 - **Compatibility:** as in the first slice. Only what can be run here is claimed as tested.
 
 ## Verification
-- Each criterion is covered by a test that names its ID, such as `CFX-APP-csv-profile/AC-01`, except that AC-42 is checked by reading the documents.
+- Each criterion is covered by a test that names its ID, such as `DRIVN-9/AC-01`, except that AC-42 is checked by reading the documents.
 - pytest for profiling, storage and the API; Vitest for components; Playwright for AC-41 against the installed wheel.
 - The first ticket measures an all-text read and the duplicate-row check on 1 GB, to confirm the targets before the rest is built.
 - macOS, Windows and CI are reported as NOT RUN until they can run.
 
 ## Dependencies
-- `CFX-APP-first-slice`, which is finished but not merged. By the user's decision on 2026-11-05, tickets branch from `feat/cfx-app-first-slice-t10-full-journey-and-project-checks`.
+- `DRIVN-8`, which is finished but not merged. By the user's decision on 2026-11-05, tickets branch from `feat/cfx-app-first-slice-t10-full-journey-and-project-checks`.
 - ADRs 0001, 0002 and 0003.
 
 ## Out of Scope
@@ -179,3 +180,4 @@ None blocks approval.
 - Revision 3: AC-24 and the findings decision apply "in the first 100,000 rows" only to a fast profile that read only the first rows, found while planning T08. A fast profile of a smaller file reads the whole file, and AC-17 labels its metrics that way. Approved by the user in chat, 2026-11-07.
 - Revision 4: a possible identifier needs at least two non-missing values, not one, found reviewing T08. With one, a column of a single value among blanks was called a possible identifier. It matches the single-value rule agreed in T08's plan. Approved by the user in chat, 2026-11-07.
 - Revision 5: Reference-only change: the workspace is now a plain `DrivnX/` folder with drivnx-docs next to this repo, so `../docs/` becomes `../drivnx-docs/docs/`. No change to behaviour.
+- 2026-11-22, no new revision: the ID changed from `CFX-APP-csv-profile` to its Plane key `DRIVN-9`, kept in `legacy_id`, and its criteria with it (`DRIVN-9/AC-01`). Nothing else changed, so the approval stands.

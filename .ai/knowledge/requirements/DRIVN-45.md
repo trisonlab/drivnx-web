@@ -1,5 +1,6 @@
 ---
-id: CFX-APP-postgres
+id: DRIVN-45
+legacy_id: CFX-APP-postgres
 external_key: DRIVN-45
 kind: feature
 title: "Connect a PostgreSQL database read-only, choose its tables and profile them"
@@ -10,7 +11,7 @@ revision: 3
 approved_revision: 3
 approval_evidence: "user approved revision 3's decisions in chat, 2026-11-17 (DRIVN-53)"
 updated: "2026-11-17"
-related: [CFX-APP-first-slice, CFX-APP-csv-profile]
+related: [DRIVN-8, DRIVN-9]
 status: CONFIRMED
 ---
 
@@ -19,7 +20,7 @@ status: CONFIRMED
 ## Problem
 DrivnX can profile a CSV, but much of the data its users need to understand sits in a database. M4 adds the first one, PostgreSQL, read-only. A user connects it, sees what's in it, chooses the tables, and gets the same metrics, findings and values on request as for a CSV. This is also the first time DrivnX holds a secret, so the OS credential store that was deferred from the first slice arrives here.
 
-Source of truth: `../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md` (Sections 2, 5, 7, 10 and 12), ADRs 0001 to 0004 in `docs/adr/`, the threat register, and the specs `CFX-APP-first-slice` and `CFX-APP-csv-profile`.
+Source of truth: `../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md` (Sections 2, 5, 7, 10 and 12), ADRs 0001 to 0004 in `docs/adr/`, the threat register, and the specs `DRIVN-8` and `DRIVN-9`.
 
 ## Scope
 In:
@@ -134,13 +135,13 @@ API, following the Section 12 outline: `/api/sources` to add, test and discover 
 - **Compatibility:** only what can be run here and in CI is claimed as tested.
 
 ## Verification
-- Each criterion is covered by a test that names its ID, such as `CFX-APP-postgres/AC-01`, except that AC-36 is checked by reading the documents.
+- Each criterion is covered by a test that names its ID, such as `DRIVN-45/AC-01`, except that AC-36 is checked by reading the documents.
 - pytest against the fixture for the connector, profiling, storage and API; Vitest for components; Playwright for AC-35 against the installed wheel.
 - Spike 2 is done (ADR 0005). `tests/measure_postgres_sample.py` reproduces it, and the ticket that builds the fixture runs it there.
 - The credential store is tested on each OS CI runs, and the in-memory fallback where no store is available.
 
 ## Dependencies
-- `CFX-APP-csv-profile`, done and merged (#15).
+- `DRIVN-9`, done and merged (#15).
 - ADRs 0001 to 0005, and the threat register.
 - Docker on the development machine for the fixture.
 
@@ -166,3 +167,4 @@ None blocks approval.
 - Revision 1: Initial draft from the user's decisions on 2026-11-13; not approved. AC-18 waits for spike 2.
 - Revision 2: Spike 2 done and ADR 0005 recorded, from the user's decisions on 2026-11-13. AC-18 is completed: page samples with a seed for tables, the first rows for views. AC-20 says the scan stops within 5 s, as DrivnX enforces the limit itself. AC-23 holds a full profile to one connection too. AC-24 names the new scopes. AC-28 says values on request repeat the run's rows only while the object is unchanged. The extension's size is corrected to a 19 MB download and 57 MB installed. Approved by the user in chat, 2026-11-13.
 - Revision 3: DRIVN-53's probes found that DuckDB's interrupt doesn't stop a view's read or a fast profile's `postgres_query`, so a stop also cancels the read on the server from a second connection held for under a second (ADR 0009). AC-23 says so. Decisions and Contracts record it for the one connection and the full profile's limits. Approved by the user in chat, 2026-11-17.
+- 2026-11-22, no new revision: the ID changed from `CFX-APP-postgres` to its Plane key `DRIVN-45`, kept in `legacy_id`, and its criteria with it (`DRIVN-45/AC-01`). Nothing else changed, so the approval stands.

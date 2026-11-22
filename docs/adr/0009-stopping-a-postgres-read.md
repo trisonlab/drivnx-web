@@ -2,7 +2,7 @@
 
 - **Status:** Accepted 2026-11-17
 - **Date:** 2026-11-17
-- **Source:** ticket DRIVN-53, the user's decisions in chat on 2026-11-17; spec `CFX-APP-postgres` revision 3 (AC-19 to
+- **Source:** ticket DRIVN-53, the user's decisions in chat on 2026-11-17; spec `DRIVN-45` revision 3 (AC-19 to
   AC-23, the Assumptions' masked patterns); amends ADR 0005 Decision 6. Decision 7 from ticket DRIVN-57 and the user's
   decisions in chat on 2026-11-22 (AC-33)
 

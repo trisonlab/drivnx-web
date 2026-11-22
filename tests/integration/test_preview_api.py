@@ -1,4 +1,4 @@
-"""Paging through a CSV's rows, CFX-APP-first-slice AC-27, AC-28, AC-29, AC-30, AC-31."""
+"""Paging through a CSV's rows, DRIVN-8 AC-27, AC-28, AC-29, AC-30, AC-31."""
 
 import os
 import shutil
@@ -39,7 +39,7 @@ def values(page: dict) -> list[list[str | None]]:
 def test_the_preview_opens_on_the_first_50_rows(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27
+    # DRIVN-8/AC-27
     source = connect(client, numbered_csv(tmp_path / "people.csv", 120))
 
     response = client.get(f"/api/sources/{source}/rows")
@@ -55,7 +55,7 @@ def test_the_preview_opens_on_the_first_50_rows(
 def test_next_and_previous_show_the_adjacent_pages_without_a_total(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27
+    # DRIVN-8/AC-27
     source = connect(client, numbered_csv(tmp_path / "people.csv", 120))
 
     second = client.get(f"/api/sources/{source}/rows", params={"offset": 50}).json()
@@ -72,7 +72,7 @@ def test_next_and_previous_show_the_adjacent_pages_without_a_total(
 def test_there_is_no_next_page_on_the_last_page(
     client: TestClient, tmp_path: Path, rows: int, offset: int
 ) -> None:
-    # CFX-APP-first-slice/AC-27: a last page that is exactly full is the case that goes wrong.
+    # DRIVN-8/AC-27: a last page that is exactly full is the case that goes wrong.
     source = connect(client, numbered_csv(tmp_path / "people.csv", rows))
 
     page = client.get(f"/api/sources/{source}/rows", params={"offset": offset}).json()
@@ -102,7 +102,7 @@ def test_an_unknown_source_is_not_found(client: TestClient) -> None:
 def test_page_sizes_above_200_and_bad_positions_are_refused(
     client: TestClient, tmp_path: Path, params: dict, status: int, rows: int | None
 ) -> None:
-    # CFX-APP-first-slice/AC-28
+    # DRIVN-8/AC-28
     source = connect(client, numbered_csv(tmp_path / "people.csv", 300))
 
     response = client.get(f"/api/sources/{source}/rows", params=params)
@@ -123,7 +123,7 @@ def test_page_sizes_above_200_and_bad_positions_are_refused(
     ],
 )
 def test_every_encoding_gives_the_same_rows(client: TestClient, file: str) -> None:
-    # CFX-APP-first-slice/AC-27
+    # DRIVN-8/AC-27
     page = client.get(f"/api/sources/{connect(client, CSV_DIR / file)}/rows").json()
 
     assert names(page) == ["id", "name", "city", "amount", "joined"]
@@ -157,7 +157,7 @@ def test_every_encoding_gives_the_same_rows(client: TestClient, file: str) -> No
 def test_the_preview_finds_the_same_columns_and_rows_the_file_holds(
     client: TestClient, file: str, columns: list[str], row: list[str]
 ) -> None:
-    # CFX-APP-first-slice/AC-27, and a title line above the header must not become a row.
+    # DRIVN-8/AC-27, and a title line above the header must not become a row.
     page = client.get(f"/api/sources/{connect(client, CSV_DIR / file)}/rows").json()
 
     assert names(page) == columns
@@ -181,7 +181,7 @@ def test_awkward_file_names_preview_the_file_they_name(
 
 
 def test_a_short_row_gets_blanks(client: TestClient) -> None:
-    # CFX-APP-first-slice/AC-31: from T05, detection accepts one uneven row.
+    # DRIVN-8/AC-31: from T05, detection accepts one uneven row.
     page = client.get(
         f"/api/sources/{connect(client, CSV_DIR / 'short_row.csv')}/rows"
     ).json()
@@ -194,7 +194,7 @@ def test_a_short_row_gets_blanks(client: TestClient) -> None:
 def test_an_extra_field_gets_its_own_column_so_nothing_is_hidden(
     client: TestClient,
 ) -> None:
-    # CFX-APP-first-slice/AC-31: from T05, detection accepts one uneven row.
+    # DRIVN-8/AC-31: from T05, detection accepts one uneven row.
     page = client.get(
         f"/api/sources/{connect(client, CSV_DIR / 'extra_field_in_a_row.csv')}/rows"
     ).json()
@@ -214,7 +214,7 @@ def far_past_the_sniff_sample(path: Path, odd_row: str) -> Path:
 def test_a_short_row_past_what_detection_read_still_pages(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-31
+    # DRIVN-8/AC-31
     source = connect(client, far_past_the_sniff_sample(tmp_path / "late.csv", "x\n"))
 
     page = client.get(f"/api/sources/{source}/rows", params={"offset": 99_999}).json()
@@ -225,7 +225,7 @@ def test_a_short_row_past_what_detection_read_still_pages(
 def test_a_row_that_cannot_fit_gives_a_clear_error_and_earlier_pages_still_work(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-31: skipping the row would show a page that hides data.
+    # DRIVN-8/AC-31: skipping the row would show a page that hides data.
     source = connect(
         client, far_past_the_sniff_sample(tmp_path / "late.csv", "x,private-value,y\n")
     )
@@ -257,7 +257,7 @@ def test_a_row_that_cannot_fit_gives_a_clear_error_and_earlier_pages_still_work(
 def test_a_file_that_changes_between_pages_gives_a_clear_error(
     client: TestClient, tmp_path: Path, change: str, message: str
 ) -> None:
-    # CFX-APP-first-slice/AC-31
+    # DRIVN-8/AC-31
     path = numbered_csv(tmp_path / "people.csv", 120)
     source = connect(client, path)
     assert client.get(f"/api/sources/{source}/rows").status_code == 200
@@ -291,7 +291,7 @@ def test_a_file_that_changes_between_pages_gives_a_clear_error(
 def test_a_file_rewritten_between_pages_shows_its_current_data(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-31
+    # DRIVN-8/AC-31
     path = numbered_csv(tmp_path / "people.csv", 120)
     source = connect(client, path)
 
@@ -309,7 +309,7 @@ def test_a_file_rewritten_between_pages_shows_its_current_data(
 def test_a_file_that_shrinks_below_the_page_shows_an_empty_last_page(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-31
+    # DRIVN-8/AC-31
     path = numbered_csv(tmp_path / "people.csv", 120)
     source = connect(client, path)
 
@@ -324,7 +324,7 @@ def test_a_file_that_shrinks_below_the_page_shows_an_empty_last_page(
 def test_a_windows_1252_file_that_grows_past_the_limit_says_to_save_it_as_utf8(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-21 and CFX-APP-first-slice/AC-31
+    # DRIVN-8/AC-21 and DRIVN-8/AC-31
     path = tmp_path / "prices.csv"
     shutil.copy(CSV_DIR / "prices_windows1252.csv", path)
     source = connect(client, path)
@@ -344,7 +344,7 @@ SCRIPT_TEXT = (
 def test_html_in_a_cell_comes_back_unchanged_as_text(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-29: the screen shows it as text, so the API must not alter it.
+    # DRIVN-8/AC-29: the screen shows it as text, so the API must not alter it.
     path = tmp_path / "html.csv"
     path.write_text(
         'id,note\n1,"' + SCRIPT_TEXT.replace('"', '""') + '"\n',
@@ -365,7 +365,7 @@ def test_html_in_a_cell_comes_back_unchanged_as_text(
 def test_a_cell_over_1000_characters_is_cut_and_marked(
     client: TestClient, tmp_path: Path, length: int, kept: int, cut: bool
 ) -> None:
-    # CFX-APP-first-slice/AC-29
+    # DRIVN-8/AC-29
     path = tmp_path / "long.csv"
     path.write_text(f"id,note\n1,{'é' * length}\n2,short\n", encoding="utf-8", newline="")
 
@@ -377,7 +377,7 @@ def test_a_cell_over_1000_characters_is_cut_and_marked(
 
 
 def test_an_empty_cell_is_not_marked_as_cut(client: TestClient) -> None:
-    # CFX-APP-first-slice/AC-29: a short row's missing values have no length to cut.
+    # DRIVN-8/AC-29: a short row's missing values have no length to cut.
     page = client.get(
         f"/api/sources/{connect(client, CSV_DIR / 'short_row.csv')}/rows"
     ).json()
@@ -410,7 +410,7 @@ def test_viewing_pages_stores_no_row_values_and_leaves_no_files(
     monkeypatch: pytest.MonkeyPatch,
     file: str,
 ) -> None:
-    # CFX-APP-first-slice/AC-30: Windows-1252 is decoded in memory, so it takes a different route.
+    # DRIVN-8/AC-30: Windows-1252 is decoded in memory, so it takes a different route.
     cwd = tmp_path / "cwd"
     cwd.mkdir()
     monkeypatch.chdir(cwd)
@@ -430,7 +430,7 @@ def test_viewing_pages_stores_no_row_values_and_leaves_no_files(
 def test_a_decoded_file_leaves_nothing_in_memory_after_a_page(
     client: TestClient,
 ) -> None:
-    # CFX-APP-first-slice/AC-30: the decoded copy holds every row of the file.
+    # DRIVN-8/AC-30: the decoded copy holds every row of the file.
     source = connect(client, CSV_DIR / "prices_windows1252.csv")
     memory = fsspec.filesystem("memory")
 
@@ -461,7 +461,7 @@ def test_the_preview_reports_how_many_lines_it_skipped_above_the_table(
     skipped: int,
     first_row: list[str],
 ) -> None:
-    # CFX-APP-first-slice/AC-27: DuckDB can't tell a title line from real rows, so it must be said.
+    # DRIVN-8/AC-27: DuckDB can't tell a title line from real rows, so it must be said.
     path = tmp_path / "skips.csv"
     path.write_text(contents, encoding="utf-8", newline="")
 
@@ -474,7 +474,7 @@ def test_the_preview_reports_how_many_lines_it_skipped_above_the_table(
 def test_skipped_lines_are_reported_on_later_pages_too(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27
+    # DRIVN-8/AC-27
     path = numbered_csv(tmp_path / "people.csv", 120)
     path.write_text(
         "Sales report\n" + path.read_text(encoding="utf-8"),
@@ -491,7 +491,7 @@ def test_skipped_lines_are_reported_on_later_pages_too(
 
 @pytest.mark.parametrize("file", ["short_row.csv", "extra_field_in_a_row.csv"])
 def test_a_padded_read_skips_nothing(client: TestClient, file: str) -> None:
-    # CFX-APP-first-slice/AC-27
+    # DRIVN-8/AC-27
     page = client.get(f"/api/sources/{connect(client, CSV_DIR / file)}/rows").json()
 
     assert page["skipped_lines"] == 0
@@ -500,7 +500,7 @@ def test_a_padded_read_skips_nothing(client: TestClient, file: str) -> None:
 def test_a_title_line_and_a_late_short_row_keep_the_same_columns_on_every_page(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27 and CFX-APP-first-slice/AC-31: the page past the short row is read
+    # DRIVN-8/AC-27 and DRIVN-8/AC-31: the page past the short row is read
     # with padding, which must not bring the title line back as the column name.
     path = far_past_the_sniff_sample(tmp_path / "late.csv", "x\n")
     path.write_text(
@@ -556,7 +556,7 @@ def test_a_title_line_and_a_late_short_row_keep_the_same_columns_on_every_page(
 def test_a_file_rewritten_in_another_encoding_shows_its_current_text(
     client: TestClient, tmp_path: Path, before: bytes, after: bytes, row: list[str]
 ) -> None:
-    # CFX-APP-first-slice/AC-31: read with the old encoding, this comes out garbled and looks valid.
+    # DRIVN-8/AC-31: read with the old encoding, this comes out garbled and looks valid.
     path = tmp_path / "rewritten.csv"
     path.write_bytes(before)
     source = connect(client, path)
@@ -588,7 +588,7 @@ def test_a_file_that_has_not_changed_keeps_its_saved_encoding(
 def test_api_responses_tell_the_browser_not_to_store_them(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-30: without this, row values reach the browser's disk cache.
+    # DRIVN-8/AC-30: without this, row values reach the browser's disk cache.
     source = connect(client, numbered_csv(tmp_path / "people.csv", 3))
 
     for path in (
@@ -604,7 +604,7 @@ def test_api_responses_tell_the_browser_not_to_store_them(
 
 
 def test_a_page_says_where_it_starts(client: TestClient, tmp_path: Path) -> None:
-    # CFX-APP-first-slice/AC-27: the screen labels rows it is still showing while the next page loads.
+    # DRIVN-8/AC-27: the screen labels rows it is still showing while the next page loads.
     source = connect(client, numbered_csv(tmp_path / "people.csv", 120))
 
     page = client.get(f"/api/sources/{source}/rows", params={"offset": 50}).json()
@@ -652,7 +652,7 @@ def every_row(client: TestClient, source: str) -> list[list[str | None]]:
 def test_rows_starting_with_a_hash_are_shown(
     client: TestClient, tmp_path: Path, contents: str, expected: list
 ) -> None:
-    # CFX-APP-first-slice/AC-27: found reviewing T06, DuckDB can decide # marks comments.
+    # DRIVN-8/AC-27: found reviewing T06, DuckDB can decide # marks comments.
     path = tmp_path / "hash.csv"
     path.write_text(contents, encoding="utf-8", newline="")
 
@@ -662,7 +662,7 @@ def test_rows_starting_with_a_hash_are_shown(
 def test_a_hash_in_every_second_row_keeps_every_row(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27
+    # DRIVN-8/AC-27
     path = tmp_path / "hash.csv"
     rows = [[f"#{n}" if n % 2 else str(n), f"x{n}"] for n in range(60)]
     path.write_text(
@@ -677,7 +677,7 @@ def test_a_hash_in_every_second_row_keeps_every_row(
 def test_a_large_file_with_line_breaks_in_quotes_reads_true_to_the_end(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27: found reviewing T06, DuckDB's parallel reader invented a row where
+    # DRIVN-8/AC-27: found reviewing T06, DuckDB's parallel reader invented a row where
     # a read buffer ended inside a quoted value, and shifted every row after it.
     path = tmp_path / "large.csv"
     with path.open("w") as file:
@@ -701,7 +701,7 @@ def test_a_large_file_with_line_breaks_in_quotes_reads_true_to_the_end(
 def test_a_line_break_in_quotes_and_an_uneven_row_can_both_be_shown(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-31: found reviewing T06, every page of this file gave an error.
+    # DRIVN-8/AC-31: found reviewing T06, every page of this file gave an error.
     path = tmp_path / "both.csv"
     path.write_text('id,note,z\n1,"l1\nl2",z\n2\n3,c,z\n', encoding="utf-8", newline="")
 
@@ -737,7 +737,7 @@ PLAIN_ROWS = "".join(f"{number},plain{number}\n" for number in range(30_000))
 def test_a_first_quote_after_the_sample_is_still_read_as_a_quote(
     client: TestClient, tmp_path: Path, late_rows: str, expected: list
 ) -> None:
-    # CFX-APP-first-slice/AC-27: DuckDB decides how a file is quoted from a sample of its start.
+    # DRIVN-8/AC-27: DuckDB decides how a file is quoted from a sample of its start.
     path = tmp_path / "late.csv"
     path.write_text("id,note\n" + PLAIN_ROWS + late_rows, encoding="utf-8", newline="")
     source = connect(client, path)
@@ -751,7 +751,7 @@ def test_a_first_quote_after_the_sample_is_still_read_as_a_quote(
 def test_a_late_quote_that_never_closes_may_lose_the_rows_after_it(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27: the accepted limit, for malformed files only. If this starts
+    # DRIVN-8/AC-27: the accepted limit, for malformed files only. If this starts
     # failing, DuckDB has improved, so the limit can come out of AC-27.
     path = tmp_path / "late.csv"
     path.write_text(
@@ -787,7 +787,7 @@ def test_a_late_quote_that_never_closes_may_lose_the_rows_after_it(
 def test_quoting_seen_at_the_start_of_a_file_is_kept(
     client: TestClient, tmp_path: Path, contents: str, row: list[str]
 ) -> None:
-    # CFX-APP-first-slice/AC-27: the standard quote is only for files whose sample shows none.
+    # DRIVN-8/AC-27: the standard quote is only for files whose sample shows none.
     path = tmp_path / "quoted.csv"
     path.write_text(contents, encoding="utf-8", newline="")
 
@@ -817,7 +817,7 @@ FILLER = "".join(f"{number},name{number}\n" for number in range(5000))
 def test_files_detection_used_to_refuse_connect_and_show_every_row(
     client: TestClient, tmp_path: Path, contents: str, rows: int, last: list
 ) -> None:
-    # CFX-APP-first-slice/AC-20 and CFX-APP-first-slice/AC-27: found reviewing T06.
+    # DRIVN-8/AC-20 and DRIVN-8/AC-27: found reviewing T06.
     path = tmp_path / "awkward.csv"
     path.write_bytes(contents.encode())
 
@@ -833,7 +833,7 @@ def test_files_detection_used_to_refuse_connect_and_show_every_row(
 def test_a_long_column_name_is_cut_and_marked(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-29: found reviewing T06.
+    # DRIVN-8/AC-29: found reviewing T06.
     path = tmp_path / "long.csv"
     path.write_text(f"id,{'h' * 5000}\n1,a\n2,b\n", encoding="utf-8", newline="")
 
@@ -849,7 +849,7 @@ def test_a_long_column_name_is_cut_and_marked(
 def test_either_kind_of_change_detects_the_encoding_again(
     client: TestClient, tmp_path: Path, change: str
 ) -> None:
-    # CFX-APP-first-slice/AC-31: a change can leave one of the two as it was.
+    # DRIVN-8/AC-31: a change can leave one of the two as it was.
     path = tmp_path / "changed.csv"
     path.write_bytes("id,city\n1,Orl\xe9ans\n".encode("latin-1"))
     source = connect(client, path)
@@ -869,7 +869,7 @@ def test_either_kind_of_change_detects_the_encoding_again(
 def test_a_failing_drive_gives_a_clear_error(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # CFX-APP-first-slice/AC-31: a dead network drive can't be made here, so it is simulated.
+    # DRIVN-8/AC-31: a dead network drive can't be made here, so it is simulated.
     source = connect(client, numbered_csv(tmp_path / "people.csv", 3))
 
     def failing_read(*args: object) -> None:
@@ -885,7 +885,7 @@ def test_a_failing_drive_gives_a_clear_error(
 def test_a_title_line_is_found_in_a_plain_file_named_like_a_compressed_one(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27: the skip count comes from its own sniff, which must not decompress.
+    # DRIVN-8/AC-27: the skip count comes from its own sniff, which must not decompress.
     path = tmp_path / "titled.csv.gz"
     path.write_text("Sales report\nid,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
 
@@ -898,7 +898,7 @@ def test_a_title_line_is_found_in_a_plain_file_named_like_a_compressed_one(
 def test_a_quoted_file_keeps_the_columns_it_was_connected_with(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27: reading padded here would bring the real header back as a row.
+    # DRIVN-8/AC-27: reading padded here would bring the real header back as a row.
     path = tmp_path / "short_header.csv"
     path.write_text(
         'name,city\n"Ann","Paris","France"\n"Bob","Lyon","France"\n"Cid","Nice","France"\n',
@@ -916,7 +916,7 @@ def test_a_quoted_file_keeps_the_columns_it_was_connected_with(
 def test_comment_lines_above_and_inside_a_table_hide_nothing(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27: comments are off for the sniff too, so it agrees with the read.
+    # DRIVN-8/AC-27: comments are off for the sniff too, so it agrees with the read.
     path = tmp_path / "comments.csv"
     path.write_text("# a\nid,name\n1,a\n2,b\n# b\n3,c\n4,d\n", encoding="utf-8", newline="")
 
@@ -930,7 +930,7 @@ def test_comment_lines_above_and_inside_a_table_hide_nothing(
 def test_a_late_extra_field_is_an_error_even_if_an_early_row_is_short(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-31: found fixing T06, the fallback for mixed line endings dropped the
+    # DRIVN-8/AC-31: found fixing T06, the fallback for mixed line endings dropped the
     # extra field in silence when it was also allowed to pad.
     path = tmp_path / "uneven.csv"
     path.write_text(
@@ -949,7 +949,7 @@ def test_a_late_extra_field_is_an_error_even_if_an_early_row_is_short(
 def test_mixed_line_endings_and_a_late_extra_field_lose_that_field(
     client: TestClient, tmp_path: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-27: the accepted limit. Only DuckDB's lax mode reads mixed line endings,
+    # DRIVN-8/AC-27: the accepted limit. Only DuckDB's lax mode reads mixed line endings,
     # and it drops an extra field past the sample. If this starts failing, AC-27 can be narrowed.
     path = tmp_path / "mixed.csv"
     path.write_bytes(

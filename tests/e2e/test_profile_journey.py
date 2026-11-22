@@ -1,4 +1,4 @@
-"""The profile journey in a real browser, against the installed wheel, CFX-APP-csv-profile AC-33
+"""The profile journey in a real browser, against the installed wheel, DRIVN-9 AC-33
 and AC-41."""
 
 import re
@@ -113,7 +113,7 @@ def walk_the_profile_journey(
 def test_the_profile_journey_on_the_installed_wheel_from_one_origin(
     start_drivnx: StartDrivnX, page: Page, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-41, with an automated accessibility check in each state.
+    # DRIVN-9/AC-41, with an automated accessibility check in each state.
     path = tmp_path / "planted.csv"
     journey_csv(path)
     requested: list[str] = []
@@ -187,7 +187,7 @@ def assert_no_value_kept_or_logged(
 def test_a_journey_leaves_no_value_from_the_file_in_the_workspace_or_logs(
     start_drivnx: StartDrivnX, page: Page, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-33, with values shown on request and the logs at their most detailed.
+    # DRIVN-9/AC-33, with values shown on request and the logs at their most detailed.
     path = tmp_path / "planted.csv"
     planted = journey_csv(path)
     workspace = tmp_path / "workspace"
@@ -222,7 +222,7 @@ def late_quote_csv(path: Path) -> list[str]:
 def test_a_failed_full_profile_logs_no_value_from_the_file(
     start_drivnx: StartDrivnX, page: Page, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-33: a row DuckDB can't read is where an error could quote the file.
+    # DRIVN-9/AC-33: a row DuckDB can't read is where an error could quote the file.
     path = tmp_path / "late_quote.csv"
     planted = late_quote_csv(path)
     workspace = tmp_path / "workspace"
@@ -235,5 +235,5 @@ def test_a_failed_full_profile_logs_no_value_from_the_file(
     profile.get_by_role("button", name="Full profile").click()
 
     expect(profile.get_by_role("alert")).to_contain_text("A row in this file can't be read")
-    assert violations(page) == []  # CFX-APP-csv-profile/AC-41: a profile that couldn't finish
+    assert violations(page) == []  # DRIVN-9/AC-41: a profile that couldn't finish
     assert_no_value_kept_or_logged(drivnx, workspace, planted)

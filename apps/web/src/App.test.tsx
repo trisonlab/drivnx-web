@@ -64,7 +64,7 @@ test("tells a signed-out user how to get back in, and asks the server nothing", 
 });
 
 test("a new workspace shows its location and asks for a name and AI mode", async () => {
-  // CFX-APP-first-slice/AC-14
+  // DRIVN-8/AC-14
   serverHas(newWorkspace);
   renderApp();
 
@@ -77,7 +77,7 @@ test("a new workspace shows its location and asks for a name and AI mode", async
 });
 
 test("setup says that no AI request will be made in any mode", async () => {
-  // CFX-APP-first-slice/AC-16
+  // DRIVN-8/AC-16
   serverHas(newWorkspace);
   renderApp();
 
@@ -89,7 +89,7 @@ test.each([
   ["External", "external"],
   ["Local", "local"],
 ])("setup saves the name and the %s mode, then opens the workspace", async (label, mode) => {
-  // CFX-APP-first-slice/AC-14
+  // DRIVN-8/AC-14
   const user = userEvent.setup();
   serverHas(newWorkspace);
   renderApp();
@@ -184,7 +184,7 @@ test("when the workspace can't be loaded, it says so", async () => {
 });
 
 test("a set-up workspace skips setup and shows the app layout", async () => {
-  // CFX-APP-first-slice/AC-15 and CFX-APP-first-slice/AC-32
+  // DRIVN-8/AC-15 and DRIVN-8/AC-32
   serverHas(workspaceNamed("Sales"));
   renderApp();
 
@@ -204,7 +204,7 @@ test("a set-up workspace skips setup and shows the app layout", async () => {
 });
 
 test("everything not built is marked and has no working action", async () => {
-  // CFX-APP-first-slice/AC-33
+  // DRIVN-8/AC-33
   serverHas(workspaceNamed("Sales"));
   renderApp();
 
@@ -212,7 +212,7 @@ test("everything not built is marked and has no working action", async () => {
   const exportButton = within(banner).getByRole("button", { name: /export/i });
   expect(exportButton).toBeDisabled();
   expect(exportButton).toHaveAccessibleName(/not available yet/i);
-  // CFX-APP-csv-profile builds the profile status and the Profile tab, and the rest stay marked.
+  // DRIVN-9 builds the profile status and the Profile tab, and the rest stay marked.
   for (const name of ["Overview", "Dictionary", "Contract"]) {
     const tab = screen.getByRole("tab", { name: new RegExp(name) });
     expect(tab).toBeDisabled();
@@ -221,7 +221,7 @@ test("everything not built is marked and has no working action", async () => {
   const profile = screen.getByRole("tab", { name: "Profile" });
   expect(profile).toBeEnabled();
   expect(profile).toHaveAttribute("aria-selected", "true");
-  // CFX-APP-csv-profile builds the panel's findings, and its other sections stay marked.
+  // DRIVN-9 builds the panel's findings, and its other sections stay marked.
   const panel = screen.getByRole("complementary", { name: "Intelligence & Review" });
   expect(within(panel).getByRole("region", { name: "Findings" })).not.toHaveTextContent(/not available yet/i);
   const items = within(panel).getAllByRole("listitem");
@@ -235,7 +235,7 @@ test.each([
   ["external", "External", "Processing: Local · External AI: On"],
   ["local", "Local", "Processing: Local · Local AI: On"],
 ] as const)("in %s mode the header shows the mode and privacy state", async (mode, label, text) => {
-  // CFX-APP-first-slice/AC-34
+  // DRIVN-8/AC-34
   serverHas(workspaceNamed("Sales", mode));
   renderApp();
 

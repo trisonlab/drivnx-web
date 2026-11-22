@@ -1,4 +1,4 @@
-"""Corrected read settings, and one current dataset per source (CFX-APP-csv-profile)."""
+"""Corrected read settings, and one current dataset per source (DRIVN-9)."""
 
 from alembic import op
 

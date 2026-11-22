@@ -1,4 +1,4 @@
-"""Earlier column names leave the workspace after a correction, CFX-APP-csv-profile AC-04."""
+"""Earlier column names leave the workspace after a correction, DRIVN-9 AC-04."""
 
 import sqlite3
 from pathlib import Path
@@ -47,7 +47,7 @@ def field_rows(workspace_dir: Path) -> list[tuple[str, str, int, str]]:
 def test_a_row_used_as_column_names_is_gone_after_the_correction(
     client: TestClient, workspace_dir: Path, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-04
+    # DRIVN-9/AC-04
     path = tmp_path / "people.csv"
     path.write_text(
         "ZanzibarAnn,ZanzibarParis\nBob,Lyon\nCid,Nice\nDee,Metz\n",
@@ -67,7 +67,7 @@ def test_a_row_used_as_column_names_is_gone_after_the_correction(
 def test_earlier_datasets_get_generated_names_and_keep_their_ids(
     client: TestClient, workspace_dir: Path, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-04: evidence points at a field's id, so that mustn't change.
+    # DRIVN-9/AC-04: evidence points at a field's id, so that mustn't change.
     path = tmp_path / "people.csv"
     path.write_text(
         "ZanzibarAnn,ZanzibarParis\nBob,Lyon\nCid,Nice\nDee,Metz\n",
@@ -87,7 +87,7 @@ def test_earlier_datasets_get_generated_names_and_keep_their_ids(
 def test_names_from_every_earlier_correction_are_gone(
     client: TestClient, workspace_dir: Path, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-04
+    # DRIVN-9/AC-04
     path = tmp_path / "report.csv"
     path.write_text(
         "ZanzibarTitle;x\nZanzibarLine,y\nZanzibarHeader,z\nBob,Lyon\nCid,Nice\nDee,Metz\n",
@@ -109,7 +109,7 @@ def test_names_from_every_earlier_correction_are_gone(
 def test_a_wide_file_leaves_nothing_behind_in_any_page(
     client: TestClient, workspace_dir: Path, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-04: names this long fill many pages, and pages get rearranged as other
+    # DRIVN-9/AC-04: names this long fill many pages, and pages get rearranged as other
     # sources are saved around them.
     wide = tmp_path / "wide.csv"
     header = ",".join(f"Zanzibar{number:04}{'x' * 200}" for number in range(400))
@@ -133,7 +133,7 @@ def test_a_wide_file_leaves_nothing_behind_in_any_page(
 def test_a_correction_that_keeps_the_names_keeps_them_on_earlier_runs(
     client: TestClient, workspace_dir: Path, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-04: nothing here came from a data row, and earlier runs stay readable.
+    # DRIVN-9/AC-04: nothing here came from a data row, and earlier runs stay readable.
     path = tmp_path / "people.csv"
     path.write_bytes("id,name\n1,Zoé\n".encode())
     source = connect(client, path)
@@ -146,7 +146,7 @@ def test_a_correction_that_keeps_the_names_keeps_them_on_earlier_runs(
 def test_other_sources_keep_their_names(
     client: TestClient, workspace_dir: Path, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-04
+    # DRIVN-9/AC-04
     corrected = tmp_path / "people.csv"
     corrected.write_text("Ann,Paris\nBob,Lyon\nCid,Nice\nDee,Metz\n", encoding="utf-8", newline="")
     source = connect(client, corrected)
@@ -163,7 +163,7 @@ def test_other_sources_keep_their_names(
 def test_another_sources_earlier_names_are_left_alone(
     client: TestClient, workspace_dir: Path, tmp_path: Path
 ) -> None:
-    # CFX-APP-csv-profile/AC-04
+    # DRIVN-9/AC-04
     other = tmp_path / "other.csv"
     other.write_bytes("id,name\n1,Zoé\n".encode())
     save(client, connect(client, other), encoding="Latin-1")

@@ -2,7 +2,7 @@
 id: DRIVN-47
 legacy_id: CFX-APP-postgres-T02
 title: "Add a connection"
-feature: CFX-APP-postgres
+feature: DRIVN-45
 feature_revision: 3
 stories: [US-01, US-03]
 criteria: [AC-01, AC-02, AC-03, AC-05, AC-07, AC-14]

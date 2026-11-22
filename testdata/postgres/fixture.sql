@@ -1,4 +1,4 @@
--- The PostgreSQL fixture's database (CFX-APP-postgres AC-34). Hand-written, and every value in it
+-- The PostgreSQL fixture's database (DRIVN-45 AC-34). Hand-written, and every value in it
 -- is invented. Run once by a superuser: the Compose image runs it at start-up, and
 -- tests/postgres_fixture.py runs it on a server it started itself.
 

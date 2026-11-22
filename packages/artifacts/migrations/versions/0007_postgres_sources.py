@@ -1,4 +1,4 @@
-"""A source can be a PostgreSQL database as well as a CSV file (CFX-APP-postgres).
+"""A source can be a PostgreSQL database as well as a CSV file (DRIVN-45).
 
 Everything about the connection is saved except its password, which is a secret: there is no
 column for it.

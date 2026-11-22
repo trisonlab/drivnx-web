@@ -106,7 +106,7 @@ _NOT_READ = (
 # The longest any one statement may run, as the spec assumes for discovery, preview and values.
 STATEMENT_TIMEOUT_SECONDS = 30
 # How often a profile's session has the server check that DrivnX is still there, so a query of a
-# DrivnX that was killed ends within about this (CFX-APP-postgres AC-33, ADR 0009).
+# DrivnX that was killed ends within about this (DRIVN-45 AC-33, ADR 0009).
 CHECK_CONNECTION_EVERY = "1s"
 _TIMED_OUT = (
     f"The database took longer than {STATEMENT_TIMEOUT_SECONDS} seconds to read this page."
@@ -350,7 +350,7 @@ _OBJECTS = f"""
     WHERE {_LISTED_OBJECT}
     ORDER BY n.nspname, c.relname, a.attnum
 """
-# The privileges with which a role could change an object's rows (CFX-APP-postgres AC-16).
+# The privileges with which a role could change an object's rows (DRIVN-45 AC-16).
 WRITE_PRIVILEGES = ("INSERT", "UPDATE", "DELETE", "TRUNCATE")
 # The role DrivnX is signed in as, and whether it's a superuser.
 _ROLE = "SELECT current_user::text, rolsuper FROM pg_roles WHERE rolname = current_user"

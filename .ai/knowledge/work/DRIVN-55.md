@@ -2,7 +2,7 @@
 id: DRIVN-55
 legacy_id: CFX-APP-postgres-T10
 title: "Findings and sensitive fields"
-feature: CFX-APP-postgres
+feature: DRIVN-45
 feature_revision: 3
 stories: [US-05]
 criteria: [AC-26, AC-27]
@@ -89,5 +89,5 @@ Known limits, not fixed (raised by the review, from earlier tickets' design):
   workspaces hold such runs, as M4 isn't released.
 - An object is told apart on screen by `schema.name`, so schema `a.b` with table `c` and schema `a` with table `b.c`
   would share evidence IDs. Only quoted names with a dot can do this; the server keys by dataset ID.
-- Masked patterns, and so the pattern rules, cover text types only (CFX-APP-postgres, the Assumptions' metrics): a
+- Masked patterns, and so the pattern rules, cover text types only (DRIVN-45, the Assumptions' metrics): a
   card number stored as `numeric` is flagged only by its name.

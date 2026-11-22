@@ -2,7 +2,7 @@
 id: DRIVN-26
 legacy_id: CFX-APP-csv-profile-T06
 title: "Full profile and cancel"
-feature: CFX-APP-csv-profile
+feature: DRIVN-9
 feature_revision: 5
 stories: [US-02, US-03]
 criteria: [AC-08, AC-10, AC-18]

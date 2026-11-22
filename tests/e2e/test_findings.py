@@ -1,4 +1,4 @@
-"""Findings in a real browser, against the installed wheel, CFX-APP-csv-profile AC-21 to AC-23."""
+"""Findings in a real browser, against the installed wheel, DRIVN-9 AC-21 to AC-23."""
 
 from pathlib import Path
 
@@ -17,7 +17,7 @@ def app(start_drivnx: StartDrivnX, page: Page) -> Page:
 
 
 def test_a_full_profiles_findings_show_with_their_evidence(app: Page, tmp_path: Path) -> None:
-    # CFX-APP-csv-profile/AC-21, CFX-APP-csv-profile/AC-22 and CFX-APP-csv-profile/AC-23
+    # DRIVN-9/AC-21, DRIVN-9/AC-22 and DRIVN-9/AC-23
     path = meeting_every_kind(tmp_path / "every_kind.csv")
     connect(app, path)
     expect(details_of(app, path.name)).to_be_visible()

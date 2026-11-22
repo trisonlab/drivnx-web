@@ -513,7 +513,7 @@ class ChosenObject:
     schema: str
     name: str
     kind: str
-    # Its declared keys, as discovery found them (CFX-APP-postgres AC-26).
+    # Its declared keys, as discovery found them (DRIVN-45 AC-26).
     keys: tuple[StoredKey, ...]
 
 

@@ -24,7 +24,7 @@ afterEach(() => {
 });
 
 test("sends the launch code once and removes it from the address bar", async () => {
-  // CFX-APP-first-slice/AC-11
+  // DRIVN-8/AC-11
   window.history.replaceState(null, "", "/some/path?x=1#launch=the-code");
   respondWith(true);
 
@@ -53,7 +53,7 @@ test("removes the code before the request starts", async () => {
 });
 
 test("keeps nothing in browser storage", async () => {
-  // CFX-APP-first-slice/AC-11
+  // DRIVN-8/AC-11
   window.history.replaceState(null, "", "/#launch=the-code");
   respondWith(true);
 

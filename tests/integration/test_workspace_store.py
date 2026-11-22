@@ -1,4 +1,4 @@
-"""SQLite settings and migrations, CFX-APP-first-slice AC-19 and AC-44 (ADR 0002 points 5 and 6)."""
+"""SQLite settings and migrations, DRIVN-8 AC-19 and AC-44 (ADR 0002 points 5 and 6)."""
 
 import errno
 import hashlib
@@ -107,7 +107,7 @@ def reopen(directory: Path, migrations: Path) -> None:
         # 2 is FULL.
         ("synchronous", 2),
         ("busy_timeout", 5000),
-        # CFX-APP-csv-profile/AC-04, from ADR 0004.
+        # DRIVN-9/AC-04, from ADR 0004.
         ("secure_delete", 1),
     ],
 )
@@ -121,7 +121,7 @@ def test_connections_use_the_settings_in_adr_0002(
 def test_a_new_workspace_is_at_the_latest_schema_and_has_no_backup(
     opened: Workspace, workspace_dir: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-19: there's nothing to back up yet.
+    # DRIVN-8/AC-19: there's nothing to back up yet.
     assert read(
         workspace_dir / "workspace.db", "SELECT version_num FROM alembic_version"
     )
@@ -132,7 +132,7 @@ def test_a_new_workspace_is_at_the_latest_schema_and_has_no_backup(
 def test_an_older_schema_is_backed_up_owner_only_and_migrated(
     workspace_dir: Path, migrations: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-19
+    # DRIVN-8/AC-19
     add_migration(migrations, "r1", None, CREATE_FAMILY.format(on_delete=""))
     reopen(workspace_dir, migrations)
     add_migration(
@@ -158,7 +158,7 @@ def test_an_older_schema_is_backed_up_owner_only_and_migrated(
 def test_no_backup_is_made_when_nothing_needs_migrating(
     workspace_dir: Path, migrations: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-19
+    # DRIVN-8/AC-19
     add_migration(migrations, "r1", None, "op.execute('CREATE TABLE t (id INTEGER)')")
     reopen(workspace_dir, migrations)
     reopen(workspace_dir, migrations)
@@ -192,7 +192,7 @@ def test_only_the_last_three_backups_are_kept(
 def test_a_newer_schema_is_refused_and_the_file_is_unchanged(
     start_drivnx: StartDrivnX, workspace_dir: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-19, through the real command and its own migrations.
+    # DRIVN-8/AC-19, through the real command and its own migrations.
     first = start_drivnx("--no-browser", workspace=workspace_dir)
     first.wait_for_launch()
     first.process.terminate()
@@ -219,7 +219,7 @@ def test_a_newer_schema_is_refused_and_the_file_is_unchanged(
 def test_a_batch_migration_keeps_rows_that_reference_the_rebuilt_table(
     workspace_dir: Path, migrations: Path, on_delete: str
 ) -> None:
-    # CFX-APP-first-slice/AC-44: with foreign keys on, this deleted the child row or raised an error.
+    # DRIVN-8/AC-44: with foreign keys on, this deleted the child row or raised an error.
     add_migration(migrations, "r1", None, CREATE_FAMILY.format(on_delete=on_delete))
     reopen(workspace_dir, migrations)
     add_migration(migrations, "r2", "r1", REBUILD_PARENT)
@@ -242,7 +242,7 @@ def test_a_batch_migration_keeps_rows_that_reference_the_rebuilt_table(
 def test_a_failed_migration_rolls_back_everything(
     workspace_dir: Path, migrations: Path, failure: str, message: str
 ) -> None:
-    # CFX-APP-first-slice/AC-44, and the backup is there too.
+    # DRIVN-8/AC-44, and the backup is there too.
     add_migration(migrations, "r1", None, CREATE_FAMILY.format(on_delete=""))
     reopen(workspace_dir, migrations)
     add_migration(
@@ -395,7 +395,7 @@ def test_an_old_damaged_backup_is_replaced(
 def test_a_backup_that_cannot_be_made_stops_the_migration(
     workspace_dir: Path, migrations: Path
 ) -> None:
-    # CFX-APP-first-slice/AC-19: no backup, no migration.
+    # DRIVN-8/AC-19: no backup, no migration.
     add_migration(migrations, "r1", None, CREATE_FAMILY.format(on_delete=""))
     reopen(workspace_dir, migrations)
     add_migration(
@@ -412,7 +412,7 @@ def test_a_backup_that_cannot_be_made_stops_the_migration(
 
 @posix_only
 def test_wal_files_are_owner_only_whatever_the_umask(workspace_dir: Path) -> None:
-    # CFX-APP-first-slice/AC-17: these files only exist while a connection is writing.
+    # DRIVN-8/AC-17: these files only exist while a connection is writing.
     previous_umask = os.umask(0)
     try:
         workspace = open_workspace(workspace_dir)

@@ -1,5 +1,5 @@
 """Listing, opening, choosing and refreshing a database's objects through the API,
-CFX-APP-postgres AC-08, AC-09, AC-10, AC-11 and AC-13 (DRIVN-49)."""
+DRIVN-45 AC-08, AC-09, AC-10, AC-11 and AC-13 (DRIVN-49)."""
 
 import socket
 import sqlite3
@@ -76,7 +76,7 @@ def objects_in(listed: dict, schema: str = SCHEMA) -> dict[str, dict]:
 
 
 def test_saving_a_new_connection_lists_its_objects(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-08: a connected source lists its schemas and their objects, without the
+    # DRIVN-45/AC-08: a connected source lists its schemas and their objects, without the
     # user asking.
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
 
@@ -91,7 +91,7 @@ def test_saving_a_new_connection_lists_its_objects(client: TestClient) -> None:
 def test_a_new_connection_is_saved_even_when_listing_its_objects_fails(
     client: TestClient, postgres_admin: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-08: the connection works, so it is saved; the server refuses one of the
+    # DRIVN-45/AC-08: the connection works, so it is saved; the server refuses one of the
     # catalog queries, so nothing is listed yet, and the screen offers to list them.
     function = "FUNCTION pg_catalog.has_schema_privilege(oid, text)"
     postgres_admin(f"REVOKE EXECUTE ON {function} FROM PUBLIC")
@@ -109,7 +109,7 @@ def test_a_new_connection_is_saved_even_when_listing_its_objects_fails(
 def test_refreshing_lists_every_kind_and_leaves_out_partitions_and_foreign_tables(
     client: TestClient,
 ) -> None:
-    # CFX-APP-postgres/AC-08: each object with its kind and estimate; partitions are under their
+    # DRIVN-45/AC-08: each object with its kind and estimate; partitions are under their
     # partitioned table, foreign tables aren't listed. Only the materialized view, of one row, has
     # been analysed.
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
@@ -142,7 +142,7 @@ def saved_source(client: TestClient) -> tuple[str, dict[str, dict]]:
 
 
 def test_opening_an_object_shows_its_columns_and_keys(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-09: each column's name, PostgreSQL type, normalised type and whether it
+    # DRIVN-45/AC-09: each column's name, PostgreSQL type, normalised type and whether it
     # allows nulls, and the declared keys with what a foreign key references.
     source_id, listed = saved_source(client)
     orders = listed["orders"]
@@ -177,7 +177,7 @@ def test_opening_an_object_shows_its_columns_and_keys(client: TestClient) -> Non
 
 
 def test_an_unknown_or_other_sources_object_is_404(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-09: the same database through another user is another source, with
+    # DRIVN-45/AC-09: the same database through another user is another source, with
     # objects of its own.
     source_id, _ = saved_source(client)
     other = {
@@ -200,7 +200,7 @@ def chosen_in(listed: dict) -> set[str]:
 
 
 def test_choosing_objects_saves_exactly_them(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-11: the user chooses which objects to profile, and a second choice
+    # DRIVN-45/AC-11: the user chooses which objects to profile, and a second choice
     # replaces the first.
     source_id, listed = saved_source(client)
     path = f"/api/sources/{source_id}/selection"
@@ -224,7 +224,7 @@ NOT_CHOOSABLE = (
 
 
 def test_an_object_without_read_access_is_listed_and_cannot_be_chosen(client: TestClient) -> None:
-    # CFX-APP-postgres/AC-10: listed, marked as not readable, and a selection with it is refused
+    # DRIVN-45/AC-10: listed, marked as not readable, and a selection with it is refused
     # whole.
     source_id, listed = saved_source(client)
     path = f"/api/sources/{source_id}/selection"
@@ -244,7 +244,7 @@ def test_an_object_without_read_access_is_listed_and_cannot_be_chosen(client: Te
 def test_a_materialized_view_never_refreshed_is_listed_and_can_be_chosen_once_refreshed(
     client: TestClient, postgres_admin: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-10 and AC-13, as agreed for DRIVN-49: the role may SELECT from it, but
+    # DRIVN-45/AC-10 and AC-13, as agreed for DRIVN-49: the role may SELECT from it, but
     # it has no rows to read until REFRESH MATERIALIZED VIEW, and a refresh in DrivnX shows that.
     source_id, listed = saved_source(client)
     path = f"/api/sources/{source_id}/selection"
@@ -273,7 +273,7 @@ def test_a_materialized_view_never_refreshed_is_listed_and_can_be_chosen_once_re
 def test_reading_the_list_or_an_object_changes_nothing(
     client: TestClient, workspace_dir: Path
 ) -> None:
-    # CFX-APP-postgres/AC-08, AC-09 and AC-12: GET routes only read, as every other one; a
+    # DRIVN-45/AC-08, AC-09 and AC-12: GET routes only read, as every other one; a
     # chosen object's rows, and one not chosen, too.
     source_id, listed = saved_source(client)
     client.put(
@@ -312,7 +312,7 @@ def test_reading_the_list_or_an_object_changes_nothing(
 def test_a_selection_that_cant_be_right_is_refused_and_changes_nothing(
     client: TestClient, body: dict
 ) -> None:
-    # CFX-APP-postgres/AC-11: only a list of object ids, refused as input before anything is read.
+    # DRIVN-45/AC-11: only a list of object ids, refused as input before anything is read.
     source_id, listed = saved_source(client)
     path = f"/api/sources/{source_id}/selection"
     client.put(path, json={"object_ids": [listed["orders"]["id"]]})
@@ -336,7 +336,7 @@ def test_a_selection_that_cant_be_right_is_refused_and_changes_nothing(
 def test_previewing_and_profiling_a_database_no_longer_wait_for_choosing(
     client: TestClient, method: str, path: str, body: dict | None, says: str
 ) -> None:
-    # CFX-APP-postgres/AC-11: choosing is here, so the message no longer says it isn't. A database
+    # DRIVN-45/AC-11: choosing is here, so the message no longer says it isn't. A database
     # is previewed by object (DRIVN-50, test_postgres_preview_api.py), and only chosen objects are
     # profiled (DRIVN-51, test_postgres_profile_api.py); nothing is chosen here.
     source_id, _ = saved_source(client)
@@ -385,7 +385,7 @@ def many_tables(postgres_admin: Callable[[str], None]) -> Iterator[None]:
 def test_discovering_1000_objects_takes_at_most_5_seconds(
     client: TestClient, many_tables: None
 ) -> None:
-    # CFX-APP-postgres non-functional: listing 1,000 objects within 5 s and an object's columns
+    # DRIVN-45 non-functional: listing 1,000 objects within 5 s and an object's columns
     # within 2 s (AC-08, AC-09). The times are recorded in DRIVN-49.
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
 
@@ -418,7 +418,7 @@ ROUTES = [
 def test_a_file_has_no_objects_and_an_unknown_source_none_either(
     client: TestClient, tmp_path: Path, method: str, path: str, body: dict | None
 ) -> None:
-    # CFX-APP-postgres/AC-08: only a database has schemas and tables.
+    # DRIVN-45/AC-08: only a database has schemas and tables.
     csv = tmp_path / "people.csv"
     csv.write_text("id\n1\n", encoding="utf-8")
     file_id = client.post("/api/sources", json={"path": str(csv)}).json()["id"]
@@ -452,7 +452,7 @@ def restarted(start_drivnx: StartDrivnX, directory: Path) -> tuple[httpx.Client,
 
 
 def test_listing_again_needs_the_password(start_drivnx: StartDrivnX, tmp_path: Path) -> None:
-    # CFX-APP-postgres/AC-13: a refresh reads the database, so after a restart it waits for the
+    # DRIVN-45/AC-13: a refresh reads the database, so after a restart it waits for the
     # password, as the source asks for it (AC-05).
     after, _ = restarted(start_drivnx, tmp_path / "workspace")
     (source,) = after.get("/api/sources").json()
@@ -466,7 +466,7 @@ def test_listing_again_needs_the_password(start_drivnx: StartDrivnX, tmp_path: P
 def test_a_saved_selection_stays_after_a_restart(
     start_drivnx: StartDrivnX, tmp_path: Path
 ) -> None:
-    # CFX-APP-postgres/AC-11: kept in the workspace, so it is there before the password is given.
+    # DRIVN-45/AC-11: kept in the workspace, so it is there before the password is given.
     after, saved = restarted(start_drivnx, tmp_path / "workspace")
     (source,) = after.get("/api/sources").json()
     assert source["password_needed"] is True
@@ -503,7 +503,7 @@ def changing(postgres_admin: Callable[[str], None]) -> Iterator[Callable[[str], 
 def test_refreshing_after_a_drop_and_a_column_change_shows_the_database_as_it_is_now(
     client: TestClient, changing: Callable[[str], None]
 ) -> None:
-    # CFX-APP-postgres/AC-13 (the refresh) and AC-11: a dropped table is gone, a changed one is a
+    # DRIVN-45/AC-13 (the refresh) and AC-11: a dropped table is gone, a changed one is a
     # new object with its new columns, and it stays chosen.
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
     before = objects_in(client.get(f"/api/sources/{source_id}/objects").json(), CHANGING)
@@ -540,7 +540,7 @@ def unused_port() -> int:
 def test_a_refresh_that_cant_reach_the_server_says_why_and_keeps_the_list(
     client: TestClient, workspace_dir: Path
 ) -> None:
-    # CFX-APP-postgres/AC-13: the server moved after the source was saved. The connector's message,
+    # DRIVN-45/AC-13: the server moved after the source was saved. The connector's message,
     # never DuckDB's text, and the objects listed before stay.
     source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
     listed = client.get(f"/api/sources/{source_id}/objects").json()

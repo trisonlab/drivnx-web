@@ -2,7 +2,7 @@
 id: DRIVN-57
 legacy_id: CFX-APP-postgres-T12
 title: "Earlier runs and restarts"
-feature: CFX-APP-postgres
+feature: DRIVN-45
 feature_revision: 3
 stories: [US-06]
 criteria: [AC-31, AC-32, AC-33]
@@ -40,7 +40,7 @@ value on a Windows server.
 1. **Out of date (AC-32)** is from the last refresh: an object is out of date once a refresh replaced its dataset
    (kind or columns changed, or gone), the rule AC-13 refreshes by. No live check when a run is opened.
 2. **The default run (AC-31)** for a database is its newest completed one, even if some of its objects changed since,
-   with a note naming them. A file keeps its current-settings rule (CFX-APP-csv-profile AC-35).
+   with a note naming them. A file keeps its current-settings rule (DRIVN-9 AC-35).
 3. **A hard kill (AC-33):** discovery checks whether the server takes `client_connection_check_interval`; if so, the
    job's session starts with it at 1 s. A clean stop is `stop_jobs()`'s cancel, already built.
 
