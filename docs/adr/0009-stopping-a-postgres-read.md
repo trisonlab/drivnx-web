@@ -64,10 +64,15 @@ timeout. So discovery checks with `set_config('client_connection_check_interval'
 transaction, whether the server takes the setting, and if it does, the job's session starts with
 `-c client_connection_check_interval=1s` in its options, which a session the extension opens again has too. PostgreSQL
 takes it from version 14 on Linux, macOS, illumos and the BSDs, and refuses it on Windows, where a session with it
-can't start; a Windows server stays as before. Preview, values and discovery don't set it: their statements end at the
-30 s statement timeout. Rejected: ending DrivnX's sessions when it next starts, which needs the password and the network
-before it's up; and attaching with the setting and again without it once refused, two connections to a Windows server
-for every run.
+can't start; a Windows server stays as before. Preview and discovery don't set it: their statements end at the 30 s
+statement timeout. Values on request do (DRIVN-56), as a full run's values read every row within the run's time limit
+plus 30 s: the run saves whether its discovery found the setting taken, as `check_connection` in its scope, and its
+values attach with it; a run saved before DRIVN-56 has none, and its values go without. A stop cancels values being
+read too, as in Decision 1, through `stop_values_read()` as soon as the server starts shutting down: the server waits
+for requests to finish before `stop_jobs()`, and a request waits on its values. Rejected: ending DrivnX's sessions when
+it next starts, which needs the password and the network before it's up; attaching with the setting and again without
+it once refused, two connections to a Windows server for every run; and discovering again for values, a second session
+and a catalog read for every request.
 
 ## Alternatives considered
 

@@ -342,7 +342,7 @@ def test_a_running_run_says_which_object_it_is_on(client: TestClient) -> None:
 
 def test_a_database_runs_results_say_how_each_object_was_read(client: TestClient) -> None:
     # DRIVN-45/AC-24: each metric's object and scope, and each object's method, for the
-    # Profile tab's labels.
+    # Profile tab's labels. Its schema and name too, which values are asked for by (DRIVN-56).
     source_id = chosen_source(client, "people", "names")
     run_id = client.post(
         "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
@@ -356,6 +356,8 @@ def test_a_database_runs_results_say_how_each_object_was_read(client: TestClient
     assert detail["objects"] == [
         {
             "object": f"{SCHEMA}.names",
+            "schema": SCHEMA,
+            "name": "names",
             "method": "view_first_rows",
             "stopped_at_time_limit": False,
             "patterns_from": None,
@@ -363,6 +365,8 @@ def test_a_database_runs_results_say_how_each_object_was_read(client: TestClient
         },
         {
             "object": f"{SCHEMA}.people",
+            "schema": SCHEMA,
+            "name": "people",
             "method": "whole",
             "stopped_at_time_limit": False,
             "patterns_from": None,
@@ -404,6 +408,8 @@ def test_an_object_larger_than_its_estimate_is_labelled_as_its_first_rows(
     assert detail["objects"] == [
         {
             "object": f"{SCHEMA}.misestimated",
+            "schema": SCHEMA,
+            "name": "misestimated",
             "method": "first_rows",
             "stopped_at_time_limit": False,
             "patterns_from": None,
@@ -412,22 +418,6 @@ def test_an_object_larger_than_its_estimate_is_labelled_as_its_first_rows(
     ]
     (rows_read,) = [metric for metric in detail["metrics"] if metric["metric"] == "rows_read"]
     assert (rows_read["value"], rows_read["scope"]) == (100_000, "sample")
-
-
-def test_a_database_runs_values_on_request_arent_available_yet(client: TestClient) -> None:
-    # DRIVN-45 AC-28 comes with DRIVN-56.
-    source_id = chosen_source(client, "people")
-    run_id = client.post(
-        "/api/profile-runs", json={"source_id": source_id, "mode": "fast"}
-    ).json()["id"]
-    assert ended(client, run_id)["status"] == "completed"
-
-    response = client.get(f"/api/profile-runs/{run_id}/values", params={"column": "name"})
-
-    assert (response.status_code, response.json()) == (
-        409,
-        {"detail": "Values on request for a database aren't available yet."},
-    )
 
 
 # DrivnX's sessions on the server, as its superuser sees them.

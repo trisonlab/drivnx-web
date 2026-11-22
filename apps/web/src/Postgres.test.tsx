@@ -639,7 +639,7 @@ const databaseRun = {
 test("a database run's results show each object with how its rows were read, the run's ID and time", async () => {
   // DRIVN-45/AC-18 and AC-24: each object's scope (about N rows sampled by page, the first rows
   // returned, or the whole object), each metric's precision, and the run's time and ID; no "values that
-  // don't fit" in a typed column, and no values on request yet (DRIVN-56).
+  // don't fit" in a typed column. Each column's values come on request (DRIVN-56).
   sources = [fixture];
   gets["/api/profile-runs"] = () => Response.json([databaseRun]);
   gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
@@ -684,7 +684,7 @@ test("a database run's results show each object with how its rows were read, the
     within(orders)
       .getAllByRole("columnheader")
       .map((header) => header.textContent),
-  ).toEqual(["Column", "Precision", "Missing", "Distinct", "Shortest", "Longest", "Average", "Patterns"]);
+  ).toEqual(["Column", "Precision", "Missing", "Distinct", "Shortest", "Longest", "Average", "Patterns", "Values"]);
   const region = within(orders).getByRole("row", { name: /region/ });
   expect([...region.querySelectorAll("th, td")].map((cell) => cell.textContent)).toEqual([
     "region",
@@ -695,6 +695,7 @@ test("a database run's results show each object with how its rows were read, the
     "5",
     "4.5",
     "\u2014",
+    "Show values",
   ]);
 });
 
@@ -1371,4 +1372,199 @@ test.each([
     `Fast profile, Completed, started ${started}, ${shownAs} · Shown`,
     { normalizeWhitespace: true },
   );
+});
+
+// A schema whose name has a dot, so `sales.eu.orders` can only be asked for by its own schema and name.
+const sampledOrders = {
+  ...databaseRun,
+  file_changed: null,
+  objects: [{ object: "sales.eu.orders", schema: "sales.eu", name: "orders", method: "page_sample" }],
+  metrics: [
+    metric("sales.eu.orders", null, "rows_read", 98412),
+    metric("sales.eu.orders", "region", "missing_count", 12),
+    metric("sales.eu.orders", "region", "missing_percent", 0.01),
+  ],
+};
+
+const regionValues = {
+  profile_run_id: "r1",
+  object: "sales.eu.orders",
+  kind: "table",
+  column: "region",
+  method: "page_sample",
+  scope: "sample",
+  rows_read: 98340,
+  computed_at: "2026-11-17T10:00:00+00:00",
+  minimum: { value: "East", cut: false },
+  maximum: { value: "West", cut: false },
+  frequent: [{ value: { value: "North", cut: false }, count: 40000 }],
+  histogram: null,
+  mean: null,
+  median: null,
+  standard_deviation: null,
+};
+
+const VALUES_PATH = "/api/profile-runs/r1/values?column=region&schema=sales.eu&object=orders";
+
+function valuesRequests(): string[] {
+  return fetchMock.mock.calls.map(([url]) => url).filter((url: string) => url.includes("/values?"));
+}
+
+async function showValues(user = userEvent.setup()) {
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  await user.click(await within(tab).findByRole("button", { name: "Show values of region in sales.eu.orders" }));
+  return within(tab).findByRole("region", { name: "Values in region of sales.eu.orders" });
+}
+
+test("a database column's values show on request, labelled with how they were read, when, and that the rows may change", async () => {
+  // DRIVN-45/AC-28: "computed by querying the database with that run's method and seed, labelled
+  // with that scope, the time computed, and that they're the same rows only if the object hasn't
+  // changed since the run".
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
+  gets["/api/profile-runs/r1"] = () => Response.json(sampledOrders);
+  gets[VALUES_PATH] = () => Response.json(regionValues);
+  renderApp();
+
+  const shown = await showValues();
+
+  expect(valuesRequests()).toEqual([VALUES_PATH]);
+  expect(shown).toHaveTextContent(
+    `Computed ${new Date(regionValues.computed_at).toLocaleString()} from about 98,340 rows, sampled by page,` +
+      " and not saved. These are the same rows as this run's only if sales.eu.orders hasn't changed since this run.",
+  );
+  expect(within(shown).getByText("Minimum").nextElementSibling).toHaveTextContent("East");
+  const frequent = within(shown).getByRole("table", { name: "Most frequent values" });
+  expect(within(frequent).getAllByRole("row").map((row) => row.textContent)).toEqual(["ValueCount", "North40,000"]);
+});
+
+test("a view's values say the view may return other rows than it did for the run", async () => {
+  // DRIVN-45/AC-28: "(for a view, that the rows may differ)".
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
+  gets["/api/profile-runs/r1"] = () =>
+    Response.json({
+      ...sampledOrders,
+      objects: [{ ...sampledOrders.objects[0], method: "view_first_rows" }],
+    });
+  gets[VALUES_PATH] = () =>
+    Response.json({ ...regionValues, kind: "view", method: "view_first_rows", rows_read: 100000 });
+  renderApp();
+
+  const shown = await showValues();
+
+  expect(shown).toHaveTextContent(
+    "from the first 100,000 rows the view returned, not random, and not saved." +
+      " The view may return other rows than it did for this run.",
+  );
+  expect(shown).not.toHaveTextContent("the same rows");
+});
+
+test("a possibly-sensitive database column's values need the extra confirmation", async () => {
+  // DRIVN-45/AC-27: "its values need the extra confirmation", as AC-29 of the CSV profile.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/findings?profile_run_id=r1"] = () =>
+    Response.json([
+      databaseFinding("possibly_sensitive", [metric("sales.eu.orders", "region", "missing_count", 12)]),
+    ]);
+  gets["/api/profile-runs/r1"] = () => Response.json(sampledOrders);
+  gets[`${VALUES_PATH}&confirmed=true`] = () => Response.json(regionValues);
+  renderApp();
+  await within(await findingsPanel()).findByRole("article");
+  const user = userEvent.setup();
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+
+  await user.click(await within(tab).findByRole("button", { name: "Show values of region in sales.eu.orders" }));
+
+  const asking = await within(tab).findByRole("alertdialog", { name: /personal data/ });
+  expect(valuesRequests()).toEqual([]);
+  await user.click(within(asking).getByRole("button", { name: "Show values" }));
+  await within(tab).findByRole("region", { name: "Values in region of sales.eu.orders" });
+  expect(valuesRequests()).toEqual([`${VALUES_PATH}&confirmed=true`]);
+});
+
+test("a database column's values that can't be read say why, and the saved metrics still show", async () => {
+  // DRIVN-45/AC-28: "Given the database unreachable, then a clear message shows, and the saved
+  // metrics still show". The server's reason is written for the user.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
+  gets["/api/profile-runs/r1"] = () => Response.json(sampledOrders);
+  gets[VALUES_PATH] = () =>
+    Response.json(
+      { detail: "Nothing answered at this host and port. Check them, and that the server is running." },
+      { status: 422 },
+    );
+  renderApp();
+
+  const shown = await showValues();
+
+  expect(await within(shown).findByRole("alert")).toHaveTextContent(
+    "Nothing answered at this host and port. Check them, and that the server is running.",
+  );
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  expect(within(within(tab).getByRole("row", { name: /region/ })).getByText("12 (0.01%)")).toBeInTheDocument();
+});
+
+test("closing a database column's values gives the focus back to its button", async () => {
+  // DRIVN-45/AC-28, by keyboard alone, as AC-30 of the CSV profile.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
+  gets["/api/profile-runs/r1"] = () => Response.json(sampledOrders);
+  gets[VALUES_PATH] = () => Response.json(regionValues);
+  renderApp();
+  const shown = await showValues();
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      within(shown).getByRole("heading", { name: "Values in region of sales.eu.orders" }),
+    ),
+  );
+
+  await userEvent.click(within(shown).getByRole("button", { name: "Close values" }));
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  expect(document.activeElement).toBe(
+    within(tab).getByRole("button", { name: "Show values of region in sales.eu.orders" }),
+  );
+});
+
+test("declining a database column's confirmation gives the focus back to its button", async () => {
+  // DRIVN-45/AC-27, by keyboard alone.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/findings?profile_run_id=r1"] = () =>
+    Response.json([
+      databaseFinding("possibly_sensitive", [metric("sales.eu.orders", "region", "missing_count", 12)]),
+    ]);
+  gets["/api/profile-runs/r1"] = () => Response.json(sampledOrders);
+  renderApp();
+  await within(await findingsPanel()).findByRole("article");
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  const button = await within(tab).findByRole("button", { name: "Show values of region in sales.eu.orders" });
+  await userEvent.click(button);
+
+  await userEvent.click(await within(tab).findByRole("button", { name: "Don't show" }));
+
+  expect(document.activeElement).toBe(button);
+  expect(valuesRequests()).toEqual([]);
+});
+
+test("a column flagged in another object doesn't ask before this object's values of a column of the same name", async () => {
+  // DRIVN-45/AC-27: each finding is of one object (AC-26), and so is its confirmation.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () => Response.json([databaseRun]);
+  gets["/api/findings?profile_run_id=r1"] = () =>
+    Response.json([databaseFinding("possibly_sensitive", [metric("sales.returns", "region", "missing_count", 3)])]);
+  gets["/api/profile-runs/r1"] = () => Response.json(sampledOrders);
+  gets[VALUES_PATH] = () => Response.json(regionValues);
+  renderApp();
+  await within(await findingsPanel()).findByRole("article");
+
+  await showValues();
+
+  expect(valuesRequests()).toEqual([VALUES_PATH]);
 });

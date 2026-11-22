@@ -1,5 +1,6 @@
 """A profile run's work, done in the background."""
 
+import contextlib
 import dataclasses
 import functools
 import os
@@ -7,7 +8,7 @@ import re
 import secrets
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from itertools import batched
 from pathlib import Path
 from typing import Any, Literal
@@ -104,10 +105,20 @@ _jobs: dict[str, _Job] = {}
 _jobs_lock = threading.Lock()
 # Held while values are worked out on request, as two DuckDB jobs could take twice the memory.
 _values_lock = threading.Lock()
+# A database's values being read now, which `stop_values_read` stops. Set only under `_jobs_lock`.
+_values_job: "_Job | None" = None
 
 
 class Busy(Exception):
     """A profile is running, or other values are being worked out."""
+
+
+class TimeLimitReached(Exception):
+    """A full run's values took longer to read than the run's time limit (DRIVN-56)."""
+
+    def __init__(self, minutes: int) -> None:
+        super().__init__(minutes)
+        self.minutes = minutes
 
 
 Mode = Literal["fast", "full"]
@@ -204,6 +215,8 @@ def start_database_profile(
                 ],
                 # What the role could change in them as the run started (DRIVN-52).
                 "write_access": write_access,
+                # So its values' read ends on the server too if DrivnX is killed (DRIVN-56).
+                "check_connection": check_connection,
                 **({"time_limit_minutes": time_limit_minutes} if mode == "full" else {}),
             },
             mode=mode,
@@ -437,16 +450,9 @@ def _read_within_time_limit(
 ) -> list[NewObservation]:
     """An object's full profile, or only that it was stopped at its time limit (AC-20)."""
     reached = threading.Event()
-    read_over = threading.Event()
-    timer = threading.Timer(
-        time_limit_minutes * SECONDS_PER_MINUTE,
-        _stop_at_time_limit,
-        args=(job, reached, read_over),
-    )
-    timer.name, timer.daemon = INTERRUPTING_THREAD_NAME, True
-    timer.start()
     try:
-        return _read_object(connection, "full", found, readings, seed, before_whole_read)
+        with _time_limit(job, time_limit_minutes, reached):
+            return _read_object(connection, "full", found, readings, seed, before_whole_read)
     except (ConnectFailure, duckdb.Error):
         if job.stop.is_set() or not reached.is_set():
             raise
@@ -463,13 +469,28 @@ def _read_within_time_limit(
             )
         ]
     finally:
-        timer.cancel()
-        read_over.set()
-        timer.join()
         if reached.is_set() and not job.stop.is_set():
             # Only once no interrupt can stop these: what the stopped read left behind.
             reset_whole_read(connection)
             connection.execute(f"DROP TABLE IF EXISTS {ROWS_TABLE}")
+
+
+@contextlib.contextmanager
+def _time_limit(job: _Job, minutes: int, reached: threading.Event) -> Iterator[None]:
+    """Stop the job's read once `minutes` have passed, setting `reached`. Over only once nothing
+    can interrupt the read any more."""
+    read_over = threading.Event()
+    timer = threading.Timer(
+        minutes * SECONDS_PER_MINUTE, _stop_at_time_limit, args=(job, reached, read_over)
+    )
+    timer.name, timer.daemon = INTERRUPTING_THREAD_NAME, True
+    timer.start()
+    try:
+        yield
+    finally:
+        timer.cancel()
+        read_over.set()
+        timer.join()
 
 
 def _measure_loaded(
@@ -491,7 +512,8 @@ def _measure_loaded(
     return measured
 
 
-def _read_scope(method: str) -> str:
+def read_scope(method: str) -> str:
+    """A metric's scope for rows read as `method` says: all of them, or a sample."""
     return "full" if method in ("whole", "full") else "sample"
 
 
@@ -525,7 +547,7 @@ def _object_observations(
 
     def observation(field_id: str | None, metric: str, value: Any) -> NewObservation:
         from_patterns_rows = metric in ("masked_patterns", SAMPLE_ROWS_READ)
-        scope = _read_scope(patterns_method if from_patterns_rows else method)
+        scope = read_scope(patterns_method if from_patterns_rows else method)
         return NewObservation(found.dataset.id, field_id, metric, value, scope, "count", "exact")
 
     return [
@@ -574,6 +596,17 @@ def stop_jobs() -> None:
     for job in jobs:
         assert job.thread is not None
         job.thread.join(max(deadline - time.monotonic(), 0))
+
+
+def stop_values_read() -> None:
+    """For shutting down: stop a database's values being read now, without waiting. A request
+    waits on them, which may last a full run's time limit, and the server waits on requests."""
+    with _jobs_lock:
+        job = _values_job
+        if job is None:
+            return
+        job.stop.set()
+    _interrupt(job)
 
 
 def _interrupt(job: _Job) -> None:
@@ -807,6 +840,21 @@ def _observations(
     ]
 
 
+@contextlib.contextmanager
+def _working_out_values() -> Iterator[None]:
+    """Held while values are worked out on request. Raises `Busy` while a profile runs or other
+    values are being worked out."""
+    if not _values_lock.acquire(blocking=False):
+        raise Busy
+    try:
+        with _jobs_lock:
+            if _jobs:
+                raise Busy
+        yield
+    finally:
+        _values_lock.release()
+
+
 def values_of(
     workspace: Workspace,
     source: StoredSource,
@@ -819,35 +867,111 @@ def values_of(
 
     Raises `Busy` while a profile runs or other values are being worked out.
     """
-    if not _values_lock.acquire(blocking=False):
-        raise Busy
-    try:
+    with _working_out_values(), duckdb_connection(workspace.temp_directory) as connection:
+        connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
+        loaded = load_rows(
+            connection,
+            source.path,
+            encoding,
+            source.delimiter,
+            source.has_header,
+            source.skip_lines,
+            VALUES_TABLE,
+            None if every_row else FIRST_ROWS + 1,
+        )
+        saved = [field.name for field in dataset.fields]
+        # As a run checks, so a value can't be taken from the wrong column.
+        if source.has_header and loaded.names[: len(saved)] != saved:
+            raise CsvError(COLUMNS_CHANGED)
+        return values_for(
+            connection,
+            VALUES_TABLE,
+            position,
+            dataset.fields[position].normalised_type,
+            loaded.formats,
+            every_row,
+        )
+
+
+def object_values_of(
+    workspace: Workspace,
+    details: ConnectionDetails,
+    password: str,
+    found: ChosenObject,
+    position: int,
+    mode: Mode,
+    reading: Reading,
+    seed: int,
+    *,
+    time_limit_minutes: int = DEFAULT_TIME_LIMIT_MINUTES,
+    check_connection: bool = False,
+) -> tuple[str, ColumnValues]:
+    """A database column's values, read now as its run read the object, and never saved
+    (DRIVN-56). Returns how the rows were read, `full` or as `load_object_rows` says, and the
+    values.
+
+    Raises `Busy` while a profile runs or other values are being worked out,
+    `TimeLimitReached` if a full run's values take longer than its time limit, or the
+    connector's `ConnectFailure`. With `check_connection`, as for the run, the server ends the
+    read if DrivnX is killed (ADR 0009 Decision 7).
+    """
+    # Stopped at its time limit, or by `stop_values_read`. It's in no `_jobs`, so no cancel or
+    # run list sees it.
+    global _values_job
+    job = _Job()
+    name = (found.schema, found.name)
+    columns = tuple(field.name for field in found.dataset.fields)
+    column_type = found.dataset.fields[position].normalised_type
+    with _working_out_values(), duckdb_connection(workspace.temp_directory) as connection:
         with _jobs_lock:
-            if _jobs:
-                raise Busy
-        with duckdb_connection(workspace.temp_directory) as connection:
+            job.connection = connection
+            _values_job = job
+        try:
             connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
-            loaded = load_rows(
+            # One session, so a cancel on the server is aimed at the one reading, and a full
+            # read's statement limit is a margin past its time limit, as a run's.
+            attach(
                 connection,
-                source.path,
-                encoding,
-                source.delimiter,
-                source.has_header,
-                source.skip_lines,
-                VALUES_TABLE,
-                None if every_row else FIRST_ROWS + 1,
+                details,
+                password,
+                None
+                if mode == "fast"
+                else time_limit_minutes * SECONDS_PER_MINUTE + STATEMENT_TIMEOUT_SECONDS,
+                one_session=True,
+                check_connection=check_connection,
             )
-            saved = [field.name for field in dataset.fields]
-            # As a run checks, so a value can't be taken from the wrong column.
-            if source.has_header and loaded.names[: len(saved)] != saved:
-                raise CsvError(COLUMNS_CHANGED)
-            return values_for(
-                connection,
-                VALUES_TABLE,
-                position,
-                dataset.fields[position].normalised_type,
-                loaded.formats,
-                every_row,
-            )
-    finally:
-        _values_lock.release()
+            pid = session_pid(connection)
+            with _jobs_lock:
+                job.cancel_on_server = functools.partial(
+                    cancel_read, details, password, pid, workspace.temp_directory
+                )
+
+            def measured(method: str) -> tuple[str, ColumnValues]:
+                # As `_measure_loaded` measured the run's rows: the first rows of an object larger
+                # than its estimate, and only NULL as missing.
+                every_row = method != "first_rows"
+                return method, values_for(
+                    connection, VALUES_TABLE, position, column_type, {}, every_row, False
+                )
+
+            if mode == "fast":
+                return measured(
+                    load_object_rows(connection, name, columns, reading, seed, VALUES_TABLE)
+                )
+            reached = threading.Event()
+            try:
+                # The values too, as a run's measuring is within its limit.
+                with _time_limit(job, time_limit_minutes, reached):
+                    load_whole_object(connection, name, columns, VALUES_TABLE)
+                    return measured("full")
+            except (ConnectFailure, duckdb.Error):
+                if not reached.is_set():
+                    raise
+                raise TimeLimitReached(time_limit_minutes) from None
+        finally:
+            with _jobs_lock:
+                job.connection = None
+                job.cancel_on_server = None
+                _values_job = None
+            # Also when the read failed, or its interrupting would never stop.
+            job.ended.set()

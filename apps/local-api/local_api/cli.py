@@ -1,6 +1,7 @@
 import argparse
 import os
 import re
+import socket
 import sys
 import threading
 import webbrowser
@@ -19,6 +20,7 @@ from artifacts.workspace import (
 from local_api.app import UI_DIR, MissingUiBundleError, create_app
 from local_api.binding import LOOPBACK_ADDRESS, bind_listener
 from local_api.credentials import os_credential_store
+from local_api.profile_jobs import stop_values_read
 from local_api.session import LaunchSession
 
 
@@ -59,6 +61,14 @@ def _browser_can_run_the_app() -> bool:
 def _open_browser_or_print_url(url: str) -> None:
     if not webbrowser.open(url):
         _print_url(url)
+
+
+class _Server(uvicorn.Server):
+    async def shutdown(self, sockets: list[socket.socket] | None = None) -> None:
+        # Before the server waits for requests to finish: one may wait on a database's values,
+        # whose read can last a run's time limit (DRIVN-56, ADR 0009).
+        stop_values_read()
+        await super().shutdown(sockets)
 
 
 def main() -> None:
@@ -142,7 +152,7 @@ def main() -> None:
             target=_open_browser_or_print_url, args=(url,), daemon=True
         ).start()
 
-    server = uvicorn.Server(uvicorn.Config(app, log_level=args.log_level))
+    server = _Server(uvicorn.Config(app, log_level=args.log_level))
     try:
         server.run(sockets=[listener])
     except KeyboardInterrupt:
