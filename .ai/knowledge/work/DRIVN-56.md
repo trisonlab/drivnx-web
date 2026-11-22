@@ -56,3 +56,49 @@ Steps:
 3. UI: Show values in `DatabaseResults`.
 4. e2e, with a flagged column's confirmation and the accessibility check.
 5. Measure on the 10M-row table.
+
+## Measured (step 5)
+On 2026-11-22, on `feat/drivn-56-values-on-request` (uncommitted, on `8ab0a48`), against the fixture: PostgreSQL 17.6
+in Docker on the same Linux machine (8 threads, Intel Core i7-1165G7, 15 GB), DuckDB 2.0.0. The table is spike 2's
+`spike.big`, 10,000,000 rows and 5 columns, 790 MB (ADR 0005), read as the fixture's superuser, as the spike did:
+the fixture's role can't read it. Through `object_values_of`, as the route calls it, three times each, with a script
+kept outside the repository:
+
+| Values of | Read as | Rows read | Seconds |
+|---|---|---|---|
+| `city` (text) | page sample at 100,000 ÷ the estimate, a seed | 104,095 | 0.22, 0.22, 0.20 |
+| `amount` (number, with a histogram) | the same | 104,095 | 0.21, 0.21, 0.23 |
+| `city` | full, every row | 10,000,000 | 5.47, 5.45, 5.55 |
+| `amount` | full, every row | 10,000,000 | 6.21, 5.99, 6.13 |
+
+The process peaked at 896 MB, under the 4 GB DuckDB limit. Of a full read, the server read took 4.90–5.03 s of all
+5 columns and 4.63 s of the first 4; working out the values took 0.54 s for text and 1.11–1.14 s for a number.
+
+Against the targets (INFERRED: DRIVN-45 sets none for values on request): fast values take about a fiftieth of the
+10 s a fast profile of this table may take, and full values are bounded by the run's time limit (10 minutes by
+default), as DRIVN-45 bounds a full profile. Nothing was changed. A full read reads every column, as a full profile
+does, because `load_whole_object` reads the server's columns by position, from the first. Reading only the asked
+column would save part of the 5 s; it's not needed to meet a target.
+
+## Verification (2026-11-22, uncommitted on `8ab0a48`, before the review)
+| Criterion | Evidence | Result |
+|---|---|---|
+| AC-28: computed by querying the database with the run's method and seed | `test_postgres_values.py` (9 passed): a page sample equals the server's `TABLESAMPLE SYSTEM … REPEATABLE` at the run's percent and seed, and repeats; a view's first rows; a table larger than its estimate as its first rows; a full run's every row. `test_postgres_values_api.py::test_a_page_sampled_objects_values_are_from_the_pages_its_runs_seed_picks`, with the run's saved seed and percent; fails with the seed replaced by 0 | PASS |
+| AC-28: labelled with that scope and the time computed | `test_postgres_values_api.py`: `scope`, `method`, `rows_read`, `computed_at` for whole, page sample, full and view; `Postgres.test.tsx`: "Computed … from about 98,340 rows, sampled by page, and not saved."; `tests/e2e/test_postgres_values.py` in the browser | PASS |
+| AC-28: the same rows only if the object hasn't changed (for a view, that the rows may differ) | `Postgres.test.tsx`: the same-rows sentence, and the view's; e2e: the sentence for a table; a changed object refused with 409 (`…changed_since_the_run_are_refused_and_the_others_still_answer`) | PASS |
+| AC-28: cut at 1,000 characters, sent with `Cache-Control: no-store` | `test_postgres_values_api.py::test_values_are_cut_at_1000_characters_and_never_kept_by_the_browser` | PASS |
+| AC-28: database unreachable, a clear message, the saved metrics still show | API: a password the server refuses gives 422 with its reason and the run's metrics unchanged (`…cant_be_read_say_why_and_the_saved_metrics_still_show`); the function's `ConnectFailure` passes through; UI: a 422's message shows and the row's metrics stay | PASS |
+| AC-28: the server stopped (the ticket's expected evidence) | No test with the server stopped or not listening: the refusal tested is the password's. `read_failed` handles every `ConnectFailure` alike (INFERRED) | NOT RUN |
+| AC-27, the confirmation half: a possibly-sensitive column's values need the extra confirmation | API: 409 without `confirmed=true`, values with it, before the database is read; UI: the dialog, nothing requested until confirmed, focus back on decline, a column of the same name in another object doesn't ask; e2e with the accessibility check | PASS |
+| Decision A: full values bounded by the run's time limit | `test_postgres_values.py`: stopped at the limit with nothing left on the server, and a read longer than other statements within it; API: 422 "Reading … took longer than this run's time limit of 1 minute." | PASS |
+| Refusals in the plan | API tests: not completed, no such object or column, stopped at the time limit, no longer chosen (AC-11), out of date, flagged, busy, no password after a restart | PASS |
+| Step 5: measured on the 10M-row table | "Measured (step 5)" above | PASS |
+
+Checks run, all on the working tree above:
+- `uv run --frozen pytest tests/integration tests/golden`: 2615 passed, 8 skipped (as before this ticket), exit 0. The 27 new values tests ran, none skipped.
+- `uv run --frozen pytest tests/e2e`: 85 passed, exit 0.
+- `pnpm --dir apps/web test`: 263 passed. `tsc --noEmit`: exit 0. `vite build`: built.
+- CI's scans: detect-secrets over the tracked and the new files, exit 0; pip-audit and `pnpm audit`: no known vulnerabilities.
+- `.ai/hooks/run.py pre-commit`: exit 0, with nothing staged. `ai-skills knowledge check`: the graph is out of date with this change, and two facts are stale from before it.
+
+Not verified: a stopped server, as above; CI on GitHub, as nothing is pushed.
