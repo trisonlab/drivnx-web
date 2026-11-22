@@ -76,3 +76,23 @@ Steps:
 Risks: `ALTER SYSTEM` changes the shared fixture until it's put back, so the fixture's start puts it back too; Compose
 logs on Linux only, the own server's log elsewhere; the Windows server's log is first seen in CI. Out of scope: one
 journey helper for CSV and PostgreSQL together.
+
+## AC-36, read (step 4)
+On 2026-11-22, on `8210cc5`, each document read against the code it names:
+- **The threat register's "Database or API key leaks" row** (`docs/threat-model/threat-register.md`) now records
+  what's built and tested: passwords in the OS credential store or in memory (DRIVN-47, DRIVN-48), AC-30's browser
+  scan of the workspace, the logs at trace level, browser storage and URLs, and a database's values never saved
+  (AC-12, AC-28) with AC-29's scan from this ticket. Exports and API keys stay planned: neither exists yet. AC-15's
+  statement log went in the "DrivnX changes a connected database" row, which it tests, and R3 now covers PostgreSQL.
+- **The sampling method from spike 2:** ADR 0005 Decisions 1 to 4 (`TABLESAMPLE SYSTEM … REPEATABLE (seed)` at
+  100,000 ÷ the estimate, a small table read whole with a guard of 100,001 rows, a view's first 100,000 rows, values
+  with the run's method and seed), with spike 2's numbers under Measured. Matches `SAMPLE_ROWS` and the sample clause
+  in `packages/connectors/postgres.py`. Decision 6 is amended by ADR 0009, as its status says.
+- **The bundled extension:** ADR 0006 Decisions 1 to 3 (one wheel for `linux_amd64`, `osx_arm64` and
+  `windows_amd64`, sha256-pinned in `hatch_postgres.py`, loaded by path with the signature check on). Matches
+  `duckdb==2.0.0` in `pyproject.toml`, the hash check in `hatch_postgres.py`, `load_postgres` raising
+  `PostgresUnavailable`, and no `allow_unsigned_extensions` anywhere in the code.
+- **The credential store:** ADR 0008 Decisions 1 to 9 (keyring behind `KeptPasswords`, only Keychain, Credential
+  Manager or Secret Service, one entry per source, `local_machine` on Windows, written only with a password the server
+  took). Matches `os_credential_store()` and `entry()` in `local_api/credentials.py`, its call in `cli.py`, and
+  `KeptPasswords` in `postgres_api.py`. Amends ADR 0007 Decision 1, as 0007's status says.
