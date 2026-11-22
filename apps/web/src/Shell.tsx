@@ -94,8 +94,7 @@ export function Shell({ workspace }: { workspace: Workspace }) {
       </main>
       <aside className="shell-review" aria-label="Intelligence & Review">
         <h2>Intelligence &amp; Review</h2>
-        {/* A database has no profile to find anything in yet. */}
-        <Findings source={chosen?.kind === "postgres" ? undefined : chosen} openedRunId={openedRunId} />
+        <Findings source={chosen} openedRunId={openedRunId} />
         <ul className="unavailable-sections">
           {["AI suggestions", "Evidence", "Provenance", "Review actions"].map((section) => (
             <li key={section}>

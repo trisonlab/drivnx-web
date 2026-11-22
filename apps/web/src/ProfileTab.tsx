@@ -205,9 +205,11 @@ function duplicateRowsNote(copies: number): string {
     : `${copies.toLocaleString()} rows are exact copies of another row.`;
 }
 
-/** Where a metric is shown, so a finding's evidence link can go to it. */
-export function evidenceId(column: string | null, metric: string): string {
-  return `evidence-${metric.replace(/_(count|percent)$/, "")}-${encodeURIComponent(column ?? "")}`;
+/** Where a metric is shown, so a finding's evidence link can go to it. A database run's metric is
+ * of one object, which a column's encoded name can't run into, as `/` is encoded. */
+export function evidenceId(column: string | null, metric: string, object?: string | null): string {
+  const of = object ? `${encodeURIComponent(object)}/` : "";
+  return `evidence-${metric.replace(/_(count|percent)$/, "")}-${of}${encodeURIComponent(column ?? "")}`;
 }
 
 function skippedLinesNote(lines: number): string {
@@ -584,6 +586,22 @@ const READ_AS: Record<NonNullable<ProfileRunDetail["objects"]>[number]["method"]
   full: (rows) => `every row, ${rows} rows`,
 };
 
+/** How a database run read an object, or, for its masked patterns on a full profile, the fast
+ * reading they're from. */
+export function objectReading(
+  detail: ProfileRunDetail,
+  found: NonNullable<ProfileRunDetail["objects"]>[number],
+  patterns = false,
+): string {
+  if (patterns && found.patterns_from) {
+    return READ_AS[found.patterns_from.method](shown(found.patterns_from.rows));
+  }
+  const rows = detail.metrics.find(
+    (metric) => metric.object === found.object && metric.column === null && metric.metric === "rows_read",
+  )?.value;
+  return READ_AS[found.method](shown(rows));
+}
+
 /** A database run's results: one table per object, with how its rows were read. No values that
  * don't fit, which a typed column can't hold, and no values on request yet (DRIVN-56). */
 function DatabaseResults({ run }: { run: ProfileRun }) {
@@ -605,20 +623,22 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
       {stopped.length > 0 && (
         <p>No results for these objects, stopped at the time limit: {stopped.join(", ")}.</p>
       )}
-      {objects.map(({ object, method, stopped_at_time_limit, patterns_from }) => {
+      {objects.map((found) => {
+        const { object, method, stopped_at_time_limit, patterns_from } = found;
         if (stopped_at_time_limit) {
           return <p key={object}>{object}: stopped at the time limit, no results</p>;
         }
         const own = metrics.filter((metric) => metric.object === object);
-        const rows = own.find((metric) => metric.column === null && metric.metric === "rows_read")?.value;
         const columns = [...new Set(own.flatMap((metric) => metric.column ?? []))];
+        // Only a full profile counts them (CFX-APP-postgres AC-26).
+        const duplicates = own.find((metric) => metric.column === null && metric.metric === "duplicate_rows")?.value;
         // A full profile's masked patterns are its fast reading's (CFX-APP-postgres, the Assumptions).
-        const patternsReadAs = patterns_from ? READ_AS[patterns_from.method](shown(patterns_from.rows)) : undefined;
+        const patternsReadAs = patterns_from ? objectReading(results.data, found, true) : undefined;
         return (
           <div className="table-scroll" key={object}>
             <table className="column-table">
               <caption>
-                {object}: {READ_AS[method](shown(rows))}
+                {object}: {objectReading(results.data, found)}
               </caption>
               <thead>
                 <tr>
@@ -643,12 +663,16 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
                     <tr key={column}>
                       <th scope="row">{column}</th>
                       <td>{PRECISION_LABELS[ofColumn[0].precision]}</td>
-                      <td>{withPercent(value("missing_count"), value("missing_percent"))}</td>
-                      <td>{withPercent(value("distinct_count"), value("distinct_percent"))}</td>
+                      <td id={evidenceId(column, "missing_count", object)} tabIndex={-1}>
+                        {withPercent(value("missing_count"), value("missing_percent"))}
+                      </td>
+                      <td id={evidenceId(column, "distinct_count", object)} tabIndex={-1}>
+                        {withPercent(value("distinct_count"), value("distinct_percent"))}
+                      </td>
                       <td>{shown(value("shortest_length"))}</td>
                       <td>{shown(value("longest_length"))}</td>
                       <td>{shown(value("average_length"))}</td>
-                      <td>
+                      <td id={evidenceId(column, "masked_patterns", object)} tabIndex={-1}>
                         {Array.isArray(patterns) ? (
                           <Patterns
                             patterns={patterns}
@@ -663,6 +687,11 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
                 })}
               </tbody>
             </table>
+            {typeof duplicates === "number" && (
+              <p id={evidenceId(null, "duplicate_rows", object)} tabIndex={-1}>
+                {duplicateRowsNote(duplicates)}
+              </p>
+            )}
           </div>
         );
       })}

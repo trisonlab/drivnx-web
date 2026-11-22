@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useId } from "react";
-import { type Finding, getFindings, type Metric, type Source } from "./api";
-import { evidenceId, shownRun, useProfileRuns } from "./ProfileTab";
+import { type Finding, getFindings, getProfileRun, type Metric, type ProfileRunDetail, type Source } from "./api";
+import { evidenceId, objectReading, shownRun, useProfileRuns } from "./ProfileTab";
 
 function count(value: Metric["value"] | undefined): string {
   return typeof value === "number" ? value.toLocaleString() : "";
@@ -62,15 +62,30 @@ function observed(finding: Finding): string {
   }
 }
 
+/** Which rows a finding was observed in, when not every row: a file's first rows, or how a database
+ * run read the finding's object, with a full profile's patterns from its fast reading. */
+function observedIn(finding: Finding, detail: ProfileRunDetail | undefined): string | undefined {
+  if (!fromFirstRows(finding)) {
+    return undefined;
+  }
+  if (!finding.object) {
+    return "the first 100,000 rows";
+  }
+  const found = detail?.objects?.find((read) => read.object === finding.object);
+  const patterns = finding.evidence.some((cited) => cited.metric === "masked_patterns" && cited.scope === "sample");
+  return detail && found && objectReading(detail, found, patterns);
+}
+
 /** The Profile tab shows the same run, so the cited metric is there, with the run's ID. */
 function showEvidence(finding: Finding) {
   const cited = finding.evidence[0];
   if (cited) {
-    document.getElementById(evidenceId(cited.column, cited.metric))?.focus();
+    document.getElementById(evidenceId(cited.column, cited.metric, cited.object))?.focus();
   }
 }
 
-function FindingItem({ finding }: { finding: Finding }) {
+function FindingItem({ finding, detail }: { finding: Finding; detail: ProfileRunDetail | undefined }) {
+  const rows = observedIn(finding, detail);
   const headingId = useId();
   return (
     <article aria-labelledby={headingId}>
@@ -78,9 +93,9 @@ function FindingItem({ finding }: { finding: Finding }) {
         {finding.interpretation} <span className="trust-state">Inferred</span>
       </h4>
       <p>
-        Observed: {observed(finding)}
-        {/* AC-24: only when the run read just the first rows, as its metrics say. */}
-        {fromFirstRows(finding) && " in the first 100,000 rows"}.
+        Observed{finding.object && ` in ${finding.object}`}: {observed(finding)}
+        {/* AC-24: only when the run didn't read every row, as its metrics say. */}
+        {rows && ` in ${rows}`}.
       </p>
       <p>Why it matters: {finding.why_it_matters}</p>
       <p>Recommended action: {finding.recommended_action}</p>
@@ -100,21 +115,32 @@ export function Findings({ source, openedRunId }: { source: Source | undefined; 
     queryFn: () => getFindings(run?.id ?? ""),
     enabled: run !== undefined,
   });
+  // A database run's findings say how each object was read, which its results hold. The Profile tab
+  // asks for the same run, so this is one request.
+  const database = source?.kind === "postgres";
+  const detail = useQuery({
+    queryKey: ["profile-run", run?.id],
+    queryFn: () => getProfileRun(run?.id ?? ""),
+    enabled: run !== undefined && database,
+  });
+  const shown = database ? detail.data && findings.data : findings.data;
   return (
     <section aria-labelledby={headingId}>
       <h3 id={headingId}>Findings</h3>
-      {/* Only once the runs are known, and with a file to profile, as the centre covers having none. */}
-      {source && runs.isSuccess && !run && <p>Profile this file to see what it finds.</p>}
-      {(runs.isError || findings.isError) && (
+      {/* Only once the runs are known, and with a source to profile, as the centre covers having none. */}
+      {source && runs.isSuccess && !run && (
+        <p>Profile this {database ? "database" : "file"} to see what it finds.</p>
+      )}
+      {(runs.isError || findings.isError || detail.isError) && (
         <p role="alert">DrivnX couldn't load the findings. Start DrivnX again.</p>
       )}
       {/* AC-36 */}
       {run && !run.current_settings && (
         <p>These findings are from a profile that used earlier settings, so they aren't current.</p>
       )}
-      {findings.data?.length === 0 && <p>This profile found nothing to point out.</p>}
-      {findings.data?.map((finding) => (
-        <FindingItem key={finding.id} finding={finding} />
+      {shown?.length === 0 && <p>This profile found nothing to point out.</p>}
+      {shown?.map((finding) => (
+        <FindingItem key={finding.id} finding={finding} detail={detail.data} />
       ))}
       {/* AC-28: whatever was found, as the rules can't find every kind of personal data. */}
       {findings.isSuccess && (

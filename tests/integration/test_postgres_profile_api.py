@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import pytest
-from artifacts.profiles import read_findings, read_observations, read_profile_run
+from artifacts.profiles import read_observations, read_profile_run
 from artifacts.sources import StoredPostgresSource, find_source, read_chosen_objects
 from artifacts.workspace import Workspace
 from connectors.csv_files import duckdb_connection
@@ -210,7 +210,6 @@ def test_each_objects_columns_get_the_metrics_for_their_type_and_only_null_is_mi
         ("names", None, "rows_read"): (3, "sample"),
         **{("names", "name", metric): (value, "sample") for metric, value in name.items()},
     }
-    assert read_findings(workspace.engine, run_id) == []
 
 
 def test_a_run_that_cant_read_an_object_fails_and_says_which(

@@ -498,6 +498,8 @@ class ChosenObject:
     schema: str
     name: str
     kind: str
+    # Its declared keys, as discovery found them (CFX-APP-postgres AC-26).
+    keys: tuple[StoredKey, ...]
 
 
 def read_chosen_objects(engine: Engine, source_id: str) -> tuple[ChosenObject, ...]:
@@ -520,6 +522,7 @@ def read_chosen_objects(engine: Engine, source_id: str) -> tuple[ChosenObject, .
                 row.schema_name,
                 row.object_name,
                 row.object_kind,
+                _keys(connection, row.id),
             )
             for row in rows
         )
@@ -693,36 +696,38 @@ def read_object(
             ),
             {"id": object_id},
         )
-        keys = connection.execute(
-            text(
-                """
-                SELECT kind, name, columns, referenced_schema, referenced_object,
-                       referenced_columns
-                FROM declared_key WHERE dataset_id = :id ORDER BY rowid
-                """
-            ),
-            {"id": object_id},
-        )
         return (
             _object(row),
             tuple(
                 StoredColumn(name, physical_type, normalised_type, bool(allows_nulls))
                 for name, physical_type, normalised_type, allows_nulls in columns
             ),
-            tuple(
-                StoredKey(
-                    key.kind,
-                    key.name,
-                    tuple(json.loads(key.columns)),
-                    key.referenced_schema,
-                    key.referenced_object,
-                    None
-                    if key.referenced_columns is None
-                    else tuple(json.loads(key.referenced_columns)),
-                )
-                for key in keys
-            ),
+            _keys(connection, object_id),
         )
+
+
+def _keys(connection: Connection, dataset_id: str) -> tuple[StoredKey, ...]:
+    """An object's declared keys, in the order discovery found them."""
+    keys = connection.execute(
+        text(
+            """
+            SELECT kind, name, columns, referenced_schema, referenced_object, referenced_columns
+            FROM declared_key WHERE dataset_id = :id ORDER BY rowid
+            """
+        ),
+        {"id": dataset_id},
+    )
+    return tuple(
+        StoredKey(
+            key.kind,
+            key.name,
+            tuple(json.loads(key.columns)),
+            key.referenced_schema,
+            key.referenced_object,
+            None if key.referenced_columns is None else tuple(json.loads(key.referenced_columns)),
+        )
+        for key in keys
+    )
 
 
 def _names(source: StoredSource) -> list[str]:

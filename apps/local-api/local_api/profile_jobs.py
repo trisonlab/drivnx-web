@@ -40,7 +40,7 @@ from connectors.postgres import (
     session_pid,
 )
 from domain.trust import Actor
-from profiling.findings import findings_for
+from profiling.findings import DraftFinding, findings_for
 from profiling.first_rows import FIRST_ROWS, MeasuredRows, measure_rows
 from profiling.on_request import ColumnValues, values_for
 
@@ -244,6 +244,7 @@ def _run_database_profile(
     time_limit_minutes: int,
 ) -> None:
     status = "failed"
+    findings: list[NewFinding] = []
     try:
         observations = _measure_objects(
             workspace, job, mode, details, password, objects, readings, seed, time_limit_minutes
@@ -252,6 +253,8 @@ def _run_database_profile(
             if job.stop.is_set():
                 break
             add_observations(workspace.engine, Actor.SYSTEM, run_id, batch)
+        # As a CSV's, from what was saved, and none for a cancelled run.
+        findings = [] if job.stop.is_set() else _objects_findings(workspace, run_id, objects)
         status = "completed"
     except (ConnectFailure, duckdb.Error, OSError, WorkspaceBusy) as error:
         # Never DuckDB's or the server's text, which can quote the database's values.
@@ -269,10 +272,57 @@ def _run_database_profile(
                 if not job.leaving:
                     if job.stop.is_set():
                         status = "cancelled"
-                    finish_profile_run(workspace.engine, run_id, status, ())
+                    finish_profile_run(
+                        workspace.engine,
+                        run_id,
+                        status,
+                        findings if status == "completed" else (),
+                    )
             finally:
                 del _jobs[run_id]
                 job.ended.set()
+
+
+def _objects_findings(
+    workspace: Workspace, run_id: str, objects: tuple[ChosenObject, ...]
+) -> list[NewFinding]:
+    """Each object's findings from its saved observations, by object in the run's order. A column
+    that is a primary key or unique constraint on its own is no possible identifier (AC-26)."""
+    saved = read_observations(workspace.engine, run_id)
+    findings = []
+    for found in objects:
+        keyed = frozenset(
+            field.id
+            for field in found.dataset.fields
+            if any(
+                key.kind in ("primary_key", "unique") and key.columns == (field.name,)
+                for key in found.keys
+            )
+        )
+        findings += _new_findings(
+            run_id,
+            findings_for(
+                [seen for seen in saved if seen.dataset_id == found.dataset.id],
+                {field.id: field.name for field in found.dataset.fields},
+                keyed=keyed,
+            ),
+        )
+    return findings
+
+
+def _new_findings(run_id: str, drafts: list[DraftFinding]) -> list[NewFinding]:
+    """The rules' findings, to save with the run."""
+    return [
+        NewFinding(
+            run_id,
+            draft.observation_ids,
+            draft.interpretation,
+            draft.why_it_matters,
+            draft.recommended_action,
+            kind=draft.kind,
+        )
+        for draft in drafts
+    ]
 
 
 # The text types whose lengths and masked patterns are measured; any other column gets counts
@@ -626,20 +676,13 @@ def _run_profile(
             add_observations(workspace.engine, Actor.SYSTEM, run_id, batch)
         # From what was saved, so a finding's evidence is exactly what it cites. A cancelled run
         # may have saved only some of it, and takes no findings.
-        findings = [] if job.stop.is_set() else [
-            NewFinding(
-                run_id,
-                draft.observation_ids,
-                draft.interpretation,
-                draft.why_it_matters,
-                draft.recommended_action,
-                kind=draft.kind,
-            )
-            for draft in findings_for(
+        findings = [] if job.stop.is_set() else _new_findings(
+            run_id,
+            findings_for(
                 read_observations(workspace.engine, run_id),
                 {field.id: field.name for field in dataset.fields},
-            )
-        ]
+            ),
+        )
         status = "completed"
     except (CsvError, duckdb.Error, OSError, WorkspaceBusy) as error:
         # DuckDB's message can quote a row from the file, so this must not travel any further.

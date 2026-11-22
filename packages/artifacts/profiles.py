@@ -537,7 +537,8 @@ def read_finding(engine: Engine, finding_id: str) -> Finding:
 def read_findings(engine: Engine, run_id: str | None = None) -> list[Finding]:
     """Findings from completed runs only, so a partial run is never shown as complete.
 
-    In the order they were saved, which is the fixed order by kind. `run_id` keeps one run's.
+    In the order they were saved: a file's in the fixed order by kind, a database run's by object in the run's
+    order and then by kind. `run_id` keeps one run's.
     """
     with engine.connect() as connection:
         rows = connection.execute(

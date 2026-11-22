@@ -422,3 +422,57 @@ def test_a_column_matching_by_name_and_pattern_gets_one_finding_saying_both() ->
             ),
         )
     ]
+
+
+def test_a_column_with_a_declared_key_of_its_own_is_no_possible_identifier() -> None:
+    # CFX-APP-postgres/AC-26: "a column with a declared primary key or unique constraint gets no
+    # possible-identifier finding", as the key already says so.
+    observations = run(
+        100, column("id", missing_count=0, distinct_count=100, distinct_percent=100.0)
+    )
+
+    assert findings_for(observations, {"id": "id"}, keyed=frozenset({"id"})) == []
+
+
+def typed_column(field_id: str, **metrics: Any) -> list[Seen]:
+    """A database column's observations: a typed column saves no count of values that don't fit,
+    as none can (CFX-APP-postgres, the Assumptions)."""
+    return [
+        Seen(f"{field_id}.{metric}", field_id, metric, value) for metric, value in metrics.items()
+    ]
+
+
+def test_a_typed_column_gets_the_findings_its_metrics_meet() -> None:
+    # CFX-APP-postgres/AC-26: "the CSV profile's findings appear", here a single-value column, from
+    # a column whose values can't fail to fit its type.
+    observations = run(
+        3, typed_column("code", missing_count=0, distinct_count=1, distinct_percent=33.33)
+    )
+
+    assert kinds(observations) == [("single_value", ("code.distinct_count",))]
+
+
+def test_an_object_stopped_at_its_time_limit_has_no_findings() -> None:
+    # CFX-APP-postgres/AC-20: an object stopped at its time limit has "no results", so nothing to
+    # find from: it saves only that it was stopped, with the limit in minutes.
+    observations = [Seen("time_limit_reached", None, "time_limit_reached", 10)]
+
+    assert findings_for(observations, {}) == []
+
+
+def test_what_a_finding_says_fits_a_databases_object_as_well_as_a_file() -> None:
+    # CFX-APP-postgres/AC-26: "the CSV profile's findings appear" for a database's objects too, so
+    # what they say holds for a table (decided with the user for DRIVN-55).
+    observations = run(
+        4,
+        typed_column("code", missing_count=0, distinct_count=1, distinct_percent=25.0),
+        duplicate_rows=2,
+    )
+
+    said = [
+        text
+        for found in findings_of(observations)
+        for text in (found.interpretation, found.why_it_matters, found.recommended_action)
+    ]
+    assert len(said) == 6
+    assert [text for text in said if "file" in text] == []
