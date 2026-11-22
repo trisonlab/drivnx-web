@@ -419,6 +419,7 @@ def test_every_saved_metric_equals_its_known_value(client: TestClient, name: str
             "method": read,
             "stopped_at_time_limit": False,
             "patterns_from": None,
+            "out_of_date": False,
         }
     ]
     saved: dict[str, dict] = {}
