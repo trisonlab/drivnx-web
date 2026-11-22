@@ -1,8 +1,9 @@
 """The whole PostgreSQL journey in the browser, against the installed wheel and the fixture,
-DRIVN-45 AC-35 (DRIVN-58)."""
+DRIVN-45 AC-35, and what it leaves behind, AC-29 and AC-15 (DRIVN-58)."""
 
 import re
 from collections.abc import Callable, Iterator
+from pathlib import Path
 from urllib.parse import urlsplit
 
 import pytest
@@ -14,8 +15,12 @@ from ..integration.test_credential_store import NO_STORE
 from .test_accessibility import violations
 from .test_connect_csv import details_of, open_set_up_app
 from .test_connect_postgres import database_form, fill_in
-from .test_preview import preview_of
-from .test_profile_journey import PLANTED
+from .test_profile_journey import (
+    MASKED_EMAIL,
+    PLANTED,
+    assert_no_value_kept_or_logged,
+    every_file_in,
+)
 
 SCHEMA = "drivnx_e2e_journey"
 WRITER = "drivnx_e2e_writer"
@@ -180,3 +185,87 @@ def test_the_database_journey_on_the_installed_wheel_from_one_origin(
     assert any(path.startswith("/assets/") for path in paths)
     assert any(path.startswith("/api/") for path in paths)
     assert console_errors == []
+
+
+# Where each of the server's log entries starts: the time `LOG_LINE_PREFIX` puts first. A
+# statement on several lines goes on in lines that start with a tab.
+ENTRY = re.compile(r"^(?=\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)", re.MULTILINE)
+# What the server logs for each statement a session sends, with `log_statement = 'all'`.
+STATEMENT = re.compile(r" LOG:  (?:statement|execute [^:]*): (.*)", re.DOTALL)
+# Every form of statement DrivnX sent as the journey's role on the test's first run, 2026-11-22,
+# none of which writes or changes the schema (DRIVN-45 AC-15). Anything else fails the test by
+# name. A function a read calls can't write either: the session is read-only (AC-14).
+READ_ONLY = [
+    re.compile(form)
+    for form in (
+        # The scanner's session: each read in a read-only transaction, and the pool's checks.
+        r"BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY",
+        r"COMMIT",
+        r"ROLLBACK",
+        r"DISCARD ALL",
+        r"SELECT 1",
+        r"SELECT version\(\), \(SELECT COUNT\(\*\) FROM pg_settings WHERE name LIKE 'rds%'\)",
+        r"SELECT to_regclass\('duckdb_secrets'\)",
+        # The scanner's catalog, read when it attaches.
+        r"SELECT [^;]+ FROM (pg_catalog\.)?pg_(namespace|class|enum|type|indexes)\b[^;]*",
+        # Every read of DrivnX's, through `postgres_query` or the scanner.
+        r'COPY \(SELECT [^;]+\) TO STDOUT \(FORMAT "binary"\)',
+    )
+]
+
+
+def entries_of(log: str, role: str) -> list[str]:
+    """The role's entries in the server's log, each whole."""
+    return [entry for entry in ENTRY.split(log) if f" user={role} " in entry.partition("\n")[0]]
+
+
+def statements_in(entries: list[str]) -> list[str]:
+    """Each statement the entries log, on one line. A message may hold several, as the scanner's
+    catalog does; splitting one at a `;` in a literal can only leave a part no form matches."""
+    return [
+        " ".join(statement.split())
+        for entry in entries
+        if (found := STATEMENT.search(entry))
+        for statement in found.group(1).split(";")
+        if statement.strip()
+    ]
+
+
+def not_read_only(statements: list[str]) -> list[str]:
+    return [
+        statement
+        for statement in statements
+        if not any(form.fullmatch(statement) for form in READ_ONLY)
+    ]
+
+
+def test_the_database_journey_keeps_no_value_and_sends_only_drivnxs_reads(
+    start_drivnx: StartDrivnX,
+    page: Page,
+    journey_objects: None,
+    logging_statements: Callable[[str], None],
+    tmp_path: Path,
+) -> None:
+    # DRIVN-45/AC-29: "a full journey with distinctive planted values in the fixture, including
+    # the preview and values on request, then a scan of every file in the workspace, during the
+    # run and after DrivnX stops, and of its logs at their most detailed finds no value from the
+    # database, except masked patterns and the names of schemas, objects, columns and the
+    # connection". DRIVN-45/AC-15: "given the fixture's statement log, when the full journey
+    # runs, then DrivnX sent no statement that writes or changes the schema, and every statement
+    # carries application_name DrivnX".
+    logging_statements(WRITER)
+    server_log = postgres_fixture.server_log_from_now()
+    workspace = tmp_path / "workspace"
+    drivnx = start_drivnx("--no-browser", "--log-level", "trace", workspace=workspace, env=NO_STORE)
+    open_set_up_app(page, drivnx.wait_for_launch().url)
+
+    walk_the_database_journey(page, lambda: None)
+
+    # The run saved `email`'s masked pattern, so a scan of the wrong files can't pass.
+    assert MASKED_EMAIL in every_file_in(workspace)
+    assert_no_value_kept_or_logged(drivnx, workspace, PLANTED_VALUES)
+    entries = entries_of(server_log(), WRITER)
+    assert [entry for entry in entries if " app=DrivnX " not in entry.partition("\n")[0]] == []
+    statements = statements_in(entries)
+    assert len(statements) > 10  # so a log that isn't the role's can't pass
+    assert not_read_only(statements) == []
