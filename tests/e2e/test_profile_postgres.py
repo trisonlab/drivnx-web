@@ -1,6 +1,6 @@
-"""A fast and a full profile of a database's chosen objects in the browser, and a full one
-cancelled, CFX-APP-postgres AC-17 to AC-21 and AC-24 (DRIVN-51, DRIVN-53), against the installed
-wheel and the PostgreSQL fixture."""
+"""A fast and a full profile of a database's chosen objects in the browser, a full one cancelled,
+and earlier runs, CFX-APP-postgres AC-17 to AC-21, AC-24, AC-31 and AC-32 (DRIVN-51, DRIVN-53,
+DRIVN-57), against the installed wheel and the PostgreSQL fixture."""
 
 import re
 from collections.abc import Callable, Iterator
@@ -105,6 +105,48 @@ def test_a_full_profile_reads_every_row_within_a_time_limit_the_user_sets(
     expect(page.get_by_text("Profile status: Completed")).to_be_visible()
     assert violations(page) == []
 
+
+
+def test_an_earlier_run_opens_and_says_which_objects_are_out_of_date_since(
+    start_drivnx: StartDrivnX,
+    page: Page,
+    objects: None,
+    postgres_admin: Callable[[str], None],
+) -> None:
+    # CFX-APP-postgres/AC-31 and AC-32: the runs list names each run's objects, any completed one
+    # opens, and once a refresh finds an object's columns changed, its results say they're out of
+    # date; the screens pass the accessibility check.
+    open_set_up_app(page, start_drivnx("--no-browser", env=NO_STORE).wait_for_launch().url)
+    listed = save_connection(page)
+    listed.get_by_role("checkbox", name=f"Choose all of {SCHEMA}").click()
+    listed.get_by_role("button", name="Save selection").click()
+    expect(listed.get_by_role("status")).to_have_text("Selection saved.")
+    profile = page.get_by_role("tabpanel", name="Profile")
+    profile.get_by_role("button", name="Fast profile").click()
+    expect(profile.get_by_text(re.compile("^These results describe each object as it was"))).to_be_visible()
+
+    postgres_admin(f"ALTER TABLE {SCHEMA}.customers ADD COLUMN email text")
+    listed.get_by_role("button", name="Refresh").click()
+
+    changed = f"{SCHEMA}.customers has changed or is gone since this run"
+    expect(profile.get_by_text(re.compile(f"^{re.escape(changed)}"))).to_be_visible()
+    expect(
+        profile.get_by_role("table", name=f"{SCHEMA}.customers: the whole object, 3 rows (out of date)")
+    ).to_be_visible()
+    assert violations(page) == []
+
+    profile.get_by_role("button", name="Fast profile").click()
+    runs = profile.get_by_role("list", name="Runs of this database").get_by_role("listitem")
+    expect(runs).to_have_count(2)
+    expect(profile.get_by_text(re.compile(f"^{re.escape(changed)}"))).to_have_count(0)
+    expect(runs.nth(1)).to_contain_text(f"of {SCHEMA}.customer_names, {SCHEMA}.customers")
+    expect(runs.nth(1)).to_contain_text("Out of date")
+
+    runs.nth(1).get_by_role("button", name=re.compile("^Open the fast profile")).click()
+
+    expect(profile.get_by_text(re.compile(f"^{re.escape(changed)}"))).to_be_visible()
+    expect(runs.nth(1)).to_contain_text("Shown")
+    assert violations(page) == []
 
 SLOW_SCHEMA = "drivnx_e2e_stopping"
 SLOW_DROP = f"DROP SCHEMA IF EXISTS {SLOW_SCHEMA} CASCADE"

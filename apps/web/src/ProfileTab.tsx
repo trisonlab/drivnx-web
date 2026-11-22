@@ -53,16 +53,21 @@ export function useProfileRuns() {
   });
 }
 
-function runsWithCurrentSettings(runs: ProfileRun[] | undefined, source: Source): ProfileRun[] {
-  return runs?.filter((run) => run.source_id === source.id && run.current_settings) ?? [];
+/** The runs the tab and the header go by, newest first: a file's with its current settings
+ * (CFX-APP-csv-profile AC-35), and every one of a database's, which says when its objects have changed
+ * since (CFX-APP-postgres AC-31, AC-32). */
+function runsOfSource(runs: ProfileRun[] | undefined, source: Source): ProfileRun[] {
+  return (
+    runs?.filter((run) => run.source_id === source.id && (source.kind === "postgres" || run.current_settings)) ?? []
+  );
 }
 
 function newestCompleted(runs: ProfileRun[] | undefined, source: Source): ProfileRun | undefined {
-  return runsWithCurrentSettings(runs, source).find((run) => run.status === "completed");
+  return runsOfSource(runs, source).find((run) => run.status === "completed");
 }
 
-/** The run whose results are shown: the one the user opened, or else the newest completed one with
- * the current settings (AC-35). The findings panel shows the same one. */
+/** The run whose results are shown: the one the user opened, or else the newest completed one of
+ * `runsOfSource`. The findings panel shows the same one. */
 export function shownRun(
   runs: ProfileRun[] | undefined,
   source: Source,
@@ -90,7 +95,7 @@ export function profileStatus(
     const on = running.current_object ? `${name}: ${running.current_object}` : name;
     return name ? `Running on ${on}` : "Running";
   }
-  const newest = chosen && runsWithCurrentSettings(runs, chosen)[0];
+  const newest = chosen && runsOfSource(runs, chosen)[0];
   if (!newest || newest.status === "running") {
     return "Not run yet";
   }
@@ -440,8 +445,10 @@ function RunsList({
             <li key={run.id}>
               {MODE_LABELS[run.mode]}, {run.status === "running" ? "Running" : STATUS_LABELS[run.status]}, started{" "}
               {started}
-              {/* AC-36 */}
-              {!run.current_settings && " · Used earlier settings"}
+              {/* CFX-APP-postgres AC-31 */}
+              {run.object_names && `, of ${run.object_names.join(", ")}`}
+              {/* AC-36; for a database, a refresh has since changed one of its objects (CFX-APP-postgres AC-32). */}
+              {!run.current_settings && (of === "database" ? " · Out of date" : " · Used earlier settings")}
               {run.id === shown?.id ? (
                 " · Shown"
               ) : (
@@ -602,6 +609,13 @@ export function objectReading(
   return READ_AS[found.method](shown(rows));
 }
 
+function outOfDateNote(objects: string[]): string {
+  const named = objects.join(", ");
+  return objects.length === 1
+    ? `${named} has changed or is gone since this run, so its results are out of date and this run's findings aren't current. Profile again to see it as it is now.`
+    : `${named} have changed or are gone since this run, so their results are out of date and this run's findings aren't current. Profile again to see them as they are now.`;
+}
+
 /** A database run's results: one table per object, with how its rows were read. No values that
  * don't fit, which a typed column can't hold, and no values on request yet (DRIVN-56). */
 function DatabaseResults({ run }: { run: ProfileRun }) {
@@ -615,16 +629,24 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
   const { metrics, objects = [] } = results.data;
   // A full profile stopped these at their time limit, so they have no results (AC-20).
   const stopped = objects.filter((found) => found.stopped_at_time_limit).map((found) => found.object);
+  // A refresh has since found these gone or with other columns (CFX-APP-postgres AC-32).
+  const outOfDate = objects.filter((found) => found.out_of_date).map((found) => found.object);
   return (
     <>
       <p>
         Run {run.id}, finished {new Date(run.ended_at ?? run.started_at).toLocaleString()}
       </p>
+      {/* CFX-APP-postgres AC-32 */}
+      <p>
+        These results describe each object as it was when this run read it, on{" "}
+        {new Date(run.started_at).toLocaleString()}.
+      </p>
+      {outOfDate.length > 0 && <p>{outOfDateNote(outOfDate)}</p>}
       {stopped.length > 0 && (
         <p>No results for these objects, stopped at the time limit: {stopped.join(", ")}.</p>
       )}
       {objects.map((found) => {
-        const { object, method, stopped_at_time_limit, patterns_from } = found;
+        const { object, method, stopped_at_time_limit, patterns_from, out_of_date } = found;
         if (stopped_at_time_limit) {
           return <p key={object}>{object}: stopped at the time limit, no results</p>;
         }
@@ -639,6 +661,7 @@ function DatabaseResults({ run }: { run: ProfileRun }) {
             <table className="column-table">
               <caption>
                 {object}: {objectReading(results.data, found)}
+                {out_of_date && " (out of date)"}
               </caption>
               <thead>
                 <tr>
@@ -766,7 +789,7 @@ export function ProfileTab({
     }
     // Not on `keepRefusal`'s changes: any other refusal stays until the next run ends.
   }, [anyRunning, forgetRefusal]);
-  const mine = runsWithCurrentSettings(runs.data, source);
+  const mine = runsOfSource(runs.data, source);
   const ofThisFile = runs.data?.filter((run) => run.source_id === source.id) ?? [];
   const completed = shownRun(runs.data, source, openedRunId);
   const showingTheNewest = completed !== undefined && completed.id === newestCompleted(runs.data, source)?.id;
