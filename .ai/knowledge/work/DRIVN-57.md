@@ -7,7 +7,7 @@ feature_revision: 3
 stories: [US-06]
 criteria: [AC-31, AC-32, AC-33]
 blocked_by: [DRIVN-53]
-state: blocked
+state: ready
 external_key: DRIVN-57
 status: CONFIRMED
 ---
