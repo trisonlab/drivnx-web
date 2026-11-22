@@ -105,6 +105,8 @@ _jobs: dict[str, _Job] = {}
 _jobs_lock = threading.Lock()
 # Held while values are worked out on request, as two DuckDB jobs could take twice the memory.
 _values_lock = threading.Lock()
+# A database's values being read now, which `stop_values_read` stops. Set only under `_jobs_lock`.
+_values_job: "_Job | None" = None
 
 
 class Busy(Exception):
@@ -213,6 +215,8 @@ def start_database_profile(
                 ],
                 # What the role could change in them as the run started (DRIVN-52).
                 "write_access": write_access,
+                # So its values' read ends on the server too if DrivnX is killed (DRIVN-56).
+                "check_connection": check_connection,
                 **({"time_limit_minutes": time_limit_minutes} if mode == "full" else {}),
             },
             mode=mode,
@@ -594,6 +598,17 @@ def stop_jobs() -> None:
         job.thread.join(max(deadline - time.monotonic(), 0))
 
 
+def stop_values_read() -> None:
+    """For shutting down: stop a database's values being read now, without waiting. A request
+    waits on them, which may last a full run's time limit, and the server waits on requests."""
+    with _jobs_lock:
+        job = _values_job
+        if job is None:
+            return
+        job.stop.set()
+    _interrupt(job)
+
+
 def _interrupt(job: _Job) -> None:
     threading.Thread(
         target=_stop_read, args=(job, job.ended), name=INTERRUPTING_THREAD_NAME, daemon=True
@@ -889,6 +904,7 @@ def object_values_of(
     seed: int,
     *,
     time_limit_minutes: int = DEFAULT_TIME_LIMIT_MINUTES,
+    check_connection: bool = False,
 ) -> tuple[str, ColumnValues]:
     """A database column's values, read now as its run read the object, and never saved
     (DRIVN-56). Returns how the rows were read, `full` or as `load_object_rows` says, and the
@@ -896,9 +912,12 @@ def object_values_of(
 
     Raises `Busy` while a profile runs or other values are being worked out,
     `TimeLimitReached` if a full run's values take longer than its time limit, or the
-    connector's `ConnectFailure`.
+    connector's `ConnectFailure`. With `check_connection`, as for the run, the server ends the
+    read if DrivnX is killed (ADR 0009 Decision 7).
     """
-    # Stopped only at its time limit. It's in no `_jobs`, so no cancel or run list sees it.
+    # Stopped at its time limit, or by `stop_values_read`. It's in no `_jobs`, so no cancel or
+    # run list sees it.
+    global _values_job
     job = _Job()
     name = (found.schema, found.name)
     columns = tuple(field.name for field in found.dataset.fields)
@@ -906,6 +925,7 @@ def object_values_of(
     with _working_out_values(), duckdb_connection(workspace.temp_directory) as connection:
         with _jobs_lock:
             job.connection = connection
+            _values_job = job
         try:
             connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
             # One session, so a cancel on the server is aimed at the one reading, and a full
@@ -918,7 +938,13 @@ def object_values_of(
                 if mode == "fast"
                 else time_limit_minutes * SECONDS_PER_MINUTE + STATEMENT_TIMEOUT_SECONDS,
                 one_session=True,
+                check_connection=check_connection,
             )
+            pid = session_pid(connection)
+            with _jobs_lock:
+                job.cancel_on_server = functools.partial(
+                    cancel_read, details, password, pid, workspace.temp_directory
+                )
 
             def measured(method: str) -> tuple[str, ColumnValues]:
                 # As `_measure_loaded` measured the run's rows: the first rows of an object larger
@@ -931,11 +957,6 @@ def object_values_of(
             if mode == "fast":
                 return measured(
                     load_object_rows(connection, name, columns, reading, seed, VALUES_TABLE)
-                )
-            pid = session_pid(connection)
-            with _jobs_lock:
-                job.cancel_on_server = functools.partial(
-                    cancel_read, details, password, pid, workspace.temp_directory
                 )
             reached = threading.Event()
             try:
@@ -951,3 +972,6 @@ def object_values_of(
             with _jobs_lock:
                 job.connection = None
                 job.cancel_on_server = None
+                _values_job = None
+            # Also when the read failed, or its interrupting would never stop.
+            job.ended.set()

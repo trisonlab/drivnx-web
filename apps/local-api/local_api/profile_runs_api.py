@@ -630,6 +630,8 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
                 time_limit_minutes=saved.scope.get(
                     "time_limit_minutes", DEFAULT_TIME_LIMIT_MINUTES
                 ),
+                # Saved by runs since DRIVN-56; an earlier one's values go without it.
+                check_connection=saved.scope.get("check_connection", False),
             )
         except Busy:
             raise HTTPException(status_code=409, detail=BUSY) from None
