@@ -22,6 +22,15 @@ OBJECTS = (
     f"CREATE VIEW {SCHEMA}.big_orders AS SELECT * FROM {SCHEMA}.orders WHERE total > 10",
     f"ANALYZE {SCHEMA}.orders",
     f"ANALYZE {SCHEMA}.customers",
+    # Only the test that changes them chooses these.
+    f"CREATE TABLE {SCHEMA}.widened (id integer)",
+    f"CREATE TABLE {SCHEMA}.retyped (id integer)",
+    f"CREATE TABLE {SCHEMA}.dropped (id integer)",
+    f"CREATE TABLE {SCHEMA}.steady (id integer)",
+    f"INSERT INTO {SCHEMA}.widened VALUES (1)",
+    f"INSERT INTO {SCHEMA}.retyped VALUES (1)",
+    f"INSERT INTO {SCHEMA}.dropped VALUES (1)",
+    f"INSERT INTO {SCHEMA}.steady VALUES (1)",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -114,3 +123,54 @@ def test_a_files_run_names_no_objects(client: TestClient, tmp_path: Path) -> Non
 
     (listed,) = client.get("/api/profile-runs").json()
     assert listed["object_names"] is None
+
+
+def out_of_date(client: TestClient, run: dict) -> dict[str, bool]:
+    detail = client.get(f"/api/profile-runs/{run['id']}").json()
+    return {found["object"]: found["out_of_date"] for found in detail["objects"]}
+
+
+def test_an_object_whose_columns_or_types_changed_is_out_of_date_once_the_list_is_refreshed(
+    client: TestClient, postgres_admin: Callable[[str], None]
+) -> None:
+    # CFX-APP-postgres/AC-32: "Given an object whose columns or types differ from the run's, then
+    # the Profile tab says the results are out of date". Known from the refresh (decided for
+    # DRIVN-57), the rule AC-13 refreshes by.
+    source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
+    choose(client, source_id, "widened", "retyped", "dropped", "steady")
+    run = completed_run(client, source_id, "fast")
+    postgres_admin(f"ALTER TABLE {SCHEMA}.widened ADD COLUMN note text")
+    postgres_admin(f"ALTER TABLE {SCHEMA}.retyped ALTER COLUMN id TYPE bigint")
+    postgres_admin(f"DROP TABLE {SCHEMA}.dropped")
+
+    # Until the list is refreshed, DrivnX doesn't know.
+    assert set(out_of_date(client, run).values()) == {False}
+
+    refreshed = client.post(f"/api/sources/{source_id}/discover")
+    assert refreshed.status_code == 200, refreshed.text
+
+    assert out_of_date(client, run) == {
+        f"{SCHEMA}.dropped": True,
+        f"{SCHEMA}.retyped": True,
+        f"{SCHEMA}.steady": False,
+        f"{SCHEMA}.widened": True,
+    }
+
+
+def test_a_refresh_that_finds_nothing_changed_leaves_every_object_current(
+    client: TestClient,
+) -> None:
+    # CFX-APP-postgres/AC-32: only an object whose columns or types differ is out of date.
+    source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
+    choose(client, source_id, "orders", "customers", "big_orders")
+    run = completed_run(client, source_id, "fast")
+
+    refreshed = client.post(f"/api/sources/{source_id}/discover")
+    assert refreshed.status_code == 200, refreshed.text
+
+    assert out_of_date(client, run) == {
+        f"{SCHEMA}.big_orders": False,
+        f"{SCHEMA}.customers": False,
+        f"{SCHEMA}.orders": False,
+    }
+    assert client.get(f"/api/profile-runs/{run['id']}").json()["current_settings"] is True

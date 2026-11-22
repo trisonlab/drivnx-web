@@ -237,6 +237,7 @@ def test_a_full_runs_detail_says_each_object_was_read_whole(
         "object": f"{SCHEMA}.repeated",
         "method": "full",
         "stopped_at_time_limit": False,
+        "out_of_date": False,
     }
     assert {
         "object": f"{SCHEMA}.repeated",

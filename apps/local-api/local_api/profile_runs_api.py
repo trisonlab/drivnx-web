@@ -26,6 +26,7 @@ from artifacts.sources import (
     read_dataset,
     read_field_names,
     read_write_confirmation,
+    replaced_datasets,
     save_write_confirmation,
 )
 from artifacts.workspace import Workspace
@@ -146,6 +147,9 @@ class ObjectReadResponse(BaseModel):
     stopped_at_time_limit: bool = False
     # On a full profile, its fast reading, as its masked patterns come from it (the Assumptions).
     patterns_from: PatternsReadResponse | None = None
+    # A refresh has since found it gone, or of another kind or other columns, so its results are
+    # out of date (AC-32).
+    out_of_date: bool = False
 
 
 class ProfileRunDetail(ProfileRunResponse):
@@ -450,6 +454,7 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         fast_readings = {
             seen.dataset_id: seen for seen in observations if seen.metric == SAMPLE_ROWS_READ
         }
+        replaced = replaced_datasets(workspace.engine, list(objects))
 
         def patterns_from(dataset_id: str, planned: str) -> PatternsReadResponse | None:
             seen = fast_readings.get(dataset_id)
@@ -475,6 +480,7 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
                     method=read_as(dataset_id, found["method"]),
                     stopped_at_time_limit=dataset_id in stopped,
                     patterns_from=patterns_from(dataset_id, found["method"]),
+                    out_of_date=dataset_id in replaced,
                 )
                 for dataset_id, found in objects.items()
             ],
