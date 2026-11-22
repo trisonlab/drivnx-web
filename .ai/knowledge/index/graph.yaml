@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-22T07:31:20+00:00'
+updated_at: '2026-11-22T11:56:10+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/DRIVN-45.md: aa84a5f03995e754011b70f139cb97de730dce9bf42732be25eb48c839d693f5
@@ -57,6 +57,7 @@ sources:
   apps/local-api/local_api/sources_api.py: 4c46b74458ec516ebda07627fc6b2b95478724d778b1955638ba69c45233b313
   apps/local-api/local_api/write_access.py: ac1d61941d589b92a3772d9c6044c34d8ab244c8456f0cfde6a186f96c8c8a3d
   apps/web/package.json: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
+  apps/web/pnpm-lock.yaml: c9140539e3622a70d6a0d272593b22dc12a51e3ea75a816bfd33f52a89a2708b
   apps/web/src/App.test.tsx: 36a006ed9d0f3f257b0a0c2307a32cac9ec64959638d80179c4cb823bf6d26de
   apps/web/src/App.tsx: f1e501cbc1ac8153cc4436e05d80f706dc4187d82d0aee358c03a3ced8b923a8
   apps/web/src/DataExplorer.tsx: 784102acf8aa38193a92dc9303c0f98752fcd8f3459a368a0f9e92424c204015
@@ -85,7 +86,6 @@ sources:
   apps/web/src/styles.css: f5309640d103fc38ca7a66db2988b960919268a8b666a9b4b6c88d4bff943785
   apps/web/tsconfig.json: d846b715154ccd15417f3db0de888df2ce3c3aa01da7ef79ed8690365122ce3f
   hatch_build.py: c14da9b93d0e509993defcb1221d630d6872b22e7eee7daf0c07101e988e7c5b
-  package.json: 0fccfac7f0eaa7d34ebea892b1f2bdfa14808f62e25fc47e362e271a3c4165f6
   packages/artifacts/migrations/versions/0005_source_settings.py: 2ffa076a8a0695b3ae7cd12651f3de41339e23d4b484657858d6db5b46088cde
   packages/artifacts/migrations/versions/0006_finding_kind.py: 5d8f1573efdaaf7434df71aa91ccecf2ff59791bf64de7588fe8e6737197a8a1
   packages/artifacts/migrations/versions/0007_postgres_sources.py: f9d00a41d3f1231fc89adf31b3a9b3b6c1b68a94629679438f28d1995df80fbe
@@ -107,7 +107,6 @@ sources:
   packages/profiling/first_rows.py: a707f6b018e13fb2b80206a8b4aedf8204fcedbe89a0541dc250c0483a5169a5
   packages/profiling/on_request.py: b764cb6fae044d6334d29dcd9259f6aea07ebae0170fb6a9e5c8c3f1aa59c6cb
   packages/profiling/sensitive.py: d0afb67b6b9c983d59cba82ce543bad90c283ef1d957d8ee19845e0ec573f550
-  pnpm-lock.yaml: 17c814b167307942d3609c7b9d916ceddb85839573ab39baa114e30edb132a1a
   pyproject.toml: 44e6c51efc357b05bccb13ace5dd1da37ab07d5858303c7cc8492d621368d91b
   testdata/generate_csv.py: 46be195110e31564ebf7656a14122089d5226836f473420a36d501f7d3425661
   testdata/postgres/compose.yaml: 641e17820963193fb501b4318955e133ad43ac8d6f1e251dd58d54dc3cad3883
@@ -1813,7 +1812,7 @@ nodes:
 - id: tech:language:javascript
   kind: technology
   evidence:
-  - package.json
+  - apps/web/package.json
 - id: tech:language:python
   kind: technology
   evidence:
@@ -1829,7 +1828,7 @@ nodes:
 - id: tech:pm:pnpm
   kind: technology
   evidence:
-  - pnpm-lock.yaml
+  - apps/web/pnpm-lock.yaml
 - id: tech:pm:uv
   kind: technology
   evidence:
@@ -8342,7 +8341,7 @@ edges:
   to: tech:language:javascript
   status: CONFIRMED
   evidence:
-  - package.json
+  - apps/web/package.json
 - from: project
   rel: uses
   to: tech:language:python
@@ -8366,7 +8365,7 @@ edges:
   to: tech:pm:pnpm
   status: CONFIRMED
   evidence:
-  - pnpm-lock.yaml
+  - apps/web/pnpm-lock.yaml
 - from: project
   rel: uses
   to: tech:pm:uv
