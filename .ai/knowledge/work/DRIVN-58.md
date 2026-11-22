@@ -20,10 +20,10 @@ Plane: [DRIVN-58](https://app.plane.so/drivnx/browse/DRIVN-58/) · `CFX-APP-post
 The whole PostgreSQL journey passes against the installed wheel and the fixture, the fixture's statement log shows DrivnX never wrote, a scan for planted values proves the R3 rule, the new screens pass the accessibility check, and the threat register and ADRs record what was built.
 
 ## Acceptance checklist
-- [ ] AC-15 (US-03): Given the fixture's statement log, when the full journey runs, then DrivnX sent no statement that writes or changes the schema, and every statement carries `application_name` `DrivnX`.
-- [ ] AC-29 (US-05): Given a full journey with distinctive planted values in the fixture, including the preview and values on request, then a scan of every file in the workspace, during the run and after DrivnX stops, and of its logs at their most detailed finds no value from the database, except masked patterns and the names of schemas, objects, columns and the connection.
-- [ ] AC-35 (US-07): Given the installed wheel and the fixture, then the journey of adding a connection, confirming the write warning, choosing objects, running a fast profile, running a full profile and opening a finding's evidence passes in Playwright from one origin, with an automated accessibility check on the new screens in each state.
-- [ ] AC-36 (US-07): Given the threat register and the ADRs, then the "Database or API key leaks" row records what's built and tested, and ADRs record the sampling method from spike 2, the bundled extension and the credential store.
+- [x] AC-15 (US-03): Given the fixture's statement log, when the full journey runs, then DrivnX sent no statement that writes or changes the schema, and every statement carries `application_name` `DrivnX`.
+- [x] AC-29 (US-05): Given a full journey with distinctive planted values in the fixture, including the preview and values on request, then a scan of every file in the workspace, during the run and after DrivnX stops, and of its logs at their most detailed finds no value from the database, except masked patterns and the names of schemas, objects, columns and the connection.
+- [x] AC-35 (US-07): Given the installed wheel and the fixture, then the journey of adding a connection, confirming the write warning, choosing objects, running a fast profile, running a full profile and opening a finding's evidence passes in Playwright from one origin, with an automated accessibility check on the new screens in each state.
+- [x] AC-36 (US-07): Given the threat register and the ADRs, then the "Database or API key leaks" row records what's built and tested, and ADRs record the sampling method from spike 2, the bundled extension and the credential store.
 
 ## Expected evidence
 Playwright on the installed wheel with axe in each state, the statement log, the planted-value scan during the run and after DrivnX stops, and reading the threat register and the ADRs.
@@ -73,9 +73,14 @@ Steps:
    0006 and 0008 are read against AC-36, with where each records it.
 5. Verification, the knowledge refresh (with DRIVN-56's), and DRIVN-45's Verification.
 
-Risks: `ALTER SYSTEM` changes the shared fixture until it's put back, so the fixture's start puts it back too; Compose
+Risks: `ALTER SYSTEM` changes the shared fixture until it's put back, in the fixture's `finally`; Compose
 logs on Linux only, the own server's log elsewhere; the Windows server's log is first seen in CI. Out of scope: one
 journey helper for CSV and PostgreSQL together.
+
+Changed in verification (2026-11-22): the fixture's start doesn't put the log settings back, as the Risks first said.
+A run killed mid-test leaves the prefix, which the next test that reads the log sets again and puts back, and a test
+role's `log_statement`, which goes when the next setup drops the role; CI starts a fresh fixture for each job. A reset
+in `start` would need a superuser connection it doesn't have, for how a local log reads.
 
 ## AC-36, read (step 4)
 On 2026-11-22, on `8210cc5`, each document read against the code it names:
@@ -96,3 +101,23 @@ On 2026-11-22, on `8210cc5`, each document read against the code it names:
   Manager or Secret Service, one entry per source, `local_machine` on Windows, written only with a password the server
   took). Matches `os_credential_store()` and `entry()` in `local_api/credentials.py`, its call in `cli.py`, and
   `KeptPasswords` in `postgres_api.py`. Amends ADR 0007 Decision 1, as 0007's status says.
+
+## Verification (2026-11-22, on `ba7c8d0`, with only this file changed since)
+| Criterion | Evidence | Result |
+|---|---|---|
+| AC-15: no statement that writes or changes the schema | `test_postgres_journey.py::test_the_database_journey_keeps_no_value_and_sends_only_drivnxs_reads`: the server logs every statement of the journey's role, which may `INSERT` into `orders`; its 329 statements each match a read-only form (a read-only transaction, `COMMIT`, `ROLLBACK`, `DISCARD ALL`, the scanner's checks and catalog, `COPY (SELECT …) TO STDOUT`). Fails naming `INSERT INTO drivnx_e2e_journey.orders VALUES ('mut', 1)` when that's sent through DrivnX's session, which the server refuses as read-only | PASS |
+| AC-15: every statement carries `application_name` `DrivnX` | The same test: every entry of the role's has `app=DrivnX`; fails on the first entry with the name changed to `DrivnY`. `test_postgres_fixture.py`: a logged role's statements show their application, `DrivnX` or another, and a role not logged leaves nothing | PASS |
+| AC-29: no value from the database in the workspace, during the run and after DrivnX stops, or in its logs at their most detailed | The same test, with `assert_no_value_kept_or_logged` from the CSV journey after the preview and values on request (`orders.code`, then the flagged `email` after its confirmation): every planted value matches `PLANTED` first, the masked email pattern is in the workspace, and DrivnX printed uvicorn's trace lines. Fails with 36 planted values found when the values worked out are logged | PASS |
+| AC-35: the journey from one origin, with the accessibility check in each state | `test_postgres_journey.py::test_the_database_journey_on_the_installed_wheel_from_one_origin`: connection as a role that can write, the write warning confirmed, objects chosen, a preview, a fast and a full profile, a finding's evidence, values; `violations(page) == []` in 10 states, every request to the launch origin, assets and API both requested, no console error but the write warning's designed 409. Fails when "Profile anyway" is relabelled | PASS |
+| AC-36: the leaks row records what's built and tested; ADRs record the sampling method, the bundled extension and the credential store | Read: "AC-36, read (step 4)" above, each document against the code it names; the row updated in `ba7c8d0` | PASS |
+
+Checks run, all on the tree above:
+- `uv run --frozen pytest tests/integration tests/golden`: 2623 passed, 8 skipped (as many as on main and in DRIVN-56's run; which ones wasn't listed again), exit 0, in 8 min 58 s.
+- `uv run --frozen pytest tests/e2e`: 87 passed, exit 0, in 3 min 48 s.
+- `pnpm --dir apps/web test`: 263 passed, exit 0. Nothing in `apps/web` changed on this branch, so `tsc` and `vite build` weren't run again.
+- CI's scans: detect-secrets over every tracked file, exit 0; pip-audit and `pnpm audit`: no known vulnerabilities. No dependency changed on this branch.
+- `.ai/hooks/run.py pre-commit`: passed on each commit.
+- The fixture afterwards: `log_line_prefix` back to `%m [%p] `, no role settings left, the journey's role dropped.
+- `ai-skills knowledge discover`: `adr-index.md` takes ADR 0009's new hash (changed by DRIVN-56). `graph.yaml` and `facts.yaml` aren't kept from it, as PR #32 rebuilds both; `knowledge check` still reports them until it merges.
+
+Not verified: CI on GitHub, where the Compose path of `server_log_from_now` (Linux) and a Windows server's log run for the first time.
