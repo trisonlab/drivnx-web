@@ -74,6 +74,8 @@ Not in this ticket: a live check when a run is opened, ending sessions at the ne
 ## Decisions in building this
 - **The runs list's objects are `object_names`,** as `schema.object` in the order the run read them; the detail's own
   `objects` (how each was read) kept its name and shape. A file's run has `null`.
+- **The runs list names a run's first 3 objects, then "and N more"** (decided with the user, 2026-11-22); the run's
+  results name every one.
 - **`out_of_date` is per object,** on each of the detail's `objects`, from `replaced_datasets()`: a refresh found it
   gone or of another kind or columns. The run's `current_settings` is false once any is.
 - **A refresh fetches the runs and their results again** (`DatabaseObjects.tsx`), found by a test: without it the

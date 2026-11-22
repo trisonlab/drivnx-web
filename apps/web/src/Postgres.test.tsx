@@ -1348,3 +1348,27 @@ test("the findings of a database run whose objects have changed since say why th
   ).toBeInTheDocument();
   expect(findings).not.toHaveTextContent("used earlier settings");
 });
+
+test.each([
+  [["s.a", "s.b", "s.c"], "of s.a, s.b, s.c"],
+  [["s.a", "s.b", "s.c", "s.d"], "of s.a, s.b, s.c and 1 more"],
+  [["s.a", "s.b", "s.c", "s.d", "s.e"], "of s.a, s.b, s.c and 2 more"],
+])("a database run in the runs list names its first 3 objects, then how many more: %o", async (names, shownAs) => {
+  // CFX-APP-postgres/AC-31: "list them with ... objects"; the first 3, then "and N more" (decided for
+  // DRIVN-57). The run's results name every one.
+  sources = [fixture];
+  gets["/api/profile-runs"] = () =>
+    Response.json([{ ...databaseRun, current_settings: true, object_names: names }]);
+  gets["/api/findings?profile_run_id=r1"] = () => Response.json([]);
+  gets["/api/profile-runs/r1"] = () => Response.json({ ...databaseRun, file_changed: null, objects: [], metrics: [] });
+  renderApp();
+
+  const tab = await screen.findByRole("tabpanel", { name: "Profile" });
+  const list = await within(tab).findByRole("list", { name: "Runs of this database" });
+
+  const started = new Date(databaseRun.started_at).toLocaleString();
+  expect(within(list).getByRole("listitem")).toHaveTextContent(
+    `Fast profile, Completed, started ${started}, ${shownAs} · Shown`,
+    { normalizeWhitespace: true },
+  );
+});

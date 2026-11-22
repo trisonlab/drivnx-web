@@ -423,6 +423,14 @@ function SensitiveConfirmation({ onShow, onDecline }: { onShow: () => void; onDe
 }
 
 /** AC-35: every run of this file, newest first. A completed one that isn't shown can be opened. */
+// A run's objects named in the runs list; its results name every one (decided for DRIVN-57).
+const OBJECTS_NAMED = 3;
+
+function namedObjects(names: string[]): string {
+  const more = names.length - OBJECTS_NAMED;
+  return more > 0 ? `${names.slice(0, OBJECTS_NAMED).join(", ")} and ${more} more` : names.join(", ");
+}
+
 function RunsList({
   runs,
   shown,
@@ -446,7 +454,7 @@ function RunsList({
               {MODE_LABELS[run.mode]}, {run.status === "running" ? "Running" : STATUS_LABELS[run.status]}, started{" "}
               {started}
               {/* CFX-APP-postgres AC-31 */}
-              {run.object_names && `, of ${run.object_names.join(", ")}`}
+              {run.object_names && `, of ${namedObjects(run.object_names)}`}
               {/* AC-36; for a database, a refresh has since changed one of its objects (CFX-APP-postgres AC-32). */}
               {!run.current_settings && (of === "database" ? " · Out of date" : " · Used earlier settings")}
               {run.id === shown?.id ? (
