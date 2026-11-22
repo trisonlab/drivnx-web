@@ -108,6 +108,9 @@ class ProfileRunResponse(BaseModel):
     current_object: str | None = None
     # Whether a database run's role could only read its objects (AC-16); None for a file's run.
     read_only: bool | None = None
+    # A database run's objects as `schema.object`, in the order it read them (AC-31); None for a
+    # file's run.
+    object_names: list[str] | None = None
 
 
 class PatternResponse(BaseModel):
@@ -214,6 +217,7 @@ def _response(run: ListedProfileRun) -> ProfileRunResponse:
         failure=failure_of(run.id) if run.status == "failed" else None,
         current_object=object_of(run.id) if run.status == "running" else None,
         read_only=None if run.write_access is None else not can_write(run.write_access),
+        object_names=None if run.objects is None else list(run.objects),
     )
 
 
