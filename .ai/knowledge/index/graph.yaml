@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-22T01:57:11+00:00'
+updated_at: '2026-11-22T02:21:02+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
@@ -39,7 +39,7 @@ sources:
   .ai/knowledge/work/DRIVN-54.md: e32740839d7587470a47fc66bdfb95d3179a0d40ecf564d67dbb126f60eb674c
   .ai/knowledge/work/DRIVN-55.md: 4a06fd16627410d65c2bdd273fcd1cac08a5f8e81f9e3794f3b5c24bcb79baf4
   .ai/knowledge/work/DRIVN-56.md: 4aba846894b265e974f487f98bdf2edba9db959d5fcede7022b23aa3458c8eb5
-  .ai/knowledge/work/DRIVN-57.md: 43707399029e998efc6269c39ce3694cef00e64f6c7c0069a6cfe5eb4b0aec34
+  .ai/knowledge/work/DRIVN-57.md: 3f24bc219d2d005ac6bb95b02a63ea1084a471d2a5f9ca80136c394f21b949af
   .ai/knowledge/work/DRIVN-58.md: 4540f05479a72c05f5cbd0de04fa5342bbcb5b2fd003227ef443728d3365c3e8
   .ai/knowledge/work/DRIVN-59.md: 65b3c5978e379de092ebf3b6344a9c2d866bcf3ca4e2c4137ffdf17d627f0dbd
   .github/workflows/ci.yml: 9f8319efa25c8cb3151f4df567b61c4c32af1d66b22909a8f683a4a3a71b2cd7
@@ -65,13 +65,13 @@ sources:
   apps/web/src/DatabaseObjects.tsx: 61eb74abff542a2ac52da2afd2f97242e22425317a8a0b06a310a6419e1fe2e2
   apps/web/src/Findings.tsx: 604c7cadb00e62d1b91803950185b6140fe360310f558a4f2d8d138edd3150ff
   apps/web/src/ObjectDetails.tsx: 62a2cbce8fdef6d95f9892f9285000fa4d36a1a650f11509b4b1bba772ae8797
-  apps/web/src/Postgres.test.tsx: 30d1e1aada43a089663b879308c5b87041ccaaf3712a0016a5be2ed91284d5de
+  apps/web/src/Postgres.test.tsx: 6a13587557245ff3bd415466f3de69e653b6138f093cb5064ce5478e9c364b7f
   apps/web/src/PostgresDetails.tsx: 2fe5dfc71e6ba8b80a6706a46bb4c1314b8a04f5807028e8a7505826d4f28c0e
   apps/web/src/PostgresForm.tsx: eac4bddeb54295a657f1b6b4ecab0c4b3df7d0ec34ef8a1aae69a6fcb66acba6
   apps/web/src/Preview.test.tsx: a14bc6c5e6440210ad45e3df29fe41fc1c19b553cb93d26083f35aa5a0593de3
   apps/web/src/Preview.tsx: 0b538c56427f646ff51a6f5e7802f958965eb3fb1f9d300f915b0dd215078454
   apps/web/src/ProfileTab.test.tsx: 745a2e924a617b0d05b4cffbc6e24f108100377761e2cd9f2243e06e656239b8
-  apps/web/src/ProfileTab.tsx: 02eb23680b970184c4f11f1f5f3126472f4779de5f8ef42a39565f5c256339b6
+  apps/web/src/ProfileTab.tsx: bafb1bd2195ac2d878ac4210dd3664ca7663e9319c0cccfff963d4edad1419b2
   apps/web/src/SetupScreen.tsx: 2a9504d56277d388b0db5e0b7d29a68de334f4206e49900754bcd312a6070a1a
   apps/web/src/Shell.tsx: d01d8be1b52574e35a5f3bad17f96e6b799f0fdb4f90da234ffcbf733c131696
   apps/web/src/SourceDetails.tsx: ee7db3b3eb65efe04f6d73a05c0761bf3389b966ea1c264c2af07bb6d0dc5cce
@@ -125,7 +125,7 @@ sources:
   tests/e2e/test_postgres_findings.py: 21b03583e355162b1dda0576ceb917636b68cd67d00af7a4f6bb643db3c5eefa
   tests/e2e/test_preview.py: b3ed711aafcc06b6758a86fdb27a152d51d78c7d6f9d39a84192583ed02ea2c1
   tests/e2e/test_profile_journey.py: 1df8196ae5fd1473677cd1e4cc2d9181afb9022c94e6b0103898f895d0f3cba9
-  tests/e2e/test_profile_postgres.py: dd9128212d29637af78a99c9e32358bb227c633d972f10720429c0543d2b17d2
+  tests/e2e/test_profile_postgres.py: ca88667794a773579fdbb7f7476fbec61246d5d7818107253497a33b15591883
   tests/e2e/test_source_settings.py: 40b61f2af153357b309e47229358626fd673783579a9e7372d035173f25bb816
   tests/e2e/test_values.py: 533333876f6a49b4e819392fd17e5647c4790c1308a49462a02e89e8b44aced7
   tests/golden/test_metrics.py: a27d17ff3300a920fac8806c8e2b166ccb6434eeb299c7526903453c8abc15be
@@ -147,8 +147,8 @@ sources:
   tests/integration/test_lockfiles.py: 57e05370d8f93e07a508026075bb853c510e1bee69564f9e4c575538ac7b9257
   tests/integration/test_masked_patterns.py: aa2d0c69e59b42a0c0508cb912f80009100cac6eb7f3e1c4d9603f216ff164cf
   tests/integration/test_postgres_connect.py: 4b112f3415d8da2643346c4d4ccd94a4b51da7670de3bba025517c95bb5261f2
-  tests/integration/test_postgres_discovery.py: cf1a63c7f5a08029dcbae9bece59e0f13d1d3913e32cb7093bf9f78e174e5d2b
-  tests/integration/test_postgres_earlier_runs.py: 79a53f749aef65e08fbb441aae97fea2fc1149f960b15e7737ad3da7a488ab02
+  tests/integration/test_postgres_discovery.py: e3f482663dda41b0acb1914fee4ce6b83461d14053a30468cc2297ebff5c6e1a
+  tests/integration/test_postgres_earlier_runs.py: c6f9995bd4a473faa0d80677842a9dcaa520bfd5f4b80c14c164d2daa3150aff
   tests/integration/test_postgres_extension.py: 694e52700e6c97dceecde1d0a3b64a9d975ee39a58a52d02bb4e630b1d53cd0f
   tests/integration/test_postgres_extension_build.py: d4bc9552a15e1f405fc7d16f06b927da9ebb68862d9f88b9ef55e26fb886a447
   tests/integration/test_postgres_findings.py: 543827904be49bfb5823a68f68245098bd81b32497abc6265f290aa107ba069e
@@ -3904,6 +3904,7 @@ edges:
   evidence:
   - apps/web/src/Postgres.test.tsx:794
   - apps/web/src/Postgres.test.tsx:811
+  - apps/web/src/Postgres.test.tsx:1357
 - from: module:apps/web/src/Postgres.test.tsx
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-32
@@ -3944,6 +3945,7 @@ edges:
   evidence:
   - apps/web/src/Postgres.test.tsx:776
   - apps/web/src/Postgres.test.tsx:884
+  - apps/web/src/Postgres.test.tsx:1358
 - from: module:apps/web/src/PostgresDetails.tsx
   rel: imports
   to: module:apps/web/src/DataExplorer.tsx
@@ -4244,9 +4246,9 @@ edges:
   status: INFERRED
   evidence:
   - apps/web/src/ProfileTab.tsx:356
-  - apps/web/src/ProfileTab.tsx:779
-  - apps/web/src/ProfileTab.tsx:784
-  - apps/web/src/ProfileTab.tsx:853
+  - apps/web/src/ProfileTab.tsx:787
+  - apps/web/src/ProfileTab.tsx:792
+  - apps/web/src/ProfileTab.tsx:861
   note: bare AC-16; the file names only CFX-APP-postgres
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
@@ -4259,34 +4261,34 @@ edges:
   to: criterion:CFX-APP-postgres/AC-18
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:587
+  - apps/web/src/ProfileTab.tsx:595
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:CFX-APP-postgres/AC-20
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:737
-  - apps/web/src/ProfileTab.tsx:630
+  - apps/web/src/ProfileTab.tsx:745
+  - apps/web/src/ProfileTab.tsx:638
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:CFX-APP-postgres/AC-24
   status: INFERRED
   evidence:
-  - apps/web/src/ProfileTab.tsx:587
+  - apps/web/src/ProfileTab.tsx:595
   note: bare AC-24; the file names only CFX-APP-postgres
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:CFX-APP-postgres/AC-25
   status: INFERRED
   evidence:
-  - apps/web/src/ProfileTab.tsx:500
+  - apps/web/src/ProfileTab.tsx:508
   note: bare AC-25; the file names only CFX-APP-postgres
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:CFX-APP-postgres/AC-26
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:655
+  - apps/web/src/ProfileTab.tsx:663
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:CFX-APP-postgres/AC-29
@@ -4307,15 +4309,15 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/src/ProfileTab.tsx:58
-  - apps/web/src/ProfileTab.tsx:448
+  - apps/web/src/ProfileTab.tsx:456
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:CFX-APP-postgres/AC-32
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:450
-  - apps/web/src/ProfileTab.tsx:632
-  - apps/web/src/ProfileTab.tsx:639
+  - apps/web/src/ProfileTab.tsx:458
+  - apps/web/src/ProfileTab.tsx:640
+  - apps/web/src/ProfileTab.tsx:647
   - apps/web/src/ProfileTab.tsx:58
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
@@ -4330,15 +4332,21 @@ edges:
   to: criterion:CFX-APP-postgres/AC-36
   status: INFERRED
   evidence:
-  - apps/web/src/ProfileTab.tsx:450
-  - apps/web/src/ProfileTab.tsx:518
+  - apps/web/src/ProfileTab.tsx:458
+  - apps/web/src/ProfileTab.tsx:526
   note: bare AC-36; the file names only CFX-APP-postgres
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: ticket:DRIVN-56
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:620
+  - apps/web/src/ProfileTab.tsx:628
+- from: module:apps/web/src/ProfileTab.tsx
+  rel: implements
+  to: ticket:DRIVN-57
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.tsx:426
 - from: module:apps/web/src/ProfileTab.tsx
   rel: imports
   to: module:apps/web/src/Preview.tsx
@@ -5635,7 +5643,7 @@ edges:
   to: criterion:CFX-APP-postgres/AC-31
   status: CONFIRMED
   evidence:
-  - tests/e2e/test_profile_postgres.py:116
+  - tests/e2e/test_profile_postgres.py:115
 - from: module:tests/e2e/test_profile_postgres.py
   rel: verifies
   to: ticket:DRIVN-51
@@ -6553,8 +6561,8 @@ edges:
   to: criterion:CFX-APP-postgres/AC-33
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_discovery.py:460
-  - tests/integration/test_postgres_discovery.py:470
+  - tests/integration/test_postgres_discovery.py:477
+  - tests/integration/test_postgres_discovery.py:486
 - from: module:tests/integration/test_postgres_discovery.py
   rel: verifies
   to: ticket:DRIVN-49
@@ -6573,50 +6581,62 @@ edges:
   to: ticket:DRIVN-57
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_discovery.py:461
-  - tests/integration/test_postgres_discovery.py:471
+  - tests/integration/test_postgres_discovery.py:478
+  - tests/integration/test_postgres_discovery.py:487
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: imports
   to: module:tests/conftest.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_earlier_runs.py:12
+  - tests/integration/test_postgres_earlier_runs.py:15
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: imports
   to: module:tests/integration/test_credential_store.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_earlier_runs.py:13
+  - tests/integration/test_postgres_earlier_runs.py:16
+- from: module:tests/integration/test_postgres_earlier_runs.py
+  rel: imports
+  to: module:tests/integration/test_postgres_discovery.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_earlier_runs.py:18
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: imports
   to: module:tests/integration/test_postgres_objects_api.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_earlier_runs.py:14
+  - tests/integration/test_postgres_earlier_runs.py:17
+- from: module:tests/integration/test_postgres_earlier_runs.py
+  rel: imports
+  to: module:tests/integration/test_postgres_password_store.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_earlier_runs.py:19
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: imports
   to: module:tests/integration/test_postgres_profile_api.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_earlier_runs.py:15
+  - tests/integration/test_postgres_earlier_runs.py:24
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: imports
   to: module:tests/integration/test_postgres_stopping.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_earlier_runs.py:16
+  - tests/integration/test_postgres_earlier_runs.py:25
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: imports
   to: module:tests/integration/test_session.py
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_earlier_runs.py:21
+  - tests/integration/test_postgres_earlier_runs.py:30
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-13
   status: INFERRED
   evidence:
-  - tests/integration/test_postgres_earlier_runs.py:162
+  - tests/integration/test_postgres_earlier_runs.py:171
   note: bare AC-13; the file names only CFX-APP-postgres
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: verifies
@@ -6624,33 +6644,40 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_earlier_runs.py:1
-  - tests/integration/test_postgres_earlier_runs.py:92
-  - tests/integration/test_postgres_earlier_runs.py:113
-  - tests/integration/test_postgres_earlier_runs.py:141
+  - tests/integration/test_postgres_earlier_runs.py:101
+  - tests/integration/test_postgres_earlier_runs.py:122
+  - tests/integration/test_postgres_earlier_runs.py:150
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-32
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_earlier_runs.py:160
-  - tests/integration/test_postgres_earlier_runs.py:187
+  - tests/integration/test_postgres_earlier_runs.py:169
+  - tests/integration/test_postgres_earlier_runs.py:196
   - tests/integration/test_postgres_earlier_runs.py:1
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-33
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_earlier_runs.py:231
-  - tests/integration/test_postgres_earlier_runs.py:272
+  - tests/integration/test_postgres_earlier_runs.py:239
+  - tests/integration/test_postgres_earlier_runs.py:280
+  - tests/integration/test_postgres_earlier_runs.py:322
   - tests/integration/test_postgres_earlier_runs.py:2
+- from: module:tests/integration/test_postgres_earlier_runs.py
+  rel: verifies
+  to: ticket:DRIVN-55
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_earlier_runs.py:250
 - from: module:tests/integration/test_postgres_earlier_runs.py
   rel: verifies
   to: ticket:DRIVN-57
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_earlier_runs.py:2
-  - tests/integration/test_postgres_earlier_runs.py:162
-  - tests/integration/test_postgres_earlier_runs.py:275
+  - tests/integration/test_postgres_earlier_runs.py:171
+  - tests/integration/test_postgres_earlier_runs.py:283
 - from: module:tests/integration/test_postgres_extension.py
   rel: verifies
   to: criterion:CFX-APP-postgres/AC-07
