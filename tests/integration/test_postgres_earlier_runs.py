@@ -53,6 +53,8 @@ OBJECTS = (
     # last row only after the sleep, so the server computes without sending anything meanwhile.
     f"CREATE VIEW {SCHEMA}.late_sleepy AS SELECT n FROM generate_series(1, 100001) AS n"
     f" WHERE n <= 100000 OR (SELECT true FROM pg_sleep({SLEEP_SECONDS}))",
+    # A fast profile reads it in one statement, which sends nothing until the sleep ends.
+    f"CREATE VIEW {SCHEMA}.sleepy AS SELECT 1 AS n FROM pg_sleep({SLEEP_SECONDS})",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -259,3 +261,34 @@ def test_a_stop_during_a_database_run_keeps_completed_runs_and_leaves_nothing_on
     assert (
         after.get("/api/findings", params={"profile_run_id": completed["id"]}).json() == findings
     )
+
+
+@posix_only
+def test_drivnx_killed_during_a_database_run_leaves_nothing_on_the_server_after_a_restart(
+    start_drivnx: StartDrivnX,
+    tmp_path: Path,
+    drivnx_queries: Callable[[str], int],
+) -> None:
+    # CFX-APP-postgres/AC-33: "Given a restart, then ... a run that was in progress shows as
+    # `interrupted`, and no query DrivnX started is still running on the server." Killed, so it
+    # can't cancel anything: the server checks its connection is still there (decided for
+    # DRIVN-57). Only where the server can (ADR 0009); CI's servers run on the runner's system.
+    directory = tmp_path / "workspace"
+    before = start_drivnx("--no-browser", env=NO_STORE, workspace=directory)
+    client = sign_in(before.wait_for_launch())
+    source_id = client.post("/api/sources/postgres", json=DETAILS).json()["id"]
+    choose(client, source_id, "sleepy")
+    started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": "fast"})
+    assert started.status_code == 202, started.text
+    reading(drivnx_queries, f'COPY (SELECT "n"::text AS c0 FROM "{SCHEMA}"."sleepy"%')
+
+    before.process.kill()
+    killed_at = time.monotonic()
+    before.process.wait(timeout=30)
+    after = sign_in(
+        start_drivnx("--no-browser", env=NO_STORE, workspace=directory).wait_for_launch()
+    )
+
+    none_left_on_the_server(drivnx_queries, killed_at)
+    (listed,) = after.get("/api/profile-runs").json()
+    assert (listed["id"], listed["status"]) == (started.json()["id"], "interrupted")

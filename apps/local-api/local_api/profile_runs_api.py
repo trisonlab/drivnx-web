@@ -342,6 +342,8 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
                 readings,
                 write_access=access,
                 time_limit_minutes=time_limit_minutes,
+                # So a run's read ends on the server even if DrivnX is killed (AC-33).
+                check_connection=discovery.checks_closed_connections,
             )
         except RunInProgress:
             raise HTTPException(status_code=409, detail=RUN_IN_PROGRESS) from None

@@ -3,7 +3,8 @@
 - **Status:** Accepted 2026-11-17
 - **Date:** 2026-11-17
 - **Source:** ticket DRIVN-53, the user's decisions in chat on 2026-11-17; spec `CFX-APP-postgres` revision 3 (AC-19 to
-  AC-23, the Assumptions' masked patterns); amends ADR 0005 Decision 6
+  AC-23, the Assumptions' masked patterns); amends ADR 0005 Decision 6. Decision 7 from ticket DRIVN-57 and the user's
+  decisions in chat on 2026-11-22 (AC-33)
 
 ## Context
 
@@ -55,6 +56,18 @@ run keeps ADR 0002's rules and needs no migration.
 server's English text, never quoting it: a statement timeout, the connection lost (as a restart's fast shutdown ends
 every session the same way), or the account no longer allowed to read the object. Anything else still points to a
 refresh.
+
+**7. A run's session has the server check that DrivnX is still there** (DRIVN-57, AC-33). A stop of DrivnX, Ctrl+C
+or SIGTERM, cancels its read as in Decision 1, through `stop_jobs()` at shutdown. A kill can't: the server ends a read
+that sends rows as soon as its socket closes, but one that computes before its rows runs to its end or its statement
+timeout. So discovery checks with `set_config('client_connection_check_interval', '1s', true)`, after its catalog's
+transaction, whether the server takes the setting, and if it does, the job's session starts with
+`-c client_connection_check_interval=1s` in its options, which a session the extension opens again has too. PostgreSQL
+takes it from version 14 on Linux, macOS, illumos and the BSDs, and refuses it on Windows, where a session with it
+can't start; a Windows server stays as before. Preview, values and discovery don't set it: their statements end at the
+30 s statement timeout. Rejected: ending DrivnX's sessions when it next starts, which needs the password and the network
+before it's up; and attaching with the setting and again without it once refused, two connections to a Windows server
+for every run.
 
 ## Alternatives considered
 
@@ -108,6 +121,17 @@ the repository:
   Asia/Kolkata and `05:21:10+05:21` in DuckDB, and in Europe/Amsterdam `00:19:32+00:19:32` and `00:17:30+00:17`.
   Those aren't detected.
 
+For Decision 7, on 2026-11-22 against the fixture (PostgreSQL 17, Linux, no network), a process that read as a job does
+was killed with SIGKILL, or SIGTERM, which a bare reader doesn't handle, and the fixture's `pg_stat_activity` watched
+until nothing of DrivnX's was left:
+
+| The read when the process ended | Without the check | `client_connection_check_interval = 500ms` |
+|---|---|---|
+| A table's whole read, 10 million rows, which sends as it reads | 0.01 s | 0.01 s |
+| A view over `pg_sleep(20)` through `postgres_query`, which sends nothing until it ends | 19.7 s, its end | 0.19 s |
+
+Set with `SET` through `postgres_execute` the check had no effect on the read: only a session's startup options did.
+
 Not measured: a network between DrivnX and the server, enums, ranges, domains and xml (DRIVN-54's golden fixture), and
 a role in a cluster that restricts `pg_cancel_backend`.
 
@@ -119,3 +143,7 @@ a role in a cluster that restricts `pg_cancel_backend`.
 - A full profile does one extra fast read per object for its patterns, about 0.04–0.5 s on the fixture.
 - If the server refuses the cancel, the read ends at its statement timeout, and the run still ends as asked.
 - ADR 0005 Decision 6 holds for tables; for views and fast reads, Decision 1 here finishes it.
+- A DrivnX killed during a run leaves no read on a server that checks, within about a second; on a Windows server a
+  read that computes before its rows stays until its statement timeout, on a full profile its time limit and 30 s.
+  After a power loss or a lost network no close reaches the server, so such a read stays until its statement timeout
+  on any server.

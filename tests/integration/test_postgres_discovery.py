@@ -1,6 +1,7 @@
 """Listing a database's schemas and objects, CFX-APP-postgres AC-08, AC-09 and AC-10 (DRIVN-49),
 and what the role can change in them, AC-16 (DRIVN-52)."""
 
+import sys
 import traceback
 from collections.abc import Callable, Iterator
 from pathlib import Path
@@ -451,3 +452,31 @@ def test_a_grant_on_a_partition_or_a_child_table_counts_for_the_table_it_is_part
     assert listed["split"].write_privileges == ("INSERT",)
     assert listed["family"].write_privileges == ("DELETE",)
     assert "split_1" not in listed
+
+
+def test_discovery_says_whether_the_server_checks_that_drivnx_is_still_there(
+    discovery: Discovery,
+) -> None:
+    # CFX-APP-postgres/AC-33: a server that checks ends a query once DrivnX is gone, even killed
+    # (decided for DRIVN-57). PostgreSQL can on Linux, macOS, illumos and the BSDs, not Windows;
+    # the fixture runs on this machine's system (INFERRED from CI's set-up).
+    assert discovery.checks_closed_connections is (sys.platform != "win32")
+
+
+@pytest.mark.parametrize(("check_connection", "interval"), [(True, "1s"), (False, "0")])
+def test_a_session_attached_to_check_its_connection_has_the_server_check_it_every_second(
+    tmp_path: Path, check_connection: bool, interval: str
+) -> None:
+    # CFX-APP-postgres/AC-33: set as the session starts, so a session the extension opens again
+    # has it too (decided for DRIVN-57); it's off for every other session, as before.
+    if check_connection and sys.platform == "win32":
+        pytest.skip("PostgreSQL on Windows can't check a connection (ADR 0009).")
+    with duckdb_connection(tmp_path) as connection:
+        attach(connection, FIXTURE, PASSWORD, check_connection=check_connection)
+
+        ((shown,),) = connection.execute(
+            "SELECT * FROM postgres_query('source',"
+            " 'SELECT current_setting(''client_connection_check_interval'')')"
+        ).fetchall()
+
+    assert shown == interval
