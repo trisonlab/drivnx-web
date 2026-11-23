@@ -205,20 +205,27 @@ def test_a_logged_roles_statements_are_in_the_servers_log_with_their_application
 def test_a_role_that_isnt_logged_leaves_no_statement_in_the_servers_log(
     logged_role: str, tmp_path: Path
 ) -> None:
-    # Only the roles a test names, so other tests' sessions aren't logged.
+    # Only the roles a test names, so other tests' sessions aren't logged. The logged role's
+    # statement after it shows the log was read (the DRIVN-58 review).
     read = postgres_fixture.server_log_from_now()
-    details = ConnectionDetails(
-        host=postgres_fixture.HOST,
-        port=postgres_fixture.PORT,
-        database=postgres_fixture.DATABASE,
-        user=postgres_fixture.USER,
-        tls_mode="prefer",
-    )
+
+    def as_(user: str, password: str) -> Callable[[duckdb.DuckDBPyConnection], None]:
+        details = ConnectionDetails(
+            host=postgres_fixture.HOST,
+            port=postgres_fixture.PORT,
+            database=postgres_fixture.DATABASE,
+            user=user,
+            tls_mode="prefer",
+        )
+        return lambda connection: attach(connection, details, password)
 
     first_row(
-        tmp_path,
-        lambda connection: attach(connection, details, postgres_fixture.PASSWORD),
+        tmp_path / "unlogged",
+        as_(postgres_fixture.USER, postgres_fixture.PASSWORD),
         "SELECT 3 AS not_logged",
     )
+    first_row(tmp_path / "logged", as_(logged_role, LOGGED_PASSWORD), "SELECT 4 AS logged_after")
+    logged = read()
 
-    assert "not_logged" not in read()
+    assert "logged_after" in logged
+    assert "not_logged" not in logged

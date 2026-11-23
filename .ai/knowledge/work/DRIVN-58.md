@@ -121,3 +121,21 @@ Checks run, all on the tree above:
 - `ai-skills knowledge discover`: `adr-index.md` takes ADR 0009's new hash (changed by DRIVN-56). `graph.yaml` and `facts.yaml` aren't kept from it, as PR #32 rebuilds both; `knowledge check` still reports them until it merges.
 
 Not verified: CI on GitHub, where the Compose path of `server_log_from_now` (Linux) and a Windows server's log run for the first time.
+
+## Review (2026-11-23, by the independent reviewer, on `7271df6`)
+Verdict: ready after fixes. Each finding was reproduced before acting on it, and each fix driven by a test seen failing.
+1. The AC-15 allow-list took in writes (risk): `SELECT … INTO`, which makes a table, and a row lock (`FOR UPDATE`,
+   `FOR NO KEY UPDATE`, `FOR SHARE`, `FOR KEY SHARE`) matched the catalog's form, and a `COPY … TO` a server file,
+   split at the `;` in its literal, was two parts of read forms. Fixed: a statement holding `INTO` or a row lock fails
+   whatever its form, and a message splits only at a `;` outside a literal. The comment and the threat register's
+   AC-15 sentence now say what the check proves: the forms seen, with what a function a read calls left to AC-14.
+2. An entry without the test's prefix was skipped (risk): with the prefix put back mid-run, as by another
+   checkout's test on a shared local fixture, a write in it went unchecked. Fixed: every entry read must carry the
+   prefix, which the server's own lines carry too while it's set.
+3. The test that a role not logged leaves nothing passed on an empty read (nit): it now sends the logged role's
+   statement after, and needs it in the log. Seen failing with `server_log_from_now` reading nothing.
+4. The journey didn't check the filled-in connection form (nit): it does, before Save, 11 states in all.
+5. `state: ready` with the Verification filled (question): it moves to `done` at delivery, as DRIVN-56's did.
+
+The tests of the check (`not_drivnxs_reads`) are in `tests/e2e/test_postgres_journey.py`: a log as DrivnX's reads
+appear passes, and each case above fails by name.

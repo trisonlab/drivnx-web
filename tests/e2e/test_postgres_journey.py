@@ -75,6 +75,8 @@ def walk_the_database_journey(page: Page, at_each_state: Callable[[], None]) -> 
     """DRIVN-45 AC-35's journey, with the preview and values on request AC-29 adds, calling
     `at_each_state` in each state it reaches."""
     fill_in(page, WRITER_PASSWORD, WRITER)
+    at_each_state()
+
     database_form(page).get_by_role("button", name="Save").click()
     listed = details_of(page, postgres_fixture.DATABASE).get_by_role(
         "region", name="Schemas and tables"
@@ -193,8 +195,10 @@ ENTRY = re.compile(r"^(?=\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)", re.MULTILINE)
 # What the server logs for each statement a session sends, with `log_statement = 'all'`.
 STATEMENT = re.compile(r" LOG:  (?:statement|execute [^:]*): (.*)", re.DOTALL)
 # Every form of statement DrivnX sent as the journey's role on the test's first run, 2026-11-22,
-# none of which writes or changes the schema (DRIVN-45 AC-15). Anything else fails the test by
-# name. A function a read calls can't write either: the session is read-only (AC-14).
+# none of which writes or changes the schema (DRIVN-45 AC-15). A statement of any other form, or
+# holding what can make a read write (`WRITES_THOUGH_READ`), fails the test by name. These are
+# the forms seen, not a parse of SQL: what a function a read calls does isn't checked here, and
+# the session is read-only, so the server refuses one that writes (AC-14).
 READ_ONLY = [
     re.compile(form)
     for form in (
@@ -219,23 +223,48 @@ def entries_of(log: str, role: str) -> list[str]:
     return [entry for entry in ENTRY.split(log) if f" user={role} " in entry.partition("\n")[0]]
 
 
+# A `;` outside a literal: an even number of quotes after it, as `''` in a literal is two.
+BETWEEN_STATEMENTS = re.compile(r";(?=(?:[^']*'[^']*')*[^']*$)")
+
+
 def statements_in(entries: list[str]) -> list[str]:
     """Each statement the entries log, on one line. A message may hold several, as the scanner's
-    catalog does; splitting one at a `;` in a literal can only leave a part no form matches."""
+    catalog does."""
     return [
         " ".join(statement.split())
         for entry in entries
         if (found := STATEMENT.search(entry))
-        for statement in found.group(1).split(";")
+        for statement in BETWEEN_STATEMENTS.split(found.group(1))
         if statement.strip()
     ]
+
+
+# What can make a statement of a read's form write: `SELECT … INTO` makes a table, and a row
+# lock is refused in a read-only transaction as a write is.
+WRITES_THOUGH_READ = re.compile(
+    r"\bINTO\b|\bFOR\s+(NO\s+KEY\s+UPDATE|UPDATE|KEY\s+SHARE|SHARE)\b", re.IGNORECASE
+)
 
 
 def not_read_only(statements: list[str]) -> list[str]:
     return [
         statement
         for statement in statements
-        if not any(form.fullmatch(statement) for form in READ_ONLY)
+        if WRITES_THOUGH_READ.search(statement)
+        or not any(form.fullmatch(statement) for form in READ_ONLY)
+    ]
+
+
+def not_drivnxs_reads(log: str, role: str) -> list[str]:
+    """Everything in the log that isn't shown to be one of DrivnX's reads as the role (AC-15),
+    each entry whole: one without the test's prefix, which names no role, as when the prefix was
+    put back mid-run; the role's from another application; and each statement of the role's of
+    no form in `READ_ONLY`, or of one that can write."""
+    entries = entries_of(log, role)
+    return [
+        *(entry for entry in ENTRY.split(log) if entry and " app=" not in entry.partition("\n")[0]),
+        *(entry for entry in entries if " app=DrivnX " not in entry.partition("\n")[0]),
+        *not_read_only(statements_in(entries)),
     ]
 
 
@@ -264,8 +293,62 @@ def test_the_database_journey_keeps_no_value_and_sends_only_drivnxs_reads(
     # The run saved `email`'s masked pattern, so a scan of the wrong files can't pass.
     assert MASKED_EMAIL in every_file_in(workspace)
     assert_no_value_kept_or_logged(drivnx, workspace, PLANTED_VALUES)
-    entries = entries_of(server_log(), WRITER)
-    assert [entry for entry in entries if " app=DrivnX " not in entry.partition("\n")[0]] == []
-    statements = statements_in(entries)
-    assert len(statements) > 10  # so a log that isn't the role's can't pass
-    assert not_read_only(statements) == []
+    logged = server_log()
+    assert len(statements_in(entries_of(logged, WRITER))) > 10  # so another role's log can't pass
+    assert not_drivnxs_reads(logged, WRITER) == []
+
+
+def logged(*lines: str, prefix: str = f"app=DrivnX user={WRITER} ") -> str:
+    """A server log of the lines given, each with the prefix the test sets."""
+    return "".join(f"2026-11-23 10:00:00.000 UTC [4242] {prefix}LOG:  {line}\n" for line in lines)
+
+
+def test_drivnxs_reads_as_the_server_logs_them_are_read_only() -> None:
+    # As the fixture logged them on the test's first run: a message of several statements, one
+    # on several lines, and literals holding quotes and a backslash.
+    log = logged(
+        "statement: BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;\n"
+        "\t\n\tSELECT oid, nspname\n\tFROM pg_namespace\n\t\n\tORDER BY oid;\n",
+        "statement: COPY (SELECT \"nspname\"::VARCHAR FROM (SELECT n.nspname FROM pg_namespace n"
+        " WHERE n.nspname NOT LIKE 'pg\\_%' AND n.nspname <> 'information_schema')"
+        ' AS __unnamed_subquery ) TO STDOUT (FORMAT "binary");',
+        "statement: COPY (SELECT set_config('client_connection_check_interval', '1s', true))"
+        ' TO STDOUT (FORMAT "binary");',
+        "statement: COMMIT",
+    )
+
+    assert not_drivnxs_reads(log, WRITER) == []
+
+
+def test_a_select_that_makes_a_table_isnt_a_read() -> None:
+    # The review of DRIVN-58: the catalog's form took it in.
+    made = "SELECT relname INTO stolen FROM pg_class"
+
+    assert not_drivnxs_reads(logged(f"statement: {made}"), WRITER) == [made]
+
+
+@pytest.mark.parametrize("lock", ["FOR UPDATE", "for no key update", "FOR SHARE", "FOR KEY SHARE"])
+def test_a_select_that_locks_rows_isnt_a_read(lock: str) -> None:
+    # The review of DRIVN-58: PostgreSQL refuses each in a read-only transaction, as a write.
+    locking = f"SELECT relname FROM pg_class {lock}"
+
+    assert not_drivnxs_reads(logged(f"statement: {locking}"), WRITER) == [locking]
+
+
+def test_a_semicolon_in_a_literal_doesnt_split_a_write_into_reads() -> None:
+    # The review of DRIVN-58: split at the `;` in its literal, a COPY to the server's file was
+    # two parts, each of a read's form.
+    to_a_file = (
+        "COPY (SELECT ') TO STDOUT (FORMAT \"binary\");SELECT x FROM pg_class WHERE y = '"
+        " AS a) TO '/tmp/x'"
+    )
+
+    assert not_drivnxs_reads(logged(f"statement: {to_a_file}"), WRITER) == [to_a_file]
+
+
+def test_an_entry_without_the_tests_prefix_cant_be_checked_so_it_fails() -> None:
+    # The review of DRIVN-58: with the prefix put back mid-run, as by another checkout's test on
+    # a shared fixture, an entry names no role, so a write in it was skipped.
+    unprefixed = "2026-11-23 10:00:01.000 UTC [4242] LOG:  statement: INSERT INTO t VALUES (1)\n"
+
+    assert not_drivnxs_reads(logged("statement: SELECT 1") + unprefixed, WRITER) == [unprefixed]
