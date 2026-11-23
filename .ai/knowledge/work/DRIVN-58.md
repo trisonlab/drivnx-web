@@ -7,7 +7,7 @@ feature_revision: 3
 stories: [US-03, US-05, US-07]
 criteria: [AC-15, AC-29, AC-35, AC-36]
 blocked_by: [DRIVN-48, DRIVN-50, DRIVN-52, DRIVN-56, DRIVN-57]
-state: ready
+state: done
 external_key: DRIVN-58
 status: CONFIRMED
 ---
@@ -121,6 +121,10 @@ Checks run, all on the tree above:
 - `ai-skills knowledge discover`: `adr-index.md` takes ADR 0009's new hash (changed by DRIVN-56). `graph.yaml` and `facts.yaml` aren't kept from it, as PR #32 rebuilds both; `knowledge check` still reports them until it merges.
 
 Not verified: CI on GitHub, where the Compose path of `server_log_from_now` (Linux) and a Windows server's log run for the first time.
+
+CI on PR #34, 2026-11-23: on `176e359`, the tests passed on Ubuntu (the Compose log), macOS and Windows (the own
+server's log), and the scans failed on DRIVN-45's new table, a false positive fixed in `f8b0407`; on `f8b0407`, every
+job passed: scans, and tests on Ubuntu, macOS and Windows.
 
 ## Review (2026-11-23, by the independent reviewer, on `7271df6`)
 Verdict: ready after fixes. Each finding was reproduced before acting on it, and each fix driven by a test seen failing.
