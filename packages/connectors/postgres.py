@@ -513,7 +513,9 @@ def _not_read(error: duckdb.Error, timed_out: str = _TIMED_OUT) -> ConnectFailur
     text = str(error)
     if "canceling statement due to statement timeout" in text:
         return ConnectFailure("timeout", timed_out)
-    if any(said in text for said in _CONNECTION_LOST):
+    # Or a session the read opens of its own after the attach, which a server that's gone refuses
+    # (DRIVN-53, macOS's CI): libpq's word for a failed connection, as `_failure` reads it.
+    if any(said in text for said in _CONNECTION_LOST) or _ATTEMPT in text:
         return ConnectFailure("lost", _LOST)
     if "permission denied for" in text:
         return ConnectFailure("not_allowed", _NOT_ALLOWED_TO_READ)

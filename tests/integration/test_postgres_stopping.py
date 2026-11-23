@@ -415,6 +415,13 @@ class DroppingProxy:
             pass
 
     def drop(self) -> None:
+        # Shut, not only closed: Linux's `accept` waiting in another thread would go on taking
+        # connections, where macOS refuses them, as nothing answers over a failed network. macOS
+        # may not shut a socket that only listens, and closing it is enough there.
+        try:
+            self.listener.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
         self.listener.close()
         for one in self.sockets:
             try:
@@ -427,7 +434,10 @@ class DroppingProxy:
 # Over TLS libpq hears of it from OpenSSL, and without from the socket.
 @pytest.mark.parametrize("tls_mode", ["prefer", "disable"])
 def test_a_read_whose_network_fails_says_the_connection_was_lost(
-    tmp_path: Path, drivnx_queries: Callable[[str], int], tls_mode: str
+    tmp_path: Path,
+    postgres_admin: Callable[[str], None],
+    drivnx_queries: Callable[[str], int],
+    tls_mode: str,
 ) -> None:
     # DRIVN-45/AC-22: "Given a connection lost ... during a run, then ... the message names
     # the object and the reason". A network that fails says nothing from the server, so libpq
@@ -442,6 +452,7 @@ def test_a_read_whose_network_fails_says_the_connection_was_lost(
         tls_mode=tls_mode,
     )
     failures: list[BaseException] = []
+    read_sent = f'COPY (SELECT "n" FROM "{SCHEMA}"."late_sleepy"%'
     with duckdb_connection(tmp_path) as connection:
         postgres.attach(connection, details, postgres_fixture.PASSWORD)
 
@@ -453,12 +464,43 @@ def test_a_read_whose_network_fails_says_the_connection_was_lost(
 
         reader = threading.Thread(target=read)
         reader.start()
-        reading(drivnx_queries, f'COPY (SELECT "n" FROM "{SCHEMA}"."late_sleepy"%')
-
-        proxy.drop()
-        reader.join(CANCEL_WITHIN_SECONDS)
+        try:
+            reading(drivnx_queries, read_sent)
+            proxy.drop()
+            reader.join(CANCEL_WITHIN_SECONDS)
+        finally:
+            # A server sleeping in the view doesn't hear its client is gone, and its read would
+            # run on, for the next case's wait to take for its own (DRIVN-53, macOS's CI).
+            postgres_admin(
+                "SELECT pg_terminate_backend(pid, 5000) FROM pg_stat_activity"
+                f" WHERE application_name = 'DrivnX' AND query LIKE '{read_sent}'"
+            )
 
     assert not reader.is_alive(), "The read went on after the network failed."
     (failed,) = failures
     assert isinstance(failed, postgres.ConnectFailure), failed
     assert failed.reason == "lost", str(failed)
+
+
+def test_a_read_whose_server_stops_answering_before_it_connects_says_the_connection_was_lost(
+    tmp_path: Path,
+) -> None:
+    # DRIVN-45/AC-22: "Given a connection lost, a server restart ... during a run, then ... the
+    # message names the object and the reason". A read can open a session of its own after the
+    # attach, which a network that failed or a server that's down refuses: libpq's text is then a
+    # failed connection, not a lost one, as macOS's CI saw when a drop came before the read began.
+    proxy = DroppingProxy()
+    details = postgres.ConnectionDetails(
+        host="127.0.0.1",
+        port=proxy.port,
+        database=postgres_fixture.DATABASE,
+        user=postgres_fixture.USER,
+        tls_mode="disable",
+    )
+    with duckdb_connection(tmp_path) as connection:
+        postgres.attach(connection, details, postgres_fixture.PASSWORD)
+        proxy.drop()
+        with pytest.raises(postgres.ConnectFailure) as raised:
+            postgres.load_whole_object(connection, (SCHEMA, "small"), ("id",), "rows")
+
+    assert raised.value.reason == "lost", str(raised.value)
