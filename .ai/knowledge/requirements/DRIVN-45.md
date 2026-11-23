@@ -140,6 +140,58 @@ API, following the Section 12 outline: `/api/sources` to add, test and discover 
 - Spike 2 is done (ADR 0005). `tests/measure_postgres_sample.py` reproduces it, and the ticket that builds the fixture runs it there.
 - The credential store is tested on each OS CI runs, and the in-memory fallback where no store is available.
 
+### Result (2026-11-22, DRIVN-58, on `ba7c8d0`)
+Every criterion against the tickets that built it and the test files that name it. Each ticket's own Verification
+says how its tests prove each clause; here PASS means every file listed ran and passed in this run, on Linux against
+the fixture (the own server, PostgreSQL 17.6), with the suites as CI runs them: `pytest tests/integration
+tests/golden` 2623 passed and 8 skipped, `pytest tests/e2e` 87 passed, `pnpm --dir apps/web test` 263 passed.
+
+| Criterion | Tickets | Tests naming it | Result |
+|---|---|---|---|
+| AC-01 | DRIVN-47 | `e2e/test_connect_postgres.py`, `integration/test_postgres_connect.py`, `integration/test_postgres_sources.py`, `integration/test_postgres_sources_api.py`, `web/Postgres.test.tsx` | PASS |
+| AC-02 | DRIVN-47 | `e2e/test_connect_postgres.py`, `integration/test_postgres_connect.py`, `integration/test_postgres_fixture.py`, `integration/test_postgres_sources.py`, `integration/test_postgres_sources_api.py`, `web/Postgres.test.tsx` | PASS |
+| AC-03 | DRIVN-47 | `e2e/test_connect_postgres.py`, `integration/test_postgres_connect.py`, `integration/test_postgres_sources_api.py`, `web/Postgres.test.tsx` | PASS |
+| AC-04 | DRIVN-48 | `integration/test_credential_store.py`, `integration/test_postgres_password_store.py`, `web/Postgres.test.tsx` | PASS |
+| AC-05 | DRIVN-47 | `e2e/test_connect_postgres.py`, `integration/test_postgres_password_store.py`, `integration/test_postgres_profile_api.py`, `integration/test_postgres_sources_api.py`, `integration/test_postgres_values_api.py`, `web/Postgres.test.tsx` | PASS |
+| AC-06 | DRIVN-48 | `integration/test_postgres_password_store.py`, `integration/test_postgres_profile_api.py`, `web/Postgres.test.tsx` | PASS |
+| AC-07 | DRIVN-46, DRIVN-47 | `integration/test_postgres_connect.py`, `integration/test_postgres_extension.py`, `integration/test_postgres_extension_build.py`, `integration/test_postgres_sources_api.py`, `integration/test_wheel.py`, `web/Postgres.test.tsx` | PASS |
+| AC-08 | DRIVN-49 | `e2e/test_choose_postgres_objects.py`, `integration/test_postgres_discovery.py`, `integration/test_postgres_objects_api.py`, `integration/test_postgres_objects_store.py`, `web/DatabaseObjects.test.tsx` | PASS |
+| AC-09 | DRIVN-49 | `e2e/test_choose_postgres_objects.py`, `integration/test_postgres_discovery.py`, `integration/test_postgres_objects_api.py`, `integration/test_postgres_objects_store.py`, `web/DatabaseObjects.test.tsx` | PASS |
+| AC-10 | DRIVN-49 | `e2e/test_choose_postgres_objects.py`, `integration/test_postgres_discovery.py`, `integration/test_postgres_objects_api.py`, `integration/test_postgres_objects_store.py`, `web/DatabaseObjects.test.tsx` | PASS |
+| AC-11 | DRIVN-49 | `e2e/test_choose_postgres_objects.py`, `integration/test_postgres_objects_api.py`, `integration/test_postgres_objects_store.py`, `integration/test_postgres_preview_api.py`, `integration/test_postgres_values_api.py`, `web/DatabaseObjects.test.tsx` | PASS |
+| AC-12 | DRIVN-50 | `integration/test_postgres_preview_api.py`, `web/DatabaseObjects.test.tsx`, `web/Postgres.test.tsx` | PASS |
+| AC-13 | DRIVN-49, DRIVN-51 | `e2e/test_choose_postgres_objects.py`, `integration/test_postgres_objects_api.py`, `integration/test_postgres_objects_store.py`, `integration/test_postgres_profile_api.py`, `web/DatabaseObjects.test.tsx` | PASS |
+| AC-14 | DRIVN-47 | `integration/test_postgres_connect.py` | PASS |
+| AC-15 | DRIVN-58 | `e2e/test_postgres_journey.py`, `integration/test_postgres_fixture.py` | PASS |
+| AC-16 | DRIVN-52 | `e2e/test_postgres_journey.py`, `integration/test_postgres_discovery.py`, `integration/test_postgres_sources.py`, `integration/test_postgres_write_warning.py`, `web/Postgres.test.tsx` | PASS |
+| AC-17 | DRIVN-51 | `e2e/test_profile_postgres.py`, `integration/test_postgres_objects_store.py`, `integration/test_postgres_profile_api.py`, `web/Postgres.test.tsx` | PASS |
+| AC-18 | DRIVN-51 | `e2e/test_profile_postgres.py`, `integration/test_first_rows.py`, `integration/test_postgres_objects_store.py`, `integration/test_postgres_profile_api.py`, `integration/test_postgres_reading.py`, `web/Postgres.test.tsx` | PASS |
+| AC-19 | DRIVN-53 | `e2e/test_profile_postgres.py`, `integration/test_postgres_full_profile.py`, `integration/test_postgres_reading.py`, `web/Postgres.test.tsx` | PASS |
+| AC-20 | DRIVN-53 | `integration/test_finding_rules.py`, `integration/test_postgres_findings.py`, `integration/test_postgres_full_profile.py`, `integration/test_postgres_stopping.py`, `integration/test_postgres_values_api.py`, `web/Postgres.test.tsx` | PASS |
+| AC-21 | DRIVN-53 | `e2e/test_profile_postgres.py`, `integration/test_postgres_stopping.py`, `web/Postgres.test.tsx` | PASS |
+| AC-22 | DRIVN-53 | `integration/test_postgres_stopping.py` | PASS |
+| AC-23 | DRIVN-51, DRIVN-53 | `integration/test_postgres_profile_api.py` | PASS |
+| AC-24 | DRIVN-51 | `integration/test_first_rows.py`, `integration/test_postgres_full_profile.py`, `integration/test_postgres_profile_api.py`, `web/Postgres.test.tsx` | PASS |
+| AC-25 | DRIVN-54 | `golden/test_postgres_metrics.py` | PASS |
+| AC-26 | DRIVN-55 | `e2e/test_postgres_findings.py`, `integration/test_finding_rules.py`, `integration/test_postgres_findings.py`, `web/Postgres.test.tsx` | PASS |
+| AC-27 | DRIVN-55, DRIVN-56 | `e2e/test_postgres_values.py`, `integration/test_postgres_findings.py`, `integration/test_postgres_values_api.py`, `web/Postgres.test.tsx` | PASS |
+| AC-28 | DRIVN-56 | `e2e/test_postgres_values.py`, `integration/test_postgres_values.py`, `integration/test_postgres_values_api.py`, `web/Postgres.test.tsx` | PASS |
+| AC-29 | DRIVN-58 | `e2e/test_postgres_journey.py`, `integration/test_postgres_values_api.py` | PASS |
+| AC-30 | DRIVN-48 | `e2e/test_connect_postgres.py`, `integration/test_credential_store.py`, `integration/test_postgres_connect.py`, `integration/test_postgres_password_store.py` | PASS |
+| AC-31 | DRIVN-57 | `e2e/test_profile_postgres.py`, `integration/test_postgres_earlier_runs.py`, `integration/test_postgres_objects_store.py`, `web/Postgres.test.tsx` | PASS |
+| AC-32 | DRIVN-57 | `integration/test_postgres_earlier_runs.py`, `web/Postgres.test.tsx` | PASS |
+| AC-33 | DRIVN-57 | `integration/test_postgres_discovery.py`, `integration/test_postgres_earlier_runs.py`, `integration/test_postgres_values_stopping.py` | PASS |
+| AC-34 | DRIVN-46 | `integration/test_ci.py`, `integration/test_postgres_fixture.py`, `integration/test_testdata.py` | PASS |
+| AC-35 | DRIVN-58 | `e2e/test_postgres_journey.py` | PASS |
+| AC-36 | DRIVN-58 | Read: the threat register and ADRs 0005, 0006, 0008 (DRIVN-58, "AC-36, read") | PASS |
+
+Not verified here:
+- macOS and Windows: CI ran each ticket's pull request there, but not on this commit. The Compose path of
+  `server_log_from_now` (Linux) and a Windows server's log run first in DRIVN-58's CI.
+- A skipped test proves nothing: the 8 skips weren't listed in this run. Some PostgreSQL tests skip on a server that
+  can't check a connection, as on Windows (ADR 0009).
+- AC-28 with the server stopped or not listening: a refused password is tested instead, a known limit (DRIVN-56).
+
 ## Dependencies
 - `DRIVN-9`, done and merged (#15).
 - ADRs 0001 to 0005, and the threat register.

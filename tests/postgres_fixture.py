@@ -15,6 +15,8 @@ import socket
 import subprocess
 import sys
 import tempfile
+from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 
 HOST = "127.0.0.1"
@@ -244,6 +246,38 @@ def stop() -> None:
         # Volumes too, so the next start runs fixture.sql on an empty database again.
         _compose("down", "--volumes")
     shutil.rmtree(TLS, ignore_errors=True)
+
+
+# What a test reading the server's log sets, so each line names its application and role
+# (DRIVN-58). The servers' own default is `%m [%p] `.
+LOG_LINE_PREFIX = "%m [%p] app=%a user=%u "
+
+
+def server_log_from_now() -> Callable[[], str]:
+    """What the server logs from now on, read when asked: Compose's output since now, or the own
+    server's log from its present end, chosen as `start` chooses."""
+    if _compose_runs_linux():
+        since = datetime.now(UTC).isoformat()
+
+        def read_compose() -> str:
+            return subprocess.run(
+                [*COMPOSE, "logs", "--no-log-prefix", "--since", since, "postgres"],
+                env={**os.environ, "DRIVNX_POSTGRES_TLS": str(TLS)},
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout
+
+        return read_compose
+    log = OWN_SERVER / "server.log"
+    start_at = log.stat().st_size
+
+    def read_own() -> str:
+        with log.open("rb") as written:
+            written.seek(start_at)
+            return written.read().decode("utf-8", errors="replace")
+
+    return read_own
 
 
 if __name__ == "__main__":

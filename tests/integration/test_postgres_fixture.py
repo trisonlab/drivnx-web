@@ -1,13 +1,14 @@
 """The PostgreSQL fixture tests run against, DRIVN-45 AC-34 and AC-07."""
 
 import re
+from collections.abc import Callable, Iterator
 from datetime import date
 from pathlib import Path
 
 import duckdb
 import pytest
 from connectors.csv_files import duckdb_connection
-from connectors.postgres import load_postgres
+from connectors.postgres import ConnectionDetails, attach, load_postgres
 
 from .. import postgres_fixture
 from ..conftest import REPO_ROOT, find_postgres
@@ -137,3 +138,94 @@ def test_with_no_way_to_start_postgres_the_message_says_what_would_work(
         postgres_fixture._binaries()
 
     assert "Compose" in str(stopped.value)
+
+
+# A role of its own, whose statements the server logs while a test asks it to (DRIVN-58).
+LOGGED_ROLE = "drivnx_logged"
+LOGGED_PASSWORD = "drivnx-logged"  # pragma: allowlist secret, ai-skills: allow
+
+
+@pytest.fixture
+def logged_role(
+    postgres_admin: Callable[[str], None], logging_statements: Callable[[str], None]
+) -> Iterator[str]:
+    for statement in (
+        f"DROP ROLE IF EXISTS {LOGGED_ROLE}",
+        f"CREATE ROLE {LOGGED_ROLE} LOGIN PASSWORD '{LOGGED_PASSWORD}'",
+    ):
+        postgres_admin(statement)
+    logging_statements(LOGGED_ROLE)
+    try:
+        yield LOGGED_ROLE
+    finally:
+        postgres_admin(f"DROP ROLE {LOGGED_ROLE}")
+
+
+def first_row(tmp_path: Path, attached: Callable[[duckdb.DuckDBPyConnection], None], sql: str):
+    with duckdb_connection(tmp_path) as connection:
+        attached(connection)
+        return connection.execute(
+            "SELECT * FROM postgres_query('source', ?)", [sql]
+        ).fetchone()
+
+
+def test_a_logged_roles_statements_are_in_the_servers_log_with_their_application(
+    logged_role: str, tmp_path: Path
+) -> None:
+    # DRIVN-45/AC-15 needs "the fixture's statement log", each statement with its application.
+    read = postgres_fixture.server_log_from_now()
+    details = ConnectionDetails(
+        host=postgres_fixture.HOST,
+        port=postgres_fixture.PORT,
+        database=postgres_fixture.DATABASE,
+        user=logged_role,
+        tls_mode="prefer",
+    )
+
+    def as_drivnx(connection: duckdb.DuckDBPyConnection) -> None:
+        attach(connection, details, LOGGED_PASSWORD)
+
+    def as_another_application(connection: duckdb.DuckDBPyConnection) -> None:
+        load_postgres(connection)
+        dsn = postgres_fixture.dsn(logged_role, LOGGED_PASSWORD) + " application_name=elsewhere"
+        connection.execute(f"ATTACH '{dsn}' AS source (TYPE postgres, READ_ONLY)")
+
+    first_row(tmp_path / "drivnx", as_drivnx, "SELECT 1 AS from_drivnx")
+    first_row(tmp_path / "elsewhere", as_another_application, "SELECT 2 AS from_elsewhere")
+    logged = read()
+
+    assert re.search(
+        rf"app=DrivnX user={logged_role} .*statement: .*SELECT 1 AS from_drivnx", logged
+    )
+    assert re.search(
+        rf"app=elsewhere user={logged_role} .*statement: .*SELECT 2 AS from_elsewhere", logged
+    )
+
+
+def test_a_role_that_isnt_logged_leaves_no_statement_in_the_servers_log(
+    logged_role: str, tmp_path: Path
+) -> None:
+    # Only the roles a test names, so other tests' sessions aren't logged. The logged role's
+    # statement after it shows the log was read (the DRIVN-58 review).
+    read = postgres_fixture.server_log_from_now()
+
+    def as_(user: str, password: str) -> Callable[[duckdb.DuckDBPyConnection], None]:
+        details = ConnectionDetails(
+            host=postgres_fixture.HOST,
+            port=postgres_fixture.PORT,
+            database=postgres_fixture.DATABASE,
+            user=user,
+            tls_mode="prefer",
+        )
+        return lambda connection: attach(connection, details, password)
+
+    first_row(
+        tmp_path / "unlogged",
+        as_(postgres_fixture.USER, postgres_fixture.PASSWORD),
+        "SELECT 3 AS not_logged",
+    )
+    first_row(tmp_path / "logged", as_(logged_role, LOGGED_PASSWORD), "SELECT 4 AS logged_after")
+    logged = read()
+
+    assert "logged_after" in logged
+    assert "not_logged" not in logged

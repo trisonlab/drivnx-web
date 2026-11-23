@@ -380,7 +380,7 @@ def postgres_server() -> str:
 
 
 @pytest.fixture(scope="module")
-def postgres_admin(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Callable[[str], None]]:
+def postgres_admin(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Callable[..., None]]:
     """Run SQL in the fixture's database as its superuser, so tests can make the objects they
     need. Only tests sign in this way: DrivnX never does."""
     find_postgres(postgres_fixture.PORT, os.environ.get("DRIVNX_REQUIRE_POSTGRES") == "1")
@@ -391,8 +391,40 @@ def postgres_admin(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Callabl
         load_postgres(connection)
         connection.execute(f"ATTACH '{admin_dsn}' AS admin (TYPE postgres)")
 
-        def run(sql: str) -> None:
-            """One statement: the extension prepares it, and PostgreSQL prepares only one."""
-            connection.execute("CALL postgres_execute('admin', ?)", [sql])
+        def run(sql: str, *, in_transaction: bool = True) -> None:
+            """One statement: the extension prepares it, and PostgreSQL prepares only one. Without
+            `in_transaction` for one PostgreSQL refuses in a transaction, as `ALTER SYSTEM`."""
+            connection.execute(
+                "CALL postgres_execute('admin', ?, use_transaction := ?)", [sql, in_transaction]
+            )
 
         yield run
+
+
+@pytest.fixture
+def logging_statements(postgres_admin: Callable[..., None]) -> Iterator[Callable[[str], None]]:
+    """Have the server log every statement of the roles given, each line naming its application
+    and role (DRIVN-58), until the test ends. Only those roles, so no other session is logged; the
+    prefix is the server's own setting, which `ALTER SYSTEM` changes until it's put back."""
+    roles: list[str] = []
+    postgres_admin(
+        f"ALTER SYSTEM SET log_line_prefix = '{postgres_fixture.LOG_LINE_PREFIX}'",
+        in_transaction=False,
+    )
+    postgres_admin("SELECT pg_reload_conf()")
+
+    def log(role: str) -> None:
+        postgres_admin(f"ALTER ROLE {role} SET log_statement = 'all'")
+        roles.append(role)
+
+    try:
+        yield log
+    finally:
+        for role in roles:
+            # A test may have dropped it, and its settings with it.
+            postgres_admin(
+                f"DO $$ BEGIN IF EXISTS (SELECT FROM pg_roles WHERE rolname = '{role}')"
+                f" THEN ALTER ROLE {role} RESET log_statement; END IF; END $$"
+            )
+        postgres_admin("ALTER SYSTEM RESET log_line_prefix", in_transaction=False)
+        postgres_admin("SELECT pg_reload_conf()")
