@@ -1,5 +1,5 @@
 schema: ai-skill-os/knowledge-facts/v1
-updated_at: '2026-11-22T07:31:18+00:00'
+updated_at: '2026-11-22T11:56:08+00:00'
 facts:
 - id: api:openapi
   status: INFERRED
@@ -59,8 +59,8 @@ facts:
   planned_in: ../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md:155
 - id: language:javascript
   status: CONFIRMED
-  evidence: package.json
-  sha256: 0fccfac7f0eaa7d34ebea892b1f2bdfa14808f62e25fc47e362e271a3c4165f6
+  evidence: apps/web/package.json
+  sha256: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
   source: detector
 - id: language:python
   status: CONFIRMED
@@ -82,8 +82,8 @@ facts:
   source: detector
 - id: pm:pnpm
   status: CONFIRMED
-  evidence: pnpm-lock.yaml
-  sha256: 17c814b167307942d3609c7b9d916ceddb85839573ab39baa114e30edb132a1a
+  evidence: apps/web/pnpm-lock.yaml
+  sha256: c9140539e3622a70d6a0d272593b22dc12a51e3ea75a816bfd33f52a89a2708b
   source: detector
 - id: pm:uv
   status: CONFIRMED
