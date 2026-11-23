@@ -129,10 +129,7 @@ def test_cancelling_a_run_mid_read_stops_the_read_on_the_server(
     started = client.post("/api/profile-runs", json={"source_id": source_id, "mode": mode})
     assert started.status_code == 202, started.text
     run_id = started.json()["id"]
-    deadline = time.monotonic() + 30
-    while not drivnx_queries(read) and time.monotonic() < deadline:
-        time.sleep(0.01)
-    assert drivnx_queries(read) == 1, "The read never started on the server."
+    reading(drivnx_queries, read)
 
     cancelled_at = time.monotonic()
     response = client.post(f"/api/profile-runs/{run_id}/cancel")
@@ -223,11 +220,20 @@ SLOW_READS = [
 
 
 def reading(drivnx_queries: Callable[[str], int], read: str) -> None:
-    """Wait until DrivnX is running this read on the server."""
+    """Wait until DrivnX is running this read on the server. What ended the wait is checked, not
+    a second look, which can fall between a table scan's chunks."""
     deadline = time.monotonic() + 30
-    while not drivnx_queries(read) and time.monotonic() < deadline:
+    while not (running := drivnx_queries(read)) and time.monotonic() < deadline:
         time.sleep(0.01)
-    assert drivnx_queries(read) == 1, "The read never started on the server."
+    assert running == 1, "The read never started on the server."
+
+
+def test_waiting_for_a_read_isnt_fooled_by_a_gap_between_its_chunks() -> None:
+    # A table's scan is `COPY` after `COPY` over one session, which is idle between them: as
+    # sampled while `big` was read, the read was running at the third sample and not at the
+    # fourth. Main's CI on macOS failed so on e112790.
+    samples = iter([0, 0, 1, 0])
+    reading(lambda _pattern: next(samples), "COPY%")
 
 
 @pytest.mark.parametrize(("mode", "name", "read"), SLOW_READS)
