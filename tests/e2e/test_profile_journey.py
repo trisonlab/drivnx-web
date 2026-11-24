@@ -140,8 +140,10 @@ LOCK_NAME = ".drivnx.lock"
 # Any part of a planted value that could tell someone what it was: a value saved cut short, or a
 # word of it, is found as well as the whole. Masked patterns can't match, as they hold no letter
 # but A and no digit but 9. Every planted value is checked to match before a scan is trusted.
+# An email's own part is matched by its exact shape, not `zq\w+?k`, because the launch URL is in
+# the output and about 1 random launch code in 450 holds `zq`, then letters, then a `k`.
 PLANTED = re.compile(
-    rb"zq\w+?k|rq\d+vz|9182736\d|7293846\d|planted\.example|Zephyrine"
+    rb"zq(?:\d+(?:after)?|before|oops)k|rq\d+vz|9182736\d|7293846\d|planted\.example|Zephyrine"
     rb"|Quillmarsh|Norvale|Brindlewick|Ostray|Vexhollow|Carran|Thistlemoor|Ebbing"
 )
 
@@ -167,6 +169,15 @@ def every_file_in(folder: Path) -> bytes:
 def planted_in(data: bytes) -> list[bytes]:
     """Every part of a planted value found in the data. SQLite and the logs hold text as UTF-8."""
     return PLANTED.findall(data)
+
+
+def test_the_scan_finds_each_kind_of_planted_value_but_not_a_launch_code() -> None:
+    # DRIVN-45/AC-29: the scan reads the launch URL with the rest of DrivnX's output, and a launch
+    # code is random URL-safe base64. The first code here failed a CI run on Windows.
+    for code in (b"h0zqh0EEjFjZv2Pbk-1", b"zq1BfXk", b"AzqMpXDyhSaocspRZ6PkQ"):
+        assert planted_in(b"http://127.0.0.1:43841/#launch=" + code + b"\n") == []
+    for part in (b"zq7k", b"zq2999k", b"zqbeforek", b"zqoopsk", b"zq2afterk"):
+        assert planted_in(b"x" + part + b"@") == [part]
 
 
 def assert_no_value_kept_or_logged(
