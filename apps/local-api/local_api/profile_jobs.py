@@ -283,6 +283,7 @@ def _run_database_profile(
         findings = [] if job.stop.is_set() else _objects_findings(workspace, run_id, objects)
         status = "completed"
     except (ConnectFailure, duckdb.Error, OSError, WorkspaceBusy) as error:
+        import traceback; print(f"[DEBUG-7c1e] {time.monotonic():.3f} run failed at {job.object_name}: {type(error).__name__}: {str(error)[:200]}\n" + "".join(traceback.format_tb(error.__traceback__)[-4:]), flush=True)
         # Never DuckDB's or the server's text, which can quote the database's values.
         if not job.stop.is_set():
             if isinstance(error, WorkspaceBusy):
@@ -394,7 +395,9 @@ def _measure_objects(
             def aim_cancel() -> None:
                 """Point the server's cancel at the session about to read. The extension
                 replaces one that has ended or been left idle a minute, without a word."""
+                print(f"[DEBUG-7c1e] {time.monotonic():.3f} aim cancel: {job.object_name}", flush=True)
                 pid = session_pid(connection)
+                print(f"[DEBUG-7c1e] {time.monotonic():.3f} aimed at pid={pid}", flush=True)
                 with _jobs_lock:
                     job.cancel_on_server = functools.partial(
                         cancel_read, details, password, pid, workspace.temp_directory
@@ -453,7 +456,8 @@ def _read_within_time_limit(
     try:
         with _time_limit(job, time_limit_minutes, reached):
             return _read_object(connection, "full", found, readings, seed, before_whole_read)
-    except (ConnectFailure, duckdb.Error):
+    except (ConnectFailure, duckdb.Error) as error:
+        print(f"[DEBUG-7c1e] {time.monotonic():.3f} read of {found.name} ended: reached={reached.is_set()} {type(error).__name__}: {str(error)[:160]!r}", flush=True)
         if job.stop.is_set() or not reached.is_set():
             raise
         # No results for it, only that it was stopped (ADR 0009 Decision 5).
@@ -616,6 +620,7 @@ def _interrupt(job: _Job) -> None:
 
 
 def _stop_at_time_limit(job: _Job, reached: threading.Event, read_over: threading.Event) -> None:
+    print(f"[DEBUG-7c1e] {time.monotonic():.3f} limit reached: {job.object_name}", flush=True)
     reached.set()
     _stop_read(job, read_over)
 
@@ -636,11 +641,14 @@ def _stop_read(job: _Job, until: threading.Event) -> None:
         if cancel is not None:
             # Once, and not under the lock, as it connects to the server.
             cancelled = True
+            print(f"[DEBUG-7c1e] {time.monotonic():.3f} cancel on server: {job.object_name} pid={cancel.args[2]}", flush=True)
             try:
                 cancel()
-            except (ConnectFailure, duckdb.Error, OSError):
+            except (ConnectFailure, duckdb.Error, OSError) as error:  # [DEBUG-7c1e]
+                print(f"[DEBUG-7c1e] {time.monotonic():.3f} cancel failed: {type(error).__name__}", flush=True)
                 # The read still ends at its statement timeout, and the run as asked.
                 pass
+            print(f"[DEBUG-7c1e] {time.monotonic():.3f} cancel sent", flush=True)
         until.wait(INTERRUPT_EVERY_SECONDS)
 
 

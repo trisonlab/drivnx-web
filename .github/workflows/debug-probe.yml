@@ -1,0 +1,35 @@
+# [DEBUG-7c1e] Throwaway: why a full run with a time limit ended "failed" on Windows. Never merged.
+name: Debug probe
+
+on:
+  push:
+    branches: [debug/drivn-55-time-limit-windows]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      DRIVNX_REQUIRE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.6"
+      - run: uv sync --frozen
+      - run: uv run --frozen python tests/postgres_fixture.py start
+      - name: Sweep limits
+        env:
+          PROBE_LIMITS: "0.25,0.5,1,1.5,2,2.5,3"
+          PROBE_ATTEMPTS: "10"
+        run: uv run --frozen pytest tests/integration/test_zz_debug_time_limit.py -s -q
+      - name: The failing test's own limit
+        env:
+          PROBE_LIMITS: "3"
+          PROBE_ATTEMPTS: "30"
+        run: uv run --frozen pytest tests/integration/test_zz_debug_time_limit.py -s -q
