@@ -237,7 +237,10 @@ def test_an_object_stopped_at_its_time_limit_has_no_findings_and_the_others_do(
     assert response.status_code == 202, response.text
     run_id = response.json()["id"]
 
-    assert ended(client, run_id)["status"] == "completed"
+    run_ended = ended(client, run_id)
+    # With its reason, as a CI runner's workspace is gone once the test fails there: a run here
+    # failed once on Windows, and 200 runs of this test alone never did again.
+    assert run_ended["status"] == "completed", run_ended["failure"]
     (late,) = [c for c in read_chosen_objects(workspace.engine, source_id) if c.name == "late_gaps"]
     assert [
         seen.metric
