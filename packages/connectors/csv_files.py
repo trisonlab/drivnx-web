@@ -30,7 +30,7 @@ BOM_UTF32_LE = b"\xff\xfe\x00\x00"
 NOT_TEXT = "This file isn't text, so it can't be read as a CSV."
 NOT_CSV = "This file can't be read as a CSV."
 ROW_NOT_READABLE = "A row in this file can't be read, so this page can't be shown."
-NOT_REGULAR_FILE = "This path is not a regular file, so it can't be read as a CSV."
+NOT_REGULAR_FILE = "This path is not a regular file, so DrivnX can't read it."
 SETTINGS_NOT_READABLE = "DrivnX can't read this file with these settings. Your previous settings are still in use."
 # DuckDB treats # as a comment if it fits the sample, which removes rows from the file's table. It
 # can only be turned off, so a real comment line is shown as a row.
@@ -97,13 +97,18 @@ NORMALISED_TYPES = {
     "TINYINT": "integer",
     "HUGEINT": "integer",
     "UBIGINT": "integer",
+    "UINTEGER": "integer",
+    "USMALLINT": "integer",
+    "UTINYINT": "integer",
     "DOUBLE": "number",
     "FLOAT": "number",
     "DECIMAL": "number",
     "BOOLEAN": "boolean",
     "DATE": "date",
     "TIME": "time",
+    "TIME WITH TIME ZONE": "time",
     "TIMESTAMP": "timestamp",
+    "TIMESTAMP_NS": "timestamp",
     "TIMESTAMP WITH TIME ZONE": "timestamp",
     "VARCHAR": "string",
 }
@@ -151,10 +156,13 @@ class CsvPage:
 
 def normalised_type(duckdb_type: str) -> str:
     """The type vocabulary ADR 0003's contract rules use. Anything unknown stays text."""
+    # A list, such as DECIMAL(10,2)[], which ADR 0003 has no type for, whatever it holds.
+    if "[" in duckdb_type:
+        return "string"
     return NORMALISED_TYPES.get(duckdb_type.split("(")[0], "string")
 
 
-def _literal(path: Path) -> str:
+def literal_path(path: Path) -> str:
     """DuckDB treats * ? [ in a path as wildcards, which could open a different file."""
     return str(path).translate({ord(c): f"[{c}]" for c in "*?["})
 
@@ -269,7 +277,7 @@ def _readable_path(
     if encoding in READ_BY_DUCKDB and not (
         encoding == "UTF-16 LE" and _has_surrogate_pairs(path)
     ):
-        yield _literal(path), READ_BY_DUCKDB[encoding]
+        yield literal_path(path), READ_BY_DUCKDB[encoding]
         return
     if path.stat().st_size > DECODED_IN_MEMORY_LIMIT_BYTES:
         raise TooLargeToDecode(

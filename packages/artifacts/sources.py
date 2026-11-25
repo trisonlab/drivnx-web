@@ -48,9 +48,25 @@ class StoredPostgresSource:
     kind: str = "postgres"
 
 
+@dataclass(frozen=True)
+class StoredParquetSource:
+    """A Parquet file and what its metadata says, never a statistic's minimum or maximum."""
+
+    id: str
+    path: Path
+    size_bytes: int
+    modified_at: str
+    row_count: int
+    row_group_count: int
+    created_by: str | None
+    fields: tuple[StoredField, ...]
+    kind: str = "parquet"
+
+
 _SELECT_SOURCES = """
     SELECT id, path, delimiter, encoding, has_header, size_bytes, modified_at, kind, skip_lines,
-           corrected, host, port, database_name, user_name, tls_mode, ca_path
+           corrected, host, port, database_name, user_name, tls_mode, ca_path, row_count,
+           row_group_count, created_by
     FROM source
 """
 
@@ -67,12 +83,14 @@ def _postgres(row) -> StoredPostgresSource:
     )
 
 
-def _stored(connection: Connection, row) -> StoredSource | StoredPostgresSource:
+def _stored(
+    connection: Connection, row
+) -> StoredSource | StoredPostgresSource | StoredParquetSource:
     # A database's datasets are the objects discovery found: `read_objects` lists them.
     return _postgres(row) if row.kind == "postgres" else _with_fields(connection, row)
 
 
-def _with_fields(connection: Connection, row) -> StoredSource:
+def _current_fields(connection: Connection, source_id: str) -> tuple[StoredField, ...]:
     fields = connection.execute(
         text(
             """
@@ -82,8 +100,23 @@ def _with_fields(connection: Connection, row) -> StoredSource:
             ORDER BY field.position
             """
         ),
-        {"source_id": row.id},
+        {"source_id": source_id},
     )
+    return tuple(StoredField(*field) for field in fields)
+
+
+def _with_fields(connection: Connection, row) -> StoredSource | StoredParquetSource:
+    if row.kind == "parquet":
+        return StoredParquetSource(
+            id=row.id,
+            path=Path(row.path),
+            size_bytes=row.size_bytes,
+            modified_at=row.modified_at,
+            row_count=row.row_count,
+            row_group_count=row.row_group_count,
+            created_by=row.created_by,
+            fields=_current_fields(connection, row.id),
+        )
     return StoredSource(
         id=row.id,
         path=Path(row.path),
@@ -92,20 +125,24 @@ def _with_fields(connection: Connection, row) -> StoredSource:
         has_header=bool(row.has_header),
         size_bytes=row.size_bytes,
         modified_at=row.modified_at,
-        fields=tuple(StoredField(*field) for field in fields),
+        fields=_current_fields(connection, row.id),
         kind=row.kind,
         skip_lines=row.skip_lines,
         corrected=bool(row.corrected),
     )
 
 
-def list_sources(engine: Engine) -> list[StoredSource | StoredPostgresSource]:
+def list_sources(
+    engine: Engine,
+) -> list[StoredSource | StoredPostgresSource | StoredParquetSource]:
     with engine.connect() as connection:
         rows = connection.execute(text(f"{_SELECT_SOURCES} ORDER BY rowid")).all()
         return [_stored(connection, row) for row in rows]
 
 
-def find_source_by_path(engine: Engine, path: Path) -> StoredSource | None:
+def find_source_by_path(
+    engine: Engine, path: Path
+) -> StoredSource | StoredParquetSource | None:
     with engine.connect() as connection:
         row = connection.execute(
             text(f"{_SELECT_SOURCES} WHERE path = :path"), {"path": str(path)}
@@ -115,7 +152,7 @@ def find_source_by_path(engine: Engine, path: Path) -> StoredSource | None:
 
 def find_source(
     engine: Engine, source_id: str
-) -> StoredSource | StoredPostgresSource | None:
+) -> StoredSource | StoredPostgresSource | StoredParquetSource | None:
     with engine.connect() as connection:
         row = connection.execute(
             text(f"{_SELECT_SOURCES} WHERE id = :id"), {"id": source_id}
@@ -255,7 +292,9 @@ def replaced_datasets(engine: Engine, dataset_ids: list[str]) -> set[str]:
     return {row.id for row in rows}
 
 
-def _insert_dataset(connection: Connection, source: StoredSource) -> None:
+def _insert_dataset(
+    connection: Connection, source: StoredSource | StoredParquetSource
+) -> None:
     dataset_id = uuid.uuid4().hex
     connection.execute(
         text(
@@ -307,6 +346,37 @@ def add_csv_source(engine: Engine, source: StoredSource) -> bool:
                 "has_header": int(source.has_header),
                 "size_bytes": source.size_bytes,
                 "modified_at": source.modified_at,
+            },
+        ).rowcount
+        if not added:
+            return False
+        _insert_dataset(connection, source)
+    return True
+
+
+def add_parquet_source(engine: Engine, source: StoredParquetSource) -> bool:
+    """Save a Parquet file with its dataset and fields. False if the path is already connected."""
+    with write_transaction(engine) as connection:
+        added = connection.execute(
+            text(
+                """
+                INSERT INTO source
+                    (id, kind, path, size_bytes, modified_at, row_count, row_group_count,
+                     created_by)
+                VALUES
+                    (:id, 'parquet', :path, :size_bytes, :modified_at, :row_count,
+                     :row_group_count, :created_by)
+                ON CONFLICT (path) DO NOTHING
+                """
+            ),
+            {
+                "id": source.id,
+                "path": str(source.path),
+                "size_bytes": source.size_bytes,
+                "modified_at": source.modified_at,
+                "row_count": source.row_count,
+                "row_group_count": source.row_group_count,
+                "created_by": source.created_by,
             },
         ).rowcount
         if not added:

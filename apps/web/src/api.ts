@@ -56,6 +56,21 @@ export type CsvSource = {
   columns: Column[];
 };
 
+// What a Parquet file's metadata says, never a statistic's minimum or maximum (DRIVN-61).
+export type ParquetSource = {
+  id: string;
+  kind: "parquet";
+  name: string;
+  path: string;
+  size_bytes: number;
+  modified_at: string;
+  available: boolean;
+  row_count: number;
+  row_group_count: number;
+  created_by: string | null;
+  columns: Column[];
+};
+
 export type TlsMode = "prefer" | "require" | "verify-full";
 
 // How long a password is kept, which the screen tells the user (DRIVN-45 AC-04, AC-05).
@@ -82,7 +97,7 @@ export type PostgresSource = {
   encrypted: boolean | null;
 };
 
-export type Source = CsvSource | PostgresSource;
+export type Source = CsvSource | ParquetSource | PostgresSource;
 
 const SOURCES_PATH = "/api/sources";
 
@@ -104,7 +119,7 @@ export class RefusedPathError extends Error {
   }
 }
 
-export async function connectSource(path: string): Promise<CsvSource> {
+export async function connectSource(path: string): Promise<CsvSource | ParquetSource> {
   const response = await fetch(SOURCES_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

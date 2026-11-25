@@ -18,6 +18,7 @@ from artifacts.profiles import (
 )
 from artifacts.provenance import now
 from artifacts.sources import (
+    StoredParquetSource,
     StoredPostgresSource,
     StoredSource,
     changed_since_listed,
@@ -72,6 +73,8 @@ from local_api.write_access import can_write, refusal, write_access
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
 NOTHING_CHOSEN = "Choose the objects to profile first."
 TIME_LIMIT_NOT_HERE = "A time limit applies only to a database's full profile."
+# Until DRIVN-63 profiles a Parquet file.
+NO_PARQUET_PROFILE = "This Parquet file can't be profiled yet."
 OBJECTS_CHANGED = "{} changed since the list was refreshed. Refresh the list, then profile again."
 OBJECTS_CHANGED_JUST_NOW = "The list was refreshed just now. Start the profile again."
 ALREADY_FINISHED = "This profile has already finished."
@@ -417,6 +420,8 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
                     )
                 )
             )
+        if isinstance(database, StoredParquetSource):
+            raise HTTPException(status_code=409, detail=NO_PARQUET_PROFILE)
         try:
             # Before the settings, so a correction saved after either replaces this dataset, and
             # the start is refused instead of reading with settings that aren't this dataset's.

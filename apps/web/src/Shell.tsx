@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import { type AiMode, getSources, type Workspace } from "./api";
 import { DataExplorer, SOURCES_QUERY } from "./DataExplorer";
 import { Findings } from "./Findings";
+import { ParquetDetails } from "./ParquetDetails";
 import { PostgresDetails } from "./PostgresDetails";
 import { Preview } from "./Preview";
 import { ProfileTab, profileStatus, useProfileRuns } from "./ProfileTab";
@@ -81,7 +82,8 @@ export function Shell({ workspace }: { workspace: Workspace }) {
           // A chosen object's rows are previewed in its details (DRIVN-50).
           <PostgresDetails source={chosen} />
         )}
-        {chosen && chosen.kind !== "postgres" && (
+        {chosen?.kind === "parquet" && <ParquetDetails source={chosen} />}
+        {chosen && chosen.kind !== "postgres" && chosen.kind !== "parquet" && (
           <>
             <SourceDetails source={chosen} />
             <Preview
