@@ -1,19 +1,31 @@
 ---
-title: "How DuckDB 2.0.0 reads XLSX (excel extension, not bundled) and Parquet (built in)"
+title: How DuckDB 2.0.0 reads XLSX (excel extension, not bundled) and Parquet (built in)
 status: INFERRED
-updated: "2026-11-14"
+updated: '2026-11-25'
 evidence:
-  - path: pyproject.toml
-  - path: uv.lock
-  - path: hatch_postgres.py
-  - path: docs/adr/0006-postgres-extension-in-the-wheel.md
-  - path: packages/connectors/csv_files.py
+- path: pyproject.toml
+  sha256: 44e6c51efc357b05bccb13ace5dd1da37ab07d5858303c7cc8492d621368d91b
+- path: uv.lock
+  sha256: 71f0537a186d2156f44af20e562dbb391f880e540b9621813cbcb571906d693f
+- path: hatch_postgres.py
+  sha256: 1b0d0fc26a8a76d33f62dda14623794a84da197094428a799ecff8344f1e8784
+- path: docs/adr/0006-postgres-extension-in-the-wheel.md
+  sha256: 5db83887b3a05068316af944d09589e3ac35f3f902b90cba25554ab9bf908207
+- path: packages/connectors/csv_files.py
+  sha256: 085f4ed82bf8e147ad4b653ee8de548b3c939e6aa50734827a79ebfe47e30dad
+- path: packages/connectors/parquet_files.py
+  sha256: 648ac9febb0839731bd630c7004852cda83e428cd46b8cdb6684e3111e91dceb
+- path: apps/local-api/local_api/sources_api.py
+  sha256: e898fcceb42eb8e5a6174eae749c91f0b405f991ed9f5e6ac80ab9b831bea2c4
+- path: tests/integration/test_parquet_sources.py
+  sha256: 4e480db0511b5f125e52a9700875966af01a495a60dac46c3a79b38322155d2a
 sources:
-  - https://duckdb.org/docs/2.0/core_extensions/excel.html (retrieved 2026-11-14)
-  - https://duckdb.org/docs/2.0/guides/file_formats/excel_import.html (retrieved 2026-11-14)
-  - https://duckdb.org/docs/2.0/data/parquet/overview.html (retrieved 2026-11-14)
-  - https://duckdb.org/docs/2.0/data/parquet/metadata.html (retrieved 2026-11-14)
-  - https://github.com/duckdb/duckdb-excel/tree/81bb84b115b97cc4edec4827714cac80da0127e1 (commit "Bump submodules for v2.0.0", 2026-10-14)
+- https://duckdb.org/docs/2.0/core_extensions/excel.html (retrieved 2026-11-14)
+- https://duckdb.org/docs/2.0/guides/file_formats/excel_import.html (retrieved 2026-11-14)
+- https://duckdb.org/docs/2.0/data/parquet/overview.html (retrieved 2026-11-14)
+- https://duckdb.org/docs/2.0/data/parquet/metadata.html (retrieved 2026-11-14)
+- https://github.com/duckdb/duckdb-excel/tree/81bb84b115b97cc4edec4827714cac80da0127e1 (commit "Bump submodules
+  for v2.0.0", 2026-10-14)
 ---
 # How DuckDB 2.0.0 reads XLSX and Parquet
 
@@ -107,7 +119,9 @@ confirm them.
 - **Native types are kept:** BIGINT, UTINYINT, UBIGINT, DECIMAL(38,2), DATE, TIME, TIME WITH TIME ZONE, TIMESTAMP WITH TIME
   ZONE, TIMESTAMP_NS, INTERVAL, UUID, BLOB, BOOLEAN, FLOAT, lists, nested lists, structs, maps, JSON. An ENUM written by
   DuckDB reads back as VARCHAR, HUGEINT as DOUBLE. Every one casts to VARCHAR (`[[1, 2], [3]]`, `{'a': {'b': [1]}}`).
-  `normalised_type` in `csv_files.py` maps several of these (TIMESTAMP_NS, UUID, UINTEGER, nested) to `string`.
+  Since DRIVN-61, `normalised_type` in `csv_files.py` maps TIMESTAMP_NS to `timestamp`, TIME WITH TIME ZONE to `time`
+  and UINTEGER, USMALLINT and UTINYINT to `integer`. Any list (a type containing `[`), struct, map, UUID and BLOB is
+  `string`.
 - **Reads (warm page cache, same file):** first 100,000 rows into a temp table 0.058 s; a 50-row page at offset 10 million
   0.033 s; `USING SAMPLE reservoir(100000 rows) REPEATABLE (42)` 4.2 s; `0.25% (system, 42)` 3.2 s (90,112 rows);
   `0.25% (bernoulli, 42)` 3.5 s; `count(DISTINCT)` on a 32-character text column 6.5 s. A random sample still reads the
@@ -120,6 +134,29 @@ confirm them.
 - **Paths:** globs are expanded (`we[ir]d*.parquet` matched by pattern), several files with different columns fail
   without `union_by_name`, and a directory is read recursively [docs]. `literal_path` and the existing directory check apply.
 - **Encryption:** encrypted files need `encryption_config` [docs]; `encryption_algorithm` shows one is encrypted.
+
+## What DrivnX does with this since DRIVN-61 [code and tests]
+
+Connecting a Parquet file (`sources_api.connect_source`) relies on the facts above as follows:
+
+- **Detection is by content, not by suffix.** The file has to start and end with `PAR1`, or with `PARE` (encrypted
+  footer), and be at least 12 bytes long (`parquet_files.is_parquet`). Otherwise it's read as a CSV, so a CSV whose
+  text happens to start with `PAR1` stays a CSV.
+- **What's read:** `parquet_file_metadata` (`num_rows`, `num_row_groups`, `created_by`) and `DESCRIBE read_parquet`
+  (`parquet_files.read_metadata`). `parquet_metadata` and its `stats_*` columns are never queried, so no statistic
+  reaches a response, a log or `workspace.db`. Tests plant values in the statistics and check that they appear nowhere.
+- **Refusals before DuckDB sees the path:**
+  - A remote URL (`s3://`, `https://`, `file://`) is refused with "DrivnX reads files on this computer only". `REMOTE`
+    needs a scheme of two or more letters, so `C://` stays a path.
+  - A folder is refused, so the recursive read of a directory never happens.
+  - An encrypted file is refused by its `PARE` magic.
+  - A DuckDB error while reading the metadata becomes "This file isn't a Parquet file", without the path in it.
+- **Storage:** migration `0010_xlsx_parquet_sources` adds the `parquet` kind and the `row_count`, `row_group_count` and
+  `created_by` columns to `source`.
+- **Not verified:**
+  - a file written by parquet-cpp-arrow, as pyarrow isn't installed and tests write their files with DuckDB;
+  - plaintext-footer encryption, which starts with `PAR1`, so the `PARE` check doesn't catch it;
+  - `C://` on Windows.
 
 ## Open
 
