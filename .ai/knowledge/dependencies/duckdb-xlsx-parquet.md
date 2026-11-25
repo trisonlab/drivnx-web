@@ -58,7 +58,7 @@ confirm them.
 - **Options** (`ReadXLSX::GetFunction`): `header`, `all_varchar`, `ignore_errors`, `range`, `sheet`, `stop_at_empty`,
   `empty_as_varchar`, `normalize_names`. `normalize_names` is in the source but not the docs page.
 - **Path is a glob** (`Bind` calls `GlobFiles`) and only the first match is read, so `*`, `?` and `[` in a path must be
-  escaped, as `_literal` already does for CSV.
+  escaped, as `literal_path` already does for CSV.
 - **No way to list sheets.** The first sheet in `workbook.xml` is the default. A wrong name fails with
   `Sheet "x" not found ... Did you mean`. Hidden sheets are read like visible ones (the `state` attribute is ignored);
   chart sheets aren't worksheets and aren't offered. [inferred] DrivnX would list sheets itself by reading
@@ -118,7 +118,7 @@ confirm them.
   `s3://` and `https://` paths fail because `httpfs` isn't loaded. Invalid UTF-8 fails by default (`utf8_validation =
   'strict'`) [docs].
 - **Paths:** globs are expanded (`we[ir]d*.parquet` matched by pattern), several files with different columns fail
-  without `union_by_name`, and a directory is read recursively [docs]. `_literal` and the existing directory check apply.
+  without `union_by_name`, and a directory is read recursively [docs]. `literal_path` and the existing directory check apply.
 - **Encryption:** encrypted files need `encryption_config` [docs]; `encryption_algorithm` shows one is encrypted.
 
 ## Open

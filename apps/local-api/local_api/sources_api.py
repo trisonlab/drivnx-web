@@ -1,6 +1,7 @@
-"""`/api/sources`: connecting a CSV by its path, and listing what is connected."""
+"""`/api/sources`: connecting a CSV or Parquet file by its path, and listing what is connected."""
 
 import os
+import re
 import uuid
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -10,9 +11,11 @@ from typing import Annotated, Literal
 from artifacts.profiles import RunInProgress
 from artifacts.sources import (
     StoredField,
+    StoredParquetSource,
     StoredPostgresSource,
     StoredSource,
     add_csv_source,
+    add_parquet_source,
     find_source,
     find_source_by_path,
     list_sources,
@@ -20,12 +23,19 @@ from artifacts.sources import (
 )
 from artifacts.workspace import Workspace
 from connectors.csv_files import (
+    NOT_REGULAR_FILE,
     CsvError,
     detect_encoding,
     normalised_type,
     read_columns,
     read_page,
     scan_csv,
+)
+from connectors.parquet_files import (
+    NOT_PARQUET,
+    ParquetError,
+    is_parquet,
+    read_metadata,
 )
 from fastapi import APIRouter, HTTPException, Query, Response
 from pydantic import AfterValidator, BaseModel, Field, StringConstraints
@@ -39,12 +49,18 @@ from local_api.pages import (
 )
 from local_api.postgres_api import KeptPasswords, PostgresSourceResponse, postgres_response
 
+# A URL such as s3://bucket/events.parquet or file:///data/events.csv. A scheme has two letters
+# or more, as Windows reads C://data as a path on drive C.
+REMOTE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]+://")
 RUN_ON_THIS_FILE = (
     "A profile is running on this file. Wait for it to finish, then save your settings."
 )
 # A database's rows are a chosen object's, at /api/sources/{id}/objects/{object_id}/rows (DRIVN-50).
 ONE_OBJECT_AT_A_TIME = "A database is previewed one chosen object at a time."
 NO_FILE_SETTINGS = "A database has no file settings."
+NO_PARQUET_SETTINGS = "A Parquet file has no file settings."
+# Until DRIVN-62 previews a Parquet file.
+NO_PARQUET_PREVIEW = "This Parquet file can't be previewed yet."
 
 
 def _no_nul(value: str) -> str:
@@ -90,6 +106,20 @@ class SourceResponse(BaseModel):
     columns: list[ColumnResponse]
 
 
+class ParquetSourceResponse(BaseModel):
+    id: str
+    kind: Literal["parquet"] = "parquet"
+    name: str
+    path: str
+    size_bytes: int
+    modified_at: str
+    available: bool
+    row_count: int
+    row_group_count: int
+    created_by: str | None
+    columns: list[ColumnResponse]
+
+
 def is_available(path: Path) -> bool:
     try:
         return path.is_file()
@@ -97,6 +127,40 @@ def is_available(path: Path) -> bool:
         # is_file() only answers False for a missing file. A folder that has lost its permissions
         # or a dead network drive raises, and must not take the whole source list down with it.
         return False
+
+
+def _columns(fields: tuple[StoredField, ...]) -> list[ColumnResponse]:
+    return [
+        ColumnResponse(
+            name=field.name,
+            physical_type=field.physical_type,
+            normalised_type=field.normalised_type,
+        )
+        for field in fields
+    ]
+
+
+def _parquet_response(source: StoredParquetSource) -> ParquetSourceResponse:
+    return ParquetSourceResponse(
+        id=source.id,
+        name=source.path.name,
+        path=str(source.path),
+        size_bytes=source.size_bytes,
+        modified_at=source.modified_at,
+        available=is_available(source.path),
+        row_count=source.row_count,
+        row_group_count=source.row_group_count,
+        created_by=source.created_by,
+        columns=_columns(source.fields),
+    )
+
+
+def _file_response(
+    source: StoredSource | StoredParquetSource,
+) -> SourceResponse | ParquetSourceResponse:
+    if isinstance(source, StoredParquetSource):
+        return _parquet_response(source)
+    return _response(source)
 
 
 def _response(source: StoredSource) -> SourceResponse:
@@ -111,14 +175,7 @@ def _response(source: StoredSource) -> SourceResponse:
         size_bytes=source.size_bytes,
         modified_at=source.modified_at,
         available=is_available(source.path),
-        columns=[
-            ColumnResponse(
-                name=field.name,
-                physical_type=field.physical_type,
-                normalised_type=field.normalised_type,
-            )
-            for field in source.fields
-        ],
+        columns=_columns(source.fields),
     )
 
 
@@ -151,6 +208,10 @@ def current_encoding(source: StoredSource) -> str:
 
 
 def _readable_file(text: str) -> Path:
+    if REMOTE.match(text):
+        raise _refuse(
+            "DrivnX reads files on this computer only. Enter the full path to a file."
+        )
     try:
         expanded = Path(text).expanduser()
     except RuntimeError:
@@ -164,13 +225,14 @@ def _readable_file(text: str) -> Path:
         # A link can lead to a name that isn't valid text, which can't be stored or sent back.
         str(path).encode()
         if path.is_dir():
-            raise _refuse("This path is a folder. Enter the path to a CSV file.")
+            raise _refuse(
+                "This path is a folder. Enter the path to a CSV, XLSX or Parquet file; "
+                "a folder of Parquet files isn't supported yet."
+            )
         if not path.exists():
             raise _refuse("There's no file at this path.")
         if not path.is_file():
-            raise _refuse(
-                "This path is not a regular file, so it can't be read as a CSV."
-            )
+            raise _refuse(NOT_REGULAR_FILE)
         with path.open("rb"):
             pass
     except UnicodeEncodeError:
@@ -190,25 +252,39 @@ def sources_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
     router = APIRouter(prefix="/api/sources")
 
     @router.get("")
-    def get_sources() -> list[SourceResponse | PostgresSourceResponse]:
+    def get_sources() -> list[
+        SourceResponse | ParquetSourceResponse | PostgresSourceResponse
+    ]:
         return [
             postgres_response(source, kept)
             if isinstance(source, StoredPostgresSource)
-            else _response(source)
+            else _file_response(source)
             for source in list_sources(workspace.engine)
         ]
 
     @router.post("", status_code=201)
-    def connect_source(body: SourceRequest, response: Response) -> SourceResponse:
+    def connect_source(
+        body: SourceRequest, response: Response
+    ) -> SourceResponse | ParquetSourceResponse:
         path = _readable_file(body.path)
         existing = find_source_by_path(workspace.engine, path)
         if existing is not None:
             response.status_code = 200
-            return _response(existing)
+            return _file_response(existing)
+        try:
+            parquet = is_parquet(path)
+        except OSError:
+            # Gone or locked since the checks. The error's text holds the path.
+            raise _refuse("DrivnX couldn't read this file.") from None
+        if parquet:
+            return _connect_parquet(path, response)
         try:
             scan = scan_csv(path, workspace.temp_directory)
             stat = path.stat()
         except CsvError as error:
+            # Named as Parquet, and neither Parquet nor text.
+            if path.suffix.lower() == ".parquet":
+                raise _refuse(NOT_PARQUET) from None
             raise _refuse(str(error)) from None
         except OSError:
             raise _refuse("DrivnX couldn't read this file.") from None
@@ -232,8 +308,39 @@ def sources_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             response.status_code = 200
             existing = find_source_by_path(workspace.engine, path)
             assert existing is not None
-            return _response(existing)
+            return _file_response(existing)
         return _response(source)
+
+    def _connect_parquet(path: Path, response: Response) -> ParquetSourceResponse:
+        try:
+            metadata = read_metadata(path, workspace.temp_directory)
+            stat = path.stat()
+        except ParquetError as error:
+            raise _refuse(str(error)) from None
+        except OSError:
+            raise _refuse("DrivnX couldn't read this file.") from None
+        source = StoredParquetSource(
+            id=uuid.uuid4().hex,
+            path=path,
+            size_bytes=stat.st_size,
+            modified_at=modified_at(stat),
+            row_count=metadata.row_count,
+            row_group_count=metadata.row_group_count,
+            created_by=metadata.created_by,
+            fields=tuple(
+                StoredField(
+                    column.name, column.duckdb_type, normalised_type(column.duckdb_type)
+                )
+                for column in metadata.columns
+            ),
+        )
+        if not add_parquet_source(workspace.engine, source):
+            # Someone connected the same path while this one was being read.
+            response.status_code = 200
+            existing = find_source_by_path(workspace.engine, path)
+            assert existing is not None
+            return _file_response(existing)
+        return _parquet_response(source)
 
     @router.put("/{source_id}/settings")
     def save_settings(source_id: str, body: SettingsRequest) -> SourceResponse:
@@ -242,6 +349,8 @@ def sources_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             raise HTTPException(status_code=404, detail="There's no such source.")
         if isinstance(source, StoredPostgresSource):
             raise cannot_read(NO_FILE_SETTINGS)
+        if isinstance(source, StoredParquetSource):
+            raise cannot_read(NO_PARQUET_SETTINGS)
         if not is_available(source.path):
             raise cannot_read(
                 "DrivnX can't find this file. It may have moved or been deleted."
@@ -296,6 +405,8 @@ def sources_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             raise HTTPException(status_code=404, detail="There's no such source.")
         if isinstance(source, StoredPostgresSource):
             raise cannot_read(ONE_OBJECT_AT_A_TIME)
+        if isinstance(source, StoredParquetSource):
+            raise cannot_read(NO_PARQUET_PREVIEW)
         if not is_available(source.path):
             raise cannot_read(
                 "DrivnX can't find this file. It may have moved or been deleted."

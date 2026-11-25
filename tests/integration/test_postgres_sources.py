@@ -60,6 +60,9 @@ LATER_COLUMNS = {
     "populated",
     "chosen",
     "allows_nulls",
+    "row_count",
+    "row_group_count",
+    "created_by",
 }
 
 
@@ -87,7 +90,7 @@ def test_a_workspace_from_before_postgres_keeps_every_csv_source_and_run(
         MIGRATIONS_DIR,
         before,
         # 0007 and every migration after it, which depend on it.
-        ignore=shutil.ignore_patterns("0007_*", "0008_*", "0009_*", "__pycache__"),
+        ignore=shutil.ignore_patterns("0007_*", "0008_*", "0009_*", "0010_*", "__pycache__"),
     )
     directory = tmp_path / "workspace"
     open_workspace(directory, before).close()
@@ -216,7 +219,7 @@ def test_a_workspace_at_0008_keeps_its_sources_with_no_confirmation(tmp_path: Pa
     # for every source a workspace already has.
     before = tmp_path / "migrations"
     shutil.copytree(
-        MIGRATIONS_DIR, before, ignore=shutil.ignore_patterns("0009_*", "__pycache__")
+        MIGRATIONS_DIR, before, ignore=shutil.ignore_patterns("0009_*", "0010_*", "__pycache__")
     )
     directory = tmp_path / "workspace"
     workspace = open_workspace(directory, before)

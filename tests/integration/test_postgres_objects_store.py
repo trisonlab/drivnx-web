@@ -104,6 +104,10 @@ NEW_COLUMNS = {
     "populated",
     "chosen",
     "allows_nulls",
+    # Added by 0010.
+    "row_count",
+    "row_group_count",
+    "created_by",
 }
 
 
@@ -127,7 +131,9 @@ def test_a_workspace_at_0007_keeps_its_csv_sources_runs_and_one_current_dataset(
     # already has data, and a CSV source still has one current dataset.
     before = tmp_path / "migrations"
     shutil.copytree(
-        MIGRATIONS_DIR, before, ignore=shutil.ignore_patterns("0008_*", "0009_*", "__pycache__")
+        MIGRATIONS_DIR,
+        before,
+        ignore=shutil.ignore_patterns("0008_*", "0009_*", "0010_*", "__pycache__"),
     )
     directory = tmp_path / "workspace"
     open_workspace(directory, before).close()
@@ -141,7 +147,7 @@ def test_a_workspace_at_0007_keeps_its_csv_sources_runs_and_one_current_dataset(
 
     open_workspace(directory).close()
 
-    assert read_revision(database) == "0009"
+    assert read_revision(database) == "0010"
     assert {table: rows(database, table) for table in TABLES} == expected
     connection = sqlite3.connect(database)
     try:
@@ -207,7 +213,7 @@ def test_a_workspace_goes_back_to_0007_unless_it_has_a_databases_objects(
     with pytest.raises(RuntimeError, match="stays at 0008"):
         downgrade_to_0007(database)
     # The whole downgrade is undone, 0009's too: the workspace is still at the newest revision.
-    assert read_revision(database) == "0009"
+    assert read_revision(database) == "0010"
 
 
 @pytest.fixture
