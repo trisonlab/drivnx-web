@@ -37,6 +37,7 @@ from connectors.parquet_files import (
     is_parquet,
     read_metadata,
 )
+from connectors.parquet_files import read_page as read_parquet_page
 from fastapi import APIRouter, HTTPException, Query, Response
 from pydantic import AfterValidator, BaseModel, Field, StringConstraints
 
@@ -59,8 +60,6 @@ RUN_ON_THIS_FILE = (
 ONE_OBJECT_AT_A_TIME = "A database is previewed one chosen object at a time."
 NO_FILE_SETTINGS = "A database has no file settings."
 NO_PARQUET_SETTINGS = "A Parquet file has no file settings."
-# Until DRIVN-62 previews a Parquet file.
-NO_PARQUET_PREVIEW = "This Parquet file can't be previewed yet."
 
 
 def _no_nul(value: str) -> str:
@@ -405,25 +404,28 @@ def sources_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             raise HTTPException(status_code=404, detail="There's no such source.")
         if isinstance(source, StoredPostgresSource):
             raise cannot_read(ONE_OBJECT_AT_A_TIME)
-        if isinstance(source, StoredParquetSource):
-            raise cannot_read(NO_PARQUET_PREVIEW)
         if not is_available(source.path):
             raise cannot_read(
                 "DrivnX can't find this file. It may have moved or been deleted."
             )
         # One row more than the page shows whether there is a next page, without counting rows.
         try:
-            page = read_page(
-                source.path,
-                current_encoding(source),
-                source.delimiter,
-                source.has_header,
-                offset,
-                limit + 1,
-                workspace.temp_directory,
-                source.skip_lines,
-            )
-        except CsvError as error:
+            if isinstance(source, StoredParquetSource):
+                page = read_parquet_page(
+                    source.path, offset, limit + 1, workspace.temp_directory
+                )
+            else:
+                page = read_page(
+                    source.path,
+                    current_encoding(source),
+                    source.delimiter,
+                    source.has_header,
+                    offset,
+                    limit + 1,
+                    workspace.temp_directory,
+                    source.skip_lines,
+                )
+        except (CsvError, ParquetError) as error:
             raise cannot_read(str(error)) from None
         except PermissionError:
             raise cannot_read(

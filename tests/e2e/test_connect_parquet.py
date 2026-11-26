@@ -1,4 +1,5 @@
-"""Connecting a Parquet file in a real browser on the installed wheel, DRIVN-60 AC-07, AC-08, AC-09 (DRIVN-61)."""
+"""Connecting a Parquet file and paging through it in a real browser on the installed wheel,
+DRIVN-60 AC-07, AC-08, AC-09 (DRIVN-61) and AC-10 (DRIVN-62)."""
 
 import re
 from pathlib import Path
@@ -60,3 +61,19 @@ def test_a_remote_path_is_refused_with_its_message(app: Page) -> None:
     explorer = app.get_by_role("navigation", name="Data Explorer")
     expect(explorer.get_by_text("No sources yet")).to_be_visible()
     assert violations(app) == []
+
+
+def test_paging_through_a_parquet_file(app: Page, events: Path) -> None:
+    # DRIVN-60/AC-10
+    connect(app, events)
+
+    preview = app.get_by_role("region", name="Preview")
+    expect(preview.get_by_text("Rows 1 to 50")).to_be_visible()
+    expect(preview.get_by_role("row")).to_have_count(51)
+    expect(preview.get_by_role("cell", name="[0, 1]", exact=True)).to_be_visible()
+    assert violations(app) == []
+
+    preview.get_by_role("button", name="Next").click()
+    expect(preview.get_by_text("Rows 51 to 100")).to_be_visible()
+    expect(preview.get_by_role("cell", name="[50, 51]", exact=True)).to_be_visible()
+    expect(preview.get_by_role("cell", name="[0, 1]", exact=True)).to_have_count(0)

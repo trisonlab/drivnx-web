@@ -82,7 +82,12 @@ export function Shell({ workspace }: { workspace: Workspace }) {
           // A chosen object's rows are previewed in its details (DRIVN-50).
           <PostgresDetails source={chosen} />
         )}
-        {chosen?.kind === "parquet" && <ParquetDetails source={chosen} />}
+        {chosen?.kind === "parquet" && (
+          <>
+            <ParquetDetails source={chosen} />
+            <Preview key={chosen.id} sourceId={chosen.id} />
+          </>
+        )}
         {chosen && chosen.kind !== "postgres" && chosen.kind !== "parquet" && (
           <>
             <SourceDetails source={chosen} />
