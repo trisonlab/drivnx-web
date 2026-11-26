@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-23T16:17:26+00:00'
+updated_at: '2026-11-25T23:46:14+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/DRIVN-45.md: 021c964cae01690f64d4f984605da975da4a841869966c348c9aa5b87f4590a4
@@ -43,6 +43,18 @@ sources:
   .ai/knowledge/work/DRIVN-57.md: ed7abd7f95d5954656246937c617e5bff9e26066844c3cdd17798a48915ee4d0
   .ai/knowledge/work/DRIVN-58.md: f7fee25bdec0c79abc0d60af0cb6c0039891058a8c029caf0783c270ac0c3ef3
   .ai/knowledge/work/DRIVN-59.md: 9a3a4d698b1a32c136a171c776e9c9ed790080217c7b2c6d708cde2f76c5faef
+  .ai/knowledge/work/DRIVN-61.md: 600cf489761ef3b7b7f9522a86546281f60a8703c04f3c5e4f91c15c7cadf5e3
+  .ai/knowledge/work/DRIVN-62.md: d3b842a69807fef990ce34fe5afbba763b1b361f0f59751e7eff3000a9dc07fe
+  .ai/knowledge/work/DRIVN-63.md: 255939fab6fdc38db9963b8b928c37ceccb0b1a540fa3e67dd475da90fd4bfac
+  .ai/knowledge/work/DRIVN-64.md: 3db147fac25e7bc16b9c599b6f9ca9a990ff18b898c082b8ed002defb87356af
+  .ai/knowledge/work/DRIVN-65.md: 1db6e89dccea56599d1baabbba4044d6901d20ecbacd79039b59d1aa4884a0c9
+  .ai/knowledge/work/DRIVN-66.md: 73f37cdd063551ff5470629db152fa072c9e1557671cdc94f84a1e547b0161b3
+  .ai/knowledge/work/DRIVN-67.md: 6350d739920e796f4e9808773d4439231d520ba81e20c09badf4b76fc619e55c
+  .ai/knowledge/work/DRIVN-68.md: bbaefb4a5b4f22543e7750d5f3fe7f2d4d376994dc53c4156b748574e5189246
+  .ai/knowledge/work/DRIVN-69.md: b22df54c7f632839db1411a18b71eb0dac7fb7adc2f285e7d15810da0ef254ee
+  .ai/knowledge/work/DRIVN-70.md: a3a5287b03e4c87603de0646557c60c27fc11d09dbb7fd1b8dadc241b8e3c657
+  .ai/knowledge/work/DRIVN-71.md: cb82bf1703002c34e2adc1c44af6c09060db562716548c66db3a5910828a5462
+  .ai/knowledge/work/DRIVN-72.md: 5b79ef9e78beeead6a15bfa912e2bb84610cebc16ac77ad9dc386b049a39e97e
   .github/workflows/ci.yml: 2b422ab2802952f88c49aeb9a34c7a32659f1579b1f29183b3f2e87d29a74dd8
   apps/local-api/local_api/app.py: 29b7b676aebd7ab89af295b2837e9305c8b9f08bbd3ac416038af43f8372b1ec
   apps/local-api/local_api/binding.py: 8c76ea6d3c19e6a0675913f0219a36bb2d9a28db55f177d50e5b288eda052d84
@@ -53,9 +65,9 @@ sources:
   apps/local-api/local_api/pages.py: fbf78409679f0f112fdceccbca97d8534ae8bf0957d1a7d88d8b4aa2bf5c66e7
   apps/local-api/local_api/postgres_api.py: 6f2fed4aea41b3e5f75fefcc9c73131b5ea3b3a8471fe61e3bc62661e7daa5a5
   apps/local-api/local_api/profile_jobs.py: 655f51fc31e50cb0e0e21a3da9f58dd903f8a4818aaf19da356fd44f1c596bac
-  apps/local-api/local_api/profile_runs_api.py: b98569912d8927ef1e25c416eaf2c6f027cea5101959ff31657979d59188f940
+  apps/local-api/local_api/profile_runs_api.py: 405a4060e54c2257020fcf10097bbdeed0cdc69990e9f3ce3d781d9f94126701
   apps/local-api/local_api/session.py: 0f2f5f32a475a78c7a3a5bfbf65b2018e14cb0f07df458c5ee2e79ebd4c3bd3e
-  apps/local-api/local_api/sources_api.py: 4c46b74458ec516ebda07627fc6b2b95478724d778b1955638ba69c45233b313
+  apps/local-api/local_api/sources_api.py: e898fcceb42eb8e5a6174eae749c91f0b405f991ed9f5e6ac80ab9b831bea2c4
   apps/local-api/local_api/write_access.py: ac1d61941d589b92a3772d9c6044c34d8ab244c8456f0cfde6a186f96c8c8a3d
   apps/web/package.json: 92d1436bb27806562be2720b49bcfa93dca6f4adb818b57d2f0b8c02ec99381c
   apps/web/pnpm-lock.yaml: c9140539e3622a70d6a0d272593b22dc12a51e3ea75a816bfd33f52a89a2708b
@@ -66,6 +78,8 @@ sources:
   apps/web/src/DatabaseObjects.tsx: 884504110bfe29a2248d808f5425b62388d90324e59deccb358ad8152e40f2a7
   apps/web/src/Findings.tsx: ccb655162e9c02de2ff8b4a1ed486d646843c9e7dc278c541719e9089c82f0c0
   apps/web/src/ObjectDetails.tsx: 62a2cbce8fdef6d95f9892f9285000fa4d36a1a650f11509b4b1bba772ae8797
+  apps/web/src/ParquetDetails.test.tsx: 78c6ad24180c4f11a639b53035fa5e94470d0d2673cf2f21ef87dbedf670563d
+  apps/web/src/ParquetDetails.tsx: 84e7865c3e8260655a5c84c756874ea96e6edbe44450cda494e9f6aad49704ba
   apps/web/src/Postgres.test.tsx: 096e943d4b97a4810efea64d28bacf9c78f4abb7564ae5ff90025bd6e46091ed
   apps/web/src/PostgresDetails.tsx: 2fe5dfc71e6ba8b80a6706a46bb4c1314b8a04f5807028e8a7505826d4f28c0e
   apps/web/src/PostgresForm.tsx: eac4bddeb54295a657f1b6b4ecab0c4b3df7d0ec34ef8a1aae69a6fcb66acba6
@@ -74,12 +88,12 @@ sources:
   apps/web/src/ProfileTab.test.tsx: b4bcc3250760d2acdcbbd03d41491da409cb5bc9d40e055935d8a2fcdb7ffb6e
   apps/web/src/ProfileTab.tsx: f8d1c37599907cb9338467fa384ecc5956be95c1e83942a457edc3b27b7882bc
   apps/web/src/SetupScreen.tsx: 2a9504d56277d388b0db5e0b7d29a68de334f4206e49900754bcd312a6070a1a
-  apps/web/src/Shell.tsx: d01d8be1b52574e35a5f3bad17f96e6b799f0fdb4f90da234ffcbf733c131696
+  apps/web/src/Shell.tsx: bcf348992e9a4aaf435b6348eb15baba34468b23673be9207d08fb517550ea80
   apps/web/src/SourceDetails.tsx: ee7db3b3eb65efe04f6d73a05c0761bf3389b966ea1c264c2af07bb6d0dc5cce
   apps/web/src/SourceSettings.test.tsx: 30a5b3cb1616119bad5b1f693f757ff3e39f740047fa5ccbff52846b00c5f10d
   apps/web/src/SourceSettings.tsx: 6cafadf79d7f80ef8612aeb406f81c86a54989de643f1d447851bed65a473144
   apps/web/src/Sources.test.tsx: 4c7f0fd3414c1b293fd063045b3f2e64e4025a64f80fa8a41eb2b27e2793324d
-  apps/web/src/api.ts: aec3b8524642fe13ad3b0a4a19889ba331956ed111319894b6f0f45e8ffa6be0
+  apps/web/src/api.ts: 1e0f67b4ffb0cdd1800a6708bb96aaf04bf2395525eb78bb1368b2b4f5da320d
   apps/web/src/main.tsx: a092eb0be7e15855ffc2d8cd35c780c063e9686c2d96689d54ff3ae14deabe4c
   apps/web/src/session.test.ts: bbf0598bb7989f8cf5597989a79b8f6cbccacb22f3fc8f43e804c92eb0f599a7
   apps/web/src/session.ts: 606b8ed83032ca43d62da07c2b90c3cdb5e761467e3cf1b4d907b0a96950aab4
@@ -92,15 +106,17 @@ sources:
   packages/artifacts/migrations/versions/0007_postgres_sources.py: f9d00a41d3f1231fc89adf31b3a9b3b6c1b68a94629679438f28d1995df80fbe
   packages/artifacts/migrations/versions/0008_postgres_objects.py: cd5c37691dfdf146862f2c520f389c840e882e29bd89f34c5b095fb127ac48f2
   packages/artifacts/migrations/versions/0009_write_confirmation.py: 17bb86d9e3d1bdf6423249cd08b5b53e78ffb31ee607d34ae6f2ec73dd6ba694
+  packages/artifacts/migrations/versions/0010_xlsx_parquet_sources.py: 5f54ba5838ebebc3a1b0bdfe726526de5251de585618b7e11f3335efcbf5f783
   packages/artifacts/profiles.py: e7eb9eb1467ce17ac7459872045a4721b3b3974a5cd95267928fcc197f3f7f0b
   packages/artifacts/provenance.py: 006c59372b073c3aa223564142dd6f604a8667d07f5c00f427b9087cadb52be2
   packages/artifacts/review.py: b40549937662198677017d87fdd6dd3f0619ab6db892bf1d249be3bac657ecfc
   packages/artifacts/schema.py: 713e5b4a63502f907fa3ae6ff42ca3831660ec8d9f5834b157b88431e0bd58c6
   packages/artifacts/settings.py: f485bc3a90b6ba403d2377b93adc64737afefd8f837458e1b9b45a3cb4596289
-  packages/artifacts/sources.py: 76b8ca8b4a728d86a14dc1165d44bb2d447ef65517dc9999b598a6202c8239ad
+  packages/artifacts/sources.py: edc736475610d4412977aa762e404dca1a964636ef876553e6fc6ebe99da5857
   packages/artifacts/store.py: 342da5f8686ec2f8672e296a7c51b803e9617a5e25b9e413d87028715a65c352
   packages/artifacts/workspace.py: 5eb2e1c2ea6fcc8a9d8bbec8b9c5245b5a12038714d6d32321c71b7d6d2513a0
-  packages/connectors/csv_files.py: c9261f73242606e3a0907157f8c6f6c003b81e692cc8e2281b4f605d3c9c6a39
+  packages/connectors/csv_files.py: 085f4ed82bf8e147ad4b653ee8de548b3c939e6aa50734827a79ebfe47e30dad
+  packages/connectors/parquet_files.py: 648ac9febb0839731bd630c7004852cda83e428cd46b8cdb6684e3111e91dceb
   packages/connectors/postgres.py: 90639c84cdb0f66518916ff13d3f99b7a86c49308dbd0e1b33a0dd44f51fe318
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
@@ -117,6 +133,7 @@ sources:
   tests/e2e/test_browser_security.py: db0af667b57a03235c9d675451cbbdf35c8325c84eeaf09b437ff66354c30291
   tests/e2e/test_choose_postgres_objects.py: 4453743df0ba9390385013ae195335285f4340ea26bdb206b1611d7acfb5629e
   tests/e2e/test_connect_csv.py: 472f658f353d708dd30867df8972e0e0184c1f6cf269536a8adc5c4e74844077
+  tests/e2e/test_connect_parquet.py: b0da7742a2569f77ecdf89ed2318c4dcea6df0c09f8a058f845a49186248a453
   tests/e2e/test_connect_postgres.py: 68f29984974853dec2fc086264f7d0cdf1f9ef5d4471a42789d8dbdd994eb439
   tests/e2e/test_fast_profile.py: fd7364ec35995354e1bd8c3520e46a0cabe6438eb6baff54ea74d80f8c40df7e
   tests/e2e/test_findings.py: 32949f461a1f3916bfb9b04e11597e4b779fcd7a1355bfadd3cb8c23b2108449
@@ -127,7 +144,7 @@ sources:
   tests/e2e/test_postgres_journey.py: 1de0434335fb54b3fddcc61da3356068981ec2ff7e854f2eb6d60aa0081a3d7a
   tests/e2e/test_postgres_values.py: ee48fedc45eb68c02e1822088e48428e5d6b3d4f904c3ff4b24da7ed570236f9
   tests/e2e/test_preview.py: 5a87ec6bde3aef58e3d6db436cea26ff65c81e3dc2fb11c2319aa91d6b6f7212
-  tests/e2e/test_profile_journey.py: 9ce75cf42a5b7a58f1a718fc361efe16a3a7960a52e7d839b0c641c0c6f750ef
+  tests/e2e/test_profile_journey.py: 6d172ba77679bca1e3d90194568c2141ff49ac38c4d14bdde17003ce6f92d045
   tests/e2e/test_profile_postgres.py: 7eb0bb8d7e47379ddd62fd3985d7abda579afa7aa85a3fea5779852144293f47
   tests/e2e/test_source_settings.py: 20f9743c6b17a224314e5457e3fad24aed02761787d0c1ff09ecd4dbc7735e37
   tests/e2e/test_values.py: c8254fee99bdb4aa5107cf7bef599ed4fba07b8162b6e30f27862294851152d9
@@ -149,21 +166,22 @@ sources:
   tests/integration/test_launch.py: 2d4159f93677852c49af995da2e21337b860a6f783f54ffad77aee402b24cf11
   tests/integration/test_lockfiles.py: b71fba347a62901317da80a52f52a34834399a086c0b4af3612a00b6ef26c6ec
   tests/integration/test_masked_patterns.py: 128d72ad3950bd963b4bf8498bc8e036c615ce5cb09eb4ea1bdb3f568ebabc29
+  tests/integration/test_parquet_sources.py: 4e480db0511b5f125e52a9700875966af01a495a60dac46c3a79b38322155d2a
   tests/integration/test_postgres_connect.py: 472b94bf547a4b59fbcd5f4c81e63d25346badbe8e61aa2677ded9cce66e3ab1
   tests/integration/test_postgres_discovery.py: 5aa94e626dbbce408320d111c2a4d9cb2308b18de5b939286851f1dabce5f284
   tests/integration/test_postgres_earlier_runs.py: f68efe2a933441fa9582d95b0e030127efc35d0db9ecc068f69e73f169c553c7
   tests/integration/test_postgres_extension.py: e2bff995b467a1b498fc6082a52b445d6c5317cc9951deff3ee199e7058d5d28
   tests/integration/test_postgres_extension_build.py: dc29d670fe49ec0ad86725cb19699d660c2022032fc96eb4feb89423f6eb70f2
-  tests/integration/test_postgres_findings.py: 93f5bd9289c3319da5d563beda6cefd1dd642c57c4fdb783dd4ab2c6dc1ed4d1
+  tests/integration/test_postgres_findings.py: 001a8b36dfa3cc086870266eafb65758ba7e75618b978202a89321b8ea4095ae
   tests/integration/test_postgres_fixture.py: 7e023eaa0cccdd6f4ec069ff0e075b21f0c04f4f0651d8d344caf62d67953e4a
   tests/integration/test_postgres_full_profile.py: 00611a1ca8d661882e00192e77cebccd3d9c197e3ce72004b5db6eb94d4e6172
   tests/integration/test_postgres_objects_api.py: 149b44a64d953f4f4041a7be677432719270f61fd5ec587febb21e0b9b909f81
-  tests/integration/test_postgres_objects_store.py: d1ccfeb851ae8f21f6fe48056bb83edf173901a538dcd0bc435d1e0025042b0e
+  tests/integration/test_postgres_objects_store.py: 67783fd5c46a5e7fad19f895b8136866ce146910845a98c862571f8360dff47b
   tests/integration/test_postgres_password_store.py: 1a8d5a8c601ce750c4b736e12fca0bf60dc31478247584750a723c40f1bd4396
   tests/integration/test_postgres_preview_api.py: 4aeec9e0f30a97db34367a7a216be861bb9b9eb3136fa571f7770ac9e5bc8c15
   tests/integration/test_postgres_profile_api.py: 675803bc548c930fb9c230cea5fa2410613dd5124249f6ffa91d232add257232
   tests/integration/test_postgres_reading.py: 383138ba0aff2b828b035f189b0f6bd7b4fefa3cf5dea03abc2a58e3ee33cde1
-  tests/integration/test_postgres_sources.py: 712c2bb1922a89a80f3a9e81a5ca1a44733b8e1d9571569c2e0054708befb60c
+  tests/integration/test_postgres_sources.py: 005839c74615d2823dc294e37d1c5774ff74529f7138adf4ec009a8b49c7fc5b
   tests/integration/test_postgres_sources_api.py: 1c2f4e137668f3d70b889bebf44cefa5ca1377164088f2a4cf4707ee6f528507
   tests/integration/test_postgres_stopping.py: ee5a6d8c256d2f0f3a200bdbe5ce6f9314b54de9b3da92b9ca601a8044b7c8a3
   tests/integration/test_postgres_values.py: 58d31f12a75ef92b300fb7f64325ebb9da3d7bdf6ddc2dda6bb7c5dacbf360de
@@ -1241,19 +1259,19 @@ nodes:
 - id: endpoint:GET /api/profile-runs
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:459
+  - apps/local-api/local_api/profile_runs_api.py:464
 - id: endpoint:GET /api/profile-runs/{}
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:463
+  - apps/local-api/local_api/profile_runs_api.py:468
 - id: endpoint:GET /api/profile-runs/{}/values
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:662
+  - apps/local-api/local_api/profile_runs_api.py:667
 - id: endpoint:GET /api/sources
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/sources_api.py:192
+  - apps/local-api/local_api/sources_api.py:254
 - id: endpoint:GET /api/sources/{}/objects
   kind: endpoint
   evidence:
@@ -1269,7 +1287,7 @@ nodes:
 - id: endpoint:GET /api/sources/{}/rows
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/sources_api.py:288
+  - apps/local-api/local_api/sources_api.py:397
 - id: endpoint:GET /api/workspace
   kind: endpoint
   evidence:
@@ -1277,15 +1295,15 @@ nodes:
 - id: endpoint:POST /api/profile-runs
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:408
+  - apps/local-api/local_api/profile_runs_api.py:411
 - id: endpoint:POST /api/profile-runs/{}/cancel
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:451
+  - apps/local-api/local_api/profile_runs_api.py:456
 - id: endpoint:POST /api/sources
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/sources_api.py:201
+  - apps/local-api/local_api/sources_api.py:265
 - id: endpoint:POST /api/sources/postgres
   kind: endpoint
   evidence:
@@ -1313,7 +1331,7 @@ nodes:
 - id: endpoint:PUT /api/sources/{}/settings
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/sources_api.py:238
+  - apps/local-api/local_api/sources_api.py:345
 - id: endpoint:PUT /api/workspace
   kind: endpoint
   evidence:
@@ -1434,6 +1452,14 @@ nodes:
   kind: module
   evidence:
   - apps/web/src/ObjectDetails.tsx:1
+- id: module:apps/web/src/ParquetDetails.test.tsx
+  kind: module
+  evidence:
+  - apps/web/src/ParquetDetails.test.tsx:1
+- id: module:apps/web/src/ParquetDetails.tsx
+  kind: module
+  evidence:
+  - apps/web/src/ParquetDetails.tsx:1
 - id: module:apps/web/src/Postgres.test.tsx
   kind: module
   evidence:
@@ -1530,6 +1556,10 @@ nodes:
   kind: module
   evidence:
   - packages/artifacts/migrations/versions/0009_write_confirmation.py:1
+- id: module:packages/artifacts/migrations/versions/0010_xlsx_parquet_sources.py
+  kind: module
+  evidence:
+  - packages/artifacts/migrations/versions/0010_xlsx_parquet_sources.py:1
 - id: module:packages/artifacts/profiles.py
   kind: module
   evidence:
@@ -1566,6 +1596,10 @@ nodes:
   kind: module
   evidence:
   - packages/connectors/csv_files.py:1
+- id: module:packages/connectors/parquet_files.py
+  kind: module
+  evidence:
+  - packages/connectors/parquet_files.py:1
 - id: module:packages/connectors/postgres.py
   kind: module
   evidence:
@@ -1626,6 +1660,10 @@ nodes:
   kind: module
   evidence:
   - tests/e2e/test_connect_csv.py:1
+- id: module:tests/e2e/test_connect_parquet.py
+  kind: module
+  evidence:
+  - tests/e2e/test_connect_parquet.py:1
 - id: module:tests/e2e/test_connect_postgres.py
   kind: module
   evidence:
@@ -1754,6 +1792,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_masked_patterns.py:1
+- id: module:tests/integration/test_parquet_sources.py
+  kind: module
+  evidence:
+  - tests/integration/test_parquet_sources.py:1
 - id: module:tests/integration/test_postgres_connect.py
   kind: module
   evidence:
@@ -2381,6 +2423,90 @@ nodes:
   title: Scan a running workspace without SQLite's shared-memory index
   state: done
   external_key: DRIVN-59
+- id: ticket:DRIVN-61
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-61.md
+  title: 'Parquet: connect and read its metadata'
+  state: done
+  external_key: DRIVN-61
+- id: ticket:DRIVN-62
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-62.md
+  title: 'Parquet: preview'
+  state: ready
+  external_key: DRIVN-62
+- id: ticket:DRIVN-63
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-63.md
+  title: 'Parquet: fast and full profile, and cancel'
+  state: blocked
+  external_key: DRIVN-63
+- id: ticket:DRIVN-64
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-64.md
+  title: 'Parquet: findings, values on request and earlier runs'
+  state: blocked
+  external_key: DRIVN-64
+- id: ticket:DRIVN-65
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-65.md
+  title: Bundled excel extension and XLSX checks
+  state: ready
+  external_key: DRIVN-65
+- id: ticket:DRIVN-66
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-66.md
+  title: 'XLSX: connect, list and choose sheets'
+  state: blocked
+  external_key: DRIVN-66
+- id: ticket:DRIVN-67
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-67.md
+  title: 'XLSX: a sheet''s range, header, types and preview'
+  state: blocked
+  external_key: DRIVN-67
+- id: ticket:DRIVN-68
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-68.md
+  title: 'XLSX: profile chosen sheets, end to end'
+  state: blocked
+  external_key: DRIVN-68
+- id: ticket:DRIVN-69
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-69.md
+  title: 'CSV: correct a column''s type'
+  state: ready
+  external_key: DRIVN-69
+- id: ticket:DRIVN-70
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-70.md
+  title: File browser
+  state: ready
+  external_key: DRIVN-70
+- id: ticket:DRIVN-71
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-71.md
+  title: Recent and Pinned
+  state: blocked
+  external_key: DRIVN-71
+- id: ticket:DRIVN-72
+  kind: ticket
+  evidence:
+  - .ai/knowledge/work/DRIVN-72.md
+  title: Golden fixtures, full journeys and checks
+  state: blocked
+  external_key: DRIVN-72
 edges:
 - from: criterion:DRIVN-45/AC-01
   rel: belongs_to
@@ -3876,141 +4002,153 @@ edges:
   to: endpoint:GET /api/profile-runs
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:459
+  - apps/local-api/local_api/profile_runs_api.py:464
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:GET /api/profile-runs/{}
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:463
+  - apps/local-api/local_api/profile_runs_api.py:468
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:GET /api/profile-runs/{}/values
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:662
+  - apps/local-api/local_api/profile_runs_api.py:667
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:POST /api/profile-runs
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:408
+  - apps/local-api/local_api/profile_runs_api.py:411
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:POST /api/profile-runs/{}/cancel
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:451
+  - apps/local-api/local_api/profile_runs_api.py:456
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: implements
   to: criterion:DRIVN-45/AC-28
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:671
+  - apps/local-api/local_api/profile_runs_api.py:676
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: implements
   to: ticket:DRIVN-51
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:348
+  - apps/local-api/local_api/profile_runs_api.py:351
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: implements
   to: ticket:DRIVN-53
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:107
-  - apps/local-api/local_api/profile_runs_api.py:348
-  - apps/local-api/local_api/profile_runs_api.py:523
+  - apps/local-api/local_api/profile_runs_api.py:110
+  - apps/local-api/local_api/profile_runs_api.py:351
+  - apps/local-api/local_api/profile_runs_api.py:528
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: implements
   to: ticket:DRIVN-56
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:158
-  - apps/local-api/local_api/profile_runs_api.py:202
-  - apps/local-api/local_api/profile_runs_api.py:573
-  - apps/local-api/local_api/profile_runs_api.py:633
+  - apps/local-api/local_api/profile_runs_api.py:161
+  - apps/local-api/local_api/profile_runs_api.py:205
+  - apps/local-api/local_api/profile_runs_api.py:578
+  - apps/local-api/local_api/profile_runs_api.py:638
+- from: module:apps/local-api/local_api/profile_runs_api.py
+  rel: implements
+  to: ticket:DRIVN-63
+  status: CONFIRMED
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:76
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: imports
   to: module:apps/local-api/local_api/pages.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:56
+  - apps/local-api/local_api/profile_runs_api.py:57
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: imports
   to: module:apps/local-api/local_api/postgres_api.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:57
+  - apps/local-api/local_api/profile_runs_api.py:58
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: imports
   to: module:apps/local-api/local_api/profile_jobs.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:40
+  - apps/local-api/local_api/profile_runs_api.py:41
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: imports
   to: module:apps/local-api/local_api/sources_api.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:64
+  - apps/local-api/local_api/profile_runs_api.py:65
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: imports
   to: module:apps/local-api/local_api/write_access.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:70
+  - apps/local-api/local_api/profile_runs_api.py:71
 - from: module:apps/local-api/local_api/sources_api.py
   rel: exposes
   to: endpoint:GET /api/sources
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/sources_api.py:192
+  - apps/local-api/local_api/sources_api.py:254
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/sources_api.py
   rel: exposes
   to: endpoint:GET /api/sources/{}/rows
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/sources_api.py:288
+  - apps/local-api/local_api/sources_api.py:397
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/sources_api.py
   rel: exposes
   to: endpoint:POST /api/sources
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/sources_api.py:201
+  - apps/local-api/local_api/sources_api.py:265
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/sources_api.py
   rel: exposes
   to: endpoint:PUT /api/sources/{}/settings
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/sources_api.py:238
+  - apps/local-api/local_api/sources_api.py:345
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/sources_api.py
   rel: implements
   to: ticket:DRIVN-50
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/sources_api.py:45
+  - apps/local-api/local_api/sources_api.py:58
+- from: module:apps/local-api/local_api/sources_api.py
+  rel: implements
+  to: ticket:DRIVN-62
+  status: CONFIRMED
+  evidence:
+  - apps/local-api/local_api/sources_api.py:62
 - from: module:apps/local-api/local_api/sources_api.py
   rel: imports
   to: module:apps/local-api/local_api/pages.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/sources_api.py:33
+  - apps/local-api/local_api/sources_api.py:43
 - from: module:apps/local-api/local_api/sources_api.py
   rel: imports
   to: module:apps/local-api/local_api/postgres_api.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/sources_api.py:40
+  - apps/local-api/local_api/sources_api.py:50
 - from: module:apps/local-api/local_api/write_access.py
   rel: implements
   to: criterion:DRIVN-45/AC-16
@@ -4290,6 +4428,42 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/src/ObjectDetails.tsx:3
+- from: module:apps/web/src/ParquetDetails.test.tsx
+  rel: imports
+  to: module:apps/web/src/App.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ParquetDetails.test.tsx:4
+- from: module:apps/web/src/ParquetDetails.test.tsx
+  rel: verifies
+  to: criterion:DRIVN-60/AC-07
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ParquetDetails.test.tsx:64
+- from: module:apps/web/src/ParquetDetails.test.tsx
+  rel: verifies
+  to: criterion:DRIVN-60/AC-09
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ParquetDetails.test.tsx:79
+- from: module:apps/web/src/ParquetDetails.test.tsx
+  rel: verifies
+  to: ticket:DRIVN-61
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ParquetDetails.test.tsx:13
+- from: module:apps/web/src/ParquetDetails.tsx
+  rel: imports
+  to: module:apps/web/src/api.ts
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ParquetDetails.tsx:2
+- from: module:apps/web/src/ParquetDetails.tsx
+  rel: imports
+  to: module:apps/web/src/sourceFormat.ts
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ParquetDetails.tsx:3
 - from: module:apps/web/src/Postgres.test.tsx
   rel: imports
   to: module:apps/web/src/App.tsx
@@ -4957,7 +5131,7 @@ edges:
   to: ticket:DRIVN-50
   status: CONFIRMED
   evidence:
-  - apps/web/src/Shell.tsx:81
+  - apps/web/src/Shell.tsx:82
 - from: module:apps/web/src/Shell.tsx
   rel: imports
   to: module:apps/web/src/DataExplorer.tsx
@@ -4972,28 +5146,34 @@ edges:
   - apps/web/src/Shell.tsx:5
 - from: module:apps/web/src/Shell.tsx
   rel: imports
-  to: module:apps/web/src/PostgresDetails.tsx
+  to: module:apps/web/src/ParquetDetails.tsx
   status: CONFIRMED
   evidence:
   - apps/web/src/Shell.tsx:6
 - from: module:apps/web/src/Shell.tsx
   rel: imports
-  to: module:apps/web/src/Preview.tsx
+  to: module:apps/web/src/PostgresDetails.tsx
   status: CONFIRMED
   evidence:
   - apps/web/src/Shell.tsx:7
 - from: module:apps/web/src/Shell.tsx
   rel: imports
-  to: module:apps/web/src/ProfileTab.tsx
+  to: module:apps/web/src/Preview.tsx
   status: CONFIRMED
   evidence:
   - apps/web/src/Shell.tsx:8
 - from: module:apps/web/src/Shell.tsx
   rel: imports
-  to: module:apps/web/src/SourceDetails.tsx
+  to: module:apps/web/src/ProfileTab.tsx
   status: CONFIRMED
   evidence:
   - apps/web/src/Shell.tsx:9
+- from: module:apps/web/src/Shell.tsx
+  rel: imports
+  to: module:apps/web/src/SourceDetails.tsx
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/Shell.tsx:10
 - from: module:apps/web/src/Shell.tsx
   rel: imports
   to: module:apps/web/src/api.ts
@@ -5143,73 +5323,79 @@ edges:
   to: criterion:DRIVN-45/AC-01
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:123
+  - apps/web/src/api.ts:138
 - from: module:apps/web/src/api.ts
   rel: implements
   to: criterion:DRIVN-45/AC-04
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:61
-  - apps/web/src/api.ts:202
+  - apps/web/src/api.ts:76
+  - apps/web/src/api.ts:217
 - from: module:apps/web/src/api.ts
   rel: implements
   to: criterion:DRIVN-45/AC-08
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:210
+  - apps/web/src/api.ts:225
 - from: module:apps/web/src/api.ts
   rel: implements
   to: criterion:DRIVN-45/AC-12
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:313
+  - apps/web/src/api.ts:328
 - from: module:apps/web/src/api.ts
   rel: implements
   to: criterion:DRIVN-45/AC-16
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:358
-  - apps/web/src/api.ts:468
-  - apps/web/src/api.ts:516
+  - apps/web/src/api.ts:373
+  - apps/web/src/api.ts:483
+  - apps/web/src/api.ts:531
 - from: module:apps/web/src/api.ts
   rel: implements
   to: criterion:DRIVN-45/AC-17
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:356
+  - apps/web/src/api.ts:371
 - from: module:apps/web/src/api.ts
   rel: implements
   to: criterion:DRIVN-45/AC-18
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:383
+  - apps/web/src/api.ts:398
 - from: module:apps/web/src/api.ts
   rel: implements
   to: criterion:DRIVN-45/AC-20
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:390
-  - apps/web/src/api.ts:521
+  - apps/web/src/api.ts:405
+  - apps/web/src/api.ts:536
 - from: module:apps/web/src/api.ts
   rel: implements
   to: criterion:DRIVN-45/AC-31
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:361
+  - apps/web/src/api.ts:376
 - from: module:apps/web/src/api.ts
   rel: implements
   to: criterion:DRIVN-45/AC-32
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:395
+  - apps/web/src/api.ts:410
 - from: module:apps/web/src/api.ts
   rel: implements
   to: ticket:DRIVN-56
   status: CONFIRMED
   evidence:
-  - apps/web/src/api.ts:386
-  - apps/web/src/api.ts:423
-  - apps/web/src/api.ts:453
+  - apps/web/src/api.ts:401
+  - apps/web/src/api.ts:438
+  - apps/web/src/api.ts:468
+- from: module:apps/web/src/api.ts
+  rel: implements
+  to: ticket:DRIVN-61
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/api.ts:59
 - from: module:apps/web/src/main.tsx
   rel: imports
   to: module:apps/web/src/App.tsx
@@ -5266,6 +5452,12 @@ edges:
   status: CONFIRMED
   evidence:
   - packages/artifacts/migrations/versions/0009_write_confirmation.py:4
+- from: module:packages/artifacts/migrations/versions/0010_xlsx_parquet_sources.py
+  rel: implements
+  to: ticket:DRIVN-61
+  status: CONFIRMED
+  evidence:
+  - packages/artifacts/migrations/versions/0010_xlsx_parquet_sources.py:1
 - from: module:packages/artifacts/profiles.py
   rel: implements
   to: ticket:DRIVN-51
@@ -5362,7 +5554,7 @@ edges:
   to: criterion:DRIVN-45/AC-26
   status: CONFIRMED
   evidence:
-  - packages/artifacts/sources.py:516
+  - packages/artifacts/sources.py:586
 - from: module:packages/artifacts/sources.py
   rel: imports
   to: module:packages/artifacts/profiles.py
@@ -5393,6 +5585,32 @@ edges:
   status: CONFIRMED
   evidence:
   - packages/artifacts/workspace.py:20
+- from: module:packages/connectors/parquet_files.py
+  rel: implements
+  to: criterion:DRIVN-60/AC-07
+  status: INFERRED
+  evidence:
+  - packages/connectors/parquet_files.py:57
+  note: bare AC-07; the file names only DRIVN-60
+- from: module:packages/connectors/parquet_files.py
+  rel: implements
+  to: criterion:DRIVN-60/AC-29
+  status: INFERRED
+  evidence:
+  - packages/connectors/parquet_files.py:43
+  note: bare AC-29; the file names only DRIVN-60
+- from: module:packages/connectors/parquet_files.py
+  rel: implements
+  to: ticket:DRIVN-61
+  status: CONFIRMED
+  evidence:
+  - packages/connectors/parquet_files.py:1
+- from: module:packages/connectors/parquet_files.py
+  rel: imports
+  to: module:packages/connectors/csv_files.py
+  status: CONFIRMED
+  evidence:
+  - packages/connectors/parquet_files.py:12
 - from: module:packages/connectors/postgres.py
   rel: implements
   to: criterion:DRIVN-45/AC-16
@@ -5689,6 +5907,49 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/e2e/test_connect_csv.py:38
+- from: module:tests/e2e/test_connect_parquet.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_connect_parquet.py:10
+- from: module:tests/e2e/test_connect_parquet.py
+  rel: imports
+  to: module:tests/e2e/test_accessibility.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_connect_parquet.py:11
+- from: module:tests/e2e/test_connect_parquet.py
+  rel: imports
+  to: module:tests/e2e/test_connect_csv.py
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_connect_parquet.py:12
+- from: module:tests/e2e/test_connect_parquet.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-07
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_connect_parquet.py:1
+  - tests/e2e/test_connect_parquet.py:36
+- from: module:tests/e2e/test_connect_parquet.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-08
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_connect_parquet.py:52
+- from: module:tests/e2e/test_connect_parquet.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-09
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_connect_parquet.py:36
+- from: module:tests/e2e/test_connect_parquet.py
+  rel: verifies
+  to: ticket:DRIVN-61
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_connect_parquet.py:1
 - from: module:tests/e2e/test_connect_postgres.py
   rel: imports
   to: module:tests/conftest.py
@@ -6307,25 +6568,31 @@ edges:
   - tests/e2e/test_profile_journey.py:13
 - from: module:tests/e2e/test_profile_journey.py
   rel: verifies
+  to: criterion:DRIVN-45/AC-29
+  status: CONFIRMED
+  evidence:
+  - tests/e2e/test_profile_journey.py:175
+- from: module:tests/e2e/test_profile_journey.py
+  rel: verifies
   to: criterion:DRIVN-9/AC-33
   status: CONFIRMED
   evidence:
   - tests/e2e/test_profile_journey.py:1
-  - tests/e2e/test_profile_journey.py:190
-  - tests/e2e/test_profile_journey.py:225
+  - tests/e2e/test_profile_journey.py:201
+  - tests/e2e/test_profile_journey.py:236
 - from: module:tests/e2e/test_profile_journey.py
   rel: verifies
   to: criterion:DRIVN-9/AC-41
   status: CONFIRMED
   evidence:
   - tests/e2e/test_profile_journey.py:116
-  - tests/e2e/test_profile_journey.py:238
+  - tests/e2e/test_profile_journey.py:249
 - from: module:tests/e2e/test_profile_journey.py
   rel: verifies
   to: ticket:DRIVN-59
   status: CONFIRMED
   evidence:
-  - tests/e2e/test_profile_journey.py:155
+  - tests/e2e/test_profile_journey.py:157
 - from: module:tests/e2e/test_profile_postgres.py
   rel: imports
   to: module:tests/conftest.py
@@ -7199,6 +7466,77 @@ edges:
   - tests/integration/test_masked_patterns.py:104
   - tests/integration/test_masked_patterns.py:116
   - tests/integration/test_masked_patterns.py:125
+- from: module:tests/integration/test_parquet_sources.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_sources.py:18
+- from: module:tests/integration/test_parquet_sources.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-07
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_sources.py:1
+  - tests/integration/test_parquet_sources.py:59
+  - tests/integration/test_parquet_sources.py:312
+  - tests/integration/test_parquet_sources.py:363
+  - tests/integration/test_parquet_sources.py:297
+- from: module:tests/integration/test_parquet_sources.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-08
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_sources.py:127
+  - tests/integration/test_parquet_sources.py:139
+  - tests/integration/test_parquet_sources.py:157
+  - tests/integration/test_parquet_sources.py:175
+  - tests/integration/test_parquet_sources.py:189
+  - tests/integration/test_parquet_sources.py:1
+- from: module:tests/integration/test_parquet_sources.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-09
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_sources.py:78
+  - tests/integration/test_parquet_sources.py:96
+  - tests/integration/test_parquet_sources.py:338
+  - tests/integration/test_parquet_sources.py:1
+- from: module:tests/integration/test_parquet_sources.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-29
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_sources.py:199
+  - tests/integration/test_parquet_sources.py:209
+  - tests/integration/test_parquet_sources.py:226
+  - tests/integration/test_parquet_sources.py:1
+- from: module:tests/integration/test_parquet_sources.py
+  rel: verifies
+  to: ticket:DRIVN-61
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_sources.py:1
+  - tests/integration/test_parquet_sources.py:152
+  - tests/integration/test_parquet_sources.py:162
+  - tests/integration/test_parquet_sources.py:168
+  - tests/integration/test_parquet_sources.py:227
+  - tests/integration/test_parquet_sources.py:240
+  - tests/integration/test_parquet_sources.py:323
+  - tests/integration/test_parquet_sources.py:330
+  - tests/integration/test_parquet_sources.py:419
+- from: module:tests/integration/test_parquet_sources.py
+  rel: verifies
+  to: ticket:DRIVN-62
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_sources.py:283
+- from: module:tests/integration/test_parquet_sources.py
+  rel: verifies
+  to: ticket:DRIVN-63
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_sources.py:283
 - from: module:tests/integration/test_postgres_connect.py
   rel: imports
   to: module:tests/postgres_fixture.py
@@ -7501,9 +7839,9 @@ edges:
   - tests/integration/test_postgres_findings.py:149
   - tests/integration/test_postgres_findings.py:163
   - tests/integration/test_postgres_findings.py:208
-  - tests/integration/test_postgres_findings.py:259
-  - tests/integration/test_postgres_findings.py:285
-  - tests/integration/test_postgres_findings.py:303
+  - tests/integration/test_postgres_findings.py:262
+  - tests/integration/test_postgres_findings.py:288
+  - tests/integration/test_postgres_findings.py:306
 - from: module:tests/integration/test_postgres_findings.py
   rel: verifies
   to: criterion:DRIVN-45/AC-27
@@ -7515,7 +7853,7 @@ edges:
   to: criterion:DRIVN-9/AC-26
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_findings.py:259
+  - tests/integration/test_postgres_findings.py:262
 - from: module:tests/integration/test_postgres_findings.py
   rel: verifies
   to: ticket:DRIVN-53
@@ -7529,7 +7867,7 @@ edges:
   evidence:
   - tests/integration/test_postgres_findings.py:2
   - tests/integration/test_postgres_findings.py:149
-  - tests/integration/test_postgres_findings.py:285
+  - tests/integration/test_postgres_findings.py:288
 - from: module:tests/integration/test_postgres_fixture.py
   rel: imports
   to: module:tests/conftest.py
@@ -7751,76 +8089,76 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_objects_store.py:1
-  - tests/integration/test_postgres_objects_store.py:126
-  - tests/integration/test_postgres_objects_store.py:171
-  - tests/integration/test_postgres_objects_store.py:325
-  - tests/integration/test_postgres_objects_store.py:357
+  - tests/integration/test_postgres_objects_store.py:130
+  - tests/integration/test_postgres_objects_store.py:177
+  - tests/integration/test_postgres_objects_store.py:331
+  - tests/integration/test_postgres_objects_store.py:363
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:DRIVN-45/AC-09
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:294
-  - tests/integration/test_postgres_objects_store.py:387
+  - tests/integration/test_postgres_objects_store.py:300
+  - tests/integration/test_postgres_objects_store.py:393
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:DRIVN-45/AC-10
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:268
-  - tests/integration/test_postgres_objects_store.py:463
-  - tests/integration/test_postgres_objects_store.py:612
-  - tests/integration/test_postgres_objects_store.py:646
-  - tests/integration/test_postgres_objects_store.py:661
+  - tests/integration/test_postgres_objects_store.py:274
+  - tests/integration/test_postgres_objects_store.py:469
+  - tests/integration/test_postgres_objects_store.py:618
+  - tests/integration/test_postgres_objects_store.py:652
+  - tests/integration/test_postgres_objects_store.py:667
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:DRIVN-45/AC-11
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:423
-  - tests/integration/test_postgres_objects_store.py:451
+  - tests/integration/test_postgres_objects_store.py:429
+  - tests/integration/test_postgres_objects_store.py:457
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:DRIVN-45/AC-13
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:506
-  - tests/integration/test_postgres_objects_store.py:548
-  - tests/integration/test_postgres_objects_store.py:580
-  - tests/integration/test_postgres_objects_store.py:678
-  - tests/integration/test_postgres_objects_store.py:731
-  - tests/integration/test_postgres_objects_store.py:748
+  - tests/integration/test_postgres_objects_store.py:512
+  - tests/integration/test_postgres_objects_store.py:554
+  - tests/integration/test_postgres_objects_store.py:586
+  - tests/integration/test_postgres_objects_store.py:684
+  - tests/integration/test_postgres_objects_store.py:737
+  - tests/integration/test_postgres_objects_store.py:754
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:DRIVN-45/AC-17
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:759
+  - tests/integration/test_postgres_objects_store.py:765
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:DRIVN-45/AC-18
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:695
+  - tests/integration/test_postgres_objects_store.py:701
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: criterion:DRIVN-45/AC-31
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:778
+  - tests/integration/test_postgres_objects_store.py:784
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: ticket:DRIVN-49
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_objects_store.py:2
-  - tests/integration/test_postgres_objects_store.py:646
+  - tests/integration/test_postgres_objects_store.py:652
 - from: module:tests/integration/test_postgres_objects_store.py
   rel: verifies
   to: ticket:DRIVN-51
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_objects_store.py:765
+  - tests/integration/test_postgres_objects_store.py:771
 - from: module:tests/integration/test_postgres_password_store.py
   rel: imports
   to: module:tests/conftest.py
@@ -8104,25 +8442,25 @@ edges:
   to: criterion:DRIVN-45/AC-01
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_sources.py:202
+  - tests/integration/test_postgres_sources.py:205
 - from: module:tests/integration/test_postgres_sources.py
   rel: verifies
   to: criterion:DRIVN-45/AC-02
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_sources.py:1
-  - tests/integration/test_postgres_sources.py:84
-  - tests/integration/test_postgres_sources.py:116
-  - tests/integration/test_postgres_sources.py:138
-  - tests/integration/test_postgres_sources.py:186
+  - tests/integration/test_postgres_sources.py:87
+  - tests/integration/test_postgres_sources.py:119
+  - tests/integration/test_postgres_sources.py:141
+  - tests/integration/test_postgres_sources.py:189
 - from: module:tests/integration/test_postgres_sources.py
   rel: verifies
   to: criterion:DRIVN-45/AC-16
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_sources.py:215
-  - tests/integration/test_postgres_sources.py:264
-  - tests/integration/test_postgres_sources.py:293
+  - tests/integration/test_postgres_sources.py:218
+  - tests/integration/test_postgres_sources.py:267
+  - tests/integration/test_postgres_sources.py:296
 - from: module:tests/integration/test_postgres_sources.py
   rel: verifies
   to: ticket:DRIVN-47
@@ -8135,7 +8473,7 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_sources.py:2
-  - tests/integration/test_postgres_sources.py:252
+  - tests/integration/test_postgres_sources.py:255
 - from: module:tests/integration/test_postgres_sources_api.py
   rel: imports
   to: module:tests/conftest.py
@@ -10459,3 +10797,321 @@ edges:
   status: CONFIRMED
   evidence:
   - .ai/knowledge/work/DRIVN-59.md
+- from: ticket:DRIVN-61
+  rel: covers
+  to: criterion:DRIVN-60/AC-07
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-61.md
+- from: ticket:DRIVN-61
+  rel: covers
+  to: criterion:DRIVN-60/AC-08
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-61.md
+- from: ticket:DRIVN-61
+  rel: covers
+  to: criterion:DRIVN-60/AC-09
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-61.md
+- from: ticket:DRIVN-61
+  rel: covers
+  to: criterion:DRIVN-60/AC-29
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-61.md
+- from: ticket:DRIVN-62
+  rel: blocked_by
+  to: ticket:DRIVN-61
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-62.md
+- from: ticket:DRIVN-62
+  rel: covers
+  to: criterion:DRIVN-60/AC-10
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-62.md
+- from: ticket:DRIVN-63
+  rel: blocked_by
+  to: ticket:DRIVN-62
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-63.md
+- from: ticket:DRIVN-63
+  rel: covers
+  to: criterion:DRIVN-60/AC-12
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-63.md
+- from: ticket:DRIVN-63
+  rel: covers
+  to: criterion:DRIVN-60/AC-13
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-63.md
+- from: ticket:DRIVN-63
+  rel: covers
+  to: criterion:DRIVN-60/AC-30
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-63.md
+- from: ticket:DRIVN-63
+  rel: covers
+  to: criterion:DRIVN-60/AC-31
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-63.md
+- from: ticket:DRIVN-64
+  rel: blocked_by
+  to: ticket:DRIVN-63
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-64.md
+- from: ticket:DRIVN-64
+  rel: covers
+  to: criterion:DRIVN-60/AC-14
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-64.md
+- from: ticket:DRIVN-65
+  rel: covers
+  to: criterion:DRIVN-60/AC-23
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-65.md
+- from: ticket:DRIVN-66
+  rel: blocked_by
+  to: ticket:DRIVN-61
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-66.md
+- from: ticket:DRIVN-66
+  rel: blocked_by
+  to: ticket:DRIVN-65
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-66.md
+- from: ticket:DRIVN-66
+  rel: covers
+  to: criterion:DRIVN-60/AC-01
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-66.md
+- from: ticket:DRIVN-66
+  rel: covers
+  to: criterion:DRIVN-60/AC-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-66.md
+- from: ticket:DRIVN-66
+  rel: covers
+  to: criterion:DRIVN-60/AC-06
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-66.md
+- from: ticket:DRIVN-66
+  rel: covers
+  to: criterion:DRIVN-60/AC-26
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-66.md
+- from: ticket:DRIVN-66
+  rel: covers
+  to: criterion:DRIVN-60/AC-28
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-66.md
+- from: ticket:DRIVN-66
+  rel: covers
+  to: criterion:DRIVN-60/AC-29
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-66.md
+- from: ticket:DRIVN-67
+  rel: blocked_by
+  to: ticket:DRIVN-66
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-67.md
+- from: ticket:DRIVN-67
+  rel: covers
+  to: criterion:DRIVN-60/AC-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-67.md
+- from: ticket:DRIVN-67
+  rel: covers
+  to: criterion:DRIVN-60/AC-03
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-67.md
+- from: ticket:DRIVN-67
+  rel: covers
+  to: criterion:DRIVN-60/AC-04
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-67.md
+- from: ticket:DRIVN-67
+  rel: covers
+  to: criterion:DRIVN-60/AC-05
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-67.md
+- from: ticket:DRIVN-67
+  rel: covers
+  to: criterion:DRIVN-60/AC-10
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-67.md
+- from: ticket:DRIVN-67
+  rel: covers
+  to: criterion:DRIVN-60/AC-27
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-67.md
+- from: ticket:DRIVN-68
+  rel: blocked_by
+  to: ticket:DRIVN-64
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-68.md
+- from: ticket:DRIVN-68
+  rel: blocked_by
+  to: ticket:DRIVN-67
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-68.md
+- from: ticket:DRIVN-68
+  rel: covers
+  to: criterion:DRIVN-60/AC-02
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-68.md
+- from: ticket:DRIVN-68
+  rel: covers
+  to: criterion:DRIVN-60/AC-11
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-68.md
+- from: ticket:DRIVN-68
+  rel: covers
+  to: criterion:DRIVN-60/AC-13
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-68.md
+- from: ticket:DRIVN-68
+  rel: covers
+  to: criterion:DRIVN-60/AC-14
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-68.md
+- from: ticket:DRIVN-68
+  rel: covers
+  to: criterion:DRIVN-60/AC-31
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-68.md
+- from: ticket:DRIVN-69
+  rel: covers
+  to: criterion:DRIVN-60/AC-16
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-69.md
+- from: ticket:DRIVN-69
+  rel: covers
+  to: criterion:DRIVN-60/AC-17
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-69.md
+- from: ticket:DRIVN-69
+  rel: covers
+  to: criterion:DRIVN-60/AC-27
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-69.md
+- from: ticket:DRIVN-70
+  rel: covers
+  to: criterion:DRIVN-60/AC-18
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-70.md
+- from: ticket:DRIVN-70
+  rel: covers
+  to: criterion:DRIVN-60/AC-19
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-70.md
+- from: ticket:DRIVN-70
+  rel: covers
+  to: criterion:DRIVN-60/AC-20
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-70.md
+- from: ticket:DRIVN-70
+  rel: covers
+  to: criterion:DRIVN-60/AC-32
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-70.md
+- from: ticket:DRIVN-71
+  rel: blocked_by
+  to: ticket:DRIVN-66
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-71.md
+- from: ticket:DRIVN-71
+  rel: covers
+  to: criterion:DRIVN-60/AC-21
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-71.md
+- from: ticket:DRIVN-71
+  rel: covers
+  to: criterion:DRIVN-60/AC-22
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-71.md
+- from: ticket:DRIVN-72
+  rel: blocked_by
+  to: ticket:DRIVN-68
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-72.md
+- from: ticket:DRIVN-72
+  rel: blocked_by
+  to: ticket:DRIVN-69
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-72.md
+- from: ticket:DRIVN-72
+  rel: blocked_by
+  to: ticket:DRIVN-70
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-72.md
+- from: ticket:DRIVN-72
+  rel: blocked_by
+  to: ticket:DRIVN-71
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-72.md
+- from: ticket:DRIVN-72
+  rel: covers
+  to: criterion:DRIVN-60/AC-15
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-72.md
+- from: ticket:DRIVN-72
+  rel: covers
+  to: criterion:DRIVN-60/AC-24
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-72.md
+- from: ticket:DRIVN-72
+  rel: covers
+  to: criterion:DRIVN-60/AC-25
+  status: CONFIRMED
+  evidence:
+  - .ai/knowledge/work/DRIVN-72.md
