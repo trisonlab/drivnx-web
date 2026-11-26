@@ -78,4 +78,9 @@ Tickets are mirrored in Plane: workspace `drivnx`, project DRIVN (<https://app.p
   it gets. When a ticket's `state` changes, move the Plane item to match: `ready` → Todo, being built → In Progress,
   `done` → Done, `blocked` → Backlog. Add the PR link to the item when the PR opens. If the MCP server isn't
   connected, say the Plane update is NOT RUN; don't skip it silently.
+- A feature's Plane item and its milestone (a Plane module, `M2 Local sources` and so on) follow its tickets too.
+  Cutting tickets adds the feature and its tickets to the milestone's module. The feature item moves to In Progress
+  when its first ticket is being built, and to Done when its last ticket is `done`. The module moves to completed
+  when every item in it is Done or Cancelled. A placeholder item that a feature replaces is cancelled with a comment
+  naming the feature.
 - Ask before deleting Plane items or changing anything outside project DRIVN.
