@@ -42,6 +42,15 @@ beforeEach(() => {
     if (url === "/api/sources") {
       return Response.json([events]);
     }
+    if (url === "/api/sources/p1/rows?offset=0") {
+      return Response.json({
+        columns: [{ value: "id", cut: false }, { value: "tags", cut: false }],
+        rows: [[{ value: "18446744073709551615", cut: false }, { value: "[1, NULL, 3]", cut: false }]],
+        offset: 0,
+        has_next: true,
+        skipped_lines: 0,
+      });
+    }
     return Response.json([]);
   });
   vi.stubGlobal("fetch", fetchMock);
@@ -88,4 +97,16 @@ test("each column shows its native type, its type, and whether it's a list, stru
     "attributesstring (map)MAP(VARCHAR, INTEGER)",
     "payloadstringBLOB",
   ]);
+});
+
+test("a Parquet file's preview opens on its first page", async () => {
+  // DRIVN-60/AC-10
+  renderApp();
+
+  const preview = await screen.findByRole("region", { name: "Preview" });
+  const rows = await within(preview).findAllByRole("row");
+  expect(rows.map((row) => row.textContent)).toEqual(["idtags", "18446744073709551615[1, NULL, 3]"]);
+  expect(within(preview).getByRole("button", { name: "Next" })).toBeEnabled();
+  // A Parquet file has no read settings to show, nor lines skipped above a table.
+  expect(preview).not.toHaveTextContent(/skipped/i);
 });

@@ -257,7 +257,6 @@ def test_a_file_gone_before_its_content_is_read_is_refused_without_its_path(
 @pytest.mark.parametrize(
     ("method", "route", "body", "message"),
     [
-        ("GET", "/api/sources/{id}/rows", None, "This Parquet file can't be previewed yet."),
         (
             "PUT",
             "/api/sources/{id}/settings",
@@ -280,7 +279,7 @@ def test_a_parquet_source_isnt_read_as_a_csv(
     body: dict | None,
     message: str,
 ) -> None:
-    # Until preview (DRIVN-62) and profiling (DRIVN-63) read Parquet, these routes refuse it.
+    # A Parquet file has no CSV settings, and until profiling reads Parquet (DRIVN-63), it refuses it.
     source_id = connect(client, events)["id"]
     if body and body.get("source_id"):
         body = {**body, "source_id": source_id}
@@ -464,3 +463,21 @@ def test_a_workspace_with_a_parquet_source_stays_at_0010(
 
     assert read_revision(database) == "0010"
     assert source_rows(database) == expected
+
+
+def test_a_folder_named_like_a_partition_adds_no_column(
+    client: TestClient, tmp_path: Path
+) -> None:
+    # DRIVN-60/AC-07: one file is read on its own, as partitioned datasets are out of scope.
+    # DuckDB would otherwise list `year` and `id` from the folders, and `id` as text.
+    folder = tmp_path / "year=2024" / "id=x"
+    folder.mkdir(parents=True)
+    path = folder / "events.parquet"
+    with duckdb.connect() as connection:
+        connection.execute(f"COPY (SELECT 1::INTEGER AS id) TO '{path}' (FORMAT parquet)")
+
+    source = connect(client, path)
+
+    assert source["columns"] == [
+        {"name": "id", "physical_type": "INTEGER", "normalised_type": "integer"}
+    ]

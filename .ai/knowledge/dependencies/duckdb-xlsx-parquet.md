@@ -1,7 +1,7 @@
 ---
 title: How DuckDB 2.0.0 reads XLSX (excel extension, not bundled) and Parquet (built in)
 status: INFERRED
-updated: '2026-11-25'
+updated: '2026-11-26'
 evidence:
 - path: pyproject.toml
   sha256: 44e6c51efc357b05bccb13ace5dd1da37ab07d5858303c7cc8492d621368d91b
@@ -14,11 +14,13 @@ evidence:
 - path: packages/connectors/csv_files.py
   sha256: 085f4ed82bf8e147ad4b653ee8de548b3c939e6aa50734827a79ebfe47e30dad
 - path: packages/connectors/parquet_files.py
-  sha256: 648ac9febb0839731bd630c7004852cda83e428cd46b8cdb6684e3111e91dceb
+  sha256: 4bd4645f4702e3728b9cfbfd6fa9de0eee4a71eb19592555fe7095eaf7fc842d
 - path: apps/local-api/local_api/sources_api.py
-  sha256: e898fcceb42eb8e5a6174eae749c91f0b405f991ed9f5e6ac80ab9b831bea2c4
+  sha256: aa95ff219b63b7877e83f70a1f30030c2b5d732f0ebf542f07637e43ada263bc
 - path: tests/integration/test_parquet_sources.py
-  sha256: 4e480db0511b5f125e52a9700875966af01a495a60dac46c3a79b38322155d2a
+  sha256: 2948e0954b6c3bddd533293303f4a801a495b52df92613b539181be3089760a2
+- path: tests/integration/test_parquet_preview_api.py
+  sha256: 18a2af9220fad7044c5f572ab9fea0f193bca6cd228c45b743f085e78f563749
 sources:
 - https://duckdb.org/docs/2.0/core_extensions/excel.html (retrieved 2026-11-14)
 - https://duckdb.org/docs/2.0/guides/file_formats/excel_import.html (retrieved 2026-11-14)
@@ -153,6 +155,17 @@ Connecting a Parquet file (`sources_api.connect_source`) relies on the facts abo
   - A DuckDB error while reading the metadata becomes "This file isn't a Parquet file", without the path in it.
 - **Storage:** migration `0010_xlsx_parquet_sources` adds the `parquet` kind and the `row_count`, `row_group_count` and
   `created_by` columns to `source`.
+- **Preview (DRIVN-62):** `parquet_files.read_page` reads a page with `LIMIT ? OFFSET ?` over `read_parquet`, columns
+  renamed by position so no name from the file enters the SQL, each value cast to text and cut at 1,001 characters in
+  DuckDB. A `TIMESTAMP WITH TIME ZONE` is written in UTC (`SET TimeZone = 'UTC'`), not this computer's zone, and a
+  `BLOB` as `\x` and lowercase hex, as the database preview writes `bytea`; both decided with the user on
+  2026-11-26. A path with `[`, `*` or `?` is read literally (tested beside a file the pattern would match).
+- **One file at a time:** every `read_parquet` passes `hive_partitioning = false` (`ONE_FILE`). Otherwise a folder named
+  like `id=x` in the path adds a column, or replaces the file's own `id` with `x`, in both the metadata and the preview
+  (found in DRIVN-62's review; partitioned datasets are out of scope).
+- **A page's errors:** a footer that no longer reads is "isn't a Parquet file"; a value that can't be read on the way to
+  the page (for example invalid UTF-8) is the CSV preview's "A row in this file can't be read, so this page can't be
+  shown."; running out of memory is "DrivnX ran out of memory showing this page." (wording agreed 2026-11-26).
 - **Not verified:**
   - a file written by parquet-cpp-arrow, as pyarrow isn't installed and tests write their files with DuckDB;
   - plaintext-footer encryption, which starts with `PAR1`, so the `PARE` check doesn't catch it;
