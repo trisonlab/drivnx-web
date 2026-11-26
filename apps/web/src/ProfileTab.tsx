@@ -143,12 +143,14 @@ function ColumnRow({
   name,
   metrics,
   rowsRead,
+  labels,
   buttonId,
   onShowValues,
 }: {
   name: string;
   metrics: Metric[];
   rowsRead: Metric["value"] | undefined;
+  labels: Labels;
   buttonId: string;
   onShowValues: () => void;
 }) {
@@ -159,7 +161,7 @@ function ColumnRow({
   return (
     <tr>
       <th scope="row">{name}</th>
-      <td>{SCOPE_LABELS[metrics[0].scope]}</td>
+      <td>{labels.measuredOn[metrics[0].scope]}</td>
       <td>{PRECISION_LABELS[metrics[0].precision]}</td>
       <td>{shown(rowsRead)}</td>
       <td id={evidenceId(name, "missing_count")} tabIndex={-1}>
@@ -179,7 +181,7 @@ function ColumnRow({
           <Patterns
             patterns={patterns}
             measuredOn={
-              patternsScope && patternsScope !== metrics[0].scope ? `the ${SCOPE_LABELS[patternsScope]}` : undefined
+              patternsScope && patternsScope !== metrics[0].scope ? labels.patternsFrom[patternsScope] : undefined
             }
           />
         ) : (
@@ -551,7 +553,29 @@ function RunsList({
   );
 }
 
-function Results({ run }: { run: ProfileRun }) {
+/** What a file run's metrics were measured on, and where a full run's patterns are from. */
+type Labels = { measuredOn: Record<Metric["scope"], string>; patternsFrom: Record<Metric["scope"], string> };
+
+const CSV_LABELS: Labels = {
+  measuredOn: SCOPE_LABELS,
+  patternsFrom: {
+    full: `the ${SCOPE_LABELS.full}`,
+    sample: `the ${SCOPE_LABELS.sample}`,
+    metadata: `the ${SCOPE_LABELS.metadata}`,
+  },
+};
+
+/** A Parquet file's: a sample of seeded slices, or every row (DRIVN-60 AC-12, AC-30). */
+function parquetLabels(rowsRead: Metric["value"] | undefined, sampleRows: Metric["value"] | undefined): Labels {
+  const labels = {
+    full: `every row, ${shown(rowsRead)} rows`,
+    sample: `about ${shown(sampleRows)} rows, sampled by row group`,
+    metadata: "the file's metadata",
+  };
+  return { measuredOn: labels, patternsFrom: labels };
+}
+
+function Results({ run, parquet = false }: { run: ProfileRun; parquet?: boolean }) {
   const results = useQuery({ queryKey: ["profile-run", run.id], queryFn: () => getProfileRun(run.id) });
   const values = useValuesOnRequest(run);
   if (results.isError) {
@@ -566,13 +590,26 @@ function Results({ run }: { run: ProfileRun }) {
   const skippedLines = ofTheFile("skipped_lines");
   const duplicates = ofTheFile("duplicate_rows");
   const rowsRead = metrics.find((metric) => metric.column === null && metric.metric === "rows_read");
+  // A Parquet file's comes from its metadata (DRIVN-60 AC-12).
+  const rowCount = ofTheFile("row_count");
   // Only a run that read every row knows how many the file has (first slice AC-25).
-  const fileRows = rowsRead?.scope === "full" && typeof rowsRead.value === "number" ? rowsRead.value : null;
+  const fileRows =
+    !parquet && rowsRead?.scope === "full" && typeof rowsRead.value === "number" ? rowsRead.value : null;
+  const labels = parquet
+    ? parquetLabels(rowsRead?.value, rowsRead?.scope === "sample" ? rowsRead.value : ofTheFile("sample_rows_read"))
+    : CSV_LABELS;
   const columns = [...new Set(metrics.flatMap((metric) => metric.column ?? []))];
   return (
     <>
       {fileRows !== null && (
         <p>{fileRows === 1 ? "This file has 1 row." : `This file has ${fileRows.toLocaleString()} rows.`}</p>
+      )}
+      {typeof rowCount === "number" && (
+        <p>
+          {rowCount === 1
+            ? "This file has 1 row, from the file's metadata."
+            : `This file has ${rowCount.toLocaleString()} rows, from the file's metadata.`}
+        </p>
       )}
       {typeof duplicates === "number" && (
         <p id={evidenceId(null, "duplicate_rows")} tabIndex={-1}>
@@ -615,6 +652,7 @@ function Results({ run }: { run: ProfileRun }) {
                 name={column}
                 metrics={metrics.filter((metric) => metric.column === column)}
                 rowsRead={ofTheFile("rows_read")}
+                labels={labels}
                 buttonId={values.buttonId(column)}
                 onShowValues={() => values.show({ column })}
               />
@@ -942,7 +980,7 @@ export function ProfileTab({
         source.kind === "postgres" ? (
           <DatabaseResults key={completed.id} run={completed} />
         ) : (
-          <Results key={completed.id} run={completed} />
+          <Results key={completed.id} run={completed} parquet={source.kind === "parquet"} />
         )
       ) : (
         runs.isSuccess && mine.length === 0 && <p>No profile has been run with these settings yet.</p>

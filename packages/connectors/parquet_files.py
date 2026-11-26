@@ -4,6 +4,7 @@ Nothing is copied, and the file is never written to (Section 5). Its statistics 
 the data, so their minimums and maximums are never read (ADR 0004).
 """
 
+import random
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -37,6 +38,11 @@ class ParquetMetadata:
     created_by: str | None
     columns: tuple[CsvColumn, ...]
 
+
+# A fast profile's sample: this many slices of this many rows, one in each equal stretch of the
+# file, each starting at a row chosen with the run's seed (decided with the user on 2026-11-26).
+SLICES = 8
+SLICE_ROWS = 12_500
 
 # The file on its own: a folder named like `id=x` would otherwise add a column, or replace one.
 # Partitioned datasets are out of scope (DRIVN-60).
@@ -108,8 +114,6 @@ def read_page(path: Path, offset: int, limit: int, temp_directory: Path) -> CsvP
         except duckdb.Error:
             # Its footer can't be read: the file changed since it was connected.
             raise ParquetError(NOT_PARQUET) from None
-        # By position, so no name from the file is written into the SQL.
-        named = ", ".join(f"c{n}" for n in range(len(described)))
         shown = ", ".join(
             # Cut one character over, so a longer value can be told apart.
             f"left({_as_text(n, column_type)}, {MAX_CELL_CHARACTERS + 1})"
@@ -117,7 +121,7 @@ def read_page(path: Path, offset: int, limit: int, temp_directory: Path) -> CsvP
         )
         try:
             rows = connection.execute(
-                f"SELECT {shown} FROM {ONE_FILE} AS listed({named}) LIMIT ? OFFSET ?",
+                f"SELECT {shown} FROM {_listed(described)} LIMIT ? OFFSET ?",
                 [readable, limit, offset],
             ).fetchall()
         except duckdb.OutOfMemoryException:
@@ -126,6 +130,61 @@ def read_page(path: Path, offset: int, limit: int, temp_directory: Path) -> CsvP
             # Still a Parquet file, but a value on the way to this page can't be read.
             raise ParquetError(ROW_NOT_READABLE) from None
     return CsvPage([name for name, *_ in described], rows, 0)
+
+
+def sample_slices(row_count: int, seed: int) -> list[tuple[int, int]] | None:
+    """Where a fast profile reads, as `(first row, rows)`: `SLICES` slices, one in each equal
+    stretch of the file, each starting at a row chosen with `seed`. `None` for a file no larger
+    than the sample, which is read whole (AC-12, AC-30)."""
+    if row_count <= SLICES * SLICE_ROWS:
+        return None
+    chooser = random.Random(seed)
+    slices = []
+    for n in range(SLICES):
+        begin, end = n * row_count // SLICES, (n + 1) * row_count // SLICES
+        slices.append((begin + chooser.randrange(end - begin - SLICE_ROWS + 1), SLICE_ROWS))
+    return slices
+
+
+def load_rows(
+    connection: duckdb.DuckDBPyConnection,
+    path: Path,
+    table: str,
+    slices: list[tuple[int, int]] | None = None,
+) -> list[tuple[str, str]]:
+    """Load the file's rows for a profile into `table`, as text columns `c0`, `c1`, …, as the
+    preview shows them but uncut: only those in `slices` when given, else every row. Returns the
+    file's columns, by name and DuckDB's type, in order. DuckDB's errors are left to the caller,
+    as they can quote a row."""
+    connection.execute("SET TimeZone = 'UTC'")
+    readable = literal_path(path)
+    described = connection.execute(f"DESCRIBE SELECT * FROM {ONE_FILE}", [readable]).fetchall()
+    shown = ", ".join(
+        f"{_as_text(n, column_type)} AS c{n}" for n, (_, column_type, *_) in enumerate(described)
+    )
+    columns = [(name, column_type) for name, column_type, *_ in described]
+    if slices is None:
+        connection.execute(
+            f"CREATE TABLE {table} AS SELECT {shown} FROM {_listed(described)}", [readable]
+        )
+        return columns
+    # DuckDB's own row number, which lets it skip the row groups no slice is in. With the file's
+    # columns renamed, a column of the file's own with this name can't be taken for it.
+    wanted = " OR ".join(
+        f"file_row_number BETWEEN {int(begin)} AND {int(begin) + int(rows) - 1}"
+        for begin, rows in slices
+    )
+    connection.execute(
+        f"CREATE TABLE {table} AS SELECT {shown} FROM {_listed(described)} WHERE {wanted}",
+        [readable],
+    )
+    return columns
+
+
+def _listed(described: list[tuple]) -> str:
+    """The file with its columns renamed by position, so no name from it is written into SQL."""
+    named = ", ".join(f"c{n}" for n in range(len(described)))
+    return f"{ONE_FILE} AS listed({named})"
 
 
 def _as_text(n: int, column_type: str) -> str:
