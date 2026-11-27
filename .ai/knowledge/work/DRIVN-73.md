@@ -6,7 +6,7 @@ feature_revision: 1
 stories: [US-03]
 criteria: [AC-14]
 blocked_by: [DRIVN-64]
-state: blocked
+state: ready
 external_key: DRIVN-73
 status: CONFIRMED
 ---

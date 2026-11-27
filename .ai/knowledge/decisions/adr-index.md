@@ -21,6 +21,8 @@ evidence:
   sha256: c0e5766fe4c216f6bd01533a6945277047ed7db71f6681d84f1a06635a73ddff
 - path: docs/adr/0009-stopping-a-postgres-read.md
   sha256: 66f8d976394f3136b23e73319e1efefcddabac3fd53e0814a364e39efee6ebd7
+- path: docs/adr/0010-parquet-sampling.md
+  sha256: a2b002e281db76dda85fb215d57870704fcdbb263ede072a5e0ec70ba082f6a5
 ---
 # Architecture decisions
 
@@ -37,3 +39,4 @@ Index of the project's ADRs. Status comes from each file; the ADR text is the au
 | 0007 — A PostgreSQL password lives only in memory and a temporary DuckDB secret, and every session is read-only | unknown | `docs/adr/0007-postgres-password-and-connection.md` |
 | 0008 — A PostgreSQL password is kept in the OS credential store through keyring, and in memory only where there is none | unknown | `docs/adr/0008-postgres-password-in-the-os-credential-store.md` |
 | 0009 — A PostgreSQL read is stopped by DuckDB's interrupt, then by the server's cancel; a full profile reads PostgreSQL's text through the scanner | unknown | `docs/adr/0009-stopping-a-postgres-read.md` |
+| 0010 — How a profile reads a Parquet file: seeded slices, one in each eighth, and the row count from its metadata | unknown | `docs/adr/0010-parquet-sampling.md` |
