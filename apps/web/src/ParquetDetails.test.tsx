@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { App } from "./App";
 
@@ -189,4 +190,127 @@ test("a full profile's masked patterns say they're from the sample", async () =>
   const row = await within(panel).findByRole("row", { name: /^name/ });
   expect(within(row).getByText("every row, 40,000,000 rows")).toBeInTheDocument();
   expect(within(row).getByText("1 pattern, from about 100,000 rows, sampled by row group")).toBeInTheDocument();
+});
+
+test("a sampled run's values say they're from its rows, sampled by row group", async () => {
+  // DRIVN-60/AC-14: "values on request are computed now from … the same seeded row groups".
+  runMetrics = [
+    metric(null, "rows_read", 100_000, "sample"),
+    metric(null, "row_count", 40_000_000, "metadata"),
+    metric("id", "distinct_count", 100_000, "sample"),
+  ];
+  const answer = fetchMock.getMockImplementation();
+  fetchMock.mockImplementation(async (url: string, init?: RequestInit) =>
+    url === "/api/profile-runs/r1/values?column=id"
+      ? Response.json({
+          profile_run_id: "r1",
+          column: "id",
+          scope: "sample",
+          rows_read: 100_000,
+          computed_at: "2026-11-27T11:00:00+00:00",
+          minimum: { value: "3", cut: false },
+          maximum: { value: "39999998", cut: false },
+          frequent: [{ value: { value: "3", cut: false }, count: 1 }],
+          histogram: null,
+          mean: null,
+          median: null,
+          standard_deviation: null,
+        })
+      : answer?.(url, init),
+  );
+  const panel = await results();
+
+  const row = await within(panel).findByRole("row", { name: /^id/ });
+  await userEvent.click(within(row).getByRole("button", { name: "Show values of id" }));
+
+  const shown = await within(panel).findByRole("region", { name: "Values in id" });
+  expect(shown).toHaveTextContent(
+    `Computed ${new Date("2026-11-27T11:00:00+00:00").toLocaleString()} from about 100,000 rows, sampled by row group, and not saved.`,
+  );
+  expect(shown).not.toHaveTextContent(/not random/);
+});
+
+test("a run of a file that has changed since says its results may be out of date", async () => {
+  // DRIVN-60/AC-14
+  runMetrics = [metric(null, "rows_read", 100_000, "sample"), metric("id", "distinct_count", 100_000, "sample")];
+  const answer = fetchMock.getMockImplementation();
+  fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+    const response = await answer?.(url, init);
+    return url === "/api/profile-runs/r1" ? Response.json({ ...(await response.json()), file_changed: true }) : response;
+  });
+
+  const panel = await results();
+
+  expect(
+    await within(panel).findByText(
+      "This file has changed since this profile ran, so these results may be out of date.",
+    ),
+  ).toBeInTheDocument();
+});
+
+test("a sampled run's findings say they're from its rows, sampled by row group", async () => {
+  // DRIVN-60/AC-14: the CSV profile's findings, observed in the rows the run read (DRIVN-9/AC-24).
+  runMetrics = [metric(null, "rows_read", 100_000, "sample"), metric("note", "missing_count", 25_000, "sample")];
+  const answer = fetchMock.getMockImplementation();
+  fetchMock.mockImplementation(async (url: string, init?: RequestInit) =>
+    url.startsWith("/api/findings?")
+      ? Response.json([
+          {
+            id: "f1",
+            profile_run_id: "r1",
+            kind: "missing_values",
+            interpretation: "Significant missing values",
+            why_it_matters: "Saved reason",
+            recommended_action: "Saved action",
+            state: "inferred",
+            evidence: [
+              { column: "note", metric: "missing_count", value: 25_000, scope: "sample", precision: "exact" },
+              { column: "note", metric: "missing_percent", value: 25, scope: "sample", precision: "exact" },
+            ],
+          },
+        ])
+      : answer?.(url, init),
+  );
+  renderApp();
+
+  const aside = await screen.findByRole("complementary", { name: "Intelligence & Review" });
+  const shown = await within(within(aside).getByRole("region", { name: "Findings" })).findByRole("article");
+  expect(shown).toHaveTextContent(
+    "Observed: note is missing 25,000 values (25%) in about 100,000 rows, sampled by row group.",
+  );
+  expect(shown).not.toHaveTextContent(/first 100,000/);
+});
+
+test("a full run's values say they're from every row, as its columns do", async () => {
+  // DRIVN-60/AC-14, worded as the run's own label (found in DRIVN-64's review).
+  runMode = "full";
+  runMetrics = [metric(null, "rows_read", 40_000_000, "full"), metric("id", "distinct_count", 40_000_000, "full")];
+  const answer = fetchMock.getMockImplementation();
+  fetchMock.mockImplementation(async (url: string, init?: RequestInit) =>
+    url === "/api/profile-runs/r1/values?column=id"
+      ? Response.json({
+          profile_run_id: "r1",
+          column: "id",
+          scope: "full",
+          rows_read: 40_000_000,
+          computed_at: "2026-11-27T11:00:00+00:00",
+          minimum: { value: "0", cut: false },
+          maximum: { value: "39999999", cut: false },
+          frequent: [{ value: { value: "0", cut: false }, count: 1 }],
+          histogram: null,
+          mean: null,
+          median: null,
+          standard_deviation: null,
+        })
+      : answer?.(url, init),
+  );
+  const panel = await results();
+
+  const row = await within(panel).findByRole("row", { name: /^id/ });
+  await userEvent.click(within(row).getByRole("button", { name: "Show values of id" }));
+
+  const shown = await within(panel).findByRole("region", { name: "Values in id" });
+  expect(shown).toHaveTextContent(
+    `Computed ${new Date("2026-11-27T11:00:00+00:00").toLocaleString()} from every row, 40,000,000 rows, and not saved.`,
+  );
 });

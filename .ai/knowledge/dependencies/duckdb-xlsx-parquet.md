@@ -1,7 +1,7 @@
 ---
 title: How DuckDB 2.0.0 reads XLSX (excel extension, not bundled) and Parquet (built in)
 status: INFERRED
-updated: '2026-11-26'
+updated: '2026-11-27'
 evidence:
 - path: pyproject.toml
   sha256: 44e6c51efc357b05bccb13ace5dd1da37ab07d5858303c7cc8492d621368d91b
@@ -22,7 +22,11 @@ evidence:
 - path: tests/integration/test_parquet_preview_api.py
   sha256: 18a2af9220fad7044c5f572ab9fea0f193bca6cd228c45b743f085e78f563749
 - path: tests/integration/test_parquet_profile.py
-  sha256: 2e8d0aeccfb818981eb3dd95315b75ba147cf7844c39405c6c9d90952fba48ba
+  sha256: e312831bad5140533daa26f2ff35221d1d13413061a299df2bf28b6e8bb012d1
+- path: tests/integration/test_parquet_results.py
+  sha256: 9b66a0b4f210c1260e59a4d47db57b4ed92ddc1101ec54953f636b4580b7d629
+- path: apps/local-api/local_api/profile_runs_api.py
+  sha256: a9623aa5a9e72b70d2c0cdcedc161d915df2aa0b598bbfbac51f9986abc6671d
 - path: docs/adr/0010-parquet-sampling.md
   sha256: a2b002e281db76dda85fb215d57870704fcdbb263ede072a5e0ec70ba082f6a5
 sources:
@@ -174,8 +178,12 @@ Connecting a Parquet file (`sources_api.connect_source`) relies on the facts abo
   `failed` with "The file's columns no longer match the saved ones." before anything is measured; a file gone or no
   longer Parquet is refused at the start, as a CSV's is (AC-31, confirmed with the user on 2026-11-26).
   A value DuckDB can't read partway (the footer still reads) ends the run with "DrivnX couldn't read this file.".
-  Values on request for a Parquet run are refused with "This Parquet file's values can't be worked out yet." until
-  DRIVN-64.
+- **Values on request (DRIVN-64):** read again now through the same `load_rows`, from the run's own slices kept in its
+  scope, or every row after a full profile or of a file read whole, then `values_for` with an empty text as a value.
+  Never saved. The route checks as a CSV's does (a column it doesn't have, possibly sensitive, a file gone), and the
+  file's columns and types against the saved ones, else "The file's columns no longer match the saved ones."; any
+  DuckDB error is "DrivnX couldn't read this file.", as its text can quote a value. The values and the findings of a
+  sample say "about 100,000 rows, sampled by row group", not "the first 100,000 rows".
 - **One file at a time:** every `read_parquet` passes `hive_partitioning = false` (`ONE_FILE`). Otherwise a folder named
   like `id=x` in the path adds a column, or replaces the file's own `id` with `x`, in both the metadata and the preview
   (found in DRIVN-62's review; partitioned datasets are out of scope).
