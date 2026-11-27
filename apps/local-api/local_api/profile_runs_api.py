@@ -32,6 +32,7 @@ from artifacts.sources import (
 )
 from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, read_page, sniffed_columns
+from connectors.parquet_files import ParquetError, read_metadata
 from connectors.postgres import ConnectFailure, Reading, discover, reading_for
 from fastapi import APIRouter, HTTPException
 from profiling.on_request import ColumnValues
@@ -51,6 +52,7 @@ from local_api.profile_jobs import (
     object_values_of,
     read_scope,
     start_database_profile,
+    start_parquet_profile,
     start_profile,
     values_of,
 )
@@ -73,8 +75,8 @@ from local_api.write_access import can_write, refusal, write_access
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
 NOTHING_CHOSEN = "Choose the objects to profile first."
 TIME_LIMIT_NOT_HERE = "A time limit applies only to a database's full profile."
-# Until DRIVN-63 profiles a Parquet file.
-NO_PARQUET_PROFILE = "This Parquet file can't be profiled yet."
+# Until DRIVN-64 works out a Parquet file's values.
+NO_PARQUET_VALUES = "This Parquet file's values can't be worked out yet."
 OBJECTS_CHANGED = "{} changed since the list was refreshed. Refresh the list, then profile again."
 OBJECTS_CHANGED_JUST_NOW = "The list was refreshed just now. Start the profile again."
 ALREADY_FINISHED = "This profile has already finished."
@@ -256,7 +258,7 @@ def _reading() -> Iterator[None]:
     """A file that can't be read, as a message for the user. DuckDB's text never travels."""
     try:
         yield
-    except CsvError as error:
+    except (CsvError, ParquetError) as error:
         raise cannot_read(str(error)) from None
     except PermissionError:
         raise cannot_read("DrivnX doesn't have permission to read this file.") from None
@@ -408,6 +410,27 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             raise HTTPException(status_code=409, detail=OBJECTS_CHANGED_JUST_NOW) from None
         return run_id
 
+    def start_parquet_run(parquet: StoredParquetSource, body: ProfileRunRequest) -> str:
+        """A fast or full profile of a Parquet file (DRIVN-63). Returns its ID."""
+        if body.time_limit_minutes is not None:
+            raise HTTPException(status_code=422, detail=TIME_LIMIT_NOT_HERE)
+        dataset = read_dataset(workspace.engine, parquet.id)
+        # As for a CSV, a file that can't be read is refused before a run starts (AC-31).
+        if not is_available(parquet.path):
+            raise cannot_read(FILE_GONE)
+        with _reading():
+            stat = parquet.path.stat()
+            # As the file is now: its sample is planned from this.
+            row_count = read_metadata(parquet.path, workspace.temp_directory).row_count
+        try:
+            return start_parquet_profile(
+                workspace, body.mode, parquet, dataset, stat, modified_at(stat), row_count
+            )
+        except RunInProgress:
+            raise HTTPException(status_code=409, detail=RUN_IN_PROGRESS) from None
+        except Busy:
+            raise HTTPException(status_code=409, detail=BUSY) from None
+
     @router.post("", status_code=202)
     def start_run(body: ProfileRunRequest) -> ProfileRunResponse:
         no_such_source = HTTPException(status_code=404, detail="There's no such source.")
@@ -421,7 +444,7 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
                 )
             )
         if isinstance(database, StoredParquetSource):
-            raise HTTPException(status_code=409, detail=NO_PARQUET_PROFILE)
+            return _response(existing_run(start_parquet_run(database, body)))
         try:
             # Before the settings, so a correction saved after either replaces this dataset, and
             # the start is refused instead of reading with settings that aren't this dataset's.
@@ -679,6 +702,8 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
             raise HTTPException(status_code=409, detail=NOT_COMPLETED)
         if run.dataset_id is None:
             return database_values(run, schema, object, column, confirmed)
+        if isinstance(find_source(workspace.engine, run.source_id), StoredParquetSource):
+            raise HTTPException(status_code=409, detail=NO_PARQUET_VALUES)
         # Its columns may have been renamed since, and its settings no longer read the file.
         if not run.current_settings:
             raise HTTPException(status_code=409, detail=EARLIER_SETTINGS)

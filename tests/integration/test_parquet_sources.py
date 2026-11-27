@@ -254,40 +254,17 @@ def test_a_file_gone_before_its_content_is_read_is_refused_without_its_path(
     assert "events" not in detail
 
 
-@pytest.mark.parametrize(
-    ("method", "route", "body", "message"),
-    [
-        (
-            "PUT",
-            "/api/sources/{id}/settings",
-            {"delimiter": ",", "encoding": "UTF-8", "has_header": True, "skip_lines": None},
-            "A Parquet file has no file settings.",
-        ),
-        (
-            "POST",
-            "/api/profile-runs",
-            {"source_id": "{id}", "mode": "fast"},
-            "This Parquet file can't be profiled yet.",
-        ),
-    ],
-)
-def test_a_parquet_source_isnt_read_as_a_csv(
-    client: TestClient,
-    events: Path,
-    method: str,
-    route: str,
-    body: dict | None,
-    message: str,
-) -> None:
-    # A Parquet file has no CSV settings, and until profiling reads Parquet (DRIVN-63), it refuses it.
+def test_a_parquet_file_has_no_file_settings(client: TestClient, events: Path) -> None:
+    # A CSV's delimiter, encoding and header mean nothing for a Parquet file.
     source_id = connect(client, events)["id"]
-    if body and body.get("source_id"):
-        body = {**body, "source_id": source_id}
 
-    response = client.request(method, route.format(id=source_id), json=body)
+    response = client.put(
+        f"/api/sources/{source_id}/settings",
+        json={"delimiter": ",", "encoding": "UTF-8", "has_header": True, "skip_lines": None},
+    )
 
     assert response.status_code == 409, response.text
-    assert response.json()["detail"] == message
+    assert response.json()["detail"] == "A Parquet file has no file settings."
     assert client.get("/api/profile-runs").json() == []
 
 

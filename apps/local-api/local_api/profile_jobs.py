@@ -23,10 +23,18 @@ from artifacts.profiles import (
     read_observations,
     start_only_profile_run,
 )
-from artifacts.sources import ChosenObject, StoredDataset, StoredPostgresSource, StoredSource
+from artifacts.sources import (
+    ChosenObject,
+    StoredDataset,
+    StoredParquetSource,
+    StoredPostgresSource,
+    StoredSource,
+)
 from artifacts.store import WorkspaceBusy
 from artifacts.workspace import Workspace
 from connectors.csv_files import CsvError, RowNotReadable, duckdb_connection, load_rows
+from connectors.parquet_files import load_rows as load_parquet_rows
+from connectors.parquet_files import sample_slices
 from connectors.postgres import (
     SAMPLE_ROWS,
     ConnectFailure,
@@ -161,7 +169,70 @@ def start_profile(
         )
         job.thread = threading.Thread(
             target=_run_profile,
-            args=(workspace, run_id, job, mode, source, encoding, dataset, stat),
+            args=(
+                workspace,
+                run_id,
+                job,
+                source.path,
+                dataset,
+                stat,
+                functools.partial(_csv_observations, mode, source, encoding, dataset),
+            ),
+            name=JOB_THREAD_NAME,
+            daemon=True,
+        )
+        _jobs[run_id] = job
+    job.thread.start()
+    return run_id
+
+
+def start_parquet_profile(
+    workspace: Workspace,
+    mode: Mode,
+    source: StoredParquetSource,
+    dataset: StoredDataset,
+    stat: os.stat_result,
+    modified_at: str,
+    row_count: int,
+) -> str:
+    """Record a profile of a Parquet file of `row_count` rows, then work in the background.
+    Returns its ID (DRIVN-63).
+
+    A fast profile reads the slices its seed chooses, which the run keeps, so they can be read
+    again. Raises `RunInProgress`, or `Busy` while values are being worked out.
+    """
+    job = _Job()
+    with _jobs_lock:
+        if _values_lock.locked():
+            raise Busy
+        seed = secrets.randbelow(2**31)
+        # Planned for a full profile too, whose masked patterns are from these rows.
+        slices = sample_slices(row_count, seed)
+        run_id = start_only_profile_run(
+            workspace.engine,
+            scope={
+                "dataset_id": dataset.id,
+                "size_bytes": stat.st_size,
+                "modified_at": modified_at,
+                "slices": slices,
+            },
+            mode=mode,
+            sample_size=SAMPLE_ROWS if mode == "fast" else None,
+            seed=seed,
+        )
+        job.thread = threading.Thread(
+            target=_run_profile,
+            args=(
+                workspace,
+                run_id,
+                job,
+                source.path,
+                dataset,
+                stat,
+                functools.partial(
+                    _parquet_observations, mode, source, dataset, slices, row_count
+                ),
+            ),
             name=JOB_THREAD_NAME,
             daemon=True,
         )
@@ -648,6 +719,14 @@ class FileChanged(CsvError):
     """The file isn't the one the run started on."""
 
 
+class ColumnsChanged(CsvError):
+    """A Parquet file's columns, or their types, aren't the saved ones (DRIVN-63)."""
+
+
+class ParquetNotRead(CsvError):
+    """A Parquet file that still reads as one has a value DuckDB can't read (DRIVN-63)."""
+
+
 def _same_file(before: os.stat_result, after: os.stat_result) -> bool:
     def identity(stat: os.stat_result) -> tuple[int, ...]:
         return (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns)
@@ -672,6 +751,8 @@ def _why_it_failed(error: Exception, path: Path, started_on: os.stat_result) -> 
         return NO_PERMISSION
     except OSError:
         return COULDNT_READ
+    if isinstance(error, (ColumnsChanged, ParquetNotRead)):
+        return str(error)
     if isinstance(error, duckdb.OutOfMemoryException):
         return OUT_OF_MEMORY
     if isinstance(error, RowNotReadable):
@@ -698,26 +779,21 @@ def _run_profile(
     workspace: Workspace,
     run_id: str,
     job: _Job,
-    mode: Mode,
-    source: StoredSource,
-    encoding: str,
+    path: Path,
     dataset: StoredDataset,
     started_on: os.stat_result,
+    observe: Callable[[duckdb.DuckDBPyConnection], list[NewObservation]],
 ) -> None:
+    """A file's run: what `observe` measures over the job's connection is saved, then findings."""
     # In `finally`, so even a mistake in DrivnX can't leave a run refusing every later one.
     status = "failed"
     findings: list[NewFinding] = []
     try:
-        measured, extra_columns, skipped_lines = _measure(
-            workspace, job, mode, source, encoding, dataset
-        )
+        observations = _measure(workspace, job, observe)
         # What was measured must still be the file.
-        if not _same_file(started_on, source.path.stat()):
+        if not _same_file(started_on, path.stat()):
             raise FileChanged(FILE_CHANGED)
-        for batch in batched(
-            _observations(dataset, measured, extra_columns, skipped_lines),
-            MAX_OBSERVATIONS_PER_TRANSACTION,
-        ):
+        for batch in batched(observations, MAX_OBSERVATIONS_PER_TRANSACTION):
             if job.stop.is_set():
                 # The run ends as `cancelled` below, so what's saved isn't shown.
                 break
@@ -735,7 +811,7 @@ def _run_profile(
     except (CsvError, duckdb.Error, OSError, WorkspaceBusy) as error:
         # DuckDB's message can quote a row from the file, so this must not travel any further.
         if not job.stop.is_set():
-            _failures[run_id] = _why_it_failed(error, source.path, started_on)
+            _failures[run_id] = _why_it_failed(error, path, started_on)
     finally:
         # Under the lock that a cancel takes, so a cancel is either refused or what the run ends as.
         with _jobs_lock:
@@ -758,20 +834,116 @@ def _run_profile(
 def _measure(
     workspace: Workspace,
     job: _Job,
-    mode: Mode,
-    source: StoredSource,
-    encoding: str,
-    dataset: StoredDataset,
-) -> tuple[MeasuredRows, int, int]:
-    """What was measured, how many columns past the saved ones weren't, and lines skipped."""
+    observe: Callable[[duckdb.DuckDBPyConnection], list[NewObservation]],
+) -> list[NewObservation]:
+    """What `observe` measures over the job's own connection, which a cancel interrupts."""
     with duckdb_connection(workspace.temp_directory) as connection:
         with _jobs_lock:
             job.connection = connection
         try:
-            return _measure_with(connection, mode, source, encoding, dataset)
+            connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
+            return observe(connection)
         finally:
             with _jobs_lock:
                 job.connection = None
+
+
+def _csv_observations(
+    mode: Mode,
+    source: StoredSource,
+    encoding: str,
+    dataset: StoredDataset,
+    connection: duckdb.DuckDBPyConnection,
+) -> list[NewObservation]:
+    return _observations(dataset, *_measure_with(connection, mode, source, encoding, dataset))
+
+
+def _parquet_observations(
+    mode: Mode,
+    source: StoredParquetSource,
+    dataset: StoredDataset,
+    slices: list[tuple[int, int]] | None,
+    row_count: int,
+    connection: duckdb.DuckDBPyConnection,
+) -> list[NewObservation]:
+    """A Parquet file read as `mode` says, and what's saved for it, with its `row_count` from its
+    metadata (DRIVN-63).
+
+    A fast profile reads its seeded `slices`, or every row of a file no larger than the sample,
+    `slices` being `None`. A full profile reads every row, and takes its masked patterns from the
+    slices a fast one would read, as a database's does (decided with the user on 2026-11-26).
+    """
+    types = [field.normalised_type for field in dataset.fields]
+
+    def measured(every_row: bool) -> MeasuredRows:
+        rows = measure_rows(
+            connection,
+            ROWS_TABLE,
+            types,
+            {},
+            every_row=every_row,
+            count_duplicates=mode == "full" and every_row,
+            # A typed column's empty text is a value, as in a database.
+            blank_is_missing=False,
+        )
+        connection.execute(f"DROP TABLE {ROWS_TABLE}")
+        return rows
+
+    def load(slices: list[tuple[int, int]] | None) -> list[tuple[str, str]]:
+        try:
+            return load_parquet_rows(connection, source.path, ROWS_TABLE, slices)
+        except (duckdb.InterruptException, duckdb.OutOfMemoryException):
+            raise
+        except duckdb.Error:
+            # Its footer read when the run started, but a value in the rows doesn't (AC-31).
+            raise ParquetNotRead(COULDNT_READ) from None
+
+    found = load(slices)
+    # Observations are matched to fields by position, and measured by the saved type, so neither
+    # may have changed since the file was connected.
+    if found != [(field.name, field.physical_type) for field in dataset.fields]:
+        raise ColumnsChanged(COLUMNS_CHANGED)
+    sampled = results = measured(every_row=slices is None)
+    if mode == "full" and slices is not None:
+        load(None)
+        every = measured(every_row=True)
+        results = dataclasses.replace(
+            every,
+            columns=tuple(
+                dataclasses.replace(column, patterns=sample.patterns)
+                for column, sample in zip(every.columns, sampled.columns, strict=True)
+            ),
+        )
+    scope = "sample" if mode == "fast" and slices is not None else "full"
+    patterns_scope = "full" if slices is None else "sample"
+
+    def observation(field_id: str | None, metric: str, value: Any) -> NewObservation:
+        from_patterns_rows = metric in ("masked_patterns", SAMPLE_ROWS_READ)
+        measured_on = patterns_scope if from_patterns_rows else scope
+        return NewObservation(dataset.id, field_id, metric, value, measured_on, "count", "exact")
+
+    return [
+        observation(None, "rows_read", results.rows_read),
+        # Exact, and known without reading a row (AC-12).
+        NewObservation(dataset.id, None, "row_count", row_count, "metadata", "count", "exact"),
+        *(
+            [observation(None, SAMPLE_ROWS_READ, sampled.rows_read)]
+            if results is not sampled
+            else []
+        ),
+        *(
+            [observation(None, "duplicate_rows", results.duplicate_rows)]
+            if results.duplicate_rows is not None
+            else []
+        ),
+        *(
+            observation(field.id, metric, value)
+            for field, column in zip(dataset.fields, results.columns, strict=True)
+            for metric, value in column.saved_metrics().items()
+            if metric in _COUNTS
+            or (metric != "not_fitting_count" and field.physical_type == "VARCHAR")
+        ),
+    ]
 
 
 def _measure_with(
@@ -781,7 +953,6 @@ def _measure_with(
     encoding: str,
     dataset: StoredDataset,
 ) -> tuple[MeasuredRows, int, int]:
-    connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
     loaded = load_rows(
         connection,
         source.path,

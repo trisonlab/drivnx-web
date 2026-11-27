@@ -32,12 +32,39 @@ const events = {
 };
 
 const fetchMock = vi.fn();
+// A completed run of `events`, and the metrics it shows (DRIVN-63).
+let runMode: "fast" | "full";
+let runMetrics: unknown[];
+
+function metric(column: string | null, name: string, value: unknown, scope: string) {
+  return { column, metric: name, value, scope, precision: "exact" };
+}
 
 beforeEach(() => {
+  runMode = "fast";
+  runMetrics = [];
   fetchMock.mockReset();
   fetchMock.mockImplementation(async (url: string) => {
     if (url === "/api/workspace") {
       return Response.json(workspace);
+    }
+    const ran = {
+      id: "r1",
+      source_id: "p1",
+      mode: runMode,
+      status: "completed",
+      started_at: "2026-11-26T10:00:00+00:00",
+      ended_at: "2026-11-26T10:00:01+00:00",
+      current_settings: true,
+    };
+    if (url === "/api/profile-runs") {
+      return Response.json(runMetrics.length ? [ran] : []);
+    }
+    if (url === "/api/profile-runs/r1") {
+      return Response.json({ ...ran, metrics: runMetrics, file_changed: false });
+    }
+    if (url.startsWith("/api/findings?")) {
+      return Response.json([]);
     }
     if (url === "/api/sources") {
       return Response.json([events]);
@@ -109,4 +136,57 @@ test("a Parquet file's preview opens on its first page", async () => {
   expect(within(preview).getByRole("button", { name: "Next" })).toBeEnabled();
   // A Parquet file has no read settings to show, nor lines skipped above a table.
   expect(preview).not.toHaveTextContent(/skipped/i);
+});
+
+async function results() {
+  renderApp();
+  return screen.findByRole("tabpanel", { name: "Profile" });
+}
+
+test("a fast profile says it sampled by row group, and the row count is from the metadata", async () => {
+  // DRIVN-60/AC-12
+  runMetrics = [
+    metric(null, "rows_read", 100_000, "sample"),
+    metric(null, "row_count", 40_000_000, "metadata"),
+    metric("id", "distinct_count", 100_000, "sample"),
+  ];
+
+  const panel = await results();
+
+  expect(await within(panel).findByText("This file has 40,000,000 rows, from the file's metadata.")).toBeInTheDocument();
+  const row = within(panel).getByRole("row", { name: /^id/ });
+  expect(within(row).getByText("about 100,000 rows, sampled by row group")).toBeInTheDocument();
+  expect(panel).not.toHaveTextContent(/not random|whole file/);
+});
+
+test("a file no larger than the sample says every row was read", async () => {
+  // DRIVN-60/AC-30
+  runMetrics = [
+    metric(null, "rows_read", 60_000, "full"),
+    metric(null, "row_count", 60_000, "metadata"),
+    metric("id", "distinct_count", 60_000, "full"),
+  ];
+
+  const panel = await results();
+
+  const row = await within(panel).findByRole("row", { name: /^id/ });
+  expect(within(row).getByText("every row, 60,000 rows")).toBeInTheDocument();
+});
+
+test("a full profile's masked patterns say they're from the sample", async () => {
+  // DRIVN-60/AC-12, with the patterns of a database's full profile (decided 2026-11-26)
+  runMode = "full";
+  runMetrics = [
+    metric(null, "rows_read", 40_000_000, "full"),
+    metric(null, "row_count", 40_000_000, "metadata"),
+    metric(null, "sample_rows_read", 100_000, "sample"),
+    metric("name", "distinct_count", 40_000_000, "full"),
+    metric("name", "masked_patterns", [{ pattern: "aaaaa 9", count: 100_000, cut: false }], "sample"),
+  ];
+
+  const panel = await results();
+
+  const row = await within(panel).findByRole("row", { name: /^name/ });
+  expect(within(row).getByText("every row, 40,000,000 rows")).toBeInTheDocument();
+  expect(within(row).getByText("1 pattern, from about 100,000 rows, sampled by row group")).toBeInTheDocument();
 });
