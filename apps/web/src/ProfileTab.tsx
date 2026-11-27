@@ -234,6 +234,7 @@ function ColumnValuesSection({
   column,
   confirmed,
   of,
+  parquet,
   onClose,
 }: {
   run: ProfileRun;
@@ -241,6 +242,8 @@ function ColumnValuesSection({
   confirmed: boolean;
   // A database run's object, read again as the run read it (DRIVN-56).
   of?: DatabaseObject;
+  // A Parquet run's sample is its seeded slices (DRIVN-60 AC-14).
+  parquet: boolean;
   onClose: () => void;
 }) {
   const headingId = useId();
@@ -279,9 +282,13 @@ function ColumnValuesSection({
             Computed {new Date(found.computed_at).toLocaleString()} from{" "}
             {found.method
               ? READ_AS[found.method](shown(found.rows_read))
-              : found.scope === "full"
-                ? "the whole file"
-                : "the first 100,000 rows, not random"}
+              : parquet
+                ? found.scope === "full"
+                  ? `every row, ${shown(found.rows_read)} rows`
+                  : `about ${shown(found.rows_read)} rows, sampled by row group`
+                : found.scope === "full"
+                  ? "the whole file"
+                  : "the first 100,000 rows, not random"}
             , and not saved.
             {/* DRIVN-45 AC-28: read again now, so only as the run's rows while the object is unchanged,
                 and a view's rows can differ even then. */}
@@ -444,7 +451,7 @@ type AskedValues = { column: string; of?: DatabaseObject };
 /** A column's values on request: asked about first if the run found the column possibly sensitive
  * (AC-29, DRIVN-45 AC-27), and the focus back on its button once they close. `buttonId` names
  * each column's button; `show` asks for its values; `section` is what then shows. */
-function useValuesOnRequest(run: ProfileRun) {
+function useValuesOnRequest(run: ProfileRun, parquet = false) {
   // The same query the findings panel makes, so the server's refusal is rarely what asks.
   const findings = useQuery({ queryKey: ["findings", run.id], queryFn: () => getFindings(run.id) });
   const [asked, setAsked] = useState<(AskedValues & { confirmed: boolean }) | null>(null);
@@ -487,6 +494,7 @@ function useValuesOnRequest(run: ProfileRun) {
           column={asked.column}
           confirmed={asked.confirmed}
           of={asked.of}
+          parquet={parquet}
           onClose={() => {
             setAsked(null);
             focusButtonOf(asked);
@@ -577,7 +585,7 @@ function parquetLabels(rowsRead: Metric["value"] | undefined, sampleRows: Metric
 
 function Results({ run, parquet = false }: { run: ProfileRun; parquet?: boolean }) {
   const results = useQuery({ queryKey: ["profile-run", run.id], queryFn: () => getProfileRun(run.id) });
-  const values = useValuesOnRequest(run);
+  const values = useValuesOnRequest(run, parquet);
   if (results.isError) {
     return <p role="alert">DrivnX couldn't load these results. Start DrivnX again.</p>;
   }

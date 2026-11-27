@@ -62,14 +62,15 @@ function observed(finding: Finding): string {
   }
 }
 
-/** Which rows a finding was observed in, when not every row: a file's first rows, or how a database
- * run read the finding's object, with a full profile's patterns from its fast reading. */
-function observedIn(finding: Finding, detail: ProfileRunDetail | undefined): string | undefined {
+/** Which rows a finding was observed in, when not every row: a file's first rows, a Parquet file's
+ * seeded slices (DRIVN-60 AC-14), or how a database run read the finding's object, with a full
+ * profile's patterns from its fast reading. */
+function observedIn(finding: Finding, detail: ProfileRunDetail | undefined, parquet: boolean): string | undefined {
   if (!fromFirstRows(finding)) {
     return undefined;
   }
   if (!finding.object) {
-    return "the first 100,000 rows";
+    return parquet ? "about 100,000 rows, sampled by row group" : "the first 100,000 rows";
   }
   const found = detail?.objects?.find((read) => read.object === finding.object);
   const patterns = finding.evidence.some((cited) => cited.metric === "masked_patterns" && cited.scope === "sample");
@@ -84,8 +85,16 @@ function showEvidence(finding: Finding) {
   }
 }
 
-function FindingItem({ finding, detail }: { finding: Finding; detail: ProfileRunDetail | undefined }) {
-  const rows = observedIn(finding, detail);
+function FindingItem({
+  finding,
+  detail,
+  parquet,
+}: {
+  finding: Finding;
+  detail: ProfileRunDetail | undefined;
+  parquet: boolean;
+}) {
+  const rows = observedIn(finding, detail, parquet);
   const headingId = useId();
   return (
     <article aria-labelledby={headingId}>
@@ -144,7 +153,7 @@ export function Findings({ source, openedRunId }: { source: Source | undefined; 
       )}
       {shown?.length === 0 && <p>This profile found nothing to point out.</p>}
       {shown?.map((finding) => (
-        <FindingItem key={finding.id} finding={finding} detail={detail.data} />
+        <FindingItem key={finding.id} finding={finding} detail={detail.data} parquet={source?.kind === "parquet"} />
       ))}
       {/* AC-28: whatever was found, as the rules can't find every kind of personal data. */}
       {findings.isSuccess && (

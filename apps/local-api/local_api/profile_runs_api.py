@@ -50,6 +50,7 @@ from local_api.profile_jobs import (
     failure_of,
     object_of,
     object_values_of,
+    parquet_values_of,
     read_scope,
     start_database_profile,
     start_parquet_profile,
@@ -75,8 +76,6 @@ from local_api.write_access import can_write, refusal, write_access
 RUN_IN_PROGRESS = "A profile is already running. Wait for it to finish, then try again."
 NOTHING_CHOSEN = "Choose the objects to profile first."
 TIME_LIMIT_NOT_HERE = "A time limit applies only to a database's full profile."
-# Until DRIVN-64 works out a Parquet file's values.
-NO_PARQUET_VALUES = "This Parquet file's values can't be worked out yet."
 OBJECTS_CHANGED = "{} changed since the list was refreshed. Refresh the list, then profile again."
 OBJECTS_CHANGED_JUST_NOW = "The list was refreshed just now. Start the profile again."
 ALREADY_FINISHED = "This profile has already finished."
@@ -696,14 +695,12 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         object: str | None = None,
     ) -> ValuesResponse:
         """A column's values from the part of the file, or the object, the run read (AC-30,
-        DRIVN-45 AC-28), computed now."""
+        DRIVN-45 AC-28, DRIVN-60 AC-14), computed now."""
         run = existing_run(run_id)
         if run.status != "completed":
             raise HTTPException(status_code=409, detail=NOT_COMPLETED)
         if run.dataset_id is None:
             return database_values(run, schema, object, column, confirmed)
-        if isinstance(find_source(workspace.engine, run.source_id), StoredParquetSource):
-            raise HTTPException(status_code=409, detail=NO_PARQUET_VALUES)
         # Its columns may have been renamed since, and its settings no longer read the file.
         if not run.current_settings:
             raise HTTPException(status_code=409, detail=EARLIER_SETTINGS)
@@ -719,6 +716,18 @@ def profile_runs_router(workspace: Workspace, kept: KeptPasswords) -> APIRouter:
         source = find_source(workspace.engine, run.source_id)
         if source is None or not is_available(source.path):
             raise cannot_read(FILE_GONE)
+        if isinstance(source, StoredParquetSource):
+            # A full run read every row, and a fast one its seeded slices, or every row of a
+            # file no larger than the sample.
+            slices = None if run.mode == "full" else read_profile_run(
+                workspace.engine, run.id
+            ).scope["slices"]
+            with _reading():
+                try:
+                    found = parquet_values_of(workspace, source, dataset, position, slices)
+                except Busy:
+                    raise HTTPException(status_code=409, detail=BUSY) from None
+            return _values_response(run.id, column, "sample" if slices else "full", found)
         with _reading():
             encoding = current_encoding(source)
             columns = columns_now(workspace, source, encoding)
