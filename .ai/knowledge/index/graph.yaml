@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-26T06:59:32+00:00'
+updated_at: '2026-11-27T00:53:48+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/DRIVN-45.md: 021c964cae01690f64d4f984605da975da4a841869966c348c9aa5b87f4590a4
@@ -45,8 +45,8 @@ sources:
   .ai/knowledge/work/DRIVN-59.md: 9a3a4d698b1a32c136a171c776e9c9ed790080217c7b2c6d708cde2f76c5faef
   .ai/knowledge/work/DRIVN-61.md: 600cf489761ef3b7b7f9522a86546281f60a8703c04f3c5e4f91c15c7cadf5e3
   .ai/knowledge/work/DRIVN-62.md: 19a431f1e8fb2c4c63e756d065ff680897090346b8a2d34e0bd5fd60a460386d
-  .ai/knowledge/work/DRIVN-63.md: a5c146015a3d7a51533d4fb850b495f4bd5973153e32bf85f57a033effb158d8
-  .ai/knowledge/work/DRIVN-64.md: 3db147fac25e7bc16b9c599b6f9ca9a990ff18b898c082b8ed002defb87356af
+  .ai/knowledge/work/DRIVN-63.md: 952d26c549d4a4b544469407718194922c30402cdb50ce3ca50d0f199b200183
+  .ai/knowledge/work/DRIVN-64.md: a659c51b34c508ddedbee90f15692d4e4f94bb2ac03d20d95825467e9ec78bab
   .ai/knowledge/work/DRIVN-65.md: 1db6e89dccea56599d1baabbba4044d6901d20ecbacd79039b59d1aa4884a0c9
   .ai/knowledge/work/DRIVN-66.md: 73f37cdd063551ff5470629db152fa072c9e1557671cdc94f84a1e547b0161b3
   .ai/knowledge/work/DRIVN-67.md: 6350d739920e796f4e9808773d4439231d520ba81e20c09badf4b76fc619e55c
@@ -64,8 +64,8 @@ sources:
   apps/local-api/local_api/guard.py: 0a065df935b5753303ddb14b6475b30cedae87d4f5d096d556509ae42288a9ae
   apps/local-api/local_api/pages.py: fbf78409679f0f112fdceccbca97d8534ae8bf0957d1a7d88d8b4aa2bf5c66e7
   apps/local-api/local_api/postgres_api.py: 6f2fed4aea41b3e5f75fefcc9c73131b5ea3b3a8471fe61e3bc62661e7daa5a5
-  apps/local-api/local_api/profile_jobs.py: 655f51fc31e50cb0e0e21a3da9f58dd903f8a4818aaf19da356fd44f1c596bac
-  apps/local-api/local_api/profile_runs_api.py: 405a4060e54c2257020fcf10097bbdeed0cdc69990e9f3ce3d781d9f94126701
+  apps/local-api/local_api/profile_jobs.py: 0fa94473b28be930cff4dc3141deef128b25fa7d2563d986fe8802bbe2c010cc
+  apps/local-api/local_api/profile_runs_api.py: 92127cce29d03e5a3a5f3262c001ecf53a88a21324691759f2a9e9788d0b3018
   apps/local-api/local_api/session.py: 0f2f5f32a475a78c7a3a5bfbf65b2018e14cb0f07df458c5ee2e79ebd4c3bd3e
   apps/local-api/local_api/sources_api.py: aa95ff219b63b7877e83f70a1f30030c2b5d732f0ebf542f07637e43ada263bc
   apps/local-api/local_api/write_access.py: ac1d61941d589b92a3772d9c6044c34d8ab244c8456f0cfde6a186f96c8c8a3d
@@ -78,7 +78,7 @@ sources:
   apps/web/src/DatabaseObjects.tsx: 884504110bfe29a2248d808f5425b62388d90324e59deccb358ad8152e40f2a7
   apps/web/src/Findings.tsx: ccb655162e9c02de2ff8b4a1ed486d646843c9e7dc278c541719e9089c82f0c0
   apps/web/src/ObjectDetails.tsx: 62a2cbce8fdef6d95f9892f9285000fa4d36a1a650f11509b4b1bba772ae8797
-  apps/web/src/ParquetDetails.test.tsx: f9781ee83ceb944a72d35c5a94cbbf5ebba63ab90853872c3bf13cf55f07b556
+  apps/web/src/ParquetDetails.test.tsx: 1181c4cc3f17e2839043cbb6455b8407525e7f58b9f646d96b74eef43295e2fd
   apps/web/src/ParquetDetails.tsx: 84e7865c3e8260655a5c84c756874ea96e6edbe44450cda494e9f6aad49704ba
   apps/web/src/Postgres.test.tsx: 096e943d4b97a4810efea64d28bacf9c78f4abb7564ae5ff90025bd6e46091ed
   apps/web/src/PostgresDetails.tsx: 2fe5dfc71e6ba8b80a6706a46bb4c1314b8a04f5807028e8a7505826d4f28c0e
@@ -86,7 +86,7 @@ sources:
   apps/web/src/Preview.test.tsx: cfe59d6ee9073302fdd680cb4bb44e5b38d2afa82110106d8830339c2543d603
   apps/web/src/Preview.tsx: 783d162c5dac91a4af3c0170fd91c0b31eccc6bb94b9e13f8dd614270fefbdc1
   apps/web/src/ProfileTab.test.tsx: b4bcc3250760d2acdcbbd03d41491da409cb5bc9d40e055935d8a2fcdb7ffb6e
-  apps/web/src/ProfileTab.tsx: f8d1c37599907cb9338467fa384ecc5956be95c1e83942a457edc3b27b7882bc
+  apps/web/src/ProfileTab.tsx: 7205f12a87943a3f64073c93b80e41a900407724f700861cd628c82bb65e2c39
   apps/web/src/SetupScreen.tsx: 2a9504d56277d388b0db5e0b7d29a68de334f4206e49900754bcd312a6070a1a
   apps/web/src/Shell.tsx: b22e51ee199ecd88bd1bf51883a2ba7d4fd16a52f639336e58057068c615b272
   apps/web/src/SourceDetails.tsx: ee7db3b3eb65efe04f6d73a05c0761bf3389b966ea1c264c2af07bb6d0dc5cce
@@ -116,7 +116,7 @@ sources:
   packages/artifacts/store.py: 342da5f8686ec2f8672e296a7c51b803e9617a5e25b9e413d87028715a65c352
   packages/artifacts/workspace.py: 5eb2e1c2ea6fcc8a9d8bbec8b9c5245b5a12038714d6d32321c71b7d6d2513a0
   packages/connectors/csv_files.py: 085f4ed82bf8e147ad4b653ee8de548b3c939e6aa50734827a79ebfe47e30dad
-  packages/connectors/parquet_files.py: 4bd4645f4702e3728b9cfbfd6fa9de0eee4a71eb19592555fe7095eaf7fc842d
+  packages/connectors/parquet_files.py: 9722dfa438ff41e74b061172926806c585924d71656990a818bf5e1500e5261c
   packages/connectors/postgres.py: 90639c84cdb0f66518916ff13d3f99b7a86c49308dbd0e1b33a0dd44f51fe318
   packages/domain/rules.py: 89408631af6ff6fa3fe1aca62cec27d623d74c0ff0e8be33bb8a7ae4b5337ffc
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
@@ -167,7 +167,8 @@ sources:
   tests/integration/test_lockfiles.py: b71fba347a62901317da80a52f52a34834399a086c0b4af3612a00b6ef26c6ec
   tests/integration/test_masked_patterns.py: 128d72ad3950bd963b4bf8498bc8e036c615ce5cb09eb4ea1bdb3f568ebabc29
   tests/integration/test_parquet_preview_api.py: 18a2af9220fad7044c5f572ab9fea0f193bca6cd228c45b743f085e78f563749
-  tests/integration/test_parquet_sources.py: 2948e0954b6c3bddd533293303f4a801a495b52df92613b539181be3089760a2
+  tests/integration/test_parquet_profile.py: 2e8d0aeccfb818981eb3dd95315b75ba147cf7844c39405c6c9d90952fba48ba
+  tests/integration/test_parquet_sources.py: a751e9ced00e6875738d12ef8a07a04f6f91bd114639e5ec3e0886f96250399a
   tests/integration/test_postgres_connect.py: 472b94bf547a4b59fbcd5f4c81e63d25346badbe8e61aa2677ded9cce66e3ab1
   tests/integration/test_postgres_discovery.py: 5aa94e626dbbce408320d111c2a4d9cb2308b18de5b939286851f1dabce5f284
   tests/integration/test_postgres_earlier_runs.py: f68efe2a933441fa9582d95b0e030127efc35d0db9ecc068f69e73f169c553c7
@@ -205,6 +206,7 @@ sources:
   tests/integration/test_workspace_api.py: f7fdba34eb6f4a7aaf67265f387cbef0594ce4e49ea2145c4be7d0b4eca1e179
   tests/integration/test_workspace_store.py: a7ca332af81f6eba0dd074e26945c226da28def8d9e3bc4d85120df5bbd6c3c6
   tests/measure_large_csv.py: 27eb42346ad856d5e9a9ce972d637afab2d505345d6e9e10fba8ccdc1c989020
+  tests/measure_large_parquet.py: b85e8428663309626a46b79536e0b013d352fc949484a360c6ebfe0919f1caf5
   tests/measure_postgres_sample.py: 6679a842ea6cb1e4f1030a91049b12d2e992abd242b3024e9dca5d6da40ecd22
   tests/postgres_fixture.py: 64ad19024994a26dea92396b39476973734a21e9a967ee2891e59f27a21d2099
   uv.lock: 71f0537a186d2156f44af20e562dbb391f880e540b9621813cbcb571906d693f
@@ -1260,15 +1262,15 @@ nodes:
 - id: endpoint:GET /api/profile-runs
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:464
+  - apps/local-api/local_api/profile_runs_api.py:487
 - id: endpoint:GET /api/profile-runs/{}
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:468
+  - apps/local-api/local_api/profile_runs_api.py:491
 - id: endpoint:GET /api/profile-runs/{}/values
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:667
+  - apps/local-api/local_api/profile_runs_api.py:690
 - id: endpoint:GET /api/sources
   kind: endpoint
   evidence:
@@ -1296,11 +1298,11 @@ nodes:
 - id: endpoint:POST /api/profile-runs
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:411
+  - apps/local-api/local_api/profile_runs_api.py:434
 - id: endpoint:POST /api/profile-runs/{}/cancel
   kind: endpoint
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:456
+  - apps/local-api/local_api/profile_runs_api.py:479
 - id: endpoint:POST /api/sources
   kind: endpoint
   evidence:
@@ -1797,6 +1799,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_parquet_preview_api.py:1
+- id: module:tests/integration/test_parquet_profile.py
+  kind: module
+  evidence:
+  - tests/integration/test_parquet_profile.py:1
 - id: module:tests/integration/test_parquet_sources.py
   kind: module
   evidence:
@@ -1949,6 +1955,10 @@ nodes:
   kind: module
   evidence:
   - tests/measure_large_csv.py:1
+- id: module:tests/measure_large_parquet.py
+  kind: module
+  evidence:
+  - tests/measure_large_parquet.py:1
 - id: module:tests/measure_postgres_sample.py
   kind: module
   evidence:
@@ -2447,14 +2457,14 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-63.md
   title: 'Parquet: fast and full profile, and cancel'
-  state: ready
+  state: done
   external_key: DRIVN-63
 - id: ticket:DRIVN-64
   kind: ticket
   evidence:
   - .ai/knowledge/work/DRIVN-64.md
   title: 'Parquet: findings, values on request and earlier runs'
-  state: blocked
+  state: ready
   external_key: DRIVN-64
 - id: ticket:DRIVN-65
   kind: ticket
@@ -3947,161 +3957,190 @@ edges:
   - apps/local-api/local_api/postgres_api.py:54
 - from: module:apps/local-api/local_api/profile_jobs.py
   rel: implements
+  to: criterion:DRIVN-45/AC-12
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/profile_jobs.py:927
+  note: bare AC-12; the file names only DRIVN-45
+- from: module:apps/local-api/local_api/profile_jobs.py
+  rel: implements
   to: criterion:DRIVN-45/AC-17
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_jobs.py:683
+  - apps/local-api/local_api/profile_jobs.py:764
   note: bare AC-17; the file names only DRIVN-45
 - from: module:apps/local-api/local_api/profile_jobs.py
   rel: implements
   to: criterion:DRIVN-45/AC-20
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_jobs.py:451
+  - apps/local-api/local_api/profile_jobs.py:522
   note: bare AC-20; the file names only DRIVN-45
 - from: module:apps/local-api/local_api/profile_jobs.py
   rel: implements
   to: criterion:DRIVN-45/AC-26
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_jobs.py:316
+  - apps/local-api/local_api/profile_jobs.py:387
   note: bare AC-26; the file names only DRIVN-45
+- from: module:apps/local-api/local_api/profile_jobs.py
+  rel: implements
+  to: criterion:DRIVN-45/AC-31
+  status: INFERRED
+  evidence:
+  - apps/local-api/local_api/profile_jobs.py:898
+  note: bare AC-31; the file names only DRIVN-45
 - from: module:apps/local-api/local_api/profile_jobs.py
   rel: implements
   to: ticket:DRIVN-51
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_jobs.py:94
-  - apps/local-api/local_api/profile_jobs.py:188
+  - apps/local-api/local_api/profile_jobs.py:102
+  - apps/local-api/local_api/profile_jobs.py:259
 - from: module:apps/local-api/local_api/profile_jobs.py
   rel: implements
   to: ticket:DRIVN-52
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_jobs.py:216
+  - apps/local-api/local_api/profile_jobs.py:287
 - from: module:apps/local-api/local_api/profile_jobs.py
   rel: implements
   to: ticket:DRIVN-53
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_jobs.py:57
-  - apps/local-api/local_api/profile_jobs.py:189
-  - apps/local-api/local_api/profile_jobs.py:435
-  - apps/local-api/local_api/profile_jobs.py:507
+  - apps/local-api/local_api/profile_jobs.py:65
+  - apps/local-api/local_api/profile_jobs.py:260
+  - apps/local-api/local_api/profile_jobs.py:506
+  - apps/local-api/local_api/profile_jobs.py:578
 - from: module:apps/local-api/local_api/profile_jobs.py
   rel: implements
   to: ticket:DRIVN-56
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_jobs.py:117
-  - apps/local-api/local_api/profile_jobs.py:218
-  - apps/local-api/local_api/profile_jobs.py:910
+  - apps/local-api/local_api/profile_jobs.py:125
+  - apps/local-api/local_api/profile_jobs.py:289
+  - apps/local-api/local_api/profile_jobs.py:1081
 - from: module:apps/local-api/local_api/profile_jobs.py
   rel: implements
   to: ticket:DRIVN-57
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_jobs.py:190
+  - apps/local-api/local_api/profile_jobs.py:261
+- from: module:apps/local-api/local_api/profile_jobs.py
+  rel: implements
+  to: ticket:DRIVN-63
+  status: CONFIRMED
+  evidence:
+  - apps/local-api/local_api/profile_jobs.py:199
+  - apps/local-api/local_api/profile_jobs.py:723
+  - apps/local-api/local_api/profile_jobs.py:727
+  - apps/local-api/local_api/profile_jobs.py:870
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:GET /api/profile-runs
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:464
+  - apps/local-api/local_api/profile_runs_api.py:487
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:GET /api/profile-runs/{}
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:468
+  - apps/local-api/local_api/profile_runs_api.py:491
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:GET /api/profile-runs/{}/values
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:667
+  - apps/local-api/local_api/profile_runs_api.py:690
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:POST /api/profile-runs
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:411
+  - apps/local-api/local_api/profile_runs_api.py:434
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: exposes
   to: endpoint:POST /api/profile-runs/{}/cancel
   status: INFERRED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:456
+  - apps/local-api/local_api/profile_runs_api.py:479
   note: router path; a prefix added where it is mounted (include_router/register_blueprint) is not resolved
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: implements
   to: criterion:DRIVN-45/AC-28
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:676
+  - apps/local-api/local_api/profile_runs_api.py:699
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: implements
   to: ticket:DRIVN-51
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:351
+  - apps/local-api/local_api/profile_runs_api.py:353
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: implements
   to: ticket:DRIVN-53
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:110
-  - apps/local-api/local_api/profile_runs_api.py:351
-  - apps/local-api/local_api/profile_runs_api.py:528
+  - apps/local-api/local_api/profile_runs_api.py:112
+  - apps/local-api/local_api/profile_runs_api.py:353
+  - apps/local-api/local_api/profile_runs_api.py:551
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: implements
   to: ticket:DRIVN-56
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:161
-  - apps/local-api/local_api/profile_runs_api.py:205
-  - apps/local-api/local_api/profile_runs_api.py:578
-  - apps/local-api/local_api/profile_runs_api.py:638
+  - apps/local-api/local_api/profile_runs_api.py:163
+  - apps/local-api/local_api/profile_runs_api.py:207
+  - apps/local-api/local_api/profile_runs_api.py:601
+  - apps/local-api/local_api/profile_runs_api.py:661
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: implements
   to: ticket:DRIVN-63
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:76
+  - apps/local-api/local_api/profile_runs_api.py:414
+- from: module:apps/local-api/local_api/profile_runs_api.py
+  rel: implements
+  to: ticket:DRIVN-64
+  status: CONFIRMED
+  evidence:
+  - apps/local-api/local_api/profile_runs_api.py:78
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: imports
   to: module:apps/local-api/local_api/pages.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:57
+  - apps/local-api/local_api/profile_runs_api.py:59
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: imports
   to: module:apps/local-api/local_api/postgres_api.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:58
+  - apps/local-api/local_api/profile_runs_api.py:60
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: imports
   to: module:apps/local-api/local_api/profile_jobs.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:41
+  - apps/local-api/local_api/profile_runs_api.py:42
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: imports
   to: module:apps/local-api/local_api/sources_api.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:65
+  - apps/local-api/local_api/profile_runs_api.py:67
 - from: module:apps/local-api/local_api/profile_runs_api.py
   rel: imports
   to: module:apps/local-api/local_api/write_access.py
   status: CONFIRMED
   evidence:
-  - apps/local-api/local_api/profile_runs_api.py:71
+  - apps/local-api/local_api/profile_runs_api.py:73
 - from: module:apps/local-api/local_api/sources_api.py
   rel: exposes
   to: endpoint:GET /api/sources
@@ -4438,25 +4477,44 @@ edges:
   to: criterion:DRIVN-60/AC-07
   status: CONFIRMED
   evidence:
-  - apps/web/src/ParquetDetails.test.tsx:73
+  - apps/web/src/ParquetDetails.test.tsx:100
 - from: module:apps/web/src/ParquetDetails.test.tsx
   rel: verifies
   to: criterion:DRIVN-60/AC-09
   status: CONFIRMED
   evidence:
-  - apps/web/src/ParquetDetails.test.tsx:88
+  - apps/web/src/ParquetDetails.test.tsx:115
 - from: module:apps/web/src/ParquetDetails.test.tsx
   rel: verifies
   to: criterion:DRIVN-60/AC-10
   status: CONFIRMED
   evidence:
-  - apps/web/src/ParquetDetails.test.tsx:103
+  - apps/web/src/ParquetDetails.test.tsx:130
+- from: module:apps/web/src/ParquetDetails.test.tsx
+  rel: verifies
+  to: criterion:DRIVN-60/AC-12
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ParquetDetails.test.tsx:147
+  - apps/web/src/ParquetDetails.test.tsx:177
+- from: module:apps/web/src/ParquetDetails.test.tsx
+  rel: verifies
+  to: criterion:DRIVN-60/AC-30
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ParquetDetails.test.tsx:163
 - from: module:apps/web/src/ParquetDetails.test.tsx
   rel: verifies
   to: ticket:DRIVN-61
   status: CONFIRMED
   evidence:
   - apps/web/src/ParquetDetails.test.tsx:13
+- from: module:apps/web/src/ParquetDetails.test.tsx
+  rel: verifies
+  to: ticket:DRIVN-63
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ParquetDetails.test.tsx:35
 - from: module:apps/web/src/ParquetDetails.tsx
   rel: imports
   to: module:apps/web/src/api.ts
@@ -4988,13 +5046,21 @@ edges:
   - apps/web/src/ProfileTab.test.tsx:457
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
+  to: criterion:DRIVN-45/AC-12
+  status: INFERRED
+  evidence:
+  - apps/web/src/ProfileTab.tsx:568
+  - apps/web/src/ProfileTab.tsx:593
+  note: bare AC-12; the file names only DRIVN-45
+- from: module:apps/web/src/ProfileTab.tsx
+  rel: implements
   to: criterion:DRIVN-45/AC-16
   status: INFERRED
   evidence:
-  - apps/web/src/ProfileTab.tsx:371
-  - apps/web/src/ProfileTab.tsx:837
-  - apps/web/src/ProfileTab.tsx:842
-  - apps/web/src/ProfileTab.tsx:911
+  - apps/web/src/ProfileTab.tsx:373
+  - apps/web/src/ProfileTab.tsx:875
+  - apps/web/src/ProfileTab.tsx:880
+  - apps/web/src/ProfileTab.tsx:949
   note: bare AC-16; the file names only DRIVN-45
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
@@ -5007,60 +5073,61 @@ edges:
   to: criterion:DRIVN-45/AC-18
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:632
+  - apps/web/src/ProfileTab.tsx:670
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-45/AC-20
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:795
-  - apps/web/src/ProfileTab.tsx:676
+  - apps/web/src/ProfileTab.tsx:833
+  - apps/web/src/ProfileTab.tsx:714
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-45/AC-24
   status: INFERRED
   evidence:
-  - apps/web/src/ProfileTab.tsx:632
+  - apps/web/src/ProfileTab.tsx:670
   note: bare AC-24; the file names only DRIVN-45
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-45/AC-25
   status: INFERRED
   evidence:
-  - apps/web/src/ProfileTab.tsx:569
+  - apps/web/src/ProfileTab.tsx:595
   note: bare AC-25; the file names only DRIVN-45
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-45/AC-26
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:701
+  - apps/web/src/ProfileTab.tsx:739
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-45/AC-27
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:443
+  - apps/web/src/ProfileTab.tsx:445
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-45/AC-28
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:284
+  - apps/web/src/ProfileTab.tsx:286
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-45/AC-29
   status: INFERRED
   evidence:
-  - apps/web/src/ProfileTab.tsx:420
-  - apps/web/src/ProfileTab.tsx:443
+  - apps/web/src/ProfileTab.tsx:422
+  - apps/web/src/ProfileTab.tsx:445
   note: bare AC-29; the file names only DRIVN-45
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-45/AC-30
   status: INFERRED
   evidence:
-  - apps/web/src/ProfileTab.tsx:275
+  - apps/web/src/ProfileTab.tsx:277
+  - apps/web/src/ProfileTab.tsx:568
   note: bare AC-30; the file names only DRIVN-45
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
@@ -5068,15 +5135,15 @@ edges:
   status: CONFIRMED
   evidence:
   - apps/web/src/ProfileTab.tsx:58
-  - apps/web/src/ProfileTab.tsx:530
+  - apps/web/src/ProfileTab.tsx:532
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-45/AC-32
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:532
-  - apps/web/src/ProfileTab.tsx:678
-  - apps/web/src/ProfileTab.tsx:685
+  - apps/web/src/ProfileTab.tsx:534
+  - apps/web/src/ProfileTab.tsx:716
+  - apps/web/src/ProfileTab.tsx:723
   - apps/web/src/ProfileTab.tsx:58
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
@@ -5084,16 +5151,23 @@ edges:
   status: INFERRED
   evidence:
   - apps/web/src/ProfileTab.tsx:57
-  - apps/web/src/ProfileTab.tsx:499
+  - apps/web/src/ProfileTab.tsx:501
   note: bare AC-35; the file names only DRIVN-45
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-45/AC-36
   status: INFERRED
   evidence:
-  - apps/web/src/ProfileTab.tsx:532
-  - apps/web/src/ProfileTab.tsx:584
+  - apps/web/src/ProfileTab.tsx:534
+  - apps/web/src/ProfileTab.tsx:621
   note: bare AC-36; the file names only DRIVN-45
+- from: module:apps/web/src/ProfileTab.tsx
+  rel: implements
+  to: criterion:DRIVN-60/AC-12
+  status: CONFIRMED
+  evidence:
+  - apps/web/src/ProfileTab.tsx:568
+  - apps/web/src/ProfileTab.tsx:593
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: criterion:DRIVN-9/AC-35
@@ -5105,14 +5179,14 @@ edges:
   to: ticket:DRIVN-56
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:240
-  - apps/web/src/ProfileTab.tsx:665
+  - apps/web/src/ProfileTab.tsx:242
+  - apps/web/src/ProfileTab.tsx:703
 - from: module:apps/web/src/ProfileTab.tsx
   rel: implements
   to: ticket:DRIVN-57
   status: CONFIRMED
   evidence:
-  - apps/web/src/ProfileTab.tsx:500
+  - apps/web/src/ProfileTab.tsx:502
 - from: module:apps/web/src/ProfileTab.tsx
   rel: imports
   to: module:apps/web/src/Preview.tsx
@@ -5595,22 +5669,36 @@ edges:
   to: criterion:DRIVN-60/AC-07
   status: INFERRED
   evidence:
-  - packages/connectors/parquet_files.py:70
+  - packages/connectors/parquet_files.py:76
   note: bare AC-07; the file names only DRIVN-60
 - from: module:packages/connectors/parquet_files.py
   rel: implements
   to: criterion:DRIVN-60/AC-10
   status: INFERRED
   evidence:
-  - packages/connectors/parquet_files.py:96
+  - packages/connectors/parquet_files.py:102
   note: bare AC-10; the file names only DRIVN-60
+- from: module:packages/connectors/parquet_files.py
+  rel: implements
+  to: criterion:DRIVN-60/AC-12
+  status: INFERRED
+  evidence:
+  - packages/connectors/parquet_files.py:138
+  note: bare AC-12; the file names only DRIVN-60
 - from: module:packages/connectors/parquet_files.py
   rel: implements
   to: criterion:DRIVN-60/AC-29
   status: INFERRED
   evidence:
-  - packages/connectors/parquet_files.py:56
+  - packages/connectors/parquet_files.py:62
   note: bare AC-29; the file names only DRIVN-60
+- from: module:packages/connectors/parquet_files.py
+  rel: implements
+  to: criterion:DRIVN-60/AC-30
+  status: INFERRED
+  evidence:
+  - packages/connectors/parquet_files.py:138
+  note: bare AC-30; the file names only DRIVN-60
 - from: module:packages/connectors/parquet_files.py
   rel: implements
   to: ticket:DRIVN-61
@@ -5628,7 +5716,7 @@ edges:
   to: module:packages/connectors/csv_files.py
   status: CONFIRMED
   evidence:
-  - packages/connectors/parquet_files.py:12
+  - packages/connectors/parquet_files.py:13
 - from: module:packages/connectors/postgres.py
   rel: implements
   to: criterion:DRIVN-45/AC-16
@@ -7536,6 +7624,82 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_parquet_preview_api.py:1
+- from: module:tests/integration/test_parquet_profile.py
+  rel: imports
+  to: module:tests/conftest.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_profile.py:15
+- from: module:tests/integration/test_parquet_profile.py
+  rel: imports
+  to: module:tests/integration/test_fast_profile.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_profile.py:16
+- from: module:tests/integration/test_parquet_profile.py
+  rel: imports
+  to: module:tests/integration/test_full_profile.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_profile.py:17
+- from: module:tests/integration/test_parquet_profile.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-12
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_profile.py:1
+  - tests/integration/test_parquet_profile.py:59
+  - tests/integration/test_parquet_profile.py:91
+  - tests/integration/test_parquet_profile.py:117
+  - tests/integration/test_parquet_profile.py:134
+  - tests/integration/test_parquet_profile.py:148
+  - tests/integration/test_parquet_profile.py:401
+  - tests/integration/test_parquet_profile.py:415
+- from: module:tests/integration/test_parquet_profile.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-13
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_profile.py:299
+- from: module:tests/integration/test_parquet_profile.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-30
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_profile.py:184
+  - tests/integration/test_parquet_profile.py:195
+- from: module:tests/integration/test_parquet_profile.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-31
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_profile.py:220
+  - tests/integration/test_parquet_profile.py:238
+  - tests/integration/test_parquet_profile.py:267
+  - tests/integration/test_parquet_profile.py:282
+  - tests/integration/test_parquet_profile.py:347
+  - tests/integration/test_parquet_profile.py:378
+- from: module:tests/integration/test_parquet_profile.py
+  rel: verifies
+  to: criterion:DRIVN-9/AC-11
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_profile.py:220
+- from: module:tests/integration/test_parquet_profile.py
+  rel: verifies
+  to: ticket:DRIVN-63
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_profile.py:1
+  - tests/integration/test_parquet_profile.py:365
+  - tests/integration/test_parquet_profile.py:402
+  - tests/integration/test_parquet_profile.py:415
+- from: module:tests/integration/test_parquet_profile.py
+  rel: verifies
+  to: ticket:DRIVN-64
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_parquet_profile.py:364
 - from: module:tests/integration/test_parquet_sources.py
   rel: imports
   to: module:tests/conftest.py
@@ -7549,10 +7713,10 @@ edges:
   evidence:
   - tests/integration/test_parquet_sources.py:1
   - tests/integration/test_parquet_sources.py:59
-  - tests/integration/test_parquet_sources.py:311
-  - tests/integration/test_parquet_sources.py:362
-  - tests/integration/test_parquet_sources.py:471
-  - tests/integration/test_parquet_sources.py:296
+  - tests/integration/test_parquet_sources.py:288
+  - tests/integration/test_parquet_sources.py:339
+  - tests/integration/test_parquet_sources.py:448
+  - tests/integration/test_parquet_sources.py:273
 - from: module:tests/integration/test_parquet_sources.py
   rel: verifies
   to: criterion:DRIVN-60/AC-08
@@ -7571,7 +7735,7 @@ edges:
   evidence:
   - tests/integration/test_parquet_sources.py:78
   - tests/integration/test_parquet_sources.py:96
-  - tests/integration/test_parquet_sources.py:337
+  - tests/integration/test_parquet_sources.py:314
   - tests/integration/test_parquet_sources.py:1
 - from: module:tests/integration/test_parquet_sources.py
   rel: verifies
@@ -7593,15 +7757,9 @@ edges:
   - tests/integration/test_parquet_sources.py:168
   - tests/integration/test_parquet_sources.py:227
   - tests/integration/test_parquet_sources.py:240
-  - tests/integration/test_parquet_sources.py:322
-  - tests/integration/test_parquet_sources.py:329
-  - tests/integration/test_parquet_sources.py:418
-- from: module:tests/integration/test_parquet_sources.py
-  rel: verifies
-  to: ticket:DRIVN-63
-  status: CONFIRMED
-  evidence:
-  - tests/integration/test_parquet_sources.py:282
+  - tests/integration/test_parquet_sources.py:299
+  - tests/integration/test_parquet_sources.py:306
+  - tests/integration/test_parquet_sources.py:395
 - from: module:tests/integration/test_postgres_connect.py
   rel: imports
   to: module:tests/postgres_fixture.py
@@ -9649,6 +9807,39 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_workspace_store.py:110
+- from: module:tests/measure_large_parquet.py
+  rel: imports
+  to: module:tests/measure_large_csv.py
+  status: CONFIRMED
+  evidence:
+  - tests/measure_large_parquet.py:21
+- from: module:tests/measure_large_parquet.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-07
+  status: INFERRED
+  evidence:
+  - tests/measure_large_parquet.py:9
+  note: bare AC-07; the file names only DRIVN-60
+- from: module:tests/measure_large_parquet.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-12
+  status: INFERRED
+  evidence:
+  - tests/measure_large_parquet.py:9
+  note: bare AC-12; the file names only DRIVN-60
+- from: module:tests/measure_large_parquet.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-13
+  status: INFERRED
+  evidence:
+  - tests/measure_large_parquet.py:9
+  note: bare AC-13; the file names only DRIVN-60
+- from: module:tests/measure_large_parquet.py
+  rel: verifies
+  to: ticket:DRIVN-63
+  status: CONFIRMED
+  evidence:
+  - tests/measure_large_parquet.py:1
 - from: module:tests/postgres_fixture.py
   rel: verifies
   to: criterion:DRIVN-45/AC-34
