@@ -358,19 +358,6 @@ def test_a_file_whose_columns_changed_fails_rather_than_saving_wrong_evidence(
     assert run["metrics"] == []
 
 
-def test_a_parquet_runs_values_are_refused_until_they_can_be_worked_out(
-    client: TestClient, events: Path
-) -> None:
-    # Values on request for a Parquet file are DRIVN-64's; until then the route says so, rather
-    # than reading the file as a CSV (found in DRIVN-63's review).
-    run = finished(client, start(client, connect(client, events)))
-
-    response = client.get(f"/api/profile-runs/{run['id']}/values", params={"column": "name"})
-
-    assert response.status_code == 409, response.text
-    assert response.json()["detail"] == "This Parquet file's values can't be worked out yet."
-
-
 @pytest.mark.parametrize("mode", ["fast", "full"])
 def test_a_damaged_value_fails_the_run_as_a_file_that_cant_be_read(
     client: TestClient, tmp_path: Path, mode: str

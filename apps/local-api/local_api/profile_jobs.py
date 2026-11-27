@@ -1064,6 +1064,37 @@ def values_of(
         )
 
 
+def parquet_values_of(
+    workspace: Workspace,
+    source: StoredParquetSource,
+    dataset: StoredDataset,
+    position: int,
+    slices: list[tuple[int, int]] | None,
+) -> ColumnValues:
+    """A Parquet column's values, read now from the rows its run read: its seeded `slices`, or
+    every row when `None`, and never saved (DRIVN-64).
+
+    Raises `Busy` while a profile runs or other values are being worked out.
+    """
+    with _working_out_values(), duckdb_connection(workspace.temp_directory) as connection:
+        connection.execute(f"SET memory_limit = '{PROFILE_MEMORY_LIMIT}'")
+        found = load_parquet_rows(connection, source.path, VALUES_TABLE, slices)
+        # As a run checks, so a value can't be taken from the wrong column.
+        if found != [(field.name, field.physical_type) for field in dataset.fields]:
+            raise ColumnsChanged(COLUMNS_CHANGED)
+        return values_for(
+            connection,
+            VALUES_TABLE,
+            position,
+            dataset.fields[position].normalised_type,
+            {},
+            # Every row loaded is one the run read.
+            every_row=True,
+            # A typed column's empty text is a value, as in a run.
+            blank_is_missing=False,
+        )
+
+
 def object_values_of(
     workspace: Workspace,
     details: ConnectionDetails,
