@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-27T10:13:54+00:00'
+updated_at: '2026-11-28T03:50:49+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
   .ai/knowledge/requirements/DRIVN-45.md: 021c964cae01690f64d4f984605da975da4a841869966c348c9aa5b87f4590a4
@@ -55,7 +55,7 @@ sources:
   .ai/knowledge/work/DRIVN-70.md: a3a5287b03e4c87603de0646557c60c27fc11d09dbb7fd1b8dadc241b8e3c657
   .ai/knowledge/work/DRIVN-71.md: cb82bf1703002c34e2adc1c44af6c09060db562716548c66db3a5910828a5462
   .ai/knowledge/work/DRIVN-72.md: 5b79ef9e78beeead6a15bfa912e2bb84610cebc16ac77ad9dc386b049a39e97e
-  .ai/knowledge/work/DRIVN-73.md: 645396896763daa9ffa276c5a3262055248ad3533bc9062944c59f2a619def18
+  .ai/knowledge/work/DRIVN-73.md: 77f2b46dc7cb887b58b3c8e895ba5483d2850756cbc9c7314066020bf646d232
   .github/workflows/ci.yml: 2b422ab2802952f88c49aeb9a34c7a32659f1579b1f29183b3f2e87d29a74dd8
   apps/local-api/local_api/app.py: 29b7b676aebd7ab89af295b2837e9305c8b9f08bbd3ac416038af43f8372b1ec
   apps/local-api/local_api/binding.py: 8c76ea6d3c19e6a0675913f0219a36bb2d9a28db55f177d50e5b288eda052d84
@@ -123,7 +123,7 @@ sources:
   packages/domain/trust.py: da25e4f6f28f94655b5f577a27eb57ed658d54c9c69a60b82b3a5bb6367b3f9b
   packages/profiling/findings.py: e3c7b48a934dae72adbec01d49bb9b4948a4b919e7f84f3b134ae5a132349d1b
   packages/profiling/first_rows.py: a707f6b018e13fb2b80206a8b4aedf8204fcedbe89a0541dc250c0483a5169a5
-  packages/profiling/on_request.py: 362f6d2ab06c0c66b105dbb3f327130cdcdc939ae03e515444dad837c2e2d97c
+  packages/profiling/on_request.py: 8edc69325385645a5e1efc5c32299f39e3811abe80c72b3c5dfe5ec298e8dad9
   packages/profiling/sensitive.py: d0afb67b6b9c983d59cba82ce543bad90c283ef1d957d8ee19845e0ec573f550
   pyproject.toml: 44e6c51efc357b05bccb13ace5dd1da37ab07d5858303c7cc8492d621368d91b
   testdata/generate_csv.py: 46be195110e31564ebf7656a14122089d5226836f473420a36d501f7d3425661
@@ -160,6 +160,7 @@ sources:
   tests/integration/test_csv_detection.py: 151b0c9244093baa1ad202837c722025f81464cb501245eacf0453f58f4327cb
   tests/integration/test_domain_entities.py: aeda3c9f72bf4d1df30da20d83ce8ca3a136ea94f747af4410483ab90dfadff6
   tests/integration/test_earlier_runs.py: 0e1062361041b34fba9c1eaf5a18c764615a441f26a463a11ca58fefa6d52675
+  tests/integration/test_exact_value_range.py: 4eba7b3b7ad9fd58d15b288378ee12e3b72186037c0dc2423cc4610392915055
   tests/integration/test_fast_profile.py: bb48917fc0283a66550db4f08e307cc866158841364b585d6ff6fc150fb66546
   tests/integration/test_finding_rules.py: 76fb3d5212c54c189d23d1e51978e5e295765124a220959de5ae0fb4b6f43854
   tests/integration/test_findings_api.py: a4b791ac5d93adaef390b8d950f513db282697c9ca1e6f30706366df090359ee
@@ -190,7 +191,7 @@ sources:
   tests/integration/test_postgres_sources_api.py: 1c2f4e137668f3d70b889bebf44cefa5ca1377164088f2a4cf4707ee6f528507
   tests/integration/test_postgres_stopping.py: ee5a6d8c256d2f0f3a200bdbe5ce6f9314b54de9b3da92b9ca601a8044b7c8a3
   tests/integration/test_postgres_values.py: 58d31f12a75ef92b300fb7f64325ebb9da3d7bdf6ddc2dda6bb7c5dacbf360de
-  tests/integration/test_postgres_values_api.py: edd0de6512225148a9bc95a3b5162ca5117ebb79d48669ad5a63b49252fff259
+  tests/integration/test_postgres_values_api.py: 522d5575958a8e1d4007f2a9c1fb29e41e42df323ed87787f6c067fa4e6f2d01
   tests/integration/test_postgres_values_stopping.py: 8c08ce970606012967b8be3ba935f31d9cb86ace212ce188cfadaa9b8726b050
   tests/integration/test_postgres_write_warning.py: 06ea9ae6f27749982fa466c7f5222963b588301e572e46ae024ff7ef2332818b
   tests/integration/test_preview_api.py: 7a33be2fecb6c8583176221c45f1ebd475dd8de9cff2b4e6120319b92e8365e4
@@ -203,7 +204,7 @@ sources:
   tests/integration/test_testdata.py: 6bf1c95be84d7d0b58d370c7ce3d5d17d699792bf2790214ab37b50527259a2e
   tests/integration/test_trust_rules.py: 634e7c3cbf8f8f20939857e1bff714580ff539eef702f55af1b050e5820b1de7
   tests/integration/test_values_api.py: 72645a60eb302e9ccb1b61ec0df9ea4d0873ff48d422ad27ee421bcc315af13b
-  tests/integration/test_values_on_request.py: 58082d245fffb37f8a2780b047d7b2f78b41b40d303112274a2aff1852d88ffe
+  tests/integration/test_values_on_request.py: a3d4ce74da46486275ba6ad1b9f6fe7c8d333af803b0161faa6017a30ca8e7bd
   tests/integration/test_wheel.py: 7df4f39c8d33a1a588dba8726b0d279dbe5e3241b5abe1c29098711a0acd0caf
   tests/integration/test_workspace.py: de25f5fea26ef96d2908084df976e1d548302c873662fd9ba563c2750be36801
   tests/integration/test_workspace_api.py: f7fdba34eb6f4a7aaf67265f387cbef0594ce4e49ea2145c4be7d0b4eca1e179
@@ -1770,6 +1771,10 @@ nodes:
   kind: module
   evidence:
   - tests/integration/test_earlier_runs.py:1
+- id: module:tests/integration/test_exact_value_range.py
+  kind: module
+  evidence:
+  - tests/integration/test_exact_value_range.py:1
 - id: module:tests/integration/test_fast_profile.py
   kind: module
   evidence:
@@ -2538,7 +2543,7 @@ nodes:
   evidence:
   - .ai/knowledge/work/DRIVN-73.md
   title: Values on request keep a wide number's and a precise time's exact range
-  state: ready
+  state: done
   external_key: DRIVN-73
 edges:
 - from: criterion:DRIVN-45/AC-01
@@ -5843,13 +5848,23 @@ edges:
   to: ticket:DRIVN-51
   status: CONFIRMED
   evidence:
-  - packages/profiling/on_request.py:85
+  - packages/profiling/on_request.py:89
+- from: module:packages/profiling/on_request.py
+  rel: implements
+  to: ticket:DRIVN-73
+  status: CONFIRMED
+  evidence:
+  - packages/profiling/on_request.py:125
+  - packages/profiling/on_request.py:185
+  - packages/profiling/on_request.py:215
+  - packages/profiling/on_request.py:234
+  - packages/profiling/on_request.py:295
 - from: module:packages/profiling/on_request.py
   rel: imports
   to: module:packages/profiling/first_rows.py
   status: CONFIRMED
   evidence:
-  - packages/profiling/on_request.py:9
+  - packages/profiling/on_request.py:10
 - from: module:testdata/generate_csv.py
   rel: implements
   to: criterion:DRIVN-8/AC-54
@@ -7281,6 +7296,63 @@ edges:
   status: CONFIRMED
   evidence:
   - tests/integration/test_earlier_runs.py:1
+- from: module:tests/integration/test_exact_value_range.py
+  rel: imports
+  to: module:tests/integration/test_fast_profile.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_exact_value_range.py:9
+- from: module:tests/integration/test_exact_value_range.py
+  rel: imports
+  to: module:tests/integration/test_parquet_profile.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_exact_value_range.py:10
+- from: module:tests/integration/test_exact_value_range.py
+  rel: imports
+  to: module:tests/integration/test_values_api.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_exact_value_range.py:11
+- from: module:tests/integration/test_exact_value_range.py
+  rel: imports
+  to: module:tests/integration/test_values_on_request.py
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_exact_value_range.py:12
+- from: module:tests/integration/test_exact_value_range.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-14
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_exact_value_range.py:1
+  - tests/integration/test_exact_value_range.py:64
+  - tests/integration/test_exact_value_range.py:74
+  - tests/integration/test_exact_value_range.py:85
+  - tests/integration/test_exact_value_range.py:107
+  - tests/integration/test_exact_value_range.py:117
+  - tests/integration/test_exact_value_range.py:130
+  - tests/integration/test_exact_value_range.py:140
+  - tests/integration/test_exact_value_range.py:164
+  - tests/integration/test_exact_value_range.py:173
+- from: module:tests/integration/test_exact_value_range.py
+  rel: verifies
+  to: criterion:DRIVN-9/AC-30
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_exact_value_range.py:164
+  - tests/integration/test_exact_value_range.py:222
+- from: module:tests/integration/test_exact_value_range.py
+  rel: verifies
+  to: ticket:DRIVN-73
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_exact_value_range.py:2
+  - tests/integration/test_exact_value_range.py:185
+  - tests/integration/test_exact_value_range.py:202
+  - tests/integration/test_exact_value_range.py:209
+  - tests/integration/test_exact_value_range.py:222
+  - tests/integration/test_exact_value_range.py:232
 - from: module:tests/integration/test_fast_profile.py
   rel: imports
   to: module:tests/conftest.py
@@ -9092,50 +9164,56 @@ edges:
   to: criterion:DRIVN-45/AC-05
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_values_api.py:388
+  - tests/integration/test_postgres_values_api.py:409
 - from: module:tests/integration/test_postgres_values_api.py
   rel: verifies
   to: criterion:DRIVN-45/AC-11
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_values_api.py:256
+  - tests/integration/test_postgres_values_api.py:277
 - from: module:tests/integration/test_postgres_values_api.py
   rel: verifies
   to: criterion:DRIVN-45/AC-20
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_values_api.py:276
+  - tests/integration/test_postgres_values_api.py:297
 - from: module:tests/integration/test_postgres_values_api.py
   rel: verifies
   to: criterion:DRIVN-45/AC-27
   status: CONFIRMED
   evidence:
   - tests/integration/test_postgres_values_api.py:1
-  - tests/integration/test_postgres_values_api.py:300
+  - tests/integration/test_postgres_values_api.py:321
 - from: module:tests/integration/test_postgres_values_api.py
   rel: verifies
   to: criterion:DRIVN-45/AC-28
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_values_api.py:111
-  - tests/integration/test_postgres_values_api.py:137
-  - tests/integration/test_postgres_values_api.py:156
-  - tests/integration/test_postgres_values_api.py:165
-  - tests/integration/test_postgres_values_api.py:180
-  - tests/integration/test_postgres_values_api.py:346
-  - tests/integration/test_postgres_values_api.py:414
+  - tests/integration/test_postgres_values_api.py:115
+  - tests/integration/test_postgres_values_api.py:141
+  - tests/integration/test_postgres_values_api.py:160
+  - tests/integration/test_postgres_values_api.py:186
+  - tests/integration/test_postgres_values_api.py:201
+  - tests/integration/test_postgres_values_api.py:367
+  - tests/integration/test_postgres_values_api.py:435
 - from: module:tests/integration/test_postgres_values_api.py
   rel: verifies
   to: criterion:DRIVN-45/AC-29
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_values_api.py:400
+  - tests/integration/test_postgres_values_api.py:421
+- from: module:tests/integration/test_postgres_values_api.py
+  rel: verifies
+  to: criterion:DRIVN-60/AC-14
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_values_api.py:171
 - from: module:tests/integration/test_postgres_values_api.py
   rel: verifies
   to: criterion:DRIVN-9/AC-29
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_values_api.py:300
+  - tests/integration/test_postgres_values_api.py:321
 - from: module:tests/integration/test_postgres_values_api.py
   rel: verifies
   to: ticket:DRIVN-55
@@ -9153,7 +9231,14 @@ edges:
   to: ticket:DRIVN-57
   status: CONFIRMED
   evidence:
-  - tests/integration/test_postgres_values_api.py:237
+  - tests/integration/test_postgres_values_api.py:258
+- from: module:tests/integration/test_postgres_values_api.py
+  rel: verifies
+  to: ticket:DRIVN-73
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_postgres_values_api.py:56
+  - tests/integration/test_postgres_values_api.py:171
 - from: module:tests/integration/test_postgres_values_stopping.py
   rel: imports
   to: module:tests/conftest.py
@@ -9824,6 +9909,12 @@ edges:
   - tests/integration/test_values_api.py:377
 - from: module:tests/integration/test_values_on_request.py
   rel: verifies
+  to: criterion:DRIVN-60/AC-14
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_values_on_request.py:172
+- from: module:tests/integration/test_values_on_request.py
+  rel: verifies
   to: criterion:DRIVN-9/AC-30
   status: CONFIRMED
   evidence:
@@ -9839,7 +9930,13 @@ edges:
   - tests/integration/test_values_on_request.py:145
   - tests/integration/test_values_on_request.py:158
   - tests/integration/test_values_on_request.py:168
-  - tests/integration/test_values_on_request.py:183
+  - tests/integration/test_values_on_request.py:184
+- from: module:tests/integration/test_values_on_request.py
+  rel: verifies
+  to: ticket:DRIVN-73
+  status: CONFIRMED
+  evidence:
+  - tests/integration/test_values_on_request.py:172
 - from: module:tests/integration/test_wheel.py
   rel: imports
   to: module:tests/conftest.py
