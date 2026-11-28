@@ -53,6 +53,10 @@ OBJECTS = (
     f"CREATE VIEW {SCHEMA}.three_seconds AS SELECT 1 AS n FROM pg_sleep(3)",
     # Read in about 2 s, so a run on it can be cancelled.
     f"CREATE VIEW {SCHEMA}.slow AS SELECT 1 AS n FROM pg_sleep(2)",
+    # Two values 0.01 apart with 25 significant digits, which a double can't tell apart (DRIVN-73).
+    f"CREATE TABLE {SCHEMA}.amounts (amount numeric(38, 2))",
+    f"INSERT INTO {SCHEMA}.amounts VALUES"
+    " (12345678901234567890123.45), (12345678901234567890123.46)",
     f"GRANT USAGE ON SCHEMA {SCHEMA} TO drivnx_fixture",
     f"GRANT SELECT ON ALL TABLES IN SCHEMA {SCHEMA} TO drivnx_fixture",
 )
@@ -159,6 +163,23 @@ def test_a_full_runs_values_are_from_every_row(client: TestClient) -> None:
     found = values_of(client, run_id, "people", "city").json()
 
     assert (found["method"], found["scope"], found["rows_read"]) == ("full", "full", 3)
+
+
+def test_a_wide_numerics_range_and_median_are_as_the_database_has_them(
+    client: TestClient,
+) -> None:
+    # DRIVN-60/AC-14 checked for a database (DRIVN-73): a numeric(38,2) column's values aren't
+    # read through a double. Its median is halfway, worked out by hand.
+    run_id = completed(client, chosen_source(client, "amounts"), "full")
+
+    found = values_of(client, run_id, "amounts", "amount").json()
+
+    assert (found["minimum"], found["maximum"], found["median"]) == (
+        cell("12345678901234567890123.45"),
+        cell("12345678901234567890123.46"),
+        cell("12345678901234567890123.455"),
+    )
+    assert [bucket["count"] for bucket in found["histogram"]] == [1, *[0] * 8, 1]
 
 
 def test_a_views_values_say_it_is_a_view(client: TestClient) -> None:
