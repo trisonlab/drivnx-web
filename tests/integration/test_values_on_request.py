@@ -169,8 +169,9 @@ def test_numbers_that_arent_finite_take_no_part_in_the_range_statistics_or_histo
     # They're still frequent values.
     found = values(tmp_path, column("reading", "1", "inf", "NaN", "-Infinity", "3"), "number")
 
-    assert (found.minimum, found.maximum) == ("1.0", "3.0")
-    assert (found.mean, found.median) == ("2.0", "2.0")
+    # As the file writes them, not through a double (DRIVN-60/AC-14, DRIVN-73).
+    assert (found.minimum, found.maximum) == ("1", "3")
+    assert (found.mean, found.median) == ("2.0", "2")
     assert found.histogram is not None
     assert sum(bucket.count for bucket in found.histogram) == 2
     assert {frequent.value for frequent in found.frequent} == {"1", "inf", "NaN", "-Infinity", "3"}
